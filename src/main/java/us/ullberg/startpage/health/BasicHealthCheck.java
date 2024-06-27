@@ -1,17 +1,16 @@
 package us.ullberg.startpage.health;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
 
-import jakarta.enterprise.context.ApplicationScoped;
-
 @Liveness
-@ApplicationScoped  
+@ApplicationScoped
 public class BasicHealthCheck implements HealthCheck {
 
-    @Override
-    public HealthCheckResponse call() {
-        return HealthCheckResponse.up("Application is running");
-    }
+  @Override
+  public HealthCheckResponse call() {
+    return HealthCheckResponse.up("Application is running");
+  }
 }
