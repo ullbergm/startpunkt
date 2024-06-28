@@ -23,7 +23,9 @@
 [![Project license](https://img.shields.io/github/license/ullbergm/startpage.svg?style=flat-square)](LICENSE)
 
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/ullbergm/startpage/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-[![code with love by ullbergm](https://img.shields.io/badge/%3C%2F%3E%20with%20%E2%99%A5%20by-ullbergm-ff1414.svg?style=flat-square)](https://github.com/ullbergm)
+[![buy me a coffee](https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square)](https://buymeacoffee.com/magnus.ullberg)
+[![offer me a job](https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?style=flat-square)](https://ullberg.us/cv.pdf)
+
 
 </div>
 
