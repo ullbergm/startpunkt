@@ -6,22 +6,28 @@ on:
     - cron: "0 9 * * *"
   workflow_dispatch:
 
+permissions:
+  issues: write
+  pull-requests: write
+  discussions: write
+
 jobs:
   lock:
     name: 🔒 Lock closed issues and PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: dessant/lock-threads@v2.0.3
+      - uses: dessant/lock-threads@v5.0.1
         with:
           github-token: ${{ github.token }}
-          issue-lock-inactive-days: "30"
+          add-issue-labels: 'outdated'
+          issue-inactive-days: "90"
           issue-lock-reason: ""
           issue-comment: >
             Issue closed and locked due to lack of activity.
 
             If you encounter this same issue, please open a new issue and refer
             to this closed one.
-          pr-lock-inactive-days: "1"
+          pr-inactive-days: "90"
           pr-lock-reason: ""
           pr-comment: >
             Pull Request closed and locked due to lack of activity.
