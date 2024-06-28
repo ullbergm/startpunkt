@@ -55,12 +55,7 @@
 
 <table><tr><td>
 
-> **[?]**
-> Provide general information about your project here.
-> What problem does it (intend to) solve?
-> What is the purpose of your project?
-> Why did you undertake it?
-> You don't have to answer all the questions -- just the ones relevant to your project.
+Startpage is a clean startpage designed to display links to all your self-hosted resources in your kubernetes cluster. It automatically detects running services in the cluster and adds them to the start page, while offering customization using labels and CRDs.
 
 <details>
 <summary>Screenshots</summary>
@@ -79,9 +74,9 @@
 
 ### Built With
 
-> **[?]**
-> Please provide the technologies that are used in the project.
+#### [Quarkus](https://quarkus.io/)
 
+<!--
 ## Getting Started
 
 ### Prerequisites
@@ -108,10 +103,9 @@ See the [open issues](https://github.com/ullbergm/startpage/issues) for a list o
 - [Top Bugs](https://github.com/ullbergm/startpage/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Newest Bugs](https://github.com/ullbergm/startpage/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 
-## Support
+-->
 
-> **[?]**
-> Provide additional ways to contact the project maintainer/maintainers.
+## Support
 
 Reach out to the maintainer at one of the following places:
 
@@ -123,15 +117,11 @@ Reach out to the maintainer at one of the following places:
 If you want to say **thank you** or/and support active development of Startpage:
 
 - Add a [GitHub Star](https://github.com/ullbergm/startpage) to the project.
-- Tweet about the Startpage.
-- Write interesting articles about the project on [Dev.to](https://dev.to/), [Medium](https://medium.com/) or your personal blog.
-
-Together, we can make Startpage **better**!
+- Buy me a [coffee](https://buymeacoffee.com/magnus.ullberg).
 
 ## Contributing
 
 First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
-
 
 Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
 
@@ -150,12 +140,12 @@ _For more information and to report security issues, please refer to our [securi
 
 ## License
 
-This project is licensed under the **Apache Software License 2.0**.
+This project is licensed under the **MIT License**.
 
 See [LICENSE](LICENSE) for more information.
 
 ## Acknowledgements
 
-> **[?]**
-> If your work was funded by any organization or institution, acknowledge their support here.
-> In addition, if your work relies on other software libraries, or was inspired by looking at other work, it is appropriate to acknowledge this intellectual debt too.
+* [SUI](https://github.com/jeroenpardon/sui)
+* [Hajimari](https://hajimari.io/)
+* [Forecastle](https://github.com/stakater/Forecastle)
