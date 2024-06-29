@@ -35,6 +35,8 @@
 - [About](#about)
   - [Built With](#built-with)
     - [Quarkus](#quarkus)
+    - [React](#react)
+    - [Bootstrap](#bootstrap)
 - [Support](#support)
 - [Project assistance](#project-assistance)
 - [Contributing](#contributing)
@@ -59,7 +61,7 @@ Startpunkt is a clean startpunkt designed to display links to all your self-host
 
 |                               Home Page                               |                               Login Page                               |
 | :-------------------------------------------------------------------: | :--------------------------------------------------------------------: |
-| <img src="docs/images/screenshot.png" title="Home Page" width="50%"> | <img src="docs/images/mobile.png" title="Mobile view" width="50%"> |
+| <img src="docs/images/screenshot.png" title="Home Page" width="100%"> | <img src="docs/images/mobile.png" title="Mobile view" width="50%">     |
 
 </details>
 
@@ -68,6 +70,8 @@ Startpunkt is a clean startpunkt designed to display links to all your self-host
 ### Built With
 
 #### [Quarkus](https://quarkus.io/)
+#### [React](https://react.dev/)
+#### [Bootstrap](https://getbootstrap.com/)
 
 <!--
 ## Getting Started
