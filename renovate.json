@@ -8,7 +8,7 @@
   "packageRules": [
     {
       "matchPackagePatterns": ["github-actions"],
-      "groupName": "github-actions"
+      "groupName": "github-tags"
     }
   ]
 }
