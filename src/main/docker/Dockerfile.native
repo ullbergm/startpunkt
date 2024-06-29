@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/startpage .
+# docker build -f src/main/docker/Dockerfile.native -t quarkus/startpunkt .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/startpage
+# docker run -i --rm -p 8080:8080 quarkus/startpunkt
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10-896.1717584414

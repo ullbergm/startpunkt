@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help Startpage to improve
+about: Create a report to help Startpunkt to improve
 title: "bug: "
 labels: "bug"
 assignees: ""
@@ -8,7 +8,7 @@ assignees: ""
 
 # Bug Report
 
-**Startpage version:**
+**Startpunkt version:**
 
 <!-- Please specify commit or tag version. -->
 

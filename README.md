@@ -1,28 +1,28 @@
 <h1 align="center">
-  <a href="https://github.com/ullbergm/startpage">
+  <a href="https://github.com/ullbergm/startpunkt">
     <!-- Please provide path to your logo here -->
-    <img src="docs/images/logo.svg" alt="Logo" width="100" height="100">
+    <img src="docs/images/logo.png" alt="Logo" width="100" height="100">
   </a>
 </h1>
 
 <div align="center">
-  Startpage
+  Startpunkt
   <br />
   <a href="#about"><strong>Explore the screenshots »</strong></a>
   <br />
   <br />
-  <a href="https://github.com/ullbergm/startpage/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
+  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
   ·
-  <a href="https://github.com/ullbergm/startpage/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
-  .<a href="https://github.com/ullbergm/startpage/discussions">Ask a Question</a>
+  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
+  .<a href="https://github.com/ullbergm/startpunkt/discussions">Ask a Question</a>
 </div>
 
 <div align="center">
 <br />
 
-[![Project license](https://img.shields.io/github/license/ullbergm/startpage.svg?style=flat-square)](LICENSE)
+[![Project license](https://img.shields.io/github/license/ullbergm/startpunkt.svg?style=flat-square)](LICENSE)
 
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/ullbergm/startpage/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![buy me a coffee](https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square)](https://buymeacoffee.com/magnus.ullberg)
 [![offer me a job](https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?style=flat-square)](https://ullberg.us/cv.pdf)
 
@@ -51,7 +51,7 @@
 
 <table><tr><td>
 
-Startpage is a clean startpage designed to display links to all your self-hosted resources in your kubernetes cluster. It automatically detects running services in the cluster and adds them to the start page, while offering customization using labels and CRDs.
+Startpunkt is a clean startpunkt designed to display links to all your self-hosted resources in your kubernetes cluster. It automatically detects running services in the cluster and adds them to the start page, while offering customization using labels and CRDs.
 
 <details>
 <summary>Screenshots</summary>
@@ -93,11 +93,11 @@ Startpage is a clean startpage designed to display links to all your self-hosted
 
 ## Roadmap
 
-See the [open issues](https://github.com/ullbergm/startpage/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/ullbergm/startpunkt/issues) for a list of proposed features (and known issues).
 
-- [Top Feature Requests](https://github.com/ullbergm/startpage/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
-- [Top Bugs](https://github.com/ullbergm/startpage/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
-- [Newest Bugs](https://github.com/ullbergm/startpage/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
+- [Top Feature Requests](https://github.com/ullbergm/startpunkt/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Top Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
+- [Newest Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 
 -->
 
@@ -105,14 +105,14 @@ See the [open issues](https://github.com/ullbergm/startpage/issues) for a list o
 
 Reach out to the maintainer at one of the following places:
 
-- [GitHub Discussions](https://github.com/ullbergm/startpage/discussions)
+- [GitHub Discussions](https://github.com/ullbergm/startpunkt/discussions)
 - Contact options listed on [this GitHub profile](https://github.com/ullbergm)
 
 ## Project assistance
 
-If you want to say **thank you** or/and support active development of Startpage:
+If you want to say **thank you** or/and support active development of Startpunkt:
 
-- Add a [GitHub Star](https://github.com/ullbergm/startpage) to the project.
+- Add a [GitHub Star](https://github.com/ullbergm/startpunkt) to the project.
 - Buy me a [coffee](https://buymeacoffee.com/magnus.ullberg).
 
 ## Contributing
@@ -125,12 +125,12 @@ Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you f
 
 The original setup of this repository is by [Magnus Ullberg](https://github.com/ullbergm).
 
-For a full list of all authors and contributors, see [the contributors page](https://github.com/ullbergm/startpage/contributors).
+For a full list of all authors and contributors, see [the contributors page](https://github.com/ullbergm/startpunkt/contributors).
 
 ## Security
 
-Startpage follows good practices of security, but 100% security cannot be assured.
-Startpage is provided **"as is"** without any **warranty**. Use at your own risk.
+Startpunkt follows good practices of security, but 100% security cannot be assured.
+Startpunkt is provided **"as is"** without any **warranty**. Use at your own risk.
 
 _For more information and to report security issues, please refer to our [security documentation](docs/SECURITY.md)._
 

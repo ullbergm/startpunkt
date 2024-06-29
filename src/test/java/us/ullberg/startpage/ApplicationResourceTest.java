@@ -1,4 +1,4 @@
-package us.ullberg.startpage;
+package us.ullberg.startpunkt;
 
 import static io.restassured.RestAssured.given;
 

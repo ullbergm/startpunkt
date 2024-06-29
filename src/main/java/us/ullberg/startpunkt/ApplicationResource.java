@@ -1,4 +1,4 @@
-package us.ullberg.startpage;
+package us.ullberg.startpunkt;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -12,9 +12,9 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpage.model.Application;
-import us.ullberg.startpage.model.Application.ApplicationComparator;
-import us.ullberg.startpage.model.ApplicationGroup;
+import us.ullberg.startpunkt.model.Application;
+import us.ullberg.startpunkt.model.Application.ApplicationComparator;
+import us.ullberg.startpunkt.model.ApplicationGroup;
 
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
@@ -23,20 +23,20 @@ public class ApplicationResource {
 
   @Inject MeterRegistry registry;
 
-  @ConfigProperty(name = "startpage.hajimari.enabled")
+  @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
 
-  @ConfigProperty(name = "startpage.openshift.enabled")
+  @ConfigProperty(name = "startpunkt.openshift.enabled")
   private boolean openshiftEnabled = true;
 
   private ArrayList<Application> retrieveApps() {
     // Create a list of applications
     var apps = new ArrayList<Application>();
 
-    // If startpage.hajimari is set to true, get the Hajimari applications
+    // If startpunkt.hajimari is set to true, get the Hajimari applications
     if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
 
-    // If startpage.openshift is set to true, get the OpenShift Route applications
+    // If startpunkt.openshift is set to true, get the OpenShift Route applications
     if (openshiftEnabled) apps.addAll(ApplicationService.retrieveRoutesApplications());
 
     // Sort the list
@@ -47,7 +47,7 @@ public class ApplicationResource {
   }
 
   @GET
-  @Timed(value = "startpage.api.getapps", description = "Get the list of applications")
+  @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
   public Response getApps() {
     // Retrieve the list of applications

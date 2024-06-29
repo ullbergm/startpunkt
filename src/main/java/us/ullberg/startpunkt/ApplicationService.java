@@ -1,4 +1,4 @@
-package us.ullberg.startpage;
+package us.ullberg.startpunkt;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
@@ -10,12 +10,12 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpage.model.Application;
+import us.ullberg.startpunkt.model.Application;
 
 @ApplicationScoped
 public class ApplicationService {
   @Timed(
-      value = "startpage.kubernetes.hajimari",
+      value = "startpunkt.kubernetes.hajimari",
       description = "Get a list of hajimari applications")
   public List<Application> retrieveHajimariApplications() {
     Log.info("Retrieve Hajimari Applications");
@@ -57,7 +57,7 @@ public class ApplicationService {
     }
   }
 
-  @Timed(value = "startpage.kubernetes.openshift", description = "Get a list of openshift routes")
+  @Timed(value = "startpunkt.kubernetes.openshift", description = "Get a list of openshift routes")
   public List<Application> retrieveRoutesApplications() {
     Log.info("Retrieve OpenShift Routes");
     try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
