@@ -1,0 +1,30 @@
+.App {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.App-header {
+  background-color: #212529;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+}
+
+.Bookmark-header {
+  background-color: #212529;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+// Your variable overrides
+$body-bg: #212529;
+$body-color: #fff;
+
+@import '~bootstrap/scss/bootstrap';
