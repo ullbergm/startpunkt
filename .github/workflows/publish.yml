@@ -30,6 +30,7 @@ jobs:
   build:
     env:
       MVN: mvn --show-version --batch-mode
+      CI: false
 
     runs-on: ubuntu-latest
     permissions:
