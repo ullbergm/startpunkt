@@ -1,9 +1,11 @@
-package us.ullberg.startpage.model;
+package us.ullberg.startpunkt.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.ArrayList;
 
 // Group class
+@RegisterForReflection(registerFullHierarchy = true)
 public class ApplicationGroup implements Comparable<ApplicationGroup> {
   // Constructor
   public ApplicationGroup(String name) {

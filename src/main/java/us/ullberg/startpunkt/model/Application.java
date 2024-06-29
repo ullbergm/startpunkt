@@ -1,10 +1,12 @@
-package us.ullberg.startpage.model;
+package us.ullberg.startpunkt.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 // Application class
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
 public class Application implements Comparable<Application> {
   // Constructor
   public Application(

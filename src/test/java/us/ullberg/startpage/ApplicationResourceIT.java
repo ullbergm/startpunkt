@@ -1,4 +1,4 @@
-package us.ullberg.startpage;
+package us.ullberg.startpunkt;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 

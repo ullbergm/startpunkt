@@ -1,4 +1,4 @@
-package us.ullberg.startpage.health;
+package us.ullberg.startpunkt.health;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.health.HealthCheck;
