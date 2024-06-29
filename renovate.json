@@ -5,7 +5,10 @@
     ":dependencyDashboard",
     ":semanticCommits"
   ],
-  "major": {
-    "dependencyDashboardApproval": true
-  }
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["github-actions"],
+      "groupName": "github-actions"
+    }
+  ]
 }
