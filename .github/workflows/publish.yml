@@ -1,19 +1,18 @@
+name: Publish
+
 concurrency:
   group: ci
   cancel-in-progress: false
 
-name: Publish
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 on:
+  schedule:
+    - cron: "15 1 * * 1"
   push:
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    branches:
+      - main
   workflow_dispatch:
+  release:
+    types: [published]
 
 env:
   # Use docker.io for Docker Hub if empty
