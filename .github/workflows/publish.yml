@@ -2,7 +2,7 @@ concurrency:
   group: ci
   cancel-in-progress: false
 
-name: Docker
+name: Publish
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -28,6 +28,8 @@ env:
 
 jobs:
   build:
+    env:
+      MVN: mvn --show-version --batch-mode
 
     runs-on: ubuntu-latest
     permissions:
