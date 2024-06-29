@@ -78,12 +78,12 @@ jobs:
       - name: mvn clean compile
         run: $MVN clean compile
 
-      - name: mvn test
+      - name: mvn test -Pnative -Dquarkus.native.container-build=true
         run: $MVN test
 
-      - name: mvn package -DskipTests
+      - name: mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
         if: github.ref != 'refs/heads/master'
-        run: $MVN package -DskipTests
+        run: $MVN package -Pnative -DskipTests -Dquarkus.native.container-build=true
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -92,7 +92,7 @@ jobs:
         uses: docker/build-push-action@15560696de535e4014efeff63c48f16952e52dd1 # v6.2.0
         with:
           context: .
-          file: src/main/docker/Dockerfile.jvm
+          file: src/main/docker/Dockerfile.native
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
