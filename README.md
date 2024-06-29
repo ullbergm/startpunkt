@@ -57,12 +57,9 @@ Startpunkt is a clean startpunkt designed to display links to all your self-host
 <summary>Screenshots</summary>
 <br>
 
-> **[?]**
-> Please provide your screenshots here.
-
 |                               Home Page                               |                               Login Page                               |
 | :-------------------------------------------------------------------: | :--------------------------------------------------------------------: |
-| <img src="docs/images/screenshot.png" title="Home Page" width="100%"> | <img src="docs/images/screenshot.png" title="Login Page" width="100%"> |
+| <img src="docs/images/screenshot.png" title="Home Page" width="50%"> | <img src="docs/images/mobile.png" title="Mobile view" width="50%"> |
 
 </details>
 
