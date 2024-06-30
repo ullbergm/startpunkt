@@ -14,40 +14,36 @@ import us.ullberg.startpunkt.model.Bookmark;
 
 @ApplicationScoped
 public class BookmarkService {
-  @Timed(
-      value = "startpunkt.kubernetes.hajimari",
-      description = "Get a list of hajimari bookmarks")
+  @Timed(value = "startpunkt.kubernetes.hajimari", description = "Get a list of hajimari bookmarks")
   public List<Bookmark> retrieveHajimariBookmarks() {
     Log.info("Retrieve Hajimari Bookmarks");
 
     try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
-      ResourceDefinitionContext resourceDefinitionContext =
-          new ResourceDefinitionContext.Builder()
-              .withGroup("hajimari.io")
-              .withVersion("v1alpha1")
-              .withPlural("bookmarks")
-              .withNamespaced(true)
-              .build();
+      ResourceDefinitionContext resourceDefinitionContext = new ResourceDefinitionContext.Builder()
+          .withGroup("hajimari.io")
+          .withVersion("v1alpha1")
+          .withPlural("bookmarks")
+          .withNamespaced(true)
+          .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace()
+          .list();
 
-      List<Bookmark> bookmarks =
-          list.getItems().stream()
-              .map(
-                  item -> {
-                    String name = getBookmarkName(item);
-                    String url = getUrl(item);
-                    String icon = getIcon(item);
-                    String info = getInfo(item);
-                    String group = getGroup(item);
-                    Boolean targetBlank = getTargetBlank(item);
-                    int location = getLocation(item);
+      List<Bookmark> bookmarks = list.getItems().stream()
+          .map(
+              item -> {
+                String name = getBookmarkName(item);
+                String url = getUrl(item);
+                String icon = getIcon(item);
+                String info = getInfo(item);
+                String group = getGroup(item);
+                Boolean targetBlank = getTargetBlank(item);
+                int location = getLocation(item);
 
-                    return new Bookmark(
-                        name, group, icon, url, info, targetBlank, location);
-                  })
-              .toList();
+                return new Bookmark(
+                    name, group, icon, url, info, targetBlank, location);
+              })
+          .toList();
 
       return bookmarks;
     } catch (Exception e) {
@@ -60,8 +56,9 @@ public class BookmarkService {
     Map<String, Object> props = item.getAdditionalProperties();
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
-    
-    if (spec.containsKey("url")) return spec.get("url").toString();
+
+    if (spec.containsKey("url"))
+      return spec.get("url").toString();
 
     throw new IllegalArgumentException("URL is required");
   }
@@ -71,7 +68,8 @@ public class BookmarkService {
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
 
-    if (spec.containsKey("icon")) return spec.get("icon").toString();
+    if (spec.containsKey("icon"))
+      return spec.get("icon").toString();
 
     return null;
   }
@@ -81,7 +79,8 @@ public class BookmarkService {
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
 
-    if (spec.containsKey("info")) return spec.get("info").toString();
+    if (spec.containsKey("info"))
+      return spec.get("info").toString();
 
     return null;
   }
@@ -92,8 +91,8 @@ public class BookmarkService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
 
     return (spec.containsKey("group")
-            ? spec.get("group").toString()
-            : item.getMetadata().getNamespace())
+        ? spec.get("group").toString()
+        : item.getMetadata().getNamespace())
         .toLowerCase();
   }
 
@@ -102,7 +101,8 @@ public class BookmarkService {
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
 
-    if (spec.containsKey("name")) return spec.get("name").toString();
+    if (spec.containsKey("name"))
+      return spec.get("name").toString();
 
     return item.getMetadata().getName().toLowerCase();
   }
@@ -112,7 +112,8 @@ public class BookmarkService {
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
 
-    if (spec.containsKey("targetBlank")) return Boolean.parseBoolean(spec.get("targetBlank").toString());
+    if (spec.containsKey("targetBlank"))
+      return Boolean.parseBoolean(spec.get("targetBlank").toString());
 
     return null;
   }
