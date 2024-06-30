@@ -35,7 +35,8 @@
 - [About](#about)
   - [Built With](#built-with)
     - [Quarkus](#quarkus)
-    - [React](#react)
+    - [Vite](#vite)
+    - [Preact](#preact)
     - [Bootstrap](#bootstrap)
 - [Support](#support)
 - [Project assistance](#project-assistance)
@@ -70,7 +71,19 @@ Startpunkt is a clean startpunkt designed to display links to all your self-host
 ### Built With
 
 #### [Quarkus](https://quarkus.io/)
-#### [React](https://react.dev/)
+
+Quarkus provides a way to compile the java code to native binaries, making the container really small and quick to start up.
+
+It also provides several libraries that simplify the development immensely.
+* Rest client
+* Kubernetes client
+* Caching
+* Health checks
+* Prometheus monitoring
+* Deploying a static website builder in the same application
+
+#### [Vite](https://vitejs.dev)
+#### [Preact](https://preactjs.com)
 #### [Bootstrap](https://getbootstrap.com/)
 
 <!--
