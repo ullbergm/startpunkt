@@ -1,7 +1,7 @@
 :root {
-  --color-background: #232530;
-  --color-text-pri: #fab795;
-  --color-text-acc: #e95678;
+  --color-background: #F8F6F1;
+  --color-text-pri: #4C432E;
+  --color-text-acc: #AA9A73;
 
   font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Roboto, sans-serif;
 
@@ -16,6 +16,10 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.accent {
+  color: var(--color-text-acc);
 }
 
 a {
