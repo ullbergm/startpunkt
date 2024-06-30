@@ -18,3 +18,5 @@ export function Application(props) {
     </div>
   )
 }
+
+export default Application;

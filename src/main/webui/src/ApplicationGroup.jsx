@@ -13,3 +13,5 @@ export function ApplicationGroup(props) {
     </div>
   )
 }
+
+export default ApplicationGroup;

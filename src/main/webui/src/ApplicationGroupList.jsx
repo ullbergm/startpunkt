@@ -14,4 +14,4 @@ export function ApplicationGroupList(props) {
   )
 }
 
-export default ApplicationGroupList
+export default ApplicationGroupList;
