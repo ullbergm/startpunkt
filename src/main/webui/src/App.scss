@@ -1,30 +1,28 @@
-.App {
-  text-align: center;
-  text-transform: uppercase;
+#app {
+   max-width: 1280px;
+   margin: 0 auto;
+   padding: 1rem;
 }
 
-.App-header {
-  background-color: #212529;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: white;
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-pri);
+  scrollbar-color: var(--color-text-acc) var(--color-background);
+  scrollbar-width: thin;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 400;
+  height: auto;
+  letter-spacing: -0.012em;
+  width: 100%;
 }
 
-.Bookmark-header {
-  background-color: #212529;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: white;
+.logo {
+  height: 6em;
+  padding: 1.5em;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-// Your variable overrides
-$body-bg: #212529;
-$body-color: #fff;
-
-@import '~bootstrap/scss/bootstrap';
