@@ -71,4 +71,4 @@ spec:
             periodSeconds: {{ .Values.app.startupProbe.periodSeconds }}
             successThreshold: {{ .Values.app.startupProbe.successThreshold }}
             timeoutSeconds: {{ .Values.app.startupProbe.timeoutSeconds }}
-      serviceAccountName: startpunkt
+      serviceAccountName: {{ .Values.serviceAccountName }}
