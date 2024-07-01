@@ -1,0 +1,33 @@
+---
+app:
+  image: ghcr.io/ullbergm/startpunkt:v0.5.0
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/live
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
+  ports:
+    http: 8080
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/ready
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
+  startupProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/started
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
+serviceAccountName: startpunkt

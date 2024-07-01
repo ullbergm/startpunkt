@@ -1,0 +1,20 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/version: 0.5.0
+  name: startpunkt
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: startpunkt
+      app.kubernetes.io/version: 0.5.0
+  endpoints:
+    - scheme: http
+      targetPort: 8080
+      path: /q/metrics
+      interval: 10s
+      honorLabels: true

@@ -12,9 +12,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpunkt.model.Application;
-import us.ullberg.startpunkt.model.Application.ApplicationComparator;
-import us.ullberg.startpunkt.model.ApplicationGroup;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,9 +27,11 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.openshift.enabled")
   private boolean openshiftEnabled = true;
 
-  private ArrayList<Application> retrieveApps() {
+  private ArrayList<ApplicationSpec> retrieveApps() {
     // Create a list of applications
-    var apps = new ArrayList<Application>();
+    var apps = new ArrayList<ApplicationSpec>();
+
+    apps.addAll(ApplicationService.retrieveApplications());
 
     // If startpunkt.hajimari is set to true, get the Hajimari applications
     if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
@@ -40,7 +40,7 @@ public class ApplicationResource {
     if (openshiftEnabled) apps.addAll(ApplicationService.retrieveRoutesApplications());
 
     // Sort the list
-    Collections.sort(apps, new ApplicationComparator());
+    Collections.sort(apps);
 
     // Return the list
     return apps;
@@ -51,13 +51,13 @@ public class ApplicationResource {
   @CacheResult(cacheName = "getApps")
   public Response getApps() {
     // Retrieve the list of applications
-    ArrayList<Application> applist = retrieveApps();
+    ArrayList<ApplicationSpec> applist = retrieveApps();
 
     // Create a list of groups
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
 
     // Group the applications by group
-    for (Application a : applist) {
+    for (ApplicationSpec a : applist) {
       // Find the group
       ApplicationGroup group = null;
       for (ApplicationGroup g : groups) {

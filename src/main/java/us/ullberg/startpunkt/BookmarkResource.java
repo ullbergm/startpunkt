@@ -12,9 +12,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpunkt.model.Bookmark;
-import us.ullberg.startpunkt.model.Bookmark.BookmarkComparator;
-import us.ullberg.startpunkt.model.BookmarkGroup;
+import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 @Path("/api/bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
@@ -26,15 +24,17 @@ public class BookmarkResource {
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
 
-  private ArrayList<Bookmark> retrieveBookmarks() {
+  private ArrayList<BookmarkSpec> retrieveBookmarks() {
     // Create a list of bookmarks
-    var bookmarks = new ArrayList<Bookmark>();
+    var bookmarks = new ArrayList<BookmarkSpec>();
+
+    bookmarks.addAll(BookmarkService.retrieveBookmarks());
 
     // If startpunkt.hajimari is set to true, get the Hajimari bookmarks
     if (hajimariEnabled) bookmarks.addAll(BookmarkService.retrieveHajimariBookmarks());
 
     // Sort the list
-    Collections.sort(bookmarks, new BookmarkComparator());
+    Collections.sort(bookmarks);
 
     // Return the list
     return bookmarks;
@@ -45,13 +45,13 @@ public class BookmarkResource {
   @CacheResult(cacheName = "getBookmarks")
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-    ArrayList<Bookmark> bookmarklist = retrieveBookmarks();
+    ArrayList<BookmarkSpec> bookmarklist = retrieveBookmarks();
 
     // Create a list of groups
     ArrayList<BookmarkGroup> groups = new ArrayList<>();
 
     // Group the bookmarks by group
-    for (Bookmark a : bookmarklist) {
+    for (BookmarkSpec a : bookmarklist) {
       // Find the group
       BookmarkGroup group = null;
       for (BookmarkGroup g : groups) {

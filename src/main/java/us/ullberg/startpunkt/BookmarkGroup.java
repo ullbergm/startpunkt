@@ -1,8 +1,9 @@
-package us.ullberg.startpunkt.model;
+package us.ullberg.startpunkt;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.ArrayList;
+import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 // Group class
 @RegisterForReflection(registerFullHierarchy = true)
@@ -10,17 +11,17 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
   // Constructor
   public BookmarkGroup(String name) {
     Name = name;
-    Bookmarks = new ArrayList<Bookmark>();
+    Bookmarks = new ArrayList<BookmarkSpec>();
   }
 
-  public BookmarkGroup(String name, ArrayList<Bookmark> bookmarks) {
+  public BookmarkGroup(String name, ArrayList<BookmarkSpec> bookmarks) {
     Name = name;
     Bookmarks = bookmarks;
   }
 
   // Private fields
   private String Name;
-  private ArrayList<Bookmark> Bookmarks;
+  private ArrayList<BookmarkSpec> Bookmarks;
 
   // Getter methods with annotations
   @JsonProperty("name")
@@ -29,7 +30,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
   }
 
   @JsonProperty("bookmarks")
-  public ArrayList<Bookmark> getBookmarks() {
+  public ArrayList<BookmarkSpec> getBookmarks() {
     return Bookmarks;
   }
 
@@ -39,7 +40,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     return this.getName().compareTo(other.getName());
   }
 
-  public void addBookmark(Bookmark app) {
+  public void addBookmark(BookmarkSpec app) {
     Bookmarks.add(app);
   }
 }
