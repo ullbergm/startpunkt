@@ -1,6 +1,6 @@
 ---
 app:
-  image: quay.io/ullbergm/startpunkt:v0.5.0
+  image: ghcr.io/ullbergm/startpunkt:v0.5.0
   livenessProbe:
     failureThreshold: 3
     httpGet:
