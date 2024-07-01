@@ -4,25 +4,34 @@ import { Suspense, lazy } from 'preact/compat';
 import startpunktLogo from './assets/logo.png'
 import './app.scss'
 import * as bootstrap from 'bootstrap'
-import Application from './Application';
 
-const ApplicationGroupList = lazy(() => import('./ApplicationGroupList'));
+import { ApplicationGroupList } from './ApplicationGroupList'
+import { BookmarkGroupList } from './BookmarkGroupList'
+
 
 export function App() {
   // read the /api/apps endpoint and update the groups state
-  const [groups, setGroups] = useState([]);
-
+  const [applicationGroups, setApplicationGroups] = useState([]);
   useEffect(() => {
     fetch('/api/apps')
       .then((res) => res.json())
-      .then(setGroups)
+      .then(setApplicationGroups)
+  }, [])
+
+  const [bookmarkGroups, setBookmarkGroups] = useState([]);
+  useEffect(() => {
+    fetch('/api/bookmarks')
+      .then((res) => res.json())
+      .then(setBookmarkGroups)
   }, [])
 
   // When someone clicks on Bookmarks, switch to showing bookmarks instead of applications
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showApplications, setShowApplications] = useState(true);
+
   function handleBookmarksClick() {
     console.log("showing bookmarks");
+
     setShowBookmarks(true);
     setShowApplications(false);
   }
@@ -112,7 +121,7 @@ export function App() {
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto">
           <div>
-            <h3 class="float-md-start mb-0">Startpunkt</h3>
+            <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;Startpunkt</h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
               <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="#" onClick={handleApplicationsClick}>Applications</a>
               <a class="nav-link fw-bold py-1 px-0" href="#" onClick={handleBookmarksClick}>Bookmarks</a>
@@ -122,10 +131,8 @@ export function App() {
 
         <main class="px-3">
 
-          <Suspense fallback={<div class="text-center"><h2>Loading...</h2></div>}>
-            {showApplications && <ApplicationGroupList groups={groups} />}
-            {showBookmarks && <BookmarkList />}
-          </Suspense>
+          {showApplications && <ApplicationGroupList groups={applicationGroups} />}
+          {showBookmarks && <BookmarkGroupList groups={bookmarkGroups} />}
 
         </main>
         <footer class="mt-auto text-white-50">

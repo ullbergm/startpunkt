@@ -6,11 +6,11 @@ export function Application(props) {
       <a href={props.app.url} target="_blank" class="stretched-link"></a>
       {/* // if the icon has :// in it, it's a URL to an image, otherwise it's a local icon, if it is an icon and has no : in it, then prepend mdi: to it, if the icon is undefined then show nothing */}
         {props.app.icon && props.app.icon.includes('://') ? (
-        <img src={props.app.icon} alt={props.app.name} class="me-3" width="48" height="48" />
+        <img src={props.app.icon} alt={props.app.name} class="me-3" width="48" height="48" style={{ color: props.app.iconColor }} />
         ) : props.app.icon && !props.app.icon.includes(':') ? (
-          <Icon icon={`mdi:${props.app.icon}`} class="me-3 fs-2 text-primary" width="48" height="48" />
+          <Icon icon={`mdi:${props.app.icon}`} class="me-3 fs-2 text-primary" width="48" height="48" color={ props.app.iconColor } />
         ) : props.app.icon ? (
-          <Icon icon={props.app.icon} class="me-3 fs-2 text-primary" width="48" height="48" />
+          <Icon icon={props.app.icon} class="me-3 fs-2 text-primary" width="48" height="48" color={ props.app.iconColor } />
         ) : (
           ''
         )}
