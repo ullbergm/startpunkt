@@ -196,7 +196,17 @@ public class ApplicationService {
     if (annotations.containsKey("hajimari.io/location"))
       return Integer.parseInt(annotations.get("hajimari.io/location"));
 
-    return spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
+    if( !spec.containsKey("location") )
+      return 1000;
+
+    int location = spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
+
+    // This is for backwards compatibility with Hajimari, 0 is the same as blank
+    if (location == 0) {
+      return 1000;
+    }
+
+    return location;
   }
 
   private Boolean getEnable(GenericKubernetesResource item) {
