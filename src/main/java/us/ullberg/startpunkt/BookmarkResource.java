@@ -28,6 +28,8 @@ public class BookmarkResource {
     // Create a list of bookmarks
     var bookmarks = new ArrayList<BookmarkSpec>();
 
+    bookmarks.addAll(BookmarkService.retrieveBookmarks());
+
     // If startpunkt.hajimari is set to true, get the Hajimari bookmarks
     if (hajimariEnabled) bookmarks.addAll(BookmarkService.retrieveHajimariBookmarks());
 

@@ -14,6 +14,47 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 @ApplicationScoped
 public class ApplicationService {
+  @Timed(value = "startpunkt.kubernetes.applications", description = "Get a list of applications")
+  public List<ApplicationSpec> retrieveApplications() {
+    Log.info("Retrieve Applications");
+
+    try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
+      ResourceDefinitionContext resourceDefinitionContext =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("startpunkt.ullberg.us")
+              .withVersion("v1alpha1")
+              .withPlural("applications")
+              .withNamespaced(true)
+              .build();
+
+      GenericKubernetesResourceList list =
+          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+
+      List<ApplicationSpec> apps =
+          list.getItems().stream()
+              .map(
+                  item -> {
+                    String name = getAppName(item);
+                    String url = getUrl(item);
+                    String icon = getIcon(item);
+                    String iconColor = getIconColor(item);
+                    String info = getInfo(item);
+                    String group = getGroup(item);
+                    Boolean targetBlank = getTargetBlank(item);
+                    int location = getLocation(item);
+                    Boolean enable = getEnable(item);
+
+                    return new ApplicationSpec(
+                        name, group, icon, iconColor, url, info, targetBlank, location, enable);
+                  })
+              .toList();
+
+      return apps;
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
   @Timed(
       value = "startpunkt.kubernetes.hajimari",
       description = "Get a list of hajimari applications")

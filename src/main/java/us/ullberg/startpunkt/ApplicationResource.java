@@ -31,6 +31,8 @@ public class ApplicationResource {
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
+    apps.addAll(ApplicationService.retrieveApplications());
+
     // If startpunkt.hajimari is set to true, get the Hajimari applications
     if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
 

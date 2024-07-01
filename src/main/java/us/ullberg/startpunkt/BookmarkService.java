@@ -14,6 +14,45 @@ import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 @ApplicationScoped
 public class BookmarkService {
+  @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
+  public List<BookmarkSpec> retrieveBookmarks() {
+    Log.info("Retrieve Bookmarks");
+
+    try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
+      ResourceDefinitionContext resourceDefinitionContext =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("startpunkt.ullberg.us")
+              .withVersion("v1alpha1")
+              .withPlural("bookmarks")
+              .withNamespaced(true)
+              .build();
+
+      GenericKubernetesResourceList list =
+          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+
+      List<BookmarkSpec> bookmarks =
+          list.getItems().stream()
+              .map(
+                  item -> {
+                    String name = getBookmarkName(item);
+                    String url = getUrl(item);
+                    String icon = getIcon(item);
+                    String info = getInfo(item);
+                    String group = getGroup(item);
+                    Boolean targetBlank = getTargetBlank(item);
+                    int location = getLocation(item);
+
+                    return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
+                  })
+              .toList();
+
+      return bookmarks;
+    } catch (Exception e) {
+      Log.error("Error retrieving bookmarks", e);
+      return List.of();
+    }
+  }
+
   @Timed(value = "startpunkt.kubernetes.hajimari", description = "Get a list of hajimari bookmarks")
   public List<BookmarkSpec> retrieveHajimariBookmarks() {
     Log.info("Retrieve Hajimari Bookmarks");
