@@ -1,4 +1,4 @@
-name: Publish
+name: PR Build
 
 concurrency:
   group: ci-pr
