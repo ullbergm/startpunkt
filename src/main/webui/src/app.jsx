@@ -40,6 +40,33 @@ export function App() {
     setShowBookmarks(false);
     setShowApplications(true);
   }
+  function handleLightThemeClick() {
+    console.log("light theme");
+    document.body.style.setProperty('--bs-body-bg','#F8F6F1');
+    document.body.style.setProperty('--bs-body-color','#696969');
+    document.body.style.setProperty('--color-text-pri','#4C432E');
+    document.body.style.setProperty('--color-text-acc','#AA9A73');    
+  }
+  function handleDarkThemeClick() {
+    console.log("dark theme");
+    document.body.style.setProperty('--bs-body-bg','#232530');
+    document.body.style.setProperty('--bs-body-color','#696969');
+    document.body.style.setProperty('--color-text-pri','#FAB795');
+    document.body.style.setProperty('--color-text-acc','#E95678');    
+  }
+  function handleAutoThemeClick() {
+    console.log("auto theme");
+    // if its after dark, set dark theme
+    // else set light theme
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour > 18 || hour < 6) {
+      handleDarkThemeClick();
+    } else {
+      handleLightThemeClick
+    }
+  }
+  handleAutoThemeClick();
 
   function BookmarkList() {
     return (
@@ -82,7 +109,7 @@ export function App() {
         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
           <li>
             <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"
-              aria-pressed="false">
+              aria-pressed="false" onClick={handleLightThemeClick}>
               <svg class="bi me-2 opacity-50" width="1em" height="1em">
                 <use href="#sun-fill"></use>
               </svg>
@@ -94,7 +121,7 @@ export function App() {
           </li>
           <li>
             <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"
-              aria-pressed="false">
+              aria-pressed="false" onClick={handleDarkThemeClick}>
               <svg class="bi me-2 opacity-50" width="1em" height="1em">
                 <use href="#moon-stars-fill"></use>
               </svg>
@@ -106,7 +133,7 @@ export function App() {
           </li>
           <li>
             <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto"
-              aria-pressed="true">
+              aria-pressed="true" onClick={handleAutoThemeClick}>
               <svg class="bi me-2 opacity-50" width="1em" height="1em">
                 <use href="#circle-half"></use>
               </svg>
