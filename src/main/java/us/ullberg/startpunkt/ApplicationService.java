@@ -99,6 +99,7 @@ public class ApplicationService {
 
   private String getUrl(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -116,6 +117,7 @@ public class ApplicationService {
 
   private String getIcon(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -128,6 +130,7 @@ public class ApplicationService {
 
   private String getIconColor(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -139,6 +142,7 @@ public class ApplicationService {
 
   private String getInfo(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -149,6 +153,7 @@ public class ApplicationService {
 
   private String getGroup(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -164,7 +169,6 @@ public class ApplicationService {
   }
 
   private String getAppName(GenericKubernetesResource item) {
-    Map<String, Object> props = item.getAdditionalProperties();
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
     if (annotations.containsKey("hajimari.io/appName"))
@@ -177,6 +181,7 @@ public class ApplicationService {
 
   private Boolean getTargetBlank(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -190,6 +195,7 @@ public class ApplicationService {
 
   private int getLocation(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
@@ -211,6 +217,7 @@ public class ApplicationService {
 
   private Boolean getEnable(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
