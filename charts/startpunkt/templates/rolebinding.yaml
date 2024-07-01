@@ -31,4 +31,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.serviceAccountName }}
-  namespace: startpunkt
+  namespace: {{.Release.Namespace}}
