@@ -66,7 +66,6 @@ export function App() {
       handleLightThemeClick
     }
   }
-  handleAutoThemeClick();
 
   function BookmarkList() {
     return (
