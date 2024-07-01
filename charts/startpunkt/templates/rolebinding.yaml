@@ -1,0 +1,34 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: startpunkt
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/version: 0.5.0
+rules:
+- apiGroups: ["", "extensions", "networking.k8s.io", "discovery.k8s.io"]
+  resources: ["ingresses", "namespaces", "endpointslices", "routes"]
+  verbs: ["get", "list"]
+- apiGroups: ["hajimari.io"]
+  resources: ["applications", "bookmarks"]
+  verbs: ["get", "list"]
+- apiGroups: ["startpunkt.ullberg.us"]
+  resources: ["applications", "bookmarks"]
+  verbs: ["get", "list", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: startpunkt
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/version: 0.5.0
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: startpunkt
+subjects:
+- kind: ServiceAccount
+  name: startpunkt
+  namespace: startpunkt
