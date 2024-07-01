@@ -10,14 +10,14 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.model.Application;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 @ApplicationScoped
 public class ApplicationService {
   @Timed(
       value = "startpunkt.kubernetes.hajimari",
       description = "Get a list of hajimari applications")
-  public List<Application> retrieveHajimariApplications() {
+  public List<ApplicationSpec> retrieveHajimariApplications() {
     Log.info("Retrieve Hajimari Applications");
 
     try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
@@ -32,7 +32,7 @@ public class ApplicationService {
       GenericKubernetesResourceList list =
           client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
 
-      List<Application> apps =
+      List<ApplicationSpec> apps =
           list.getItems().stream()
               .map(
                   item -> {
@@ -46,7 +46,7 @@ public class ApplicationService {
                     int location = getLocation(item);
                     Boolean enable = getEnable(item);
 
-                    return new Application(
+                    return new ApplicationSpec(
                         name, group, icon, iconColor, url, info, targetBlank, location, enable);
                   })
               .toList();
@@ -58,7 +58,7 @@ public class ApplicationService {
   }
 
   @Timed(value = "startpunkt.kubernetes.openshift", description = "Get a list of openshift routes")
-  public List<Application> retrieveRoutesApplications() {
+  public List<ApplicationSpec> retrieveRoutesApplications() {
     Log.info("Retrieve OpenShift Routes");
     try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext resourceDefinitionContext =
@@ -72,7 +72,7 @@ public class ApplicationService {
       GenericKubernetesResourceList list =
           client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
 
-      List<Application> apps =
+      List<ApplicationSpec> apps =
           list.getItems().stream()
               .map(
                   item -> {
@@ -86,7 +86,7 @@ public class ApplicationService {
                     int location = getLocation(item);
                     Boolean enable = getEnable(item);
 
-                    return new Application(
+                    return new ApplicationSpec(
                         name, group, icon, iconColor, url, info, targetBlank, location, enable);
                   })
               .toList();
