@@ -94,7 +94,7 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>crd-generator-apt</artifactId>
-            <version>6.13.0</version>
+            <version>6.13.1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
