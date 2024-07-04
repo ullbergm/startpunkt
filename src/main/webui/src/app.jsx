@@ -63,7 +63,7 @@ export function App() {
     if (hour > 18 || hour < 6) {
       handleDarkThemeClick();
     } else {
-      handleLightThemeClick
+      handleLightThemeClick();
     }
   }
 
