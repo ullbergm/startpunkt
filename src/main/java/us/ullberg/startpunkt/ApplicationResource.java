@@ -21,10 +21,10 @@ public class ApplicationResource {
 
   @Inject MeterRegistry registry;
 
-  @ConfigProperty(name = "startpunkt.hajimari.enabled")
+  @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   private boolean hajimariEnabled = true;
 
-  @ConfigProperty(name = "startpunkt.openshift.enabled")
+  @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
   private boolean openshiftEnabled = true;
 
   private ArrayList<ApplicationSpec> retrieveApps() {

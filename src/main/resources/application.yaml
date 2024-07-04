@@ -1,0 +1,8 @@
+startpunkt:
+  # OpenShift configuration
+  openshift:
+    enabled: false
+
+  # Hajimari configuration
+  hajimari:
+    enabled: false
