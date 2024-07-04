@@ -10,10 +10,17 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 @ApplicationScoped
 public class ApplicationService {
+  @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
+  private boolean anyNamespace;
+
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
+  private String[] matchNames;
+
   @Timed(value = "startpunkt.kubernetes.applications", description = "Get a list of applications")
   public List<ApplicationSpec> retrieveApplications() {
     Log.info("Retrieve Applications");
@@ -27,8 +34,7 @@ public class ApplicationService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<ApplicationSpec> apps =
           list.getItems().stream()
@@ -55,6 +61,27 @@ public class ApplicationService {
     }
   }
 
+  private GenericKubernetesResourceList getResourceList(
+      final KubernetesClient client, ResourceDefinitionContext resourceDefinitionContext) {
+    if (anyNamespace) {
+      return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+    }
+
+    // For each namespace, get the resource
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    for (String namespace : matchNames) {
+      list.getItems()
+          .addAll(
+              client
+                  .genericKubernetesResources(resourceDefinitionContext)
+                  .inNamespace(namespace)
+                  .list()
+                  .getItems());
+    }
+
+    return list;
+  }
+
   @Timed(
       value = "startpunkt.kubernetes.hajimari",
       description = "Get a list of hajimari applications")
@@ -70,8 +97,7 @@ public class ApplicationService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<ApplicationSpec> apps =
           list.getItems().stream()
@@ -110,8 +136,7 @@ public class ApplicationService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<ApplicationSpec> apps =
           list.getItems().stream()
