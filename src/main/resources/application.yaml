@@ -1,8 +1,15 @@
 startpunkt:
-  # OpenShift configuration
+  # Namespace selector determines which namespaces to look for resources in
+  namespaceSelector:
+    any: true
+    # matchNames:
+    #   - default
+    #   - startpunkt
+
+  # OpenShift integration, read OpenShift Routes
   openshift:
     enabled: false
 
-  # Hajimari configuration
+  # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
     enabled: false

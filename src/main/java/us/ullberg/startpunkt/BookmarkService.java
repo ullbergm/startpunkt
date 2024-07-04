@@ -10,10 +10,17 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 @ApplicationScoped
 public class BookmarkService {
+  @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
+  private boolean anyNamespace;
+
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
+  private String[] matchNames;
+
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkSpec> retrieveBookmarks() {
     Log.info("Retrieve Bookmarks");
@@ -27,8 +34,7 @@ public class BookmarkService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<BookmarkSpec> bookmarks =
           list.getItems().stream()
@@ -53,6 +59,27 @@ public class BookmarkService {
     }
   }
 
+  private GenericKubernetesResourceList getResourceList(
+      final KubernetesClient client, ResourceDefinitionContext resourceDefinitionContext) {
+    if (anyNamespace) {
+      return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+    }
+
+    // For each namespace, get the resource
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    for (String namespace : matchNames) {
+      list.getItems()
+          .addAll(
+              client
+                  .genericKubernetesResources(resourceDefinitionContext)
+                  .inNamespace(namespace)
+                  .list()
+                  .getItems());
+    }
+
+    return list;
+  }
+
   @Timed(value = "startpunkt.kubernetes.hajimari", description = "Get a list of hajimari bookmarks")
   public List<BookmarkSpec> retrieveHajimariBookmarks() {
     Log.info("Retrieve Hajimari Bookmarks");
@@ -66,8 +93,7 @@ public class BookmarkService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list =
-          client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<BookmarkSpec> bookmarks =
           list.getItems().stream()
