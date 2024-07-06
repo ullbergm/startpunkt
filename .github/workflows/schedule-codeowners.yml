@@ -4,9 +4,6 @@ on:
   schedule:
     # Runs at 08:00 UTC every day
     - cron:  '0 8 * * *'
-  pull_request:
-      branches:
-          - main
 
 jobs:
   codeowners:
