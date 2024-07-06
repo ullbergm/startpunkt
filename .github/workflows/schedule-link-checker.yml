@@ -36,3 +36,10 @@ jobs:
         content-filepath: ./lychee/out.md
         issue-number: "${{ steps.link-checker-issue.outputs.issue-number }}"
         labels: link-checker
+
+    - name: Close old issue
+      if: env.lychee_exit_code == 0
+      uses: peter-evans/close-issue@v3
+      with:
+        issue-number: "${{ steps.link-checker-issue.outputs.issue-number }}"
+        comment: "All links are working as expected."
