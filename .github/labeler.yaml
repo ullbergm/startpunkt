@@ -12,9 +12,10 @@ area/frontend:
 - changed-files:
   - any-glob-to-any-file: "src/main/webui/**/*"
 area/backend:
-- changed-files:
-  - any-glob-to-any-file: "src/main/**/*"
-  - all-globs-to-all-files: '!src/main/webui/**/*'
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "src/main/**/*"
+    - all-globs-to-all-files: '!src/main/webui/**/*'
 area/test:
 - changed-files:
   - any-glob-to-any-file: "src/test/**/*"
