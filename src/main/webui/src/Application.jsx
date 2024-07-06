@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 export function Application(props) {
   return (
     <div class="col d-flex align-items-start" style="transform: rotate(0);">
-      <a href={props.app.url} target={props.app.targetBlank ? '_blank' : '_self'} class="stretched-link"></a>
+      <a href={props.app.url} target={props.app.targetBlank ? '_blank' : '_self'} class="stretched-link" rel="external noopener noreferrer"></a>
       {/* // if the icon has :// in it, it's a URL to an image, otherwise it's a local icon, if it is an icon and has no : in it, then prepend mdi: to it, if the icon is undefined then show nothing */}
         {props.app.icon && props.app.icon.includes('://') ? (
         <img src={props.app.icon} alt={props.app.name} class="me-3" width="48" height="48" style={{ color: props.app.iconColor }} />
