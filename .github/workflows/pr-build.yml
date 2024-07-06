@@ -1,4 +1,4 @@
-name: PR Build
+name: Pull Requests Build
 
 concurrency:
   group: ci-pr
@@ -19,7 +19,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout repository
+      - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
