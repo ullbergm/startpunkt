@@ -56,6 +56,8 @@
 
 Startpunkt is a clean startpunkt designed to display links to all your self-hosted resources in your kubernetes cluster. It automatically detects running services in the cluster and adds them to the start page, while offering customization using labels and CRDs.
 
+<a href="bad-link.html">testing a bad link</a>
+
 <details>
 <summary>Screenshots</summary>
 <br>
