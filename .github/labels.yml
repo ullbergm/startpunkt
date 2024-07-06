@@ -96,3 +96,7 @@
   color: "7B55D7"
 - name: automated issue
   color: "7B55D7"
+- name: stale
+  color: "7B55D7"
+- name: no-stale
+  color: "7B55D7"
