@@ -1,78 +1,102 @@
 ---
-- name: "breaking-change"
-  color: ee0701
-  description: "A change that changes the API or breaks backward compatibility for users."
-- name: "bugfix"
-  color: ee0701
-  description: "Inconsistencies or issues which will cause a problem for users or implementors."
-- name: "documentation"
-  color: 0052cc
-  description: "Solely about the documentation of the project."
-- name: "enhancement"
-  color: 1d76db
-  description: "Enhancement of the code, not introducing new features."
-- name: "refactor"
-  color: 1d76db
-  description: "Updating the code with simpler, easier to understand or more efficient syntax or methods, but not introducing new features."
-- name: "performance"
-  color: 1d76db
-  description: "Improving performance of the project, not introducing new features."
-- name: "new-feature"
-  color: 0e8a16
-  description: "New features or options."
-- name: "maintenance"
-  color: 2af79e
-  description: "Generic maintenance tasks."
-- name: "ci"
-  color: 1d76db
-  description: "Work that improves the continuous integration."
-- name: "dependencies"
-  color: 1d76db
-  description: "Change in project dependencies."
-
-- name: "in-progress"
-  color: fbca04
-  description: "Issue is currently being worked on by a developer."
-- name: "stale"
-  color: fef2c0
-  description: "No activity for quite some time."
-- name: "no-stale"
-  color: fef2c0
-  description: "This is exempt from the stale bot."
-
-- name: "security"
-  color: ee0701
-  description: "Addressing a vulnerability or security risk in this project."
-- name: "incomplete"
-  color: fef2c0
-  description: "Missing information."
-- name: "invalid"
-  color: fef2c0
-  description: "This is off-topic, spam, or otherwise doesn't apply to this project."
-
-- name: "beginner-friendly"
-  color: 0e8a16
-  description: "Good first issue for people wanting to contribute to this project."
-- name: "help-wanted"
-  color: 0e8a16
-  description: "We need some extra helping hands or expertise in order to resolve this!"
-
-- name: "priority-critical"
-  color: ee0701
-  description: "Must be addressed as soon as possible."
-- name: "priority-high"
-  color: b60205
-  description: "After critical issues are fixed, these should be dealt with before any further issues."
-- name: "priority-medium"
-  color: 0e8a16
-  description: "This issue may be useful, and needs some attention."
-- name: "priority-low"
-  color: e4ea8a
-  description: "Nice addition, maybe... someday..."
-
-- name: "major"
-  color: b60205
-  description: "This PR causes a major bump in the version number."
-- name: "minor"
-  color: 0e8a16
-  description: "This PR causes a minor bump in the version number."
+# Area
+- name: area/github
+  color: "72ccf3"
+  description: >-
+    Changes made in the github directory
+- name: area/charts
+  color: "72ccf3"
+  description: >-
+    Changes to the charts
+- name: area/docs
+  color: "72ccf3"
+  description: >-
+    Changes made to the documentation
+- name: area/frontend
+  color: "72ccf3"
+  description: >-
+    Changes made to the frontend
+- name: area/backend
+  color: "72ccf3"
+  description: >-
+    Changes made to the backend
+- name: area/docker
+  color: "72ccf3"
+  description: >-
+    Changes made to the docker files
+- name: area/resources
+  color: "72ccf3"
+  description: >-
+    Changes made in the resources directory
+- name: area/test
+  color: "72ccf3"
+  description: >-
+    Changes made to the test
+# Renovate
+- name: renovate/go
+  color: "ffc300"
+- name: renovate/container
+  color: "ffc300"
+- name: renovate/github-action
+  color: "ffc300"
+- name: renovate/github-release
+  color: "ffc300"
+- name: renovate/helm
+  color: "ffc300"
+- name: renovate/js
+  color: "ffc300"
+- name: renovate/go
+  color: "ffc300"
+# Semantic Type
+- name: type/patch
+  color: "FFEC19"
+- name: type/minor
+  color: "FF9800"
+- name: type/major
+  color: "F6412D"
+# Size
+- name: size/XS
+  color: "009900"
+  description: >-
+    Denotes a PR that changes 0-9 lines, ignoring generated files.
+- name: size/S
+  color: "77bb00"
+  description: >-
+    Denotes a PR that changes 10-29 lines, ignoring generated files.
+- name: size/M
+  color: "eebb00"
+  description: >-
+    Denotes a PR that changes 30-99 lines, ignoring generated files.
+- name: size/L
+  color: "ee9900"
+  description: >-
+    Denotes a PR that changes 100-499 lines, ignoring generated files.
+- name: size/XL
+  color: "ee5500"
+  description: >-
+    Denotes a PR that changes 500-999 lines, ignoring generated files.
+- name: size/XXL
+  color: "ee0000"
+  description: >-
+    Denotes a PR that changes 1000+ lines, ignoring generated files.
+# Uncategorized
+- name: bug
+  color: "ee0701"
+- name: do-not-merge
+  color: "ee0701"
+- name: docs
+  color: "F4D1B7"
+- name: enhancement
+  color: "84b6eb"
+- name: link-checker
+  color: "7B55D7"
+- name: question
+  color: "cc317c"
+- name: report
+  color: "7B55D7"
+- name: automated issue
+  color: "7B55D7"
+- name: stale
+  color: "7B55D7"
+- name: no-stale
+  color: "7B55D7"

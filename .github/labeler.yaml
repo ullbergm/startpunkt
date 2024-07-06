@@ -1,0 +1,32 @@
+---
+area/github:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: ".github/**/*"
+area/charts:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "charts/**/*"
+area/docs:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "docs/**/*"
+area/frontend:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "src/main/webui/**/*"
+area/backend:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "src/main/java/**/*"
+area/docker:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "src/main/docker/**/*"
+area/resources:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: "src/main/resources/**/*"
+area/test:
+- changed-files:
+  - any-glob-to-any-file: "src/test/**/*"
