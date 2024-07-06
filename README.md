@@ -21,7 +21,7 @@
 <br />
 
 [![Project license](https://img.shields.io/github/license/ullbergm/startpunkt.svg?style=flat-square)](LICENSE)
-![Check Links](https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square)]
+[![Check Links](https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square&label=links)](https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml)
 
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![buy me a coffee](https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square)](https://buymeacoffee.com/magnus.ullberg)
