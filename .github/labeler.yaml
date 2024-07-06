@@ -1,11 +1,23 @@
 ---
 area/github:
-  - ".github/**/*"
+- changed-files:
+  - any-glob-to-any-file: ".github/**/*"
 area/charts:
-  - "charts/**/*"
+- changed-files:
+  - any-glob-to-any-file: "charts/**/*"
 area/docs:
-  - "docs/**/*"
-area/webui:
-  - "src/main/webui/**/*"
+- changed-files:
+  - any-glob-to-any-file: "docs/**/*"
+area/frontend:
+- changed-files:
+  - any-glob-to-any-file: "src/main/webui/**/*"
+area/backend:
+- changed-files:
+  - any-glob-to-any-file: "src/main/**/*"
+  - all-globs-to-all-files: '!src/main/webui/**/*'
+area/test:
+- changed-files:
+  - any-glob-to-any-file: "src/test/**/*"
 area/src:
-  - "src/**/*"
+- changed-files:
+  - any-glob-to-any-file: "src/**/*"

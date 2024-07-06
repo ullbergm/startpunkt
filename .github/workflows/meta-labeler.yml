@@ -13,12 +13,13 @@ jobs:
 
     permissions:
       pull-requests: write
+      contents: read
 
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4
       - name: Labeler
-        uses: actions/labeler@v4
+        uses: actions/labeler@v5
         with:
           configuration-path: .github/labeler.yaml
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
