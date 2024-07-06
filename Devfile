@@ -19,9 +19,17 @@ starterProjects:
     zip:
       location: https://code.quarkus.redhat.com/d?e=io.quarkus%3Aquarkus-resteasy&e=io.quarkus%3Aquarkus-smallrye-health&e=io.quarkus%3Aquarkus-openshift&j=21
 components:
+  - name: image
+    image:
+      imageName: startpunkt:latest
+      autoBuild: true
+      dockerfile:
+        uri: src/main/docker/Dockerfile.jvm
+        buildContext: .
+        rootRequired: false
   - name: tools
     container:
-      image: registry.access.redhat.com/ubi8/openjdk-21:1.19-1
+      image: registry.access.redhat.com/ubi8/openjdk-21:1.20-3
       args: ['tail', '-f', '/dev/null']
       memoryLimit: 1024Mi ## default app nowhere needs this but leaving room for expansion.
       mountSources: true
