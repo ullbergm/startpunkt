@@ -4,9 +4,12 @@ name: Milestone Closure
 on:
     milestone:
       types: [closed]
-    pull_request:
-        branches:
-        - main
+    workflow_dispatch:
+      inputs:
+        milestoneId:
+            description: 'Milestone ID'
+            required: true
+            default: '1'
 
 jobs:
     create-release-notes:
