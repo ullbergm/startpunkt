@@ -92,3 +92,7 @@
   color: "7B55D7"
 - name: question
   color: "cc317c"
+- name: report
+  color: "7B55D7"
+- name: automated issue
+  color: "7B55D7"
