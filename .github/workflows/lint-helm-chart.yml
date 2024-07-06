@@ -2,8 +2,8 @@ name: Lint and Test Chart
 
 on:
   pull_request:
-    paths:
-      - "charts/**/*"
+    branches:
+    - main
   workflow_dispatch:
 
 jobs:
