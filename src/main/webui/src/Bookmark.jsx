@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 export function Bookmark(props) {
   return (
     <div class="col d-flex align-items-start" style="transform: rotate(0);">
-      <a href={props.bookmark.url} target={props.bookmark.targetBlank ? '_blank' : '_self'} class="stretched-link"></a>
+      <a href={props.bookmark.url} target={props.bookmark.targetBlank ? '_blank' : '_self'} class="stretched-link" rel="external noopener noreferrer"></a>
       {/* // if the icon has :// in it, it's a URL to an image, otherwise it's a local icon, if it is an icon and has no : in it, then prepend mdi: to it, if the icon is undefined then show nothing */}
         {props.bookmark.icon && props.bookmark.icon.includes('://') ? (
         <img src={props.bookmark.icon} alt={props.bookmark.name} class="me-3" width="48" height="48" />
