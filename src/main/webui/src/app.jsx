@@ -45,14 +45,14 @@ export function App() {
     document.body.style.setProperty('--bs-body-bg','#F8F6F1');
     document.body.style.setProperty('--bs-body-color','#696969');
     document.body.style.setProperty('--color-text-pri','#4C432E');
-    document.body.style.setProperty('--color-text-acc','#AA9A73');    
+    document.body.style.setProperty('--color-text-acc','#AA9A73');
   }
   function handleDarkThemeClick() {
     console.log("dark theme");
     document.body.style.setProperty('--bs-body-bg','#232530');
     document.body.style.setProperty('--bs-body-color','#696969');
     document.body.style.setProperty('--color-text-pri','#FAB795');
-    document.body.style.setProperty('--color-text-acc','#E95678');    
+    document.body.style.setProperty('--color-text-acc','#E95678');
   }
   function handleAutoThemeClick() {
     console.log("auto theme");
