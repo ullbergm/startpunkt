@@ -1,0 +1,11 @@
+---
+area/github:
+  - ".github/**/*"
+area/charts:
+  - "charts/**/*"
+area/docs:
+  - "docs/**/*"
+area/webui:
+  - "src/main/webui/**/*"
+area/src:
+  - "src/**/*"
