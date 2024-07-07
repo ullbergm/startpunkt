@@ -1,75 +1,82 @@
-<h1 align="center">
-  <a href="https://github.com/ullbergm/startpunkt">
-    <!-- Please provide path to your logo here -->
-    <img src="docs/images/logo.png" alt="Logo" width="100" height="100">
-  </a>
-</h1>
-
-<div align="center">
-  Startpunkt
-  <br />
-  <a href="#about"><strong>Explore the screenshots »</strong></a>
-  <br />
-  <br />
-  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a>
-  ·
-  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a>
-  .<a href="https://github.com/ullbergm/startpunkt/discussions">Ask a Question</a>
-</div>
-
-<div align="center">
-<br />
-
-[![Project license](https://img.shields.io/github/license/ullbergm/startpunkt.svg?style=flat-square)](LICENSE)
-[![Check Links](https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square&label=links)](https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml)
-
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-[![buy me a coffee](https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square)](https://buymeacoffee.com/magnus.ullberg)
-[![offer me a job](https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?style=flat-square)](https://ullberg.us/cv.pdf)
-
-
-</div>
+<h1 align="center">Startpunkt</h1>
+<p align="center">
+  <i>Startpunkt is a clean startpstart page unkt designed to display links to all your self-hosted resources in your kubernetes cluster.</i>
+  <br/><br/>
+  <img width="130" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png"/>
+  <br/><br/>
+  <a href="https://github.com/ullbergm/startpunkt/blob/main/CHANGELOG.md"><img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?style=flat-square&logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/></a>
+  <a target="_blank" href="https://github.com/ullbergm/startpunkt"><img src="https://img.shields.io/github/last-commit/ullbergm/startpunkt?style=flat-square&logo=github&color=609966&logoColor=fff" alt="Last commit"/></a>
+  <a href="https://github.com/ullbergm/startpunkt/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?style=flat-square&logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
+  <a href="https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square&color=609966&logoColor=fff&label=links" alt="Link checker"/></a>
+  <br/>
+  <a href="https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22"><img src="https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square&color=609966&logoColor=fff&label=PRs" alt="Pull Requests welcome"/></a>
+  <a href="https://buymeacoffee.com/magnus.ullberg"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square&color=aa1414&logoColor=fff&label=Buy%20me%20a" alt="buy me a coffee"/></a>
+  <a href="https://ullberg.us/cv.pdf"><img src="https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?style=flat-square&color=0000f4&logoColor=fff&label=Offer%20me%20a" alt="offer me a job"/></a>
+  <br/><br/>
+  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a> ·
+  <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a> ·
+  <a href="https://github.com/ullbergm/startpunkt/discussions">Ask a Question</a>
+  <br/><br/>
+  <img src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/screenshot.png" alt="Startpunkt" width="80%"/>
+</p>
 
 <details open="open">
 <summary>Table of Contents</summary>
 
-- [About](#about)
-  - [Built With](#built-with)
+- [🎯 Features](#-features)
+- [🚀 Getting started](#-getting-started)
+  - [Helm](#helm)
+  - [Kubectl](#kubectl)
+- [👌 Built With](#-built-with)
     - [Quarkus](#quarkus)
     - [Vite](#vite)
     - [Preact](#preact)
     - [Bootstrap](#bootstrap)
-- [Support](#support)
-- [Project assistance](#project-assistance)
-- [Contributing](#contributing)
-- [Authors \& contributors](#authors--contributors)
-- [Security](#security)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [🗂️ Roadmap](#️-roadmap)
+- [🏷️ Support](#️-support)
+- [🚀 Project assistance](#-project-assistance)
+- [🗂️ Contributing](#️-contributing)
+- [🏆 Authors \& contributors](#-authors--contributors)
+- [🗂️ Security](#️-security)
+- [📄 License](#-license)
+- [🌎 Acknowledgements](#-acknowledgements)
 
 </details>
+
+## 🎯 Features
+
+* 🔐 **Local execution**. Everything is executed locally on your cluster.
+* ⚡ **Automatic**. Services are automatically added / removed as they are deployed to the cluster.
+* 🗂️ **Service Groups**. Group services by namespace or custom groups.
+* 🏷️ **Bookmarks**. Create a list of bookmarks using CRDs.
+* 👌 **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.
+* 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
+<!-- * 🌎 **Internationalized**. Supports multiple languages. -->
+<!-- * 🎨 **Themes**. Supports themes. -->
 
 ---
 
-## About
+## 🚀 Getting started
 
-<table><tr><td>
+### Helm
 
-Startpunkt is a clean startpunkt designed to display links to all your self-hosted resources in your kubernetes cluster. It automatically detects running services in the cluster and adds them to the start page, while offering customization using labels and CRDs.
+A simple helm chart is available in the repo that you can use to deploy the application.
 
-<details>
-<summary>Screenshots</summary>
-<br>
+```shell
+git clone https://github.com/ullbergm/startpunkt.git
 
-|                               Home Page                               |
-| :-------------------------------------------------------------------: |
-| <img src="docs/images/screenshot.png" title="Home Page" width="100%"> |
+helm .....
+```
 
-</details>
+### Kubectl
 
-</td></tr></table>
+They kubectl yaml needed is included in the repo.
 
-### Built With
+```shell
+kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/startpunkt.yaml
+```
+
+## 👌 Built With
 
 #### [Quarkus](https://quarkus.io/)
 
@@ -87,26 +94,7 @@ It also provides several libraries that simplify the development immensely.
 #### [Preact](https://preactjs.com)
 #### [Bootstrap](https://getbootstrap.com/)
 
-<!--
-## Getting Started
-
-### Prerequisites
-
-> **[?]**
-> What are the project requirements/dependencies?
-
-### Installation
-
-> **[?]**
-> Describe how to install and get started with the project.
-
-## Usage
-
-> **[?]**
-> How does one go about using it?
-> Provide various use cases and code examples here.
-
-## Roadmap
+## 🗂️ Roadmap
 
 See the [open issues](https://github.com/ullbergm/startpunkt/issues) for a list of proposed features (and known issues).
 
@@ -114,48 +102,46 @@ See the [open issues](https://github.com/ullbergm/startpunkt/issues) for a list 
 - [Top Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Newest Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 
--->
-
-## Support
+## 🏷️ Support
 
 Reach out to the maintainer at one of the following places:
 
 - [GitHub Discussions](https://github.com/ullbergm/startpunkt/discussions)
 - Contact options listed on [this GitHub profile](https://github.com/ullbergm)
 
-## Project assistance
+## 🚀 Project assistance
 
 If you want to say **thank you** or/and support active development of Startpunkt:
 
 - Add a [GitHub Star](https://github.com/ullbergm/startpunkt) to the project.
 - Buy me a [coffee](https://buymeacoffee.com/magnus.ullberg).
 
-## Contributing
+## 🗂️ Contributing
 
 First off, thanks for taking the time to contribute! Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make will benefit everybody else and are **greatly appreciated**.
 
 Please read [our contribution guidelines](docs/CONTRIBUTING.md), and thank you for being involved!
 
-## Authors & contributors
+## 🏆 Authors & contributors
 
 The original setup of this repository is by [Magnus Ullberg](https://github.com/ullbergm).
 
 For a full list of all authors and contributors, see [the contributors page](https://github.com/ullbergm/startpunkt/contributors).
 
-## Security
+## 🗂️ Security
 
 Startpunkt follows good practices of security, but 100% security cannot be assured.
 Startpunkt is provided **"as is"** without any **warranty**. Use at your own risk.
 
 _For more information and to report security issues, please refer to our [security documentation](docs/SECURITY.md)._
 
-## License
+## 📄 License
 
 This project is licensed under the **MIT License**.
 
 See [LICENSE](LICENSE) for more information.
 
-## Acknowledgements
+## 🌎 Acknowledgements
 
 * [SUI](https://github.com/jeroenpardon/sui)
 * [Hajimari](https://hajimari.io/)
