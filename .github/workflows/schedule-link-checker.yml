@@ -35,7 +35,7 @@ jobs:
         labels: link-checker
 
     - name: Close old issue
-      if: env.lychee_exit_code == 0
+      if: ${{ env.lychee_exit_code == 0 && steps.last-issue.outputs.has-found == 'true' && steps.last-issue.outputs.is-closed == 'false' }}
       uses: peter-evans/close-issue@v3
       with:
         issue-number: "${{ steps.link-checker-issue.outputs.issue-number }}"
