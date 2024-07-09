@@ -27,6 +27,9 @@
 - [🚀 Getting started](#-getting-started)
   - [Kubernetes](#kubernetes)
   - [OpenShift](#openshift)
+- [⚙️ Configuration](#️-configuration)
+  - [✍️ Application settings](#️-application-settings)
+  - [📝 Custom applications](#-custom-applications)
 - [👌 Built With](#-built-with)
     - [Quarkus](#quarkus)
     - [Vite](#vite)
@@ -84,6 +87,48 @@ They openshift yaml needed is included in the repo.
 
 ```shell
 oc apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/openshift/startpunkt.yaml
+```
+
+## ⚙️ Configuration
+
+### ✍️ Application settings
+
+If you want to update the default configuration, mount a file in /work/config/application.yaml with your desired configuration:
+
+```yaml
+startpunkt:
+  # Namespace selector determines which namespaces to look for resources in
+  namespaceSelector:
+    any: true
+    # matchNames:
+    #   - default
+    #   - startpunkt
+
+  # OpenShift integration, read OpenShift Routes
+  openshift:
+    enabled: false
+
+  # Hajimari integration, read Hajimari Applications and Bookmarks
+  hajimari:
+    enabled: false
+```
+
+### 📝 Custom applications
+
+To add applications, that are either outside of the cluster or are using an ingress method that is not supported (yet), you can use the CRDs:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha1
+kind: Application
+metadata:
+  name: nas
+  namespace: default
+spec:
+  name: Synology
+  group: Infrastructure
+  icon: nas
+  url: http://nas:5000/
+  info: Storage
 ```
 
 ## 👌 Built With
