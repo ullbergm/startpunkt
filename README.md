@@ -1,6 +1,6 @@
 <h1 align="center">Startpunkt</h1>
 <p align="center">
-  <i>Startpunkt is a clean startpstart page unkt designed to display links to all your self-hosted resources in your kubernetes cluster.</i>
+  <i>Startpunkt is a clean start page designed to display links to all your self-hosted resources in your kubernetes cluster.</i>
   <br/><br/>
   <img width="130" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png"/>
   <br/><br/>
@@ -25,8 +25,8 @@
 
 - [🎯 Features](#-features)
 - [🚀 Getting started](#-getting-started)
-  - [Helm](#helm)
-  - [Kubectl](#kubectl)
+  - [Kubernetes](#kubernetes)
+  - [OpenShift](#openshift)
 - [👌 Built With](#-built-with)
     - [Quarkus](#quarkus)
     - [Vite](#vite)
@@ -58,7 +58,7 @@
 
 ## 🚀 Getting started
 
-### Helm
+<!-- ### Helm
 
 A simple helm chart is available in the repo that you can use to deploy the application.
 
@@ -66,14 +66,24 @@ A simple helm chart is available in the repo that you can use to deploy the appl
 git clone https://github.com/ullbergm/startpunkt.git
 
 helm .....
-```
+``` -->
 
-### Kubectl
+### Kubernetes
 
 They kubectl yaml needed is included in the repo.
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/startpunkt.yaml
+kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/kubernetes/startpunkt.yaml
+```
+
+> **_NOTE:_**  Ingress url is "startpunkt.example.com".
+
+### OpenShift
+
+They openshift yaml needed is included in the repo.
+
+```shell
+oc apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/openshift/startpunkt.yaml
 ```
 
 ## 👌 Built With

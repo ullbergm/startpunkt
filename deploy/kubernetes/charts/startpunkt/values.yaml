@@ -1,0 +1,103 @@
+---
+startpunkt:
+  labels:
+    version: 0.5.1
+  namespace: default
+  image:
+    name: ghcr.io/ullbergm/startpunkt
+    tag: v0.5.1
+  deployment:
+    replicas: 2
+    revisionHistoryLimit: 2
+    annotations: {}
+    affinity: {}
+    nodeSelector: {}
+    podSecurityContext:
+      {}
+      # runAsNonRoot: true
+      # runAsUser: 10001
+      # fsGroup: 10001
+      # seccompProfile:
+      #   type: RuntimeDefault
+    securityContext:
+      {}
+      # runAsNonRoot: true
+      # runAsUser: 10002
+      # runAsGroup: 10002
+      # readOnlyRootFilesystem: true
+      # capabilities:
+      #  drop:
+      #    - ALL
+      # privileged: false
+      # allowPrivilegeEscalation: false
+      # seccompProfile:
+      #   type: RuntimeDefault
+    tolerations: {}
+    resources: {}
+    #   requests:
+    #     cpu: 100m
+    #     memory: 32Mi
+    #   limits:
+    #     cpu: 200m
+    #     memory: 64Mi
+  podDisruptionBudget:
+    {}
+    #minAvailable: 90%
+    #maxUnavailable: 10%
+  service:
+    annotations: {}
+    expose: "false"
+  ingress:
+    enabled: false
+    annotations: {}
+    className: ~
+    hosts:
+      - host: startpunkt.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    #tls:
+    #- hosts:
+    #  - startpunkt.example.com
+    #  secretName: ~
+  route:
+    enabled: false
+    annotations: {}
+    additionalLabels: {}
+    host: ""
+    port:
+      targetPort: http
+    wildcardPolicy: None
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/live
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
+  ports:
+    http: 8080
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/ready
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
+  startupProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /q/health/started
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10

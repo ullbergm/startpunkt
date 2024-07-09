@@ -2,10 +2,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: startpunkt-role
+  name: {{ template "startpunkt.name" . }}-role
   labels:
-    app.kubernetes.io/name: startpunkt
-    app.kubernetes.io/version: 0.5.0
+{{ include "startpunkt.labels.chart" . | indent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["namespaces"]
@@ -32,15 +31,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: startpunkt-rolebinding
+  name: {{ template "startpunkt.name" . }}-rolebinding
   labels:
-    app.kubernetes.io/name: startpunkt
-    app.kubernetes.io/version: 0.5.0
+    app.kubernetes.io/name: {{ template "startpunkt.name" . }}
+    app.kubernetes.io/version: {{ .Values.startpunkt.labels.version }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: startpunkt-role
+  name: {{ template "startpunkt.name" . }}-role
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.serviceAccountName }}
+  name: {{ template "startpunkt.name" . }}
   namespace: {{.Release.Namespace}}
