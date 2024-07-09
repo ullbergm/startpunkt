@@ -4,7 +4,7 @@
   <br/><br/>
   <img width="130" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png"/>
   <br/><br/>
-  <img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?style=flat-square&logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/>
+  <a target="_blank" href="https://github.com/ullbergm/startpunkt/releases"><img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?style=flat-square&logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/></a>
   <a target="_blank" href="https://github.com/ullbergm/startpunkt"><img src="https://img.shields.io/github/last-commit/ullbergm/startpunkt?style=flat-square&logo=github&color=609966&logoColor=fff" alt="Last commit"/></a>
   <a href="https://github.com/ullbergm/startpunkt/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?style=flat-square&logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
   <a href="https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square&color=609966&logoColor=fff&label=links" alt="Link checker"/></a>
