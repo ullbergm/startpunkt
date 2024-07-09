@@ -1,0 +1,11 @@
+{
+   "home": {
+      "applications": "Program",
+      "bookmarks": "Bokm\u00e4rken",
+      "theme": {
+         "light": "Ljust",
+         "dark": "M\u00f6rkt",
+         "auto": "Auto"
+      }
+   }
+}
