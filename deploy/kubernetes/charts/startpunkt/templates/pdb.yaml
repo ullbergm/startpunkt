@@ -1,0 +1,13 @@
+{{- if and .Values.startpunkt.podDisruptionBudget ( gt ( int .Values.startpunkt.deployment.replicas ) 1 ) -}}
+kind: PodDisruptionBudget
+apiVersion: {{ include "podDisruptionBudget.apiVersion" . }}
+metadata:
+  name: {{ include "startpunkt.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "startpunkt.labels.chart" . | indent 4 }}
+spec:
+  selector:
+    matchLabels: {{ include "startpunkt.labels.selector" . | nindent 6 }}
+{{ toYaml .Values.startpunkt.podDisruptionBudget | indent 2 }}
+{{- end }}

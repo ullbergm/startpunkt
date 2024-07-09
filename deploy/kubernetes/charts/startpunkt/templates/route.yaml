@@ -1,0 +1,30 @@
+{{- if .Values.startpunkt.route.enabled -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ template "startpunkt.name" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  labels:
+{{ include "startpunkt.labels.chart" . | indent 4 }}
+{{- if .Values.startpunkt.route.additionalLabels }}
+{{ toYaml .Values.startpunkt.route.additionalLabels | indent 4 }}
+{{- end }}
+{{- if .Values.startpunkt.route.annotations }}
+  annotations:
+{{ toYaml .Values.startpunkt.route.annotations | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.startpunkt.route.host }}
+  host: {{ .Values.startpunkt.route.host }}
+{{- end }}
+  port:
+{{ toYaml .Values.startpunkt.route.port | indent 4 }}
+  to:
+    kind: Service
+    name: {{ template "startpunkt.name" . }}
+    weight: 100
+  wildcardPolicy: {{ .Values.startpunkt.route.wildcardPolicy }}
+  tls:
+    termination: {{ .Values.startpunkt.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.startpunkt.route.tls.insecureEdgeTerminationPolicy }}
+{{- end -}}

@@ -8,9 +8,9 @@ area/charts:
   - changed-files:
     - any-glob-to-any-file: "charts/**/*"
 area/docs:
-- all:
-  - changed-files:
-    - any-glob-to-any-file: "docs/**/*"
+- changed-files:
+  - any-glob-to-any-file: "docs/**/*"
+  - any-glob-to-any-file: "README.md"
 area/frontend:
 - all:
   - changed-files:

@@ -1,0 +1,45 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "startpunkt.name" . }}-role
+  labels:
+{{ include "startpunkt.labels.chart" . | indent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list"]
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list"]
+- apiGroups: ["traefik.io"]
+  resources: ["ingressroutes"]
+  verbs: ["get", "list"]
+- apiGroups: ["forecastle.stakater.com"]
+  resources: ["forecastleapps"]
+  verbs: ["get", "list"]
+- apiGroups: ["hajimari.io"]
+  resources: ["applications", "bookmarks"]
+  verbs: ["get", "list"]
+- apiGroups: ["startpunkt.ullberg.us"]
+  resources: ["applications", "bookmarks"]
+  verbs: ["get", "list", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "startpunkt.name" . }}-rolebinding
+  labels:
+    app.kubernetes.io/name: {{ template "startpunkt.name" . }}
+    app.kubernetes.io/version: {{ .Values.startpunkt.labels.version }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "startpunkt.name" . }}-role
+subjects:
+- kind: ServiceAccount
+  name: {{ template "startpunkt.name" . }}
+  namespace: {{.Release.Namespace}}
