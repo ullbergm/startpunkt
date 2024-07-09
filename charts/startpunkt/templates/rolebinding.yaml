@@ -7,8 +7,20 @@ metadata:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/version: 0.5.0
 rules:
-- apiGroups: ["", "extensions", "networking.k8s.io", "discovery.k8s.io"]
-  resources: ["ingresses", "namespaces", "endpointslices", "routes"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list"]
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list"]
+- apiGroups: ["traefik.io"]
+  resources: ["ingressroutes"]
+  verbs: ["get", "list"]
+- apiGroups: ["forecastle.stakater.com"]
+  resources: ["forecastleapps"]
   verbs: ["get", "list"]
 - apiGroups: ["hajimari.io"]
   resources: ["applications", "bookmarks"]
