@@ -55,7 +55,7 @@
 * 🏷️ **Bookmarks**. Create a list of bookmarks using CRDs.
 * 👌 **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.
 * 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
-<!-- * 🌎 **Internationalized**. Supports multiple languages. -->
+* 🌎 **Internationalized**. Supports multiple languages.
 <!-- * 🎨 **Themes**. Supports themes. -->
 
 ---
