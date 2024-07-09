@@ -22,10 +22,13 @@ public class ApplicationResource {
   @Inject MeterRegistry registry;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
-  private boolean hajimariEnabled = true;
+  private boolean hajimariEnabled = false;
 
   @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
-  private boolean openshiftEnabled = true;
+  private boolean openshiftEnabled = false;
+
+  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "false")
+  private boolean openshiftOnlyAnnotated = false;
 
   private ArrayList<ApplicationSpec> retrieveApps() {
     // Create a list of applications
@@ -37,7 +40,8 @@ public class ApplicationResource {
     if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
 
     // If startpunkt.openshift is set to true, get the OpenShift Route applications
-    if (openshiftEnabled) apps.addAll(ApplicationService.retrieveRoutesApplications());
+    if (openshiftEnabled)
+      apps.addAll(ApplicationService.retrieveRoutesApplications(openshiftOnlyAnnotated));
 
     // Sort the list
     Collections.sort(apps);

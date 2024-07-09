@@ -138,29 +138,34 @@ public class ApplicationService {
 
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
-      List<ApplicationSpec> apps =
-          list.getItems().stream()
-              .map(
-                  item -> {
-                    String name = getAppName(item);
-                    String url = getUrl(item);
-                    String icon = getIcon(item);
-                    String iconColor = getIconColor(item);
-                    String info = getInfo(item);
-                    String group = getGroup(item);
-                    Boolean targetBlank = getTargetBlank(item);
-                    int location = getLocation(item);
-                    Boolean enable = getEnable(item);
+      return list.getItems().stream()
+          .map(
+              item -> {
+                String name = getAppName(item);
+                String url = getUrl(item);
+                String icon = getIcon(item);
+                String iconColor = getIconColor(item);
+                String info = getInfo(item);
+                String group = getGroup(item);
+                Boolean targetBlank = getTargetBlank(item);
+                int location = getLocation(item);
+                Boolean enable = getEnable(item);
 
-                    return new ApplicationSpec(
-                        name, group, icon, iconColor, url, info, targetBlank, location, enable);
-                  })
-              .toList();
-
-      return apps;
+                return new ApplicationSpec(
+                    name, group, icon, iconColor, url, info, targetBlank, location, enable);
+              })
+          .toList();
     } catch (Exception e) {
       return List.of();
     }
+  }
+
+  public List<ApplicationSpec> retrieveRoutesApplications(boolean onlyAnnotated) {
+    var apps = retrieveRoutesApplications();
+
+    if (onlyAnnotated)
+      return apps.stream().filter(app -> app.getEnabled() != null && app.getEnabled()).toList();
+    else return apps;
   }
 
   private String getUrl(GenericKubernetesResource item) {
@@ -169,10 +174,8 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("url"))
-      return spec.get("url").toString();
-    else if (annotations.containsKey("hajimari.io/url"))
-      return annotations.get("hajimari.io/url");
+    if (spec.containsKey("url")) return spec.get("url").toString();
+    else if (annotations.containsKey("hajimari.io/url")) return annotations.get("hajimari.io/url");
     else if (annotations.containsKey("forecastle.stakater.com/url"))
       return annotations.get("forecastle.stakater.com/url");
 
@@ -189,8 +192,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("icon"))
-      return spec.get("icon").toString();
+    if (spec.containsKey("icon")) return spec.get("icon").toString();
     else if (annotations.containsKey("hajimari.io/icon"))
       return annotations.get("hajimari.io/icon");
     else if (annotations.containsKey("forecastle.stakater.com/icon"))
@@ -205,8 +207,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("iconColor"))
-      return spec.get("iconColor").toString();
+    if (spec.containsKey("iconColor")) return spec.get("iconColor").toString();
     else if (annotations.containsKey("hajimari.io/iconColor"))
       return annotations.get("hajimari.io/iconColor");
 
@@ -219,8 +220,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("info"))
-      return spec.get("info").toString();
+    if (spec.containsKey("info")) return spec.get("info").toString();
     else if (annotations.containsKey("hajimari.io/info"))
       return annotations.get("hajimari.io/info");
 
@@ -233,8 +233,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("group"))
-      return spec.get("group").toString().toLowerCase();
+    if (spec.containsKey("group")) return spec.get("group").toString().toLowerCase();
     else if (annotations.containsKey("hajimari.io/group"))
       return annotations.get("hajimari.io/group").toLowerCase();
     else if (annotations.containsKey("forecastle.stakater.com/group"))
@@ -249,8 +248,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("name"))
-      return spec.get("name").toString().toLowerCase();
+    if (spec.containsKey("name")) return spec.get("name").toString().toLowerCase();
     else if (annotations.containsKey("hajimari.io/appName"))
       return annotations.get("hajimari.io/appName").toLowerCase();
     else if (annotations.containsKey("forecastle.stakater.com/appName"))
@@ -302,8 +300,7 @@ public class ApplicationService {
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("enable"))
-      return Boolean.parseBoolean(spec.get("enable").toString());
+    if (spec.containsKey("enable")) return Boolean.parseBoolean(spec.get("enable").toString());
     else if (annotations.containsKey("startpunkt.ullberg.us/enable"))
       return Boolean.parseBoolean(annotations.get("startpunkt.ullberg.us/enable"));
     else if (annotations.containsKey("hajimari.io/enable"))

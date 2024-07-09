@@ -107,10 +107,12 @@ startpunkt:
   # OpenShift integration, read OpenShift Routes
   openshift:
     enabled: false
+    onlyAnnotated: true # Only consider resources with the annotation enabled set to true
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
     enabled: false
+
 ```
 
 ### 📝 Custom applications
