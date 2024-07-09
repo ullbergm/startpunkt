@@ -6,6 +6,11 @@ startpunkt:
     #   - default
     #   - startpunkt
 
+  # Kubernetes integration, read ingress resources
+  ingress:
+    enabled: true
+    onlyAnnotated: true # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
   # OpenShift integration, read OpenShift Routes
   openshift:
     enabled: false

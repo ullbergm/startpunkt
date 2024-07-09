@@ -160,6 +160,42 @@ public class ApplicationService {
     }
   }
 
+  @Timed(value = "startpunkt.kubernetes.ingress", description = "Get a list of ingress objects")
+  public List<ApplicationSpec> retrieveIngressApplications() {
+    Log.info("Retrieve Ingress objects");
+    try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
+      ResourceDefinitionContext resourceDefinitionContext =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("networking.k8s.io")
+              .withVersion("v1")
+              .withPlural("ingresses")
+              .withNamespaced(true)
+              .build();
+
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
+
+      return list.getItems().stream()
+          .map(
+              item -> {
+                String name = getAppName(item);
+                String url = getUrl(item);
+                String icon = getIcon(item);
+                String iconColor = getIconColor(item);
+                String info = getInfo(item);
+                String group = getGroup(item);
+                Boolean targetBlank = getTargetBlank(item);
+                int location = getLocation(item);
+                Boolean enable = getEnable(item);
+
+                return new ApplicationSpec(
+                    name, group, icon, iconColor, url, info, targetBlank, location, enable);
+              })
+          .toList();
+    } catch (Exception e) {
+      return List.of();
+    }
+  }
+
   public List<ApplicationSpec> retrieveRoutesApplications(boolean onlyAnnotated) {
     var apps = retrieveRoutesApplications();
 

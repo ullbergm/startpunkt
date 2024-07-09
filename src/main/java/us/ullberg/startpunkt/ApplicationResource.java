@@ -24,6 +24,12 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   private boolean hajimariEnabled = false;
 
+  @ConfigProperty(name = "startpunkt.ingress.enabled", defaultValue = "false")
+  private boolean ingressEnabled = false;
+
+  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "true")
+  private boolean ingressOnlyAnnotated = true;
+
   @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
   private boolean openshiftEnabled = false;
 
@@ -36,12 +42,15 @@ public class ApplicationResource {
 
     apps.addAll(ApplicationService.retrieveApplications());
 
-    // If startpunkt.hajimari is set to true, get the Hajimari applications
+    // If hajimariEnabled is set to true, get the Hajimari applications
     if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
 
-    // If startpunkt.openshift is set to true, get the OpenShift Route applications
+    // If openshiftEnabled is set to true, get the OpenShift Route applications
     if (openshiftEnabled)
       apps.addAll(ApplicationService.retrieveRoutesApplications(openshiftOnlyAnnotated));
+
+    // If ingressEnabled is set to true, get the ingress applications
+    if (ingressEnabled) apps.addAll(ApplicationService.retrieveIngressApplications());
 
     // Sort the list
     Collections.sort(apps);

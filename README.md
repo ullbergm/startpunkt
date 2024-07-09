@@ -30,6 +30,7 @@
 - [⚙️ Configuration](#️-configuration)
   - [✍️ Application settings](#️-application-settings)
   - [📝 Custom applications](#-custom-applications)
+  - [🗒️ Annotations](#️-annotations)
 - [👌 Built With](#-built-with)
     - [Quarkus](#quarkus)
     - [Vite](#vite)
@@ -132,6 +133,24 @@ spec:
   url: http://nas:5000/
   info: Storage
 ```
+
+### 🗒️ Annotations
+
+You can use annotations to customize how the applications you have are displayed in Startpunkt.
+
+The annotations can go on Ingresses or OpenShift Routes.
+
+| Annotation | Description                                                                                                             | Required |
+|-------------------------------------|------------------------------------------------------------------------------------------------|----------|
+| `startpunkt.ullberg.us/enabled`     | Add this with value true if you want the application to show up in Startpunk                   | No       |
+| `startpunkt.ullberg.us/icon`        | Icon/Image URL of the application. Icons can come from material design, etc.                   | No       |
+| `startpunkt.ullberg.us/iconColor`   | Color to display the icon in.                                                                  | No       |
+| `startpunkt.ullberg.us/name`        | A custom name for your application. Use if you don’t want to use the name of the ingress/route | No       |
+| `startpunkt.ullberg.us/url`         | A URL for the application. This will override the ingress URL.                                 | No       |
+| `startpunkt.ullberg.us/targetBlank` | Determines if links should open in new tabs/windows.                                           | No       |
+| `startpunkt.ullberg.us/info`        | A short description of the application.                                                        | No       |
+
+> **_NOTE:_**  There is compatibility built in to process Hajimari and Forecastle annotations as well.
 
 ## 👌 Built With
 
