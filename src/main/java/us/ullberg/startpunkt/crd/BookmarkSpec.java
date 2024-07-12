@@ -5,9 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
+@Buildable(builderPackage = "io.fabric8.kubernetes.api.builder", editableEnabled = false)
 public class BookmarkSpec implements Comparable<BookmarkSpec> {
   @JsonProperty("name")
   @JsonPropertyDescription("Bookmark name")
@@ -41,7 +43,8 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   private int location;
 
   // Constructor
-  public BookmarkSpec()  {}
+  public BookmarkSpec() {}
+
   public BookmarkSpec(String name, String group, String icon, String url, String info,
       Boolean targetBlank, int location) {
     this.name = name;

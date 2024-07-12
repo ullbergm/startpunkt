@@ -3,24 +3,46 @@ package us.ullberg.startpunkt.crd;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Plural;
 import io.fabric8.kubernetes.model.annotation.Version;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.BuildableReference;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @Version("v1alpha1")
 @Group("startpunkt.ullberg.us")
+@Plural("applications")
+@Buildable(builderPackage = "io.fabric8.kubernetes.api.builder", editableEnabled = false,
+    refs = @BuildableReference(CustomResource.class))
 public class Application extends CustomResource<ApplicationSpec, ApplicationStatus>
-    implements Namespaced, Comparable<Application> {
-      public Application(){}
-      public Application(String name, String group, String icon, String iconColor, String url,
+    implements Namespaced {
+  public Application() {
+    super();
+  }
+
+  public Application(String name, String group, String icon, String iconColor, String url,
       String info, Boolean targetBlank, int location, Boolean enabled) {
     super();
     this.spec = new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
         enabled);
   }
 
-  // Implement Comparable interface
   @Override
-  public int compareTo(Application other) {
-    // Compare by name
-    return this.getSpec().compareTo(other.getSpec());
+  public int hashCode() {
+    return new HashCodeBuilder().append(getSpec()).append(getStatus()).toHashCode();
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) {
+      return true;
+    }
+    if ((other instanceof Application) == false) {
+      return false;
+    }
+    Application rhs = ((Application) other);
+    return new EqualsBuilder().append(getSpec(), rhs.getSpec()).append(getStatus(), rhs.getStatus())
+        .isEquals();
   }
 }

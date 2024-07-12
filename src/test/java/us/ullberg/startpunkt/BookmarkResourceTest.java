@@ -38,15 +38,15 @@ class BookmarkResourceTest {
   @BeforeEach
   public void before() {
 
-    CustomResourceDefinition crd = CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Bookmark.class)
-        .build();
+    CustomResourceDefinition crd =
+        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Bookmark.class).build();
 
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
 
     // When
-    CustomResourceDefinition createdCronTabCrd = client.apiextensions().v1().customResourceDefinitions().resource(crd)
-        .create();
+    CustomResourceDefinition createdCronTabCrd =
+        client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
     assertNotNull(createdCronTabCrd);
 
@@ -61,9 +61,9 @@ class BookmarkResourceTest {
     makerworld.setMetadata(new ObjectMetaBuilder().withName("makerworld").build());
     makerworld.setSpec(makerworldSpec);
 
-    MixedOperation<Bookmark, KubernetesResourceList<Bookmark>, Resource<Bookmark>> bookmarkOp = client
-        .resources(Bookmark.class);
-        bookmarkOp.inNamespace("default").resource(makerworld).createOrReplace();
+    MixedOperation<Bookmark, KubernetesResourceList<Bookmark>, Resource<Bookmark>> bookmarkOp =
+        client.resources(Bookmark.class);
+    bookmarkOp.inNamespace("default").resource(makerworld).createOrReplace();
   }
 
   @Test
@@ -94,11 +94,13 @@ class BookmarkResourceTest {
 
   @Test
   void testBookmarkIcon() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].icon[0]", equalTo("simple-icons:makerworld"));
+    given().when().get("/api/bookmarks").then().body("bookmarks[0].icon[0]",
+        equalTo("simple-icons:makerworld"));
   }
 
   @Test
   void testBookmarkUrl() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].url[0]", equalTo("https://makerworld.com"));
+    given().when().get("/api/bookmarks").then().body("bookmarks[0].url[0]",
+        equalTo("https://makerworld.com"));
   }
 }

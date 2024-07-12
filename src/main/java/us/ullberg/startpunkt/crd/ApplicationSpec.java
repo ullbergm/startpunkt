@@ -5,9 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
+@Buildable(builderPackage = "io.fabric8.kubernetes.api.builder", editableEnabled = false)
 public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonProperty("name")
   @JsonPropertyDescription("Application name")
@@ -16,7 +18,6 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
   @JsonProperty("group")
   @JsonPropertyDescription("Group the bookmark belongs to")
-  @Required
   private String group;
 
   @JsonProperty("icon")
@@ -49,7 +50,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   private Boolean enabled;
 
   // Constructor
-  public ApplicationSpec(){}
+  public ApplicationSpec() {}
+
   public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
       String info, Boolean targetBlank, int location, Boolean enabled) {
     this.name = name;

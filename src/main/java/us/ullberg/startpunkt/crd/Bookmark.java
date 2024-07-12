@@ -1,25 +1,45 @@
 package us.ullberg.startpunkt.crd;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Plural;
 import io.fabric8.kubernetes.model.annotation.Version;
+import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.BuildableReference;
 
 @Version("v1alpha1")
 @Group("startpunkt.ullberg.us")
-public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus>
-    implements Namespaced, Comparable<Bookmark> {
-      public Bookmark() {}
-      public Bookmark(String name, String group, String icon, String url, String info,
+@Plural("bookmarks")
+@Buildable(builderPackage = "io.fabric8.kubernetes.api.builder", editableEnabled = false,
+    refs = @BuildableReference(CustomResource.class))
+public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus> implements Namespaced {
+  public Bookmark() {}
+
+  public Bookmark(String name, String group, String icon, String url, String info,
       Boolean targetBlank, int location) {
     super();
     this.spec = new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
   }
 
-  // Implement Comparable interface
   @Override
-  public int compareTo(Bookmark other) {
-    // Compare by name
-    return this.getSpec().compareTo(other.getSpec());
+  public int hashCode() {
+    return new HashCodeBuilder().append(getSpec()).append(getStatus()).toHashCode();
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == this) {
+      return true;
+    }
+    if ((other instanceof Bookmark) == false) {
+      return false;
+    }
+    Bookmark rhs = ((Bookmark) other);
+    return new EqualsBuilder().append(getSpec(), rhs.getSpec()).append(getStatus(), rhs.getStatus())
+        .isEquals();
   }
 }
