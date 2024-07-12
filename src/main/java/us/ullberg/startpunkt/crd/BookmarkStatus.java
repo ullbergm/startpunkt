@@ -1,3 +1,4 @@
 package us.ullberg.startpunkt.crd;
 
-public class BookmarkStatus {}
+public class BookmarkStatus {
+}

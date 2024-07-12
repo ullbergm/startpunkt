@@ -17,9 +17,11 @@ import us.ullberg.startpunkt.crd.BookmarkSpec;
 @Path("/api/bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
-  @Inject BookmarkService BookmarkService;
+  @Inject
+  BookmarkService BookmarkService;
 
-  @Inject MeterRegistry registry;
+  @Inject
+  MeterRegistry registry;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
@@ -31,7 +33,8 @@ public class BookmarkResource {
     bookmarks.addAll(BookmarkService.retrieveBookmarks());
 
     // If startpunkt.hajimari is set to true, get the Hajimari bookmarks
-    if (hajimariEnabled) bookmarks.addAll(BookmarkService.retrieveHajimariBookmarks());
+    if (hajimariEnabled)
+      bookmarks.addAll(BookmarkService.retrieveHajimariBookmarks());
 
     // Sort the list
     Collections.sort(bookmarks);

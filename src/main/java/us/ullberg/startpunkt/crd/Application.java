@@ -9,20 +9,11 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Group("startpunkt.ullberg.us")
 public class Application extends CustomResource<ApplicationSpec, ApplicationStatus>
     implements Namespaced, Comparable<Application> {
-  public Application(
-      String name,
-      String group,
-      String icon,
-      String iconColor,
-      String url,
-      String info,
-      Boolean targetBlank,
-      int location,
-      Boolean enabled) {
+  public Application(String name, String group, String icon, String iconColor, String url,
+      String info, Boolean targetBlank, int location, Boolean enabled) {
     super();
-    this.spec =
-        new ApplicationSpec(
-            name, group, icon, iconColor, url, info, targetBlank, location, enabled);
+    this.spec = new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
+        enabled);
   }
 
   // Implement Comparable interface

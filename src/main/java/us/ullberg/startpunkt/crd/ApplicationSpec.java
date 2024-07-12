@@ -49,16 +49,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   private Boolean enabled;
 
   // Constructor
-  public ApplicationSpec(
-      String name,
-      String group,
-      String icon,
-      String iconColor,
-      String url,
-      String info,
-      Boolean targetBlank,
-      int location,
-      Boolean enabled) {
+  public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
+      String info, Boolean targetBlank, int location, Boolean enabled) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -145,32 +137,10 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
   @Override
   public String toString() {
-    return "ApplicationSpec{"
-        + "name='"
-        + name
-        + '\''
-        + ", group='"
-        + group
-        + '\''
-        + ", icon='"
-        + icon
-        + '\''
-        + ", iconColor='"
-        + iconColor
-        + '\''
-        + ", url='"
-        + url
-        + '\''
-        + ", info='"
-        + info
-        + '\''
-        + ", targetBlank="
-        + targetBlank
-        + ", location="
-        + location
-        + ", enabled="
-        + enabled
-        + '}';
+    return "ApplicationSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='"
+        + icon + '\'' + ", iconColor='" + iconColor + '\'' + ", url='" + url + '\'' + ", info='"
+        + info + '\'' + ", targetBlank=" + targetBlank + ", location=" + location + ", enabled="
+        + enabled + '}';
   }
 
   // Implement Comparable interface
