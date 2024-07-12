@@ -168,6 +168,7 @@ The annotations can go on Ingresses or OpenShift Routes.
 | `startpunkt.ullberg.us/url`         | A URL for the application. This will override the ingress URL.                                 | No       |
 | `startpunkt.ullberg.us/targetBlank` | Determines if links should open in new tabs/windows.                                           | No       |
 | `startpunkt.ullberg.us/info`        | A short description of the application.                                                        | No       |
+| `startpunkt.ullberg.us/protocol`    | Protocol to use for links if not known.                                                        | No       |
 
 > **_NOTE:_**  There is compatibility built in to process Hajimari and Forecastle annotations as well.
 
