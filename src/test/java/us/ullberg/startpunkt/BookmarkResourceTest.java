@@ -5,11 +5,9 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.net.HttpURLConnection;
 
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -30,6 +28,8 @@ import org.junit.jupiter.api.Test;
 // Enable Kubernetes mock server for testing
 @WithKubernetesTestServer
 class BookmarkResourceTest {
+  // Define the type of the custom resource
+  private static final Class<Bookmark> RESOURCE_TYPE = Bookmark.class;
 
   // Inject the Kubernetes mock server
   @KubernetesTestServer
@@ -71,11 +71,22 @@ class BookmarkResourceTest {
     makerworld.setSpec(makerworldSpec);
 
     // Create or replace the Makerworld bookmark resource in the default namespace
-    MixedOperation<Bookmark, KubernetesResourceList<Bookmark>, Resource<Bookmark>> bookmarkOp =
-        client.resources(Bookmark.class);
-    bookmarkOp.inNamespace("default").resource(makerworld).createOrReplace();
+    createOrReplace("default", makerworld);
   }
 
+  // Method to create or replace a custom resource in the specified namespace
+  private void createOrReplace(String namespace, Bookmark object) {
+    Resource<Bookmark> resource = client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
+
+    // Check if the resource already exists
+    if (resource.get() != null) {
+        // Replace the existing resource
+        resource.update();
+    } else {
+        // Create the new resource
+        resource.create();
+    }
+  }
   // Test to verify that the bookmarks API endpoint is accessible
   @Test
   void testBookmarkApiEndpoint() {

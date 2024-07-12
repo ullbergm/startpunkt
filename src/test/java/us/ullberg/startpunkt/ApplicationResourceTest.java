@@ -3,11 +3,9 @@ package us.ullberg.startpunkt;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import java.net.HttpURLConnection;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -24,6 +22,8 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 @WithKubernetesTestServer
 class ApplicationResourceTest {
+  // Define the type of the custom resource
+  private static final Class<Application> RESOURCE_TYPE = Application.class;
 
   @KubernetesTestServer
   KubernetesServer server;  // Mock Kubernetes server for testing
@@ -36,7 +36,7 @@ class ApplicationResourceTest {
 
     // Create a CustomResourceDefinition (CRD) for the Application resource
     CustomResourceDefinition crd =
-        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(RESOURCE_TYPE).build();
 
     // Set up the mock server to expect a POST request for creating the CRD
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
@@ -66,9 +66,21 @@ class ApplicationResourceTest {
     sonarr.setSpec(sonarrSpec);
 
     // Create or replace the Sonarr application resource in the default namespace
-    MixedOperation<Application, KubernetesResourceList<Application>, Resource<Application>> appOp =
-        client.resources(Application.class);
-    appOp.inNamespace("default").resource(sonarr).createOrReplace();
+    createOrReplace("default", sonarr);
+  }
+
+  // Method to create or replace a custom resource in the specified namespace
+  private void createOrReplace(String namespace, Application object) {
+    Resource<Application> resource = client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
+
+    // Check if the resource already exists
+    if (resource.get() != null) {
+        // Replace the existing resource
+        resource.update();
+    } else {
+        // Create the new resource
+        resource.create();
+    }
   }
 
   @Test
