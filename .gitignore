@@ -22,8 +22,9 @@ bin/
 nb-configuration.xml
 
 # Visual Studio Code
-.vscode
 .factorypath
+.vscode/*
+!.vscode/launch.json
 
 # OSX
 .DS_Store
