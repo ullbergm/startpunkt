@@ -41,6 +41,7 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   private int location;
 
   // Constructor
+  public BookmarkSpec()  {}
   public BookmarkSpec(String name, String group, String icon, String url, String info,
       Boolean targetBlank, int location) {
     this.name = name;

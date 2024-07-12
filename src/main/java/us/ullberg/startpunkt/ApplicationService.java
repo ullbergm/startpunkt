@@ -41,10 +41,10 @@ public class ApplicationService {
         String group = getGroup(item);
         Boolean targetBlank = getTargetBlank(item);
         int location = getLocation(item);
-        Boolean enable = getEnable(item);
+        Boolean enabled = getEnabled(item);
 
         return new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
-            enable);
+            enabled);
       }).toList();
 
       return apps;
@@ -82,7 +82,7 @@ public class ApplicationService {
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       List<ApplicationSpec> apps = list.getItems().stream().map(item -> {
-        Boolean enable = getEnable(item);
+        Boolean enabled = getEnabled(item);
         String name = getAppName(item);
         String url = getUrl(item);
         String icon = getIcon(item);
@@ -93,7 +93,7 @@ public class ApplicationService {
         int location = getLocation(item);
 
         return new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
-            enable);
+            enabled);
       }).toList();
 
       return apps;
@@ -121,10 +121,10 @@ public class ApplicationService {
         String group = getGroup(item);
         Boolean targetBlank = getTargetBlank(item);
         int location = getLocation(item);
-        Boolean enable = getEnable(item);
+        Boolean enabled = getEnabled(item);
 
         return new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
-            enable);
+            enabled);
       }).toList();
     } catch (Exception e) {
       return List.of();
@@ -150,10 +150,10 @@ public class ApplicationService {
         String group = getGroup(item);
         Boolean targetBlank = getTargetBlank(item);
         int location = getLocation(item);
-        Boolean enable = getEnable(item);
+        Boolean enabled = getEnabled(item);
 
         return new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
-            enable);
+            enabled);
       }).toList();
     } catch (Exception e) {
       return List.of();
@@ -303,18 +303,18 @@ public class ApplicationService {
     return location;
   }
 
-  private Boolean getEnable(GenericKubernetesResource item) {
+  private Boolean getEnabled(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     Map<String, String> annotations = item.getMetadata().getAnnotations();
 
-    if (spec.containsKey("enable"))
-      return Boolean.parseBoolean(spec.get("enable").toString());
-    else if (annotations.containsKey("startpunkt.ullberg.us/enable"))
-      return Boolean.parseBoolean(annotations.get("startpunkt.ullberg.us/enable"));
-    else if (annotations.containsKey("hajimari.io/enable"))
-      return Boolean.parseBoolean(annotations.get("hajimari.io/enable"));
+    if (spec.containsKey("enabled"))
+      return Boolean.parseBoolean(spec.get("enabled").toString());
+    else if (annotations.containsKey("startpunkt.ullberg.us/enabled"))
+      return Boolean.parseBoolean(annotations.get("startpunkt.ullberg.us/enabled"));
+    else if (annotations.containsKey("hajimari.io/enabled"))
+      return Boolean.parseBoolean(annotations.get("hajimari.io/enabled"));
     else if (annotations.containsKey("forecastle.stakater.com/expose"))
       return Boolean.parseBoolean(annotations.get("forecastle.stakater.com/expose"));
 

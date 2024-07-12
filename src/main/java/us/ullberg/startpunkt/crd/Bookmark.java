@@ -9,7 +9,8 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Group("startpunkt.ullberg.us")
 public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus>
     implements Namespaced, Comparable<Bookmark> {
-  public Bookmark(String name, String group, String icon, String url, String info,
+      public Bookmark() {}
+      public Bookmark(String name, String group, String icon, String url, String info,
       Boolean targetBlank, int location) {
     super();
     this.spec = new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
