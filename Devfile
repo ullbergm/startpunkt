@@ -1,4 +1,4 @@
-schemaVersion: 2.2.0
+schemaVersion: 2.2.2
 metadata:
   name: startpunkt
   displayName: Startpunkt
@@ -11,61 +11,50 @@ metadata:
     - openshift
     - hajimari
     - sui
-  version: 1.2.1
-  provider: Red Hat
-  supportUrl: https://github.com/devfile-samples/devfile-support#support-information
-  website: https://quarkus.io
-  projectType: Quarkus
-  language: Java
-  attributes:
-    alpha.dockerimage-port: 8080
 components:
   - name: tools
     container:
-      image: registry.access.redhat.com/ubi8/openjdk-21:1.20-2
-      args: ['tail', '-f', '/dev/null']
-      memoryLimit: 1024Mi ## default app nowhere needs this but leaving room for expansion.
-      mountSources: true
+      image: registry.redhat.io/devspaces/udi-rhel8@sha256:042d06a9f481cf1d65a81632a9c069c318f80537e01db7d864dfecfb0bc5714c
+      env:
+        - name: QUARKUS_HTTP_HOST
+          value: 0.0.0.0
+      endpoints:
+        - exposure: none
+          name: debug
+          protocol: tcp
+          targetPort: 5005
+        - exposure: public
+          name: webui
+          protocol: https
+          targetPort: 8080
+          path: /
       volumeMounts:
         - name: m2
           path: /home/user/.m2
-      endpoints:
-        - name: https-quarkus
-          targetPort: 8080
-          protocol: https
-        - exposure: none
-          name: debug
-          targetPort: 5858
-      env:
-        - name: DEBUG_PORT
-          value: '5858'
+      cpuLimit: '4'
+      cpuRequest: '1'
+      memoryLimit: 8G
+      memoryRequest: 4G
+      mountSources: true
   - name: m2
     volume:
-      size: 3Gi
+      size: 1G
 commands:
-  - id: init-compile
+  - id: 1-package
     exec:
+      label: 1. Package the application
       component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository compile'
-      workingDir: ${PROJECT_SOURCE}
-  - id: dev-run
+      workingDir: ${PROJECTS_ROOT}
+      commandLine: mvn package
+      group:
+        kind: build
+        isDefault: true
+  - id: 2-startdev
     exec:
+      label: 2. Start Development mode (Hot reload + debug)
       component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository quarkus:dev -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager'
-      hotReloadCapable: true
+      workingDir: ${PROJECTS_ROOT}
+      commandLine: mvn compile quarkus:dev
       group:
         kind: run
         isDefault: true
-      workingDir: ${PROJECT_SOURCE}
-  - id: dev-debug
-    exec:
-      component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository quarkus:dev -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Ddebug=${DEBUG_PORT}'
-      hotReloadCapable: true
-      group:
-        kind: debug
-        isDefault: true
-      workingDir: ${PROJECT_SOURCE}
-events:
-  postStart:
-    - init-compile
