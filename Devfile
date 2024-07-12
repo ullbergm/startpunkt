@@ -22,7 +22,7 @@ metadata:
 components:
   - name: tools
     container:
-      image: registry.access.redhat.com/ubi8/openjdk-21:1.19-1
+      image: registry.access.redhat.com/ubi8/openjdk-21:1.20-2
       args: ['tail', '-f', '/dev/null']
       memoryLimit: 1024Mi ## default app nowhere needs this but leaving room for expansion.
       mountSources: true
@@ -42,27 +42,6 @@ components:
   - name: m2
     volume:
       size: 3Gi
-# components:
-  # - name: image-build
-  #   image:
-  #     imageName: startpunkt:latest
-  #     dockerfile:
-  #       uri: src/main/docker/Dockerfile.jvm.staged
-  #       buildContext: .
-  #       rootRequired: false
-  # - name: kubernetes-deploy
-  #   attributes:
-  #     deployment/replicas: 1
-  #     deployment/cpuRequest: 10m
-  #     deployment/memoryRequest: 100Mi
-  #     deployment/container-port: 8080
-  #   kubernetes:
-  #     uri: deploy.yaml
-  #     endpoints:
-  #       - name: http-8080
-  #         targetPort: 8080
-  #         path: /
-  #         secure: true
 commands:
   - id: init-compile
     exec:
@@ -90,18 +69,3 @@ commands:
 events:
   postStart:
     - init-compile
-# commands:
-  # - id: build-image
-  #   apply:
-  #     component: image-build
-  # - id: deployk8s
-  #   apply:
-  #     component: kubernetes-deploy
-  # - id: deploy
-  #   composite:
-  #     commands:
-  #       - build-image
-  #       - deployk8s
-  #     group:
-  #       kind: deploy
-  #       isDefault: true
