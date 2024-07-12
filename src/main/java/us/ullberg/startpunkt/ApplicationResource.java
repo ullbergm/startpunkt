@@ -20,6 +20,7 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 import us.ullberg.startpunkt.objects.BaseKubernetesObject;
 import us.ullberg.startpunkt.objects.HajimariApplicationWrapper;
 import us.ullberg.startpunkt.objects.IngressApplicationWrapper;
+import us.ullberg.startpunkt.objects.IstioVirtualServiceApplicationWrapper;
 import us.ullberg.startpunkt.objects.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.StartpunktApplicationWrapper;
 
@@ -39,20 +40,29 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.ingress.enabled", defaultValue = "false")
   private boolean ingressEnabled = false;
 
-  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "true")
+  @ConfigProperty(name = "startpunkt.ingress.onlyAnnotated", defaultValue = "true")
   private boolean ingressOnlyAnnotated = true;
 
   @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
   private boolean openshiftEnabled = false;
 
-  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "false")
-  private boolean openshiftOnlyAnnotated = false;
+  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "true")
+  private boolean openshiftOnlyAnnotated = true;
+
+  @ConfigProperty(name = "startpunkt.istio.virtualservice.enabled", defaultValue = "false")
+  private boolean istioVirtualServiceEnabled = false;
+
+  @ConfigProperty(name = "startpunkt.istio.virtualservice.onlyAnnotated", defaultValue = "true")
+  private boolean istioVirtualServiceOnlyAnnotated = true;
 
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
 
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
   private String[] matchNames;
+
+  @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
+  private String defaultProtocol = "http";
 
   // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
@@ -68,6 +78,9 @@ public class ApplicationResource {
 
     if (ingressEnabled)
       applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+
+    if (istioVirtualServiceEnabled)
+      applicationWrappers.add(new IstioVirtualServiceApplicationWrapper(istioVirtualServiceOnlyAnnotated, defaultProtocol));
 
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
@@ -114,7 +127,8 @@ public class ApplicationResource {
     return Response.status(404, "Application not found").build();
   }
 
-  // GET endpoint to retrieve the list of all applications, grouped by application group
+  // GET endpoint to retrieve the list of all applications, grouped by application
+  // group
   @GET
   @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
