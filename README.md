@@ -54,6 +54,12 @@
 - 🗂️ **Service Groups**. Group services by namespace or custom groups.
 - 🏷️ **Bookmarks**. Create a list of bookmarks using CRDs.
 - 👌 **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.
+- ⚡ **Integrated**. Supports displaying services defined in
+  - Startpunkt annotations/CRDs
+  - Kubernetes Ingress
+  - OpenShift Routes
+  - Hajimari CRDs
+  - Istio VirtualServices.
 - 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
 - 🌎 **Internationalized**. Supports multiple languages.
 <!-- * 🎨 **Themes**. Supports themes. -->
@@ -98,22 +104,35 @@ If you want to update the default configuration, mount a file in /work/config/ap
 
 ```yaml
 startpunkt:
+  # Default protocol for links if not specified in the resource
+  defaultProtocol: "http"
+
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
-    any: true
-    # matchNames:
+    any: true  # If true, look for resources in all namespaces
+    # matchNames:  # Uncomment and specify namespace names to limit the search to specific namespaces
     #   - default
     #   - startpunkt
 
+  # Kubernetes integration, read ingress resources
+  ingress:
+    enabled: true  # If true, enable the reading of ingress resources
+    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
   # OpenShift integration, read OpenShift Routes
   openshift:
-    enabled: false
-    onlyAnnotated: true # Only consider resources with the annotation enabled set to true
+    enabled: false  # If true, enable the reading of OpenShift Route resources
+    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
-    enabled: false
+    enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
 
+  # Istio Virtual Service integration, read Istio VirtualService resources
+  istio:
+    virtualservice:
+      enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 ```
 
 ### 📝 Custom applications
