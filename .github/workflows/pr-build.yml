@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
 
     steps:
       - name: ⤵️ Check out code from GitHub
@@ -40,6 +41,8 @@ jobs:
       - name: Publish Test Report
         if: success() || failure()
         uses: scacap/action-surefire-report@v1
+        with:
+          fail_on_test_failures: true
 
       - name: mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
         run: $MVN package -Pnative -DskipTests -Dquarkus.native.container-build=true
