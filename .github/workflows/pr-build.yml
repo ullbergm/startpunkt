@@ -34,8 +34,12 @@ jobs:
       - name: mvn clean compile
         run: $MVN clean compile
 
-      - name: mvn test -Pnative -Dquarkus.native.container-build=true
-        run: $MVN test
+      - name: mvn test
+        run: $MVN test --batch-mode --fail-at-end
+        
+      - name: Publish Test Report
+        if: success() || failure()
+        uses: scacap/action-surefire-report@v1
 
       - name: mvn package -Pnative -DskipTests -Dquarkus.native.container-build=true
         run: $MVN package -Pnative -DskipTests -Dquarkus.native.container-build=true
