@@ -17,9 +17,11 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApplicationResource {
-  @Inject ApplicationService ApplicationService;
+  @Inject
+  ApplicationService ApplicationService;
 
-  @Inject MeterRegistry registry;
+  @Inject
+  MeterRegistry registry;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   private boolean hajimariEnabled = false;
@@ -43,14 +45,16 @@ public class ApplicationResource {
     apps.addAll(ApplicationService.retrieveApplications());
 
     // If hajimariEnabled is set to true, get the Hajimari applications
-    if (hajimariEnabled) apps.addAll(ApplicationService.retrieveHajimariApplications());
+    if (hajimariEnabled)
+      apps.addAll(ApplicationService.retrieveHajimariApplications());
 
     // If openshiftEnabled is set to true, get the OpenShift Route applications
     if (openshiftEnabled)
       apps.addAll(ApplicationService.retrieveRoutesApplications(openshiftOnlyAnnotated));
 
     // If ingressEnabled is set to true, get the ingress applications
-    if (ingressEnabled) apps.addAll(ApplicationService.retrieveIngressApplications());
+    if (ingressEnabled)
+      apps.addAll(ApplicationService.retrieveIngressApplications());
 
     // Sort the list
     Collections.sort(apps);

@@ -41,14 +41,8 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   private int location;
 
   // Constructor
-  public BookmarkSpec(
-      String name,
-      String group,
-      String icon,
-      String url,
-      String info,
-      Boolean targetBlank,
-      int location) {
+  public BookmarkSpec(String name, String group, String icon, String url, String info,
+      Boolean targetBlank, int location) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -117,27 +111,9 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
 
   @Override
   public String toString() {
-    return "BookmarkSpec{"
-        + "name='"
-        + name
-        + '\''
-        + ", group='"
-        + group
-        + '\''
-        + ", icon='"
-        + icon
-        + '\''
-        + ", url='"
-        + url
-        + '\''
-        + ", info='"
-        + info
-        + '\''
-        + ", targetBlank="
-        + targetBlank
-        + ", location="
-        + location
-        + '}';
+    return "BookmarkSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='" + icon
+        + '\'' + ", url='" + url + '\'' + ", info='" + info + '\'' + ", targetBlank=" + targetBlank
+        + ", location=" + location + '}';
   }
 
   // Implement Comparable interface
