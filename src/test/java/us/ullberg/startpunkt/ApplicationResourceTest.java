@@ -45,10 +45,10 @@ class ApplicationResourceTest {
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
 
     // When
-    CustomResourceDefinition createdCronTabCrd =
+    CustomResourceDefinition createdApplicationCrd =
         client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
-    assertNotNull(createdCronTabCrd);
+    assertNotNull(createdApplicationCrd);
 
     // Create sonarr application
     ApplicationSpec sonarrSpec = new ApplicationSpec();

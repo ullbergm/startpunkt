@@ -45,10 +45,10 @@ class BookmarkResourceTest {
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
 
     // When
-    CustomResourceDefinition createdCronTabCrd =
+    CustomResourceDefinition createdBookmarkCrd =
         client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
-    assertNotNull(createdCronTabCrd);
+    assertNotNull(createdBookmarkCrd);
 
     // Create sonarr application
     BookmarkSpec makerworldSpec = new BookmarkSpec();
