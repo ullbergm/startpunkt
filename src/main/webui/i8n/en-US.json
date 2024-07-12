@@ -1,0 +1,11 @@
+{
+   "home": {
+      "applications": "Applications",
+      "bookmarks": "Bookmarks",
+      "theme": {
+         "light": "Light",
+         "dark": "Dark",
+         "auto": "Auto"
+      }
+   }
+}

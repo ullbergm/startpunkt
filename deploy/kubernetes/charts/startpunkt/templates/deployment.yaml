@@ -1,0 +1,73 @@
+---
+apiVersion: {{ template "deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /q/metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+  labels:
+{{ include "startpunkt.labels.chart" . | indent 4 }}
+  name: {{ template "startpunkt.name" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+spec:
+  replicas: {{ .Values.startpunkt.deployment.replicas }}
+  revisionHistoryLimit: {{ .Values.startpunkt.deployment.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+{{ include "startpunkt.labels.selector" . | indent 6 }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /q/metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: http
+      labels:
+{{ include "startpunkt.labels.selector" . | indent 8 }}
+    spec:
+      containers:
+        - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: "{{ .Values.startpunkt.image.name }}:{{ .Values.startpunkt.image.tag }}"
+          name: {{ template "startpunkt.name" . }}
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: {{ .Values.startpunkt.livenessProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.startpunkt.livenessProbe.httpGet.path }}
+              port: {{ .Values.startpunkt.ports.http }}
+              scheme: {{ .Values.startpunkt.livenessProbe.httpGet.scheme }}
+            initialDelaySeconds: {{ .Values.startpunkt.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.startpunkt.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.startpunkt.livenessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.startpunkt.livenessProbe.timeoutSeconds }}
+          ports:
+            - containerPort: {{ .Values.startpunkt.ports.http }}
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: {{ .Values.startpunkt.readinessProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.startpunkt.readinessProbe.httpGet.path }}
+              port: {{ .Values.startpunkt.ports.http }}
+              scheme: {{ .Values.startpunkt.readinessProbe.httpGet.scheme }}
+            initialDelaySeconds: {{ .Values.startpunkt.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.startpunkt.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.startpunkt.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.startpunkt.readinessProbe.timeoutSeconds }}
+          startupProbe:
+            failureThreshold: {{ .Values.startpunkt.startupProbe.failureThreshold }}
+            httpGet:
+              path: {{ .Values.startpunkt.startupProbe.httpGet.path }}
+              port: {{ .Values.startpunkt.ports.http }}
+              scheme: {{ .Values.startpunkt.startupProbe.httpGet.scheme }}
+            initialDelaySeconds: {{ .Values.startpunkt.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.startpunkt.startupProbe.periodSeconds }}
+            successThreshold: {{ .Values.startpunkt.startupProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.startpunkt.startupProbe.timeoutSeconds }}
+      serviceAccountName: {{ template "startpunkt.name" . }}

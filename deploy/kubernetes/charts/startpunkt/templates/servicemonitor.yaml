@@ -1,0 +1,19 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+{{ include "startpunkt.labels.chart" . | indent 4 }}
+  name: {{ template "startpunkt.name" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "startpunkt.name" . }}
+      app.kubernetes.io/version: {{ .Values.startpunkt.labels.version }}
+  endpoints:
+    - scheme: http
+      targetPort: 8080
+      path: /q/metrics
+      interval: 10s
+      honorLabels: true

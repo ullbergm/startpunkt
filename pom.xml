@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>us.ullberg</groupId>
     <artifactId>startpunkt</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>0.7.0-SNAPSHOT</version>
 
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
@@ -12,9 +12,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.12.1</quarkus.platform.version>
+        <quarkus.platform.version>3.12.2</quarkus.platform.version>
         <skipITs>true</skipITs>
-        <surefire-plugin.version>3.3.0</surefire-plugin.version>
+        <surefire-plugin.version>3.3.1</surefire-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -31,8 +31,8 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/ullbergm/startpunkt.git</developerConnection>
-      <tag>v0.5.1</tag>
-  </scm>
+        <tag>v0.6.0</tag>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -46,6 +46,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-kubernetes-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-kubernetes-client</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -106,16 +111,13 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.spotify.fmt</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-                <version>2.23</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.24.1</version>
+                <configuration>
+                    <configFile>src/eclipse-formatter-config.xml</configFile>
+                    <encoding>UTF-8</encoding>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>${quarkus.platform.group-id}</groupId>

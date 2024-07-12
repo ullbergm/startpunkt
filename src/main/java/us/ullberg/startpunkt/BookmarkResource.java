@@ -14,32 +14,43 @@ import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
+// REST API resource class for managing bookmarks
 @Path("/api/bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
-  @Inject BookmarkService BookmarkService;
 
-  @Inject MeterRegistry registry;
+  // Inject the BookmarkService to manage bookmark-related operations
+  @Inject
+  BookmarkService bookmarkService;
 
+  // Inject the MeterRegistry for metrics
+  @Inject
+  MeterRegistry registry;
+
+  // Configuration property to enable or disable Hajimari bookmarks
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
 
+  // Method to retrieve the list of bookmarks
   private ArrayList<BookmarkSpec> retrieveBookmarks() {
-    // Create a list of bookmarks
+    // Create a list to store bookmarks
     var bookmarks = new ArrayList<BookmarkSpec>();
 
-    bookmarks.addAll(BookmarkService.retrieveBookmarks());
+    // Add bookmarks retrieved from the BookmarkService
+    bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
-    // If startpunkt.hajimari is set to true, get the Hajimari bookmarks
-    if (hajimariEnabled) bookmarks.addAll(BookmarkService.retrieveHajimariBookmarks());
+    // If Hajimari bookmarks are enabled, add them to the list
+    if (hajimariEnabled)
+      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
 
-    // Sort the list
+    // Sort the list of bookmarks
     Collections.sort(bookmarks);
 
-    // Return the list
+    // Return the sorted list of bookmarks
     return bookmarks;
   }
 
+  // GET endpoint to retrieve the list of bookmarks
   @GET
   @Timed(value = "startpunkt.api.getbookmarks", description = "Get the list of bookmarks")
   @CacheResult(cacheName = "getBookmarks")
@@ -47,31 +58,31 @@ public class BookmarkResource {
     // Retrieve the list of bookmarks
     ArrayList<BookmarkSpec> bookmarklist = retrieveBookmarks();
 
-    // Create a list of groups
+    // Create a list to store bookmark groups
     ArrayList<BookmarkGroup> groups = new ArrayList<>();
 
-    // Group the bookmarks by group
-    for (BookmarkSpec a : bookmarklist) {
-      // Find the group
+    // Group the bookmarks by their group property
+    for (BookmarkSpec bookmark : bookmarklist) {
+      // Find the existing group
       BookmarkGroup group = null;
       for (BookmarkGroup g : groups) {
-        if (g.getName().equals(a.getGroup())) {
+        if (g.getName().equals(bookmark.getGroup())) {
           group = g;
           break;
         }
       }
 
-      // If the group doesn't exist, create it
+      // If the group doesn't exist, create a new one
       if (group == null) {
-        group = new BookmarkGroup(a.getGroup());
+        group = new BookmarkGroup(bookmark.getGroup());
         groups.add(group);
       }
 
       // Add the bookmark to the group
-      group.addBookmark(a);
+      group.addBookmark(bookmark);
     }
 
-    // Return the list
+    // Return the list of bookmark groups
     return Response.ok(groups).build();
   }
 }

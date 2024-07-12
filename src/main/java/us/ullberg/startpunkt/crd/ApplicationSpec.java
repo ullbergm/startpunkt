@@ -6,59 +6,65 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+// Include non-empty JSON properties in serialization
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+// Register class for reflection, including the full hierarchy
 @RegisterForReflection(registerFullHierarchy = true)
 public class ApplicationSpec implements Comparable<ApplicationSpec> {
+
+  // Application name, marked as required
   @JsonProperty("name")
   @JsonPropertyDescription("Application name")
   @Required
   public String name;
 
+  // Group the bookmark belongs to
   @JsonProperty("group")
   @JsonPropertyDescription("Group the bookmark belongs to")
-  @Required
   private String group;
 
+  // Application icon, either as an icon name or URL
   @JsonProperty("icon")
   @JsonPropertyDescription("Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'")
   private String icon;
 
+  // Application icon color
   @JsonProperty("iconColor")
   @JsonPropertyDescription("Application icon color, e.g. 'red'")
   private String iconColor;
 
+  // Application URL, marked as required
   @JsonProperty("url")
   @JsonPropertyDescription("Application URL")
   @Required
   private String url;
 
+  // Description of the bookmark
   @JsonProperty("info")
   @JsonPropertyDescription("Description of the bookmark")
   private String info;
 
+  // Flag to open the URL in a new tab
   @JsonProperty("targetBlank")
   @JsonPropertyDescription("Open the URL in a new tab")
   private Boolean targetBlank;
 
+  // Sorting order of the bookmark
   @JsonProperty("location")
   @JsonPropertyDescription("Sorting order of the bookmark")
   private int location;
 
+  // Enable the bookmark
   @JsonProperty("enabled")
   @JsonPropertyDescription("Enable the bookmark")
   private Boolean enabled;
 
-  // Constructor
-  public ApplicationSpec(
-      String name,
-      String group,
-      String icon,
-      String iconColor,
-      String url,
-      String info,
-      Boolean targetBlank,
-      int location,
-      Boolean enabled) {
+  // Default constructor
+  public ApplicationSpec() {}
+
+  // Parameterized constructor to initialize the fields
+  public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
+      String info, Boolean targetBlank, int location, Boolean enabled) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -70,7 +76,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     this.enabled = enabled;
   }
 
-  // Getters and Setters
+  // Getters and setters for each field
   public String getName() {
     return name;
   }
@@ -100,7 +106,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   public void setIconColor(String iconColor) {
-    this.icon = iconColor;
+    this.iconColor = iconColor;
   }
 
   public String getUrl() {
@@ -143,37 +149,16 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     this.enabled = enabled;
   }
 
+  // Override the toString method to provide a string representation of the object
   @Override
   public String toString() {
-    return "ApplicationSpec{"
-        + "name='"
-        + name
-        + '\''
-        + ", group='"
-        + group
-        + '\''
-        + ", icon='"
-        + icon
-        + '\''
-        + ", iconColor='"
-        + iconColor
-        + '\''
-        + ", url='"
-        + url
-        + '\''
-        + ", info='"
-        + info
-        + '\''
-        + ", targetBlank="
-        + targetBlank
-        + ", location="
-        + location
-        + ", enabled="
-        + enabled
-        + '}';
+    return "ApplicationSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='"
+        + icon + '\'' + ", iconColor='" + iconColor + '\'' + ", url='" + url + '\'' + ", info='"
+        + info + '\'' + ", targetBlank=" + targetBlank + ", location=" + location + ", enabled="
+        + enabled + '}';
   }
 
-  // Implement Comparable interface
+  // Implement the Comparable interface to compare ApplicationSpec objects
   @Override
   public int compareTo(ApplicationSpec other) {
     // Compare by group
