@@ -2,7 +2,10 @@ package us.ullberg.startpunkt.objects;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 
+// Class representing a wrapper for Hajimari applications
 public class HajimariApplicationWrapper extends BaseKubernetesObject {
+
+  // Constructor to initialize the custom resource with specific group, version, and plural kind
   public HajimariApplicationWrapper() {
     super("hajimari.io", "v1alpha1", "applications");
   }
@@ -17,7 +20,6 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
     var spec = getSpec(item);
-
     return spec.get("group").toString().toLowerCase();
   }
 
@@ -27,7 +29,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
     return getSpec(item).get("url").toString();
   }
 
-  // Override getAppIcon since the spec has a optional property called icon
+  // Override getAppIcon since the spec has an optional property called icon
   // If the icon is not set, return the super.getAppIcon response
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
@@ -39,7 +41,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
     return super.getAppIcon(item);
   }
 
-  // Override getAppInfo since the spec has a optional property called info
+  // Override getAppInfo since the spec has an optional property called info
   // If the info is not set, return the super.getAppInfo response
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
@@ -51,8 +53,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
     return super.getAppInfo(item);
   }
 
-  // Override getAppTargetBlank since the spec has a optional property called
-  // targetBlank
+  // Override getAppTargetBlank since the spec has an optional property called targetBlank
   // If the targetBlank is not set, return the super.getAppTargetBlank response
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
@@ -64,8 +65,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
     return super.getAppTargetBlank(item);
   }
 
-  // Override getAppLocation since the spec has a optional property called
-  // location
+  // Override getAppLocation since the spec has an optional property called location
   // If the location is not set, return the super.getAppLocation response
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {

@@ -31,8 +31,8 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/ullbergm/startpunkt.git</developerConnection>
-      <tag>v0.6.0</tag>
-  </scm>
+        <tag>v0.6.0</tag>
+    </scm>
 
     <dependencies>
         <dependency>
