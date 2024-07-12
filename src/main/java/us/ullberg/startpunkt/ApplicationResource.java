@@ -23,12 +23,16 @@ import us.ullberg.startpunkt.objects.IngressApplicationWrapper;
 import us.ullberg.startpunkt.objects.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.StartpunktApplicationWrapper;
 
+// REST API resource class for managing applications
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApplicationResource {
+
+  // Inject the MeterRegistry for metrics
   @Inject
   MeterRegistry registry;
 
+  // Configuration properties for enabling different types of application wrappers
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   private boolean hajimariEnabled = false;
 
@@ -50,6 +54,7 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
   private String[] matchNames;
 
+  // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
     // Create a list of application wrappers to retrieve applications from
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
@@ -76,25 +81,25 @@ public class ApplicationResource {
       }
     }
 
-    // Sort the list
+    // Sort the list of applications
     Collections.sort(apps);
 
-    // Return the list
+    // Return the list of applications
     return apps;
   }
 
-
+  // GET endpoint to retrieve an application by its name
   @GET
   @Path("{appName}")
   @CacheResult(cacheName = "getApp")
-
   public Response getApps(@PathParam("appName") String appName) {
     // Retrieve the list of applications
     ArrayList<ApplicationSpec> applist = retrieveApps();
 
+    // Create a list to store the found application
     ArrayList<ApplicationSpec> retval = new ArrayList<>();
 
-    // Find the application with the name appName
+    // Find the application with the specified name
     for (ApplicationSpec a : applist) {
       if (a.getName().equals(appName)) {
         retval.add(a);
@@ -105,10 +110,11 @@ public class ApplicationResource {
     if (retval.size() > 0)
       return Response.ok(retval).build();
 
-    // If not, return a 404
+    // If the application was not found, return a 404 response
     return Response.status(404, "Application not found").build();
   }
 
+  // GET endpoint to retrieve the list of all applications, grouped by application group
   @GET
   @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
@@ -116,10 +122,10 @@ public class ApplicationResource {
     // Retrieve the list of applications
     ArrayList<ApplicationSpec> applist = retrieveApps();
 
-    // Create a list of groups
+    // Create a list to store application groups
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
 
-    // Group the applications by group
+    // Group the applications by their group property
     for (ApplicationSpec a : applist) {
       // Find the group
       ApplicationGroup group = null;
@@ -140,7 +146,7 @@ public class ApplicationResource {
       group.addApplication(a);
     }
 
-    // Return the list
+    // Return the list of application groups
     return Response.ok(groups).build();
   }
 }

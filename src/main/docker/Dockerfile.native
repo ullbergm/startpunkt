@@ -1,17 +1,14 @@
 ####
-# This Dockerfile is used in order to build a container that runs the Quarkus application in native (no JVM) mode.
+# Dockerfile for building a container to run the Quarkus application in native mode.
 #
-# Before building the container image run:
-#
+# Build the native executable with:
 # ./mvnw package -Dnative
 #
-# Then, build the image with:
+# Build the container image with:
+# docker build -f src/main/docker/Dockerfile.native -t ullbergm/startpunkt .
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/startpunkt .
-#
-# Then run the container using:
-#
-# docker run -i --rm -p 8080:8080 quarkus/startpunkt
+# Run the container with:
+# docker run -i --rm -p 8080:8080 ullbergm/startpunkt
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10-1018

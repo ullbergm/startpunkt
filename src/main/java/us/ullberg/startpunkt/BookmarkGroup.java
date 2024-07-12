@@ -5,42 +5,46 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.ArrayList;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
-// Group class
+// Class representing a group of bookmarks
 @RegisterForReflection(registerFullHierarchy = true)
 public class BookmarkGroup implements Comparable<BookmarkGroup> {
-  // Constructor
-  public BookmarkGroup(String name) {
-    Name = name;
-    Bookmarks = new ArrayList<BookmarkSpec>();
-  }
-
-  public BookmarkGroup(String name, ArrayList<BookmarkSpec> bookmarks) {
-    Name = name;
-    Bookmarks = bookmarks;
-  }
 
   // Private fields
   private String Name;
   private ArrayList<BookmarkSpec> Bookmarks;
 
-  // Getter methods with annotations
+  // Constructor to initialize the BookmarkGroup with a name
+  public BookmarkGroup(String name) {
+    Name = name;
+    Bookmarks = new ArrayList<BookmarkSpec>();
+  }
+
+  // Constructor to initialize the BookmarkGroup with a name and a list of bookmarks
+  public BookmarkGroup(String name, ArrayList<BookmarkSpec> bookmarks) {
+    Name = name;
+    Bookmarks = bookmarks;
+  }
+
+  // Getter method for the name field with JSON property annotation
   @JsonProperty("name")
   public String getName() {
     return Name;
   }
 
+  // Getter method for the bookmarks field with JSON property annotation
   @JsonProperty("bookmarks")
   public ArrayList<BookmarkSpec> getBookmarks() {
     return Bookmarks;
   }
 
-  // Implement Comparable interface for sorting by name
+  // Override compareTo method to compare BookmarkGroup objects by name
   @Override
   public int compareTo(BookmarkGroup other) {
     return this.getName().compareTo(other.getName());
   }
 
-  public void addBookmark(BookmarkSpec app) {
-    Bookmarks.add(app);
+  // Method to add a bookmark to the bookmarks list
+  public void addBookmark(BookmarkSpec bookmark) {
+    Bookmarks.add(bookmark);
   }
 }

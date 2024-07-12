@@ -2,7 +2,11 @@ package us.ullberg.startpunkt.objects;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 
+// Class representing a wrapper for Startpunkt application objects
 public class StartpunktApplicationWrapper extends BaseKubernetesObject {
+
+  // Constructor to initialize the StartpunktApplicationWrapper with specific group, version, and
+  // plural kind
   public StartpunktApplicationWrapper() {
     super("startpunkt.ullberg.us", "v1alpha1", "applications");
   }
@@ -13,7 +17,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return getSpec(item).get("name").toString().toLowerCase();
   }
 
-  // Override getAppGroup since the spec has a optional property called group
+  // Override getAppGroup since the spec has an optional property called group
   // If the group is not set, return the super.getAppGroup response
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
@@ -31,7 +35,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return getSpec(item).get("url").toString();
   }
 
-  // Override getAppIcon since the spec has a optional property called icon
+  // Override getAppIcon since the spec has an optional property called icon
   // If the icon is not set, return the super.getAppIcon response
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
@@ -43,8 +47,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return super.getAppIcon(item);
   }
 
-  // Override getAppIconColor since the spec has a optional property called
-  // iconColor
+  // Override getAppIconColor since the spec has an optional property called iconColor
   // If the iconColor is not set, return the super.getAppIconColor response
   @Override
   protected String getAppIconColor(GenericKubernetesResource item) {
@@ -56,7 +59,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return super.getAppIconColor(item);
   }
 
-  // Override getAppInfo since the spec has a optional property called info
+  // Override getAppInfo since the spec has an optional property called info
   // If the info is not set, return the super.getAppInfo response
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
@@ -68,8 +71,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return super.getAppInfo(item);
   }
 
-  // Override getAppTargetBlank since the spec has a optional property called
-  // targetBlank
+  // Override getAppTargetBlank since the spec has an optional property called targetBlank
   // If the targetBlank is not set, return the super.getAppTargetBlank response
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
@@ -81,8 +83,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return super.getAppTargetBlank(item);
   }
 
-  // Override getAppLocation since the spec has a optional property called
-  // location
+  // Override getAppLocation since the spec has an optional property called location
   // If the location is not set, return the super.getAppLocation response
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
@@ -101,7 +102,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return super.getAppLocation(item);
   }
 
-  // Override getAppEnabled since the spec has a optional property called enabled
+  // Override getAppEnabled since the spec has an optional property called enabled
   // If the enabled is not set, return the super.getAppEnabled response
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
