@@ -11,72 +11,51 @@ metadata:
     - openshift
     - hajimari
     - sui
+  version: 1.2.1
+  provider: Red Hat
+  supportUrl: https://github.com/devfile-samples/devfile-support#support-information
+  website: https://quarkus.io
   projectType: Quarkus
   language: Java
-  version: 1.5.0
-  website: https://quarkus.io
-starterProjects:
-  - name: community
-    zip:
-      location: https://code.quarkus.io/d?e=io.quarkus%3Aquarkus-resteasy&e=io.quarkus%3Aquarkus-micrometer&e=io.quarkus%3Aquarkus-smallrye-health&e=io.quarkus%3Aquarkus-openshift&cn=devfile&j=21
-  - name: redhat-product
-    zip:
-      location: https://code.quarkus.redhat.com/d?e=io.quarkus%3Aquarkus-resteasy&e=io.quarkus%3Aquarkus-smallrye-health&e=io.quarkus%3Aquarkus-openshift&j=21
+  attributes:
+    alpha.dockerimage-port: 8081
+parent:
+  id: java-quarkus
+  registryUrl: 'https://registry.devfile.io'
+  version: 1.4.0
 components:
-  - name: image
+  - name: image-build
     image:
       imageName: startpunkt:latest
-      autoBuild: true
       dockerfile:
-        uri: src/main/docker/Dockerfile.jvm
+        uri: src/main/docker/Dockerfile.jvm.staged
         buildContext: .
         rootRequired: false
-  - name: tools
-    container:
-      image: registry.access.redhat.com/ubi8/openjdk-21:1.20-3
-      args: ['tail', '-f', '/dev/null']
-      memoryLimit: 1024Mi ## default app nowhere needs this but leaving room for expansion.
-      mountSources: true
-      volumeMounts:
-        - name: m2
-          path: /home/user/.m2
+  - name: kubernetes-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuRequest: 10m
+      deployment/memoryRequest: 100Mi
+      deployment/container-port: 8080
+    kubernetes:
+      uri: deploy.yaml
       endpoints:
-        - name: https-quarkus
+        - name: http-8080
           targetPort: 8080
-          protocol: https
-        - exposure: none
-          name: debug
-          targetPort: 5858
-      env:
-        - name: DEBUG_PORT
-          value: '5858'
-  - name: m2
-    volume:
-      size: 3Gi
+          path: /
+          secure: true
 commands:
-  - id: init-compile
-    exec:
-      component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository compile'
-      workingDir: ${PROJECT_SOURCE}
-  - id: dev-run
-    exec:
-      component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository quarkus:dev -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager'
-      hotReloadCapable: true
+  - id: build-image
+    apply:
+      component: image-build
+  - id: deployk8s
+    apply:
+      component: kubernetes-deploy
+  - id: deploy
+    composite:
+      commands:
+        - build-image
+        - deployk8s
       group:
-        kind: run
+        kind: deploy
         isDefault: true
-      workingDir: ${PROJECT_SOURCE}
-  - id: dev-debug
-    exec:
-      component: tools
-      commandLine: './mvnw -Dmaven.repo.local=/home/user/.m2/repository quarkus:dev -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Ddebug=${DEBUG_PORT}'
-      hotReloadCapable: true
-      group:
-        kind: debug
-        isDefault: true
-      workingDir: ${PROJECT_SOURCE}
-events:
-  postStart:
-    - init-compile
