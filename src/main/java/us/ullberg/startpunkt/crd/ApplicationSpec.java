@@ -49,6 +49,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   private Boolean enabled;
 
   // Constructor
+  public ApplicationSpec(){}
   public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
       String info, Boolean targetBlank, int location, Boolean enabled) {
     this.name = name;
@@ -92,7 +93,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   public void setIconColor(String iconColor) {
-    this.icon = iconColor;
+    this.iconColor = iconColor;
   }
 
   public String getUrl() {
