@@ -16,7 +16,6 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
   @JsonProperty("group")
   @JsonPropertyDescription("Group the bookmark belongs to")
-  @Required
   private String group;
 
   @JsonProperty("icon")
@@ -49,7 +48,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   private Boolean enabled;
 
   // Constructor
-  public ApplicationSpec(){}
+  public ApplicationSpec() {}
+
   public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
       String info, Boolean targetBlank, int location, Boolean enabled) {
     this.name = name;

@@ -1,11 +1,15 @@
 package us.ullberg.startpunkt;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -13,13 +17,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.objects.BaseKubernetesObject;
+import us.ullberg.startpunkt.objects.HajimariApplicationWrapper;
+import us.ullberg.startpunkt.objects.IngressApplicationWrapper;
+import us.ullberg.startpunkt.objects.RouteApplicationWrapper;
+import us.ullberg.startpunkt.objects.StartpunktApplicationWrapper;
 
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApplicationResource {
-  @Inject
-  ApplicationService ApplicationService;
-
   @Inject
   MeterRegistry registry;
 
@@ -38,29 +44,69 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "false")
   private boolean openshiftOnlyAnnotated = false;
 
+  @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
+  private boolean anyNamespace;
+
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
+  private String[] matchNames;
+
   private ArrayList<ApplicationSpec> retrieveApps() {
+    // Create a list of application wrappers to retrieve applications from
+    var applicationWrappers = new ArrayList<BaseKubernetesObject>();
+    applicationWrappers.add(new StartpunktApplicationWrapper());
+
+    if (hajimariEnabled)
+      applicationWrappers.add(new HajimariApplicationWrapper());
+
+    if (openshiftEnabled)
+      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
+
+    if (ingressEnabled)
+      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
-    apps.addAll(ApplicationService.retrieveApplications());
-
-    // If hajimariEnabled is set to true, get the Hajimari applications
-    if (hajimariEnabled)
-      apps.addAll(ApplicationService.retrieveHajimariApplications());
-
-    // If openshiftEnabled is set to true, get the OpenShift Route applications
-    if (openshiftEnabled)
-      apps.addAll(ApplicationService.retrieveRoutesApplications(openshiftOnlyAnnotated));
-
-    // If ingressEnabled is set to true, get the ingress applications
-    if (ingressEnabled)
-      apps.addAll(ApplicationService.retrieveIngressApplications());
+    // Retrieve the applications from the application wrappers
+    for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+      try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
+        apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
+      } catch (Exception e) {
+        Log.error("Error retrieving applications", e);
+      }
+    }
 
     // Sort the list
     Collections.sort(apps);
 
     // Return the list
     return apps;
+  }
+
+
+  @GET
+  @Path("{appName}")
+  @CacheResult(cacheName = "getApp")
+
+  public Response getApps(@PathParam("appName") String appName) {
+    // Retrieve the list of applications
+    ArrayList<ApplicationSpec> applist = retrieveApps();
+
+    ArrayList<ApplicationSpec> retval = new ArrayList<>();
+
+    // Find the application with the name appName
+    for (ApplicationSpec a : applist) {
+      if (a.getName().equals(appName)) {
+        retval.add(a);
+      }
+    }
+
+    // If the application was found, return it
+    if (retval.size() > 0)
+      return Response.ok(retval).build();
+
+    // If not, return a 404
+    return Response.status(404, "Application not found").build();
   }
 
   @GET

@@ -2,7 +2,6 @@ package us.ullberg.startpunkt;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.contains;
 
 import java.net.HttpURLConnection;
 
@@ -39,17 +38,17 @@ class ApplicationResourceTest {
   @BeforeEach
   public void before() {
 
-    CustomResourceDefinition crd = CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class)
-        .build();
+    CustomResourceDefinition crd =
+        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
 
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
 
     // When
-    CustomResourceDefinition createdCronTabCrd = client.apiextensions().v1().customResourceDefinitions().resource(crd)
-        .create();
+    CustomResourceDefinition createdApplicationCrd =
+        client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
-    assertNotNull(createdCronTabCrd);
+    assertNotNull(createdApplicationCrd);
 
     // Create sonarr application
     ApplicationSpec sonarrSpec = new ApplicationSpec();
@@ -67,8 +66,8 @@ class ApplicationResourceTest {
     sonarr.setMetadata(new ObjectMetaBuilder().withName("sonarr").build());
     sonarr.setSpec(sonarrSpec);
 
-    MixedOperation<Application, KubernetesResourceList<Application>, Resource<Application>> appOp = client
-        .resources(Application.class);
+    MixedOperation<Application, KubernetesResourceList<Application>, Resource<Application>> appOp =
+        client.resources(Application.class);
     appOp.inNamespace("default").resource(sonarr).createOrReplace();
   }
 
@@ -95,7 +94,8 @@ class ApplicationResourceTest {
 
   @Test
   void testApplicationIcon() {
-    given().when().get("/api/apps").then().body("applications[0].icon[0]", equalTo("mdi:television"));
+    given().when().get("/api/apps").then().body("applications[0].icon[0]",
+        equalTo("mdi:television"));
   }
 
   @Test
@@ -105,12 +105,14 @@ class ApplicationResourceTest {
 
   @Test
   void testApplicationUrl() {
-    given().when().get("/api/apps").then().body("applications[0].url[0]", equalTo("https://sonarr.ullberg.us"));
+    given().when().get("/api/apps").then().body("applications[0].url[0]",
+        equalTo("https://sonarr.ullberg.us"));
   }
 
   @Test
   void testApplicationInfo() {
-    given().when().get("/api/apps").then().body("applications[0].info[0]", equalTo("TV Show Manager"));
+    given().when().get("/api/apps").then().body("applications[0].info[0]",
+        equalTo("TV Show Manager"));
   }
 
   @Test
@@ -128,10 +130,10 @@ class ApplicationResourceTest {
     given().when().get("/api/apps").then().body("applications[0].enabled[0]", equalTo(true));
   }
 
-  // @Test
-  // public void testApplicationGet() {
-  //   // get Applications objects from the cluster and expect to see the sonarr
-  //   // application
-  //   given().when().get("/api/apps/sonarr").then().log().all().statusCode(200);
-  // }
+  @Test
+  public void testApplicationGet() {
+    // get Applications objects from the cluster and expect to see the sonarr
+    // application
+    given().when().get("/api/apps/sonarr").then().log().all().statusCode(200);
+  }
 }
