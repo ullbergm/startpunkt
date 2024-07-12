@@ -1,16 +1,20 @@
 schemaVersion: 2.2.0
 metadata:
-  name: java-quarkus
   version: 1.2.1
   provider: Red Hat
   supportUrl: https://github.com/devfile-samples/devfile-support#support-information
-  icon: https://design.jboss.org/quarkus/logo/final/SVG/quarkus_icon_rgb_default.svg
   website: https://quarkus.io
-  displayName: Quarkus Java
-  description: Quarkus with Java
+  name: startpunkt
+  displayName: Startpunkt
+  description: Startpunkt is a clean start page designed to display links to all your self-hosted resources in your kubernetes cluster.
+  icon: https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png
   tags:
-    - Java
-    - Quarkus
+    - kubernetes
+    - startpage
+    - self-hosted
+    - openshift
+    - hajimari
+    - sui
   projectType: Quarkus
   language: Java
   attributes:
@@ -22,7 +26,7 @@ parent:
 components:
   - name: image-build
     image:
-      imageName: java-quarkus-image:latest
+      imageName: startpunkt:latest
       dockerfile:
         uri: src/main/docker/Dockerfile.jvm.staged
         buildContext: .

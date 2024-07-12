@@ -1,20 +1,20 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: my-java-quarkus
+  name: startpunkt
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: java-quarkus-app
+      app: startpunkt
   template:
     metadata:
       labels:
-        app: java-quarkus-app
+        app: startpunkt
     spec:
       containers:
-        - name: my-java-quarkus
-          image: java-quarkus-image:latest
+        - name: startpunkt
+          image: startpunkt:latest
           ports:
             - name: http
               containerPort: 8081
@@ -27,7 +27,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: my-java-quarkus-svc
+  name: startpunkt
 spec:
   ports:
     - name: http-8081
@@ -35,4 +35,4 @@ spec:
       protocol: TCP
       targetPort: 8081
   selector:
-    app: java-quarkus-app
+    app: startpunkt

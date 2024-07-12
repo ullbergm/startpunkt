@@ -1,12 +1,16 @@
 schemaVersion: 2.2.0
 metadata:
-  name: java-quarkus
-  displayName: Quarkus Java
-  description: Java application using Quarkus and OpenJDK 21
-  icon: https://design.jboss.org/quarkus/logo/final/SVG/quarkus_icon_rgb_default.svg
+  name: startpunkt
+  displayName: Startpunkt
+  description: Startpunkt is a clean start page designed to display links to all your self-hosted resources in your kubernetes cluster.
+  icon: https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png
   tags:
-    - Java
-    - Quarkus
+    - kubernetes
+    - startpage
+    - self-hosted
+    - openshift
+    - hajimari
+    - sui
   projectType: Quarkus
   language: Java
   version: 1.5.0
