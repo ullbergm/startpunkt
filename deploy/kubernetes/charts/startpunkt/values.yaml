@@ -1,11 +1,11 @@
 ---
 startpunkt:
   labels:
-    version: 0.6.0
+    version: 0.7.0
   namespace: default
   image:
     name: ghcr.io/ullbergm/startpunkt
-    tag: v0.6.0
+    tag: v0.7.0
   deployment:
     replicas: 2
     revisionHistoryLimit: 2
