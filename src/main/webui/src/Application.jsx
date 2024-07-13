@@ -16,7 +16,7 @@ export function Application(props) {
         )}
 
       <div class="px-2">
-        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis text-uppercase">{props.app.name}</h3>
+        <h3 class="fw-normal mb-0 fs-4 text-body-emphasis text-uppercase">{props.app.name}</h3>
         <p class="accent text-uppercase">{props.app.info}</p>
       </div>
     </div>
