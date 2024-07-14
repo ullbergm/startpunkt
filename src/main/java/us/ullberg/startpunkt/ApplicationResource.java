@@ -80,7 +80,8 @@ public class ApplicationResource {
       applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
 
     if (istioVirtualServiceEnabled)
-      applicationWrappers.add(new IstioVirtualServiceApplicationWrapper(istioVirtualServiceOnlyAnnotated, defaultProtocol));
+      applicationWrappers.add(new IstioVirtualServiceApplicationWrapper(
+          istioVirtualServiceOnlyAnnotated, defaultProtocol));
 
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();

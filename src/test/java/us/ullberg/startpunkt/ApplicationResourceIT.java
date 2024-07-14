@@ -2,7 +2,8 @@ package us.ullberg.startpunkt;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 
-// This annotation marks the class as a Quarkus integration test, which runs the tests in packaged mode
+// This annotation marks the class as a Quarkus integration test, which runs the tests in packaged
+// mode
 @QuarkusIntegrationTest
 class ApplicationResourceIT extends ApplicationResourceTest {
   // This class executes the same tests as ApplicationResourceTest but in packaged mode.
