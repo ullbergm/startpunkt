@@ -38,7 +38,8 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
 
     // Get the host from the spec, default to "localhost" if not present
     @SuppressWarnings("unchecked")
-    ArrayList<String> hosts = spec.containsKey("hosts") ? (ArrayList<String>) spec.get("hosts") : new ArrayList<String>();
+    ArrayList<String> hosts =
+        spec.containsKey("hosts") ? (ArrayList<String>) spec.get("hosts") : new ArrayList<String>();
     if (hosts.isEmpty()) {
       hosts.add("localhost");
     }

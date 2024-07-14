@@ -76,17 +76,19 @@ class BookmarkResourceTest {
 
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Bookmark object) {
-    Resource<Bookmark> resource = client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
+    Resource<Bookmark> resource =
+        client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 
     // Check if the resource already exists
     if (resource.get() != null) {
-        // Replace the existing resource
-        resource.update();
+      // Replace the existing resource
+      resource.update();
     } else {
-        // Create the new resource
-        resource.create();
+      // Create the new resource
+      resource.create();
     }
   }
+
   // Test to verify that the bookmarks API endpoint is accessible
   @Test
   void testBookmarkApiEndpoint() {

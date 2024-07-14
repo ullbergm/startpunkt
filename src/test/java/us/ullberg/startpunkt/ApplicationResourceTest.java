@@ -26,10 +26,10 @@ class ApplicationResourceTest {
   private static final Class<Application> RESOURCE_TYPE = Application.class;
 
   @KubernetesTestServer
-  KubernetesServer server;  // Mock Kubernetes server for testing
+  KubernetesServer server; // Mock Kubernetes server for testing
 
   @Inject
-  KubernetesClient client;  // Kubernetes client for interacting with the cluster
+  KubernetesClient client; // Kubernetes client for interacting with the cluster
 
   @BeforeEach
   public void before() {
@@ -46,7 +46,7 @@ class ApplicationResourceTest {
     CustomResourceDefinition createdApplicationCrd =
         client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
-    assertNotNull(createdApplicationCrd);  // Verify that the CRD was created
+    assertNotNull(createdApplicationCrd); // Verify that the CRD was created
 
     // Create a new ApplicationSpec for the Sonarr application
     ApplicationSpec sonarrSpec = new ApplicationSpec();
@@ -71,15 +71,16 @@ class ApplicationResourceTest {
 
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Application object) {
-    Resource<Application> resource = client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
+    Resource<Application> resource =
+        client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 
     // Check if the resource already exists
     if (resource.get() != null) {
-        // Replace the existing resource
-        resource.update();
+      // Replace the existing resource
+      resource.update();
     } else {
-        // Create the new resource
-        resource.create();
+      // Create the new resource
+      resource.create();
     }
   }
 
@@ -110,7 +111,8 @@ class ApplicationResourceTest {
   @Test
   void testApplicationIcon() {
     // Test to verify that the first application's icon is "mdi:television"
-    given().when().get("/api/apps").then().body("applications[0].icon[0]", equalTo("mdi:television"));
+    given().when().get("/api/apps").then().body("applications[0].icon[0]",
+        equalTo("mdi:television"));
   }
 
   @Test
@@ -122,13 +124,15 @@ class ApplicationResourceTest {
   @Test
   void testApplicationUrl() {
     // Test to verify that the first application's URL is "https://sonarr.ullberg.us"
-    given().when().get("/api/apps").then().body("applications[0].url[0]", equalTo("https://sonarr.ullberg.us"));
+    given().when().get("/api/apps").then().body("applications[0].url[0]",
+        equalTo("https://sonarr.ullberg.us"));
   }
 
   @Test
   void testApplicationInfo() {
     // Test to verify that the first application's info is "TV Show Manager"
-    given().when().get("/api/apps").then().body("applications[0].info[0]", equalTo("TV Show Manager"));
+    given().when().get("/api/apps").then().body("applications[0].info[0]",
+        equalTo("TV Show Manager"));
   }
 
   @Test

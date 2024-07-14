@@ -61,7 +61,8 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
 
       return list;
     } catch (Exception ex) {
-      // Return an empty list if we fail to retrieve the objects, this should probably change to be a proactive startup check instead.
+      // Return an empty list if we fail to retrieve the objects, this should probably change to be
+      // a proactive startup check instead.
       return new GenericKubernetesResourceList();
     }
   }
