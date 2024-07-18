@@ -167,4 +167,20 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
     // If no annotation matches, return the super class' getAppEnabled method
     return super.getAppEnabled(item);
   }
+
+  // Override the method to get the application protocol from annotations
+  @Override
+  protected String getAppProtocol(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+
+    String[] annotationKeys = {"startpunkt.ullberg.us/protocol"};
+    for (String key : annotationKeys) {
+      if (annotations.containsKey(key)) {
+        return annotations.get(key);
+      }
+    }
+
+    // If no annotation matches, return the super class' getAppProtocol method
+    return super.getAppProtocol(item);
+  }
 }

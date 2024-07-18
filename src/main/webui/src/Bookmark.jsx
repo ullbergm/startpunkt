@@ -16,7 +16,7 @@ export function Bookmark(props) {
         )}
 
       <div class="px-2">
-        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis text-uppercase">{props.bookmark.name}</h3>
+        <h3 class="fw-normal mb-0 fs-4 text-body-emphasis text-uppercase">{props.bookmark.name}</h3>
         <p class="accent text-uppercase">{props.bookmark.info}</p>
       </div>
     </div>

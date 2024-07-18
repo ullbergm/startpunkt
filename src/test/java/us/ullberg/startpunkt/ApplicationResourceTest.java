@@ -3,11 +3,9 @@ package us.ullberg.startpunkt;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import java.net.HttpURLConnection;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -24,19 +22,21 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 @WithKubernetesTestServer
 class ApplicationResourceTest {
+  // Define the type of the custom resource
+  private static final Class<Application> RESOURCE_TYPE = Application.class;
 
   @KubernetesTestServer
-  KubernetesServer server;  // Mock Kubernetes server for testing
+  KubernetesServer server; // Mock Kubernetes server for testing
 
   @Inject
-  KubernetesClient client;  // Kubernetes client for interacting with the cluster
+  KubernetesClient client; // Kubernetes client for interacting with the cluster
 
   @BeforeEach
   public void before() {
 
     // Create a CustomResourceDefinition (CRD) for the Application resource
     CustomResourceDefinition crd =
-        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+        CustomResourceDefinitionContext.v1CRDFromCustomResourceType(RESOURCE_TYPE).build();
 
     // Set up the mock server to expect a POST request for creating the CRD
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
@@ -46,7 +46,7 @@ class ApplicationResourceTest {
     CustomResourceDefinition createdApplicationCrd =
         client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
-    assertNotNull(createdApplicationCrd);  // Verify that the CRD was created
+    assertNotNull(createdApplicationCrd); // Verify that the CRD was created
 
     // Create a new ApplicationSpec for the Sonarr application
     ApplicationSpec sonarrSpec = new ApplicationSpec();
@@ -66,9 +66,22 @@ class ApplicationResourceTest {
     sonarr.setSpec(sonarrSpec);
 
     // Create or replace the Sonarr application resource in the default namespace
-    MixedOperation<Application, KubernetesResourceList<Application>, Resource<Application>> appOp =
-        client.resources(Application.class);
-    appOp.inNamespace("default").resource(sonarr).createOrReplace();
+    createOrReplace("default", sonarr);
+  }
+
+  // Method to create or replace a custom resource in the specified namespace
+  private void createOrReplace(String namespace, Application object) {
+    Resource<Application> resource =
+        client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
+
+    // Check if the resource already exists
+    if (resource.get() != null) {
+      // Replace the existing resource
+      resource.update();
+    } else {
+      // Create the new resource
+      resource.create();
+    }
   }
 
   @Test
@@ -98,7 +111,8 @@ class ApplicationResourceTest {
   @Test
   void testApplicationIcon() {
     // Test to verify that the first application's icon is "mdi:television"
-    given().when().get("/api/apps").then().body("applications[0].icon[0]", equalTo("mdi:television"));
+    given().when().get("/api/apps").then().body("applications[0].icon[0]",
+        equalTo("mdi:television"));
   }
 
   @Test
@@ -110,13 +124,15 @@ class ApplicationResourceTest {
   @Test
   void testApplicationUrl() {
     // Test to verify that the first application's URL is "https://sonarr.ullberg.us"
-    given().when().get("/api/apps").then().body("applications[0].url[0]", equalTo("https://sonarr.ullberg.us"));
+    given().when().get("/api/apps").then().body("applications[0].url[0]",
+        equalTo("https://sonarr.ullberg.us"));
   }
 
   @Test
   void testApplicationInfo() {
     // Test to verify that the first application's info is "TV Show Manager"
-    given().when().get("/api/apps").then().body("applications[0].info[0]", equalTo("TV Show Manager"));
+    given().when().get("/api/apps").then().body("applications[0].info[0]",
+        equalTo("TV Show Manager"));
   }
 
   @Test

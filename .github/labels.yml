@@ -32,6 +32,27 @@
   color: "72ccf3"
   description: >-
     Changes made to the test
+# Features
+- name: feature/codebase
+  color: "793A6C"
+  description: >-
+    Feature related to application codebase enhancements
+- name: feature/configuration
+  color: "793A6C"
+  description: >-
+    Feature related to application configuration
+- name: feature/compatibility
+  color: "793A6C"
+  description: >-
+    Feature related to compatibility with another application or object type
+- name: feature/development
+  color: "793A6C"
+  description: >-
+    Feature related to improve the development experience
+- name: feature/userinterface
+  color: "793A6C"
+  description: >-
+    Feature related to the user interface
 # Renovate
 - name: renovate/go
   color: "ffc300"

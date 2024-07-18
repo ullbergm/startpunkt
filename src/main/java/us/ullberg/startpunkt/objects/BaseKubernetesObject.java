@@ -46,19 +46,25 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
       Boolean anyNamespace, String[] matchNames) {
     ResourceDefinitionContext resourceDefinitionContext = getResourceDefinitionContext();
 
-    // If anyNamespace is true, list resources in all namespaces
-    if (anyNamespace) {
-      return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
-    }
+    try {
+      // If anyNamespace is true, list resources in all namespaces
+      if (anyNamespace) {
+        return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+      }
 
-    // For each specified namespace, get the resources
-    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
-    for (String namespace : matchNames) {
-      list.getItems().addAll(client.genericKubernetesResources(resourceDefinitionContext)
-          .inNamespace(namespace).list().getItems());
-    }
+      // For each specified namespace, get the resources
+      GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+      for (String namespace : matchNames) {
+        list.getItems().addAll(client.genericKubernetesResources(resourceDefinitionContext)
+            .inNamespace(namespace).list().getItems());
+      }
 
-    return list;
+      return list;
+    } catch (Exception ex) {
+      // Return an empty list if we fail to retrieve the objects, this should probably change to be
+      // a proactive startup check instead.
+      return new GenericKubernetesResourceList();
+    }
   }
 
   // Method to get a list of ApplicationSpec objects
@@ -109,22 +115,26 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
     return item.getMetadata().getNamespace().toLowerCase();
   }
 
-  // Default method to get the application URL from a GenericKubernetesResource object
+  // Default method to get the application URL from a GenericKubernetesResource
+  // object
   String getAppUrl(GenericKubernetesResource item) {
     return null;
   }
 
-  // Default method to get the application icon from a GenericKubernetesResource object
+  // Default method to get the application icon from a GenericKubernetesResource
+  // object
   protected String getAppIcon(GenericKubernetesResource item) {
     return null;
   }
 
-  // Default method to get the application icon color from a GenericKubernetesResource object
+  // Default method to get the application icon color from a
+  // GenericKubernetesResource object
   protected String getAppIconColor(GenericKubernetesResource item) {
     return null;
   }
 
-  // Default method to get the application info from a GenericKubernetesResource object
+  // Default method to get the application info from a GenericKubernetesResource
+  // object
   protected String getAppInfo(GenericKubernetesResource item) {
     return null;
   }
@@ -134,7 +144,8 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
     return null;
   }
 
-  // Method to get the application location from a GenericKubernetesResource object
+  // Method to get the application location from a GenericKubernetesResource
+  // object
   // Default location is 1000
   protected int getAppLocation(GenericKubernetesResource item) {
     return 1000;
@@ -142,6 +153,12 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
 
   // Default method to check if the application is enabled
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
+    return null;
+  }
+
+  // Default method to get the application protocol from a
+  // GenericKubernetesResource object
+  protected String getAppProtocol(GenericKubernetesResource item) {
     return null;
   }
 }
