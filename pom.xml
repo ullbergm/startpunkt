@@ -131,7 +131,7 @@
         <artifactId>sortpom-maven-plugin</artifactId>
         <version>4.0.0</version>
         <configuration>
-            <createBackupFile>false</createBackupFile>
+          <createBackupFile>false</createBackupFile>
         </configuration>
         <executions>
           <execution>
