@@ -89,6 +89,8 @@
          "matchUpdateTypes": [
             "major"
          ],
+         "groupName": "all major version docker containers",
+         "groupSlug": "all-docker-major",
          "commitMessagePrefix": "feat(container)!: "
       },
       {
@@ -98,6 +100,8 @@
          "matchUpdateTypes": [
             "minor"
          ],
+         "groupName": "all minor version docker containers",
+         "groupSlug": "all-docker-minor",
          "semanticCommitType": "feat",
          "semanticCommitScope": "container"
       },
@@ -109,6 +113,8 @@
             "digest",
             "patch"
          ],
+         "groupName": "all patch version docker containers",
+         "groupSlug": "all-docker-patch",
          "semanticCommitType": "fix",
          "semanticCommitScope": "container"
       },
