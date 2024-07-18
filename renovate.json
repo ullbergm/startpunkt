@@ -60,6 +60,8 @@
          "matchUpdateTypes": [
             "major"
          ],
+         "groupName": "all major version npm",
+         "groupSlug": "all-npm-major",
          "commitMessagePrefix": "feat(js)!: "
       },
       {
@@ -69,6 +71,8 @@
          "matchUpdateTypes": [
             "minor"
          ],
+         "groupName": "all minor version npm",
+         "groupSlug": "all-npm-minor",
          "semanticCommitType": "feat",
          "semanticCommitScope": "js"
       },
@@ -79,6 +83,8 @@
          "matchUpdateTypes": [
             "patch"
          ],
+         "groupName": "all patch version npm",
+         "groupSlug": "all-npm-patch",
          "semanticCommitType": "fix",
          "semanticCommitScope": "js"
       },
