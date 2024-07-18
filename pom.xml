@@ -217,6 +217,7 @@
         <configuration>
           <tagNameFormat>v@{project.version}</tagNameFormat>
           <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
+          <scmCommentPrefix>build(release):</scmCommentPrefix>
         </configuration>
       </plugin>
     </plugins>
