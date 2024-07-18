@@ -1,0 +1,60 @@
+schemaVersion: 2.2.2
+metadata:
+  name: startpunkt
+  displayName: Startpunkt
+  description: Startpunkt is a clean start page designed to display links to all your self-hosted resources in your kubernetes cluster.
+  icon: https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png
+  tags:
+    - kubernetes
+    - startpage
+    - self-hosted
+    - openshift
+    - hajimari
+    - sui
+components:
+  - name: tools
+    container:
+      image: registry.redhat.io/devspaces/udi-rhel8@sha256:042d06a9f481cf1d65a81632a9c069c318f80537e01db7d864dfecfb0bc5714c
+      env:
+        - name: QUARKUS_HTTP_HOST
+          value: 0.0.0.0
+      endpoints:
+        - exposure: none
+          name: debug
+          protocol: tcp
+          targetPort: 5005
+        - exposure: public
+          name: webui
+          protocol: https
+          targetPort: 8080
+          path: /
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+      cpuLimit: '4'
+      cpuRequest: '1'
+      memoryLimit: 8G
+      memoryRequest: 4G
+      mountSources: true
+  - name: m2
+    volume:
+      size: 1G
+commands:
+  - id: 1-package
+    exec:
+      label: 1. Package the application
+      component: tools
+      workingDir: ${PROJECTS_ROOT}
+      commandLine: mvn package
+      group:
+        kind: build
+        isDefault: true
+  - id: 2-startdev
+    exec:
+      label: 2. Start Development mode (Hot reload + debug)
+      component: tools
+      workingDir: ${PROJECTS_ROOT}
+      commandLine: mvn compile quarkus:dev
+      group:
+        kind: run
+        isDefault: true
