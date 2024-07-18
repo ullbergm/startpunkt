@@ -133,6 +133,11 @@ startpunkt:
     virtualservice:
       enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
       onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
+  # Web ui configuration
+  web:
+    githubLink:
+      enabled: true  # If true, enable the GitHub link in the web UI
 ```
 
 ### 📝 Custom applications
