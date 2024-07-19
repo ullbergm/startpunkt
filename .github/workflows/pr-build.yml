@@ -2,8 +2,8 @@
 name: Pull Requests Build
 
 concurrency:
-  group: ci-pr
-  cancel-in-progress: false
+  group: pr-build-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   workflow_dispatch:
