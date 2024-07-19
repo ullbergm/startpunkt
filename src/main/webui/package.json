@@ -11,6 +11,7 @@
    "dependencies": {
       "@popperjs/core": "^2.11.8",
       "@preact/compat": "^17.1.2",
+      "@rehooks/local-storage": "^2.4.5",
       "bootstrap": "^5.3.3",
       "preact": "^10.22.0",
       "preact-i18n": "^2.4.0-preactx"

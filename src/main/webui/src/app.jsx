@@ -11,6 +11,9 @@ import * as bootstrap from 'bootstrap'
 import { ApplicationGroupList } from './ApplicationGroupList'
 import { BookmarkGroupList } from './BookmarkGroupList'
 
+import { useLocalStorage } from '@rehooks/local-storage';
+import { writeStorage } from '@rehooks/local-storage';
+
 export function ForkMe() {
   // if the config object is not empty and the web.showGitHubLink is true, show the fork me link
   //  if (config && config.web && config.web.showGitHubLink) {
@@ -25,6 +28,113 @@ export function ForkMe() {
   );
   // }
   // return null;
+}
+
+export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handleAutoThemeClick) {
+
+  const [themeIcon, setThemeIcon] = useState("#circle-half");
+
+  const [theme] = useLocalStorage('theme', 'light');
+  useEffect(() => {
+    if (theme === 'light') {
+      handleLightThemeClick();
+    } else if (theme === 'dark') {
+      handleDarkThemeClick();
+    } else if (theme === 'auto') {
+      handleAutoThemeClick();
+    }
+  }, [])
+
+  function handleLightThemeClick(setIcon = true) {
+    console.log("light theme");
+
+    if (setIcon) {
+      setThemeIcon("#sun-fill");
+      writeStorage('theme', 'light');
+    }
+    document.body.style.setProperty('--bs-body-bg', '#F8F6F1');
+    document.body.style.setProperty('--bs-body-color', '#696969');
+    document.body.style.setProperty('--color-text-pri', '#4C432E');
+    document.body.style.setProperty('--color-text-acc', '#AA9A73');
+  }
+  function handleDarkThemeClick(setIcon = true) {
+    console.log("dark theme");
+
+    if (setIcon) {
+      setThemeIcon("#moon-stars-fill");
+      writeStorage('theme', 'dark');
+    }
+    document.body.style.setProperty('--bs-body-bg', '#232530');
+    document.body.style.setProperty('--bs-body-color', '#696969');
+    document.body.style.setProperty('--color-text-pri', '#FAB795');
+    document.body.style.setProperty('--color-text-acc', '#E95678');
+  }
+  function handleAutoThemeClick() {
+    console.log("auto theme");
+
+    setThemeIcon("#circle-half");
+
+    writeStorage('theme', 'auto');
+    // if its after dark, set dark theme
+    // else set light theme
+    const now = new Date();
+    const hour = now.getHours();
+    if (hour > 18 || hour < 6) {
+      handleDarkThemeClick(false);
+    } else {
+      handleLightThemeClick(false);
+    }
+  }
+
+  return (
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+      <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
+        aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
+        <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
+          <use href={themeIcon}></use>
+        </svg>
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center {lightActive}" data-bs-theme-value="light"
+            aria-pressed="false" onClick={handleLightThemeClick}>
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#sun-fill"></use>
+            </svg>
+            <Text id="home.theme.light">Light</Text>
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center {darkActive}" data-bs-theme-value="dark"
+            aria-pressed="false" onClick={handleDarkThemeClick}>
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#moon-stars-fill"></use>
+            </svg>
+            <Text id="home.theme.dark">Dark</Text>
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center {autoActive}" data-bs-theme-value="auto"
+            aria-pressed="true" onClick={handleAutoThemeClick}>
+            <svg class="bi me-2 opacity-50" width="1em" height="1em">
+              <use href="#circle-half"></use>
+            </svg>
+            <Text id="home.theme.auto">Auto</Text>
+            <svg class="bi ms-auto d-none" width="1em" height="1em">
+              <use href="#check2"></use>
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </div>
+  );
 }
 
 export function App() {
@@ -89,32 +199,6 @@ export function App() {
     setShowBookmarks(false);
     setShowApplications(true);
   }
-  function handleLightThemeClick() {
-    console.log("light theme");
-    document.body.style.setProperty('--bs-body-bg', '#F8F6F1');
-    document.body.style.setProperty('--bs-body-color', '#696969');
-    document.body.style.setProperty('--color-text-pri', '#4C432E');
-    document.body.style.setProperty('--color-text-acc', '#AA9A73');
-  }
-  function handleDarkThemeClick() {
-    console.log("dark theme");
-    document.body.style.setProperty('--bs-body-bg', '#232530');
-    document.body.style.setProperty('--bs-body-color', '#696969');
-    document.body.style.setProperty('--color-text-pri', '#FAB795');
-    document.body.style.setProperty('--color-text-acc', '#E95678');
-  }
-  function handleAutoThemeClick() {
-    console.log("auto theme");
-    // if its after dark, set dark theme
-    // else set light theme
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour > 18 || hour < 6) {
-      handleDarkThemeClick();
-    } else {
-      handleLightThemeClick();
-    }
-  }
 
   return (
     <IntlProvider definition={definition}>
@@ -139,53 +223,8 @@ export function App() {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-        <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
-          aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
-          <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
-            <use href="#circle-half"></use>
-          </svg>
-          <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
-          <li>
-            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"
-              aria-pressed="false" onClick={handleLightThemeClick}>
-              <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                <use href="#sun-fill"></use>
-              </svg>
-              <Text id="home.theme.light">Light</Text>
-              <svg class="bi ms-auto d-none" width="1em" height="1em">
-                <use href="#check2"></use>
-              </svg>
-            </button>
-          </li>
-          <li>
-            <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"
-              aria-pressed="false" onClick={handleDarkThemeClick}>
-              <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                <use href="#moon-stars-fill"></use>
-              </svg>
-              <Text id="home.theme.dark">Dark</Text>
-              <svg class="bi ms-auto d-none" width="1em" height="1em">
-                <use href="#check2"></use>
-              </svg>
-            </button>
-          </li>
-          <li>
-            <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto"
-              aria-pressed="true" onClick={handleAutoThemeClick}>
-              <svg class="bi me-2 opacity-50" width="1em" height="1em">
-                <use href="#circle-half"></use>
-              </svg>
-              <Text id="home.theme.auto">Auto</Text>
-              <svg class="bi ms-auto d-none" width="1em" height="1em">
-                <use href="#check2"></use>
-              </svg>
-            </button>
-          </li>
-        </ul>
-      </div>
+      <ThemeSwitcher />
+
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto">
           <div>
