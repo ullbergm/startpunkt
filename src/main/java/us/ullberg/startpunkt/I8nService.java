@@ -15,23 +15,24 @@ public class I8nService {
 
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
   public String getTranslation(String language) {
-    // if the language does not match standard i8n format, return the default language
-    if (!language.matches("^[a-z]{2}-[A-Z]{2}$")) {
-      Log.warn("Invalid language format: " + language + ", falling back to default language");
-      language = defaultLanguage;
+    // if the language does not match standard i8n format, throw an error
+    if (!language.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
+      Log.error("Invalid language format (aa-AA): " + language);
+      throw new IllegalArgumentException("Invalid language format (aa-AA): " + language);
     }
 
     var translation = getClass().getResourceAsStream("/i8n/" + language + ".json");
 
-    // If the translation is not found, log a warning and fall back to the default language from the
-    // configuration
+    // If the translation is not found, log a warning and fall back to the default
+    // language from the configuration
     if (translation == null) {
       Log.info("No translation found for language: " + language
           + ", falling back to default language: " + defaultLanguage);
       translation = getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json");
     }
 
-    // If the default language translation is also not found, log a warning and fall back to English
+    // If the default language translation is also not found, log a warning and fall
+    // back to English
     if (translation == null) {
       Log.warn("Default language invalid, falling back to US English");
       translation = getClass().getResourceAsStream("/i8n/en-US.json");
