@@ -31,9 +31,7 @@ class I8nResourceTest {
 
   @Test
   void testUnknownLanguage() {
-    given().when().get("/api/i8n/unknown").then().statusCode(200);
-    given().when().get("/api/i8n/unknown").then().body("home.applications",
-        equalTo("Applications"));
-    given().when().get("/api/i8n/unknown").then().body("home.bookmarks", equalTo("Bookmarks"));
+    given().when().get("/api/i8n/unknown").then().statusCode(500);
+    given().when().get("/api/i8n/../security-issue").then().statusCode(500);
   }
 }
