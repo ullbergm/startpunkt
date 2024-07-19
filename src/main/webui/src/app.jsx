@@ -33,7 +33,7 @@ export function App() {
   useEffect(() => {
     var lang = navigator.language;
     console.log("switching language to " + lang);
-    fetch('/i8n/' + lang + '.json')
+    fetch('/api/i8n/' + lang)
       .then((res) => res.json())
       .then(setDefinition)
       .catch((err) => {
