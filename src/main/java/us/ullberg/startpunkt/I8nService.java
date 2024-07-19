@@ -16,7 +16,7 @@ public class I8nService {
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
   public String getTranslation(String language) {
     // if the language does not match standard i8n format, return the default language
-    if (!language.matches("[a-z]{2}-[A-Z]{2}")) {
+    if (!language.matches("^[a-z]{2}-[A-Z]{2}$")) {
       Log.warn("Invalid language format: " + language + ", falling back to default language");
       language = defaultLanguage;
     }
