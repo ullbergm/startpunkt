@@ -107,6 +107,9 @@ startpunkt:
   # Default protocol for links if not specified in the resource
   defaultProtocol: "http"
 
+  # Default language for the web UI
+  defaultLanguage: "en-US"
+
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
     any: true  # If true, look for resources in all namespaces
