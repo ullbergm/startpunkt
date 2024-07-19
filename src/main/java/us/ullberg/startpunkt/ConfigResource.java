@@ -6,6 +6,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -17,6 +18,12 @@ public class ConfigResource {
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
   public boolean showGithubLink;
 
+  @ConfigProperty(name = "startpunkt.web.title", defaultValue = "Startpunkt")
+  public String title;
+
+  @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
+  public String version;
+
   // GET endpoint to retrieve the list of bookmarks
   @GET
   public Response getConfig() {
@@ -26,7 +33,7 @@ public class ConfigResource {
   private Map<String, Object> generateConfig() {
     // Create a response with the configuration value
     Map<String, Object> response =
-        Map.of("config", Map.of("web", Map.of("showGithubLink", showGithubLink)));
+        Map.of("config", Map.of("web", Map.of("showGithubLink", showGithubLink, "title", title), "version", version));
 
     return response;
   }

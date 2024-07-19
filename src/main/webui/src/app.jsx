@@ -43,6 +43,8 @@ export function App() {
 
 
   const [showGitHubLink, setShowGitHubLink] = useState(false);
+  const [title, setTitle] = useState("Startpunkt");
+  const [version, setVersion] = useState("dev");
 
   // read the /api/config endpoint to get the configuration
   const [config, setConfig] = useState([]);
@@ -51,6 +53,8 @@ export function App() {
       .then((res) => res.json())
       .then((res) => {
         setShowGitHubLink(res.config.web.showGithubLink);
+        setTitle(res.config.web.title);
+        setVersion(res.config.version);
       });
 
   }, [])
@@ -185,7 +189,7 @@ export function App() {
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto">
           <div>
-            <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;Startpunkt</h3>
+            <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}</h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
               <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="#" onClick={handleApplicationsClick}><Text id="home.applications">Applications</Text></a>
               <a class="nav-link fw-bold py-1 px-0" href="#" onClick={handleBookmarksClick}><Text id="home.bookmarks">Bookmarks</Text></a>
@@ -200,7 +204,7 @@ export function App() {
 
         </main>
         <footer class="mt-auto text-white-50">
-          <p>Startpunkt, by <a href="https://ullberg.us" class="text-white">Magnus Ullberg</a>.</p>
+          <p>Startpunkt v{version}, by <a href="https://ullberg.us" class="text-white">Magnus Ullberg</a>.</p>
         </footer>
       </div>
     </IntlProvider>

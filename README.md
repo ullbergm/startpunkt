@@ -119,7 +119,7 @@ startpunkt:
 
   # Kubernetes integration, read ingress resources
   ingress:
-    enabled: true  # If true, enable the reading of ingress resources
+    enabled: false  # If true, enable the reading of ingress resources
     onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 
   # OpenShift integration, read OpenShift Routes
@@ -129,7 +129,7 @@ startpunkt:
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
-    enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
+    enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
 
   # Istio Virtual Service integration, read Istio VirtualService resources
   istio:
@@ -139,6 +139,7 @@ startpunkt:
 
   # Web ui configuration
   web:
+    title: "Startpunkt"  # Title of the web UI
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
 ```
