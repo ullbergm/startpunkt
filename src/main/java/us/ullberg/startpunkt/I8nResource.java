@@ -26,7 +26,8 @@ public class I8nResource {
 
   @GET
   @Path("{language}")
-  @Timed(value = "startpunkt.api.gettranslation", description = "Get the translation for a given language")
+  @Timed(value = "startpunkt.api.gettranslation",
+      description = "Get the translation for a given language")
   @CacheResult(cacheName = "getTranslation")
   public Response getTranslation(@PathParam("language") String language) {
     String translation = i8nService.getTranslation(language);
@@ -40,7 +41,8 @@ public class I8nResource {
 
   // Default endpoint to get the translation for the default language
   @GET
-  @Timed(value = "startpunkt.api.getdefaulttranslation", description = "Get the translation for the default language")
+  @Timed(value = "startpunkt.api.getdefaulttranslation",
+      description = "Get the translation for the default language")
   @CacheResult(cacheName = "getDefaultTranslation")
   public Response getDefaultTranslation() {
     String translation = i8nService.getTranslation("en-US");
