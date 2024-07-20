@@ -1,8 +1,10 @@
 package us.ullberg.startpunkt;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.ArrayList;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Class representing a group of applications

@@ -1,11 +1,12 @@
 package us.ullberg.startpunkt.objects;
 
+import java.util.List;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
-import java.util.List;
-import java.util.Map;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Abstract base class representing a Kubernetes object

@@ -1,5 +1,10 @@
 package us.ullberg.startpunkt;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
@@ -13,9 +18,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Collections;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 import us.ullberg.startpunkt.objects.BaseKubernetesObject;
 import us.ullberg.startpunkt.objects.HajimariApplicationWrapper;

@@ -3,6 +3,7 @@ package us.ullberg.startpunkt.crd;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 

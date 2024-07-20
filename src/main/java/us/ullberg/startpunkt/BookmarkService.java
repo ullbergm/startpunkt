@@ -1,5 +1,10 @@
 package us.ullberg.startpunkt;
 
+import java.util.List;
+import java.util.Map;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -8,9 +13,6 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.List;
-import java.util.Map;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 // Service class for managing bookmarks

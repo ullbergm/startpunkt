@@ -1,13 +1,14 @@
 package us.ullberg.startpunkt;
 
-import io.micrometer.core.annotation.Timed;
-import io.quarkus.logging.Log;
-import jakarta.enterprise.context.ApplicationScoped;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class I8nService {

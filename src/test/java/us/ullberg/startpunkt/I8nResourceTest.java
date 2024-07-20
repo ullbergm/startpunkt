@@ -3,8 +3,9 @@ package us.ullberg.startpunkt;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
+
+import io.quarkus.test.junit.QuarkusTest;
 
 // Mark this class as a Quarkus test
 @QuarkusTest

@@ -1,11 +1,10 @@
 package us.ullberg.startpunkt.objects;
 
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
-import io.fabric8.kubernetes.client.KubernetesClient;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Class representing a wrapper for Istio VirtualService objects

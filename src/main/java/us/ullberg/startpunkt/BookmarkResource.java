@@ -1,5 +1,10 @@
 package us.ullberg.startpunkt;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
@@ -9,9 +14,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Collections;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 // REST API resource class for managing bookmarks

@@ -1,9 +1,10 @@
 package us.ullberg.startpunkt.health;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
+
+import jakarta.enterprise.context.ApplicationScoped;
 
 // Annotation to indicate this is a liveness health check
 @Liveness
