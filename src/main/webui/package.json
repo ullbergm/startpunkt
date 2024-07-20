@@ -14,7 +14,8 @@
       "@rehooks/local-storage": "^2.4.5",
       "bootstrap": "^5.3.3",
       "preact": "^10.22.0",
-      "preact-i18n": "^2.4.0-preactx"
+      "preact-i18n": "^2.4.0-preactx",
+      "react-responsive": "^10.0.0"
    },
    "devDependencies": {
       "@iconify/react": "^5.0.1",
