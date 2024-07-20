@@ -1,22 +1,16 @@
-import { useEffect, useState } from 'preact/hooks'
-import { Suspense, lazy } from 'preact/compat';
-
+import { useEffect, useState } from 'preact/hooks';
 import { IntlProvider } from 'preact-i18n';
 import { Text } from 'preact-i18n';
-
-import startpunktLogo from './assets/logo.png'
-import './app.scss'
-import * as bootstrap from 'bootstrap'
-
-import { ApplicationGroupList } from './ApplicationGroupList'
-import { BookmarkGroupList } from './BookmarkGroupList'
-
 import { useLocalStorage } from '@rehooks/local-storage';
 import { writeStorage } from '@rehooks/local-storage';
-
-import { useMediaQuery } from "react-responsive";
-
+import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
+
+import startpunktLogo from './assets/logo.png';
+import './app.scss';
+
+import { ApplicationGroupList } from './ApplicationGroupList';
+import { BookmarkGroupList } from './BookmarkGroupList';
 
 export function ForkMe(props) {
   var color = props.color ? props.color : "#fff";
@@ -182,6 +176,7 @@ export function App() {
   const [showGitHubLink, setShowGitHubLink] = useState(false);
   const [title, setTitle] = useState("Startpunkt");
   const [version, setVersion] = useState("dev");
+  const [checkForUpdates, setCheckForUpdates] = useState(false);
 
   // read the /api/config endpoint to get the configuration
   const [config, setConfig] = useState([]);
@@ -192,6 +187,7 @@ export function App() {
         setShowGitHubLink(res.config.web.showGithubLink);
         setTitle(res.config.web.title);
         setVersion(res.config.version);
+        setCheckForUpdates(res.config.web.checkForUpdates);
       });
 
   }, [])
@@ -235,7 +231,7 @@ export function App() {
 
   const [UpdateAvailable, setUpdateAvailable] = useState(false);
   useEffect(() => {
-    if (version != "dev") {
+    if (checkForUpdates && version != "dev") {
       var checkVersion = "v" + version.replace("-SNAPSHOT", "");
       console.log("Checking for updates (current version: " + checkVersion + ")");
       versionCheck({
@@ -253,7 +249,7 @@ export function App() {
           // Ignore errors
         });
     }
-  }, [version]);
+  }, [version, checkForUpdates]);
 
   return (
     <IntlProvider definition={definition}>

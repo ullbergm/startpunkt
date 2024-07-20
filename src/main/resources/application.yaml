@@ -37,6 +37,7 @@ startpunkt:
     title: "Startpunkt"  # Title of the web UI
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
+    checkForUpdates: true  # If true, check for updates and show a notification in the web UI
     theme:
       light:
         bodyBgColor: "#F8F6F1"
