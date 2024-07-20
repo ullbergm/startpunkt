@@ -8,10 +8,10 @@ The following table lists the configurable parameters and their default values.
 
 | Parameter | Description | Default |
 |  ---  |  ---  |  ---  |
-| `startpunkt.labels.version` | The version label for the deployment. | `0.7.0` |
+| `startpunkt.labels.version` | The version label for the deployment. | `0.9.2` |
 | `startpunkt.namespace` | The namespace in which to deploy Startpunkt. | `default` |
 | `startpunkt.image.name` | The container image to use. | `ghcr.io/ullbergm/startpunkt` |
-| `startpunkt.image.tag` | The container image tag to use. | `v0.7.0` |
+| `startpunkt.image.tag` | The container image tag to use. | `v0.9.2` |
 | `startpunkt.deployment.replicas` | Number of replicas for the deployment. | `2` |
 | `startpunkt.deployment.revisionHistoryLimit` | The number of old ReplicaSets to retain. | `2` |
 | `startpunkt.deployment.annotations` | Annotations for the deployment. | `{}` |
