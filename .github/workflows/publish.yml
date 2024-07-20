@@ -113,3 +113,6 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
           push-to-registry: true
+
+      - name: 📸 Submit Dependency Snapshot
+        uses: advanced-security/maven-dependency-submission-action@v3
