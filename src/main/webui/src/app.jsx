@@ -45,6 +45,10 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
     }
   }, [])
 
+  const lightClass = theme === 'light' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
+  const darkClass = theme === 'dark' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
+  const autoClass = theme === 'auto' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
+
   function handleLightThemeClick(setIcon = true) {
     console.log("light theme");
 
@@ -97,7 +101,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
       </button>
       <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
         <li>
-          <button type="button" class="dropdown-item d-flex align-items-center {lightActive}" data-bs-theme-value="light"
+          <button type="button" class={lightClass} data-bs-theme-value="light"
             aria-pressed="false" onClick={handleLightThemeClick}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#sun-fill"></use>
@@ -109,7 +113,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
           </button>
         </li>
         <li>
-          <button type="button" class="dropdown-item d-flex align-items-center {darkActive}" data-bs-theme-value="dark"
+          <button type="button" class={darkClass} data-bs-theme-value="dark"
             aria-pressed="false" onClick={handleDarkThemeClick}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#moon-stars-fill"></use>
@@ -121,7 +125,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
           </button>
         </li>
         <li>
-          <button type="button" class="dropdown-item d-flex align-items-center {autoActive}" data-bs-theme-value="auto"
+          <button type="button" class={autoClass} data-bs-theme-value="auto"
             aria-pressed="true" onClick={handleAutoThemeClick}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#circle-half"></use>
