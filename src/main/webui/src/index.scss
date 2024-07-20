@@ -186,13 +186,13 @@ body {
  */
 
 .nav-masthead .nav-link {
-  color: rgba(255, 255, 255, .5);
+  color: rgba(140, 140, 140, 0.5);
   border-bottom: .25rem solid transparent;
 }
 
 .nav-masthead .nav-link:hover,
 .nav-masthead .nav-link:focus {
-  border-bottom-color: rgba(255, 255, 255, .25);
+  border-bottom-color: rgba(69, 69, 69, 0.25);
 }
 
 .nav-masthead .nav-link + .nav-link {
@@ -200,7 +200,7 @@ body {
 }
 
 .nav-masthead .active {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.5);
   border-bottom-color: #fff;
 }
 // Import all of Bootstrap's CSS
