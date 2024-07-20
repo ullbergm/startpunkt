@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
@@ -41,7 +42,7 @@ public class BookmarkService {
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       // Map the list of resources to a list of BookmarkSpec objects
-      List<BookmarkSpec> bookmarks = list.getItems().stream().map(item -> {
+      return list.getItems().stream().map(item -> {
         String name = getBookmarkName(item);
         String url = getUrl(item);
         String icon = getIcon(item);
@@ -52,8 +53,6 @@ public class BookmarkService {
 
         return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
       }).toList();
-
-      return bookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving bookmarks", e);
       return List.of();
@@ -92,7 +91,7 @@ public class BookmarkService {
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
 
       // Map the list of resources to a list of BookmarkSpec objects
-      List<BookmarkSpec> bookmarks = list.getItems().stream().map(item -> {
+      return list.getItems().stream().map(item -> {
         String name = getBookmarkName(item);
         String url = getUrl(item);
         String icon = getIcon(item);
@@ -103,8 +102,6 @@ public class BookmarkService {
 
         return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
       }).toList();
-
-      return bookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving bookmarks", e);
       return List.of();
@@ -170,6 +167,7 @@ public class BookmarkService {
   }
 
   // Helper method to determine if the bookmark URL should open in a new tab
+  @Nullable
   private Boolean getTargetBlank(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
     @SuppressWarnings("unchecked")

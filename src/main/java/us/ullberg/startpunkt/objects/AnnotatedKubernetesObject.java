@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
 
   // Constructor to initialize the custom resource with specified values
-  public AnnotatedKubernetesObject(String group, String version, String pluralKind) {
+  protected AnnotatedKubernetesObject(String group, String version, String pluralKind) {
     super(group, version, pluralKind);
   }
 

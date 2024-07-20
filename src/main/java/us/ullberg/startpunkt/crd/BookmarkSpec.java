@@ -149,4 +149,38 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     // Compare by name
     return this.getName().compareTo(other.getName());
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other == null || getClass() != other.getClass()) {
+      return false;
+    }
+    BookmarkSpec otherSpec = (BookmarkSpec) other;
+    if (location != otherSpec.location) {
+      return false;
+    }
+    if (name != null ? !name.equals(otherSpec.name) : otherSpec.name != null) {
+      return false;
+    }
+    if (group != null ? !group.equals(otherSpec.group) : otherSpec.group != null) {
+      return false;
+    }
+    if (icon != null ? !icon.equals(otherSpec.icon) : otherSpec.icon != null) {
+      return false;
+    }
+    if (url != null ? !url.equals(otherSpec.url) : otherSpec.url != null) {
+      return false;
+    }
+    if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {
+      return false;
+    }
+    if (targetBlank != null ? !targetBlank.equals(otherSpec.targetBlank)
+        : otherSpec.targetBlank != null) {
+      return false;
+    }
+    return true;
+  }
 }

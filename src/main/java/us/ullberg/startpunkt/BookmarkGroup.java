@@ -12,31 +12,31 @@ import us.ullberg.startpunkt.crd.BookmarkSpec;
 public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Private fields
-  private String Name;
-  private ArrayList<BookmarkSpec> Bookmarks;
+  private String name;
+  private ArrayList<BookmarkSpec> bookmarks;
 
   // Constructor to initialize the BookmarkGroup with a name
   public BookmarkGroup(String name) {
-    Name = name;
-    Bookmarks = new ArrayList<BookmarkSpec>();
+    this.name = name;
+    bookmarks = new ArrayList<>();
   }
 
   // Constructor to initialize the BookmarkGroup with a name and a list of bookmarks
   public BookmarkGroup(String name, ArrayList<BookmarkSpec> bookmarks) {
-    Name = name;
-    Bookmarks = bookmarks;
+    this.name = name;
+    this.bookmarks = bookmarks;
   }
 
   // Getter method for the name field with JSON property annotation
   @JsonProperty("name")
   public String getName() {
-    return Name;
+    return name;
   }
 
   // Getter method for the bookmarks field with JSON property annotation
   @JsonProperty("bookmarks")
   public ArrayList<BookmarkSpec> getBookmarks() {
-    return Bookmarks;
+    return bookmarks;
   }
 
   // Override compareTo method to compare BookmarkGroup objects by name
@@ -45,8 +45,26 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     return this.getName().compareTo(other.getName());
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other == null || getClass() != other.getClass()) {
+      return false;
+    }
+    BookmarkGroup otherGroup = (BookmarkGroup) other;
+    if (name != null ? !name.equals(otherGroup.name) : otherGroup.name != null) {
+      return false;
+    }
+    if (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks) : otherGroup.bookmarks != null) {
+      return false;
+    }
+    return true;
+  }
+
   // Method to add a bookmark to the bookmarks list
   public void addBookmark(BookmarkSpec bookmark) {
-    Bookmarks.add(bookmark);
+    bookmarks.add(bookmark);
   }
 }

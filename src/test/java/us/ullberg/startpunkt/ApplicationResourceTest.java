@@ -157,7 +157,7 @@ class ApplicationResourceTest {
   }
 
   @Test
-  public void testApplicationGet() {
+  void testApplicationGet() {
     // Test to get the Sonarr application from the cluster and expect it to be present
     given().when().get("/api/apps/sonarr").then().log().all().statusCode(200);
   }

@@ -122,12 +122,12 @@ public class ApplicationResource {
       }
     }
 
-    // If the application was found, return it
-    if (retval.size() > 0)
-      return Response.ok(retval).build();
-
     // If the application was not found, return a 404 response
-    return Response.status(404, "Application not found").build();
+    if (retval.isEmpty())
+      return Response.status(404, "Application not found").build();
+
+    // If the application was found, return it
+    return Response.ok(retval).build();
   }
 
   // GET endpoint to retrieve the list of all applications, grouped by application
