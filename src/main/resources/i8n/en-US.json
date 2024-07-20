@@ -3,6 +3,7 @@
         "applications" : "Applications",
         "bookmarks" : "Bookmarks",
         "theme" : {
+            "toggle": "Toggle theme",
             "light" : "Light",
             "dark" : "Dark",
             "auto" : "Auto"

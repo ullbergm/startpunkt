@@ -3,6 +3,7 @@
         "applications" : "Program",
         "bookmarks" : "Bokmärken",
         "theme" : {
+            "toggle": "Välj tema",
             "light" : "Ljust",
             "dark" : "Mörkt",
             "auto" : "Auto"
