@@ -29,6 +29,30 @@ export function ForkMe() {
 }
 
 export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handleAutoThemeClick) {
+  const [themes, setThemes] = useState({
+    light: {
+      bodyBgColor: '#f8f9fa',
+      bodyColor: '#696969',
+      emphasisColor: '#000',
+      textPrimary: '#4C432E',
+      textAccent: '#AA9A73'
+    },
+    dark: {
+      bodyBgColor: '#232530',
+      bodyColor: '#696969',
+      emphasisColor: '#FAB795',
+      textPrimary: '#FAB795',
+      textAccent: '#E95678'
+    }
+  });
+  useEffect(() => {
+    var config = fetch('/api/config')
+      .then((res) => res.json())
+      .then((res) => {
+        setThemes(res.config.web.theme);
+      });
+  }, [])
+
   const [isDark, setIsDark] = useState(false);
 
   // Read the theme from local storage and set the theme
@@ -49,20 +73,20 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
   useEffect(() => {
     if (theme === 'dark' || (theme === 'auto' && systemPrefersDark)) {
       console.log("Setting dark theme");
-      document.body.style.setProperty('--bs-body-bg', '#232530');
-      document.body.style.setProperty('--bs-body-color', '#696969');
-      document.body.style.setProperty('--bs-emphasis-color', '#FAB795');
-      document.body.style.setProperty('--color-text-pri', '#FAB795');
-      document.body.style.setProperty('--color-text-acc', '#E95678');
+      document.body.style.setProperty('--bs-body-bg', themes.dark.bodyBgColor);
+      document.body.style.setProperty('--bs-body-color', themes.dark.bodyColor);
+      document.body.style.setProperty('--bs-emphasis-color', themes.dark.emphasisColor);
+      document.body.style.setProperty('--color-text-pri', themes.dark.textPrimary);
+      document.body.style.setProperty('--color-text-acc', themes.dark.textAccent);
     } else {
       console.log("Setting light theme");
-      document.body.style.setProperty('--bs-body-bg', '#F8F6F1');
-      document.body.style.setProperty('--bs-body-color', '#696969');
-      document.body.style.setProperty('--bs-emphasis-color', '#000');
-      document.body.style.setProperty('--color-text-pri', '#4C432E');
-      document.body.style.setProperty('--color-text-acc', '#AA9A73');
+      document.body.style.setProperty('--bs-body-bg', themes.light.bodyBgColor);
+      document.body.style.setProperty('--bs-body-color', themes.light.bodyColor);
+      document.body.style.setProperty('--bs-emphasis-color', themes.light.emphasisColor);
+      document.body.style.setProperty('--color-text-pri', themes.light.textPrimary);
+      document.body.style.setProperty('--color-text-acc', themes.light.textAccent);
     }
-  }, [isDark, theme, systemPrefersDark]);
+  }, [isDark, theme, themes, systemPrefersDark]);
 
   return (<>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
