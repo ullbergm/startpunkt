@@ -24,7 +24,7 @@ startpunkt:
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
-    enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
+    enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
 
   # Istio Virtual Service integration, read Istio VirtualService resources
   istio:
@@ -37,3 +37,16 @@ startpunkt:
     title: "Startpunkt"  # Title of the web UI
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
+    theme:
+      light:
+        bodyBgColor: "#F8F6F1"
+        bodyColor: "#696969"
+        emphasisColor: "#000000"
+        textPrimaryColor: "#4C432E"
+        textAccentColor: "#AA9A73"
+      dark:
+        bodyBgColor: "#232530"
+        bodyColor: "#696969"
+        emphasisColor: "#FAB795"
+        textPrimaryColor: "#FAB795"
+        textAccentColor: "#E95678"
