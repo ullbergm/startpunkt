@@ -257,7 +257,7 @@ export function App() {
 
   return (
     <IntlProvider definition={definition}>
-      {(showGitHubLink || UpdateAvailable) && <ForkMe color={UpdateAvailable ? "#F00" : ""} link={UpdateAvailable ? "releases" : ""} />}
+      {(showGitHubLink || UpdateAvailable) && <ForkMe color={UpdateAvailable ? "orange" : "white"} link={UpdateAvailable ? "releases" : ""} />}
 
       <ThemeSwitcher />
 
