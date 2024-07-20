@@ -1,6 +1,8 @@
 package us.ullberg.startpunkt;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,19 +15,19 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   // Private fields
   private String name;
-  private ArrayList<ApplicationSpec> applications;
+  private LinkedList<ApplicationSpec> applications;
 
   // Constructor to initialize the ApplicationGroup with a name
   public ApplicationGroup(String name) {
     this.name = name;
-    applications = new ArrayList<>();
+    applications = new LinkedList<>();
   }
 
   // Constructor to initialize the ApplicationGroup with a name and a list of
   // applications
-  public ApplicationGroup(String name, ArrayList<ApplicationSpec> applications) {
+  public ApplicationGroup(String name, List<ApplicationSpec> applications) {
     this.name = name;
-    this.applications = applications;
+    this.applications = (LinkedList<ApplicationSpec>) applications;
   }
 
   // Getter method for the name field with JSON property annotation
@@ -36,7 +38,7 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   // Getter method for the applications field with JSON property annotation
   @JsonProperty("applications")
-  public ArrayList<ApplicationSpec> getApplications() {
+  public List<ApplicationSpec> getApplications() {
     return applications;
   }
 

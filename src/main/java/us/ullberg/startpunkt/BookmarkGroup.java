@@ -1,6 +1,8 @@
 package us.ullberg.startpunkt;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,18 +15,18 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Private fields
   private String name;
-  private ArrayList<BookmarkSpec> bookmarks;
+  private LinkedList<BookmarkSpec> bookmarks;
 
   // Constructor to initialize the BookmarkGroup with a name
   public BookmarkGroup(String name) {
     this.name = name;
-    bookmarks = new ArrayList<>();
+    bookmarks = new LinkedList<>();
   }
 
   // Constructor to initialize the BookmarkGroup with a name and a list of bookmarks
-  public BookmarkGroup(String name, ArrayList<BookmarkSpec> bookmarks) {
+  public BookmarkGroup(String name, List<BookmarkSpec> bookmarks) {
     this.name = name;
-    this.bookmarks = bookmarks;
+    this.bookmarks = (LinkedList<BookmarkSpec>) bookmarks;
   }
 
   // Getter method for the name field with JSON property annotation
@@ -35,7 +37,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Getter method for the bookmarks field with JSON property annotation
   @JsonProperty("bookmarks")
-  public ArrayList<BookmarkSpec> getBookmarks() {
+  public List<BookmarkSpec> getBookmarks() {
     return bookmarks;
   }
 
