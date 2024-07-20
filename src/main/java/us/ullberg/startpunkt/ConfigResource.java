@@ -1,15 +1,14 @@
 package us.ullberg.startpunkt;
 
+import java.util.Map;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 // REST API resource class for application configuration
 @Path("/api/config")
@@ -17,6 +16,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class ConfigResource {
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
   public boolean showGithubLink;
+
+  @ConfigProperty(name = "startpunkt.web.checkForUpdates", defaultValue = "true")
+  public boolean checkForUpdates;
 
   @ConfigProperty(name = "startpunkt.web.title", defaultValue = "Startpunkt")
   public String title;
@@ -64,7 +66,8 @@ public class ConfigResource {
     // Create a response with the configuration value
     Map<String, Object> response = Map.of("config",
         Map.of("version", version, "web",
-            Map.of("showGithubLink", showGithubLink, "title", title, "theme",
+            Map.of("showGithubLink", showGithubLink, "checkForUpdates", checkForUpdates, "title",
+                title, "theme",
                 Map.of("light",
                     Map.of("bodyBgColor", lightThemeBodyBg, "bodyColor", lightThemeBodyColor,
                         "emphasisColor", lightThemeEmphasisColor, "textPrimaryColor",
