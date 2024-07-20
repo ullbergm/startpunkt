@@ -34,9 +34,7 @@ public class ConfigResource {
 
   private Map<String, Object> generateConfig() {
     // Create a response with the configuration value
-    Map<String, Object> response = Map.of("config", Map.of("version", version, "web", Map
-        .of("showGithubLink", showGithubLink, "checkForUpdates", checkForUpdates, "title", title)));
-
-    return response;
+    return Map.of("config", Map.of("version", version, "web", Map.of("showGithubLink",
+        showGithubLink, "checkForUpdates", checkForUpdates, "title", title)));
   }
 }

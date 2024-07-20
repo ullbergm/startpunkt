@@ -52,7 +52,7 @@ public class ThemeResource {
 
   private Map<String, Object> generateTheme() {
     // Create a response with the configuration value
-    Map<String, Object> response = Map.of("theme",
+    return Map.of("theme",
         Map.of("light",
             Map.of("bodyBgColor", lightThemeBodyBg, "bodyColor", lightThemeBodyColor,
                 "emphasisColor", lightThemeEmphasisColor, "textPrimaryColor", lightThemeTextPrimary,
@@ -61,7 +61,5 @@ public class ThemeResource {
             Map.of("bodyBgColor", darkThemeBodyBg, "bodyColor", darkThemeBodyColor, "emphasisColor",
                 darkThemeEmphasisColor, "textPrimaryColor", darkThemeTextPrimary, "textAccentColor",
                 darkThemeTextAccent)));
-
-    return response;
   }
 }

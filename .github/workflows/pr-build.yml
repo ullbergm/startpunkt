@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 🐳 Set up Docker Buildx
         uses: docker/setup-buildx-action@4fd812986e6c8c2a69e18311145f9371337f27d4 # v3.4.0
@@ -44,6 +46,16 @@ jobs:
         uses: scacap/action-surefire-report@v1
         with:
           fail_on_test_failures: true
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: 📡 SonarCloud Scan
+        run: $MVN verify sonar:sonar -Dsonar.organization=magnus-ullberg -Dsonar.projectKey=magnus-ullberg_startpunkt -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=${{ steps.extract_branch.outputs.branch }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: 📦 Package Native Application
         run: $MVN package -Pnative -DskipTests -Dquarkus.native.container-build=true

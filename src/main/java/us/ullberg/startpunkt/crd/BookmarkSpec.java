@@ -149,4 +149,47 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     // Compare by name
     return this.getName().compareTo(other.getName());
   }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other == null || getClass() != other.getClass()) {
+      return false;
+    }
+    BookmarkSpec otherSpec = (BookmarkSpec) other;
+    if (location != otherSpec.location) {
+      return false;
+    }
+    if (name != null ? !name.equals(otherSpec.name) : otherSpec.name != null) {
+      return false;
+    }
+    if (group != null ? !group.equals(otherSpec.group) : otherSpec.group != null) {
+      return false;
+    }
+    if (icon != null ? !icon.equals(otherSpec.icon) : otherSpec.icon != null) {
+      return false;
+    }
+    if (url != null ? !url.equals(otherSpec.url) : otherSpec.url != null) {
+      return false;
+    }
+    if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {
+      return false;
+    }
+    return targetBlank != null ? targetBlank.equals(otherSpec.targetBlank)
+        : otherSpec.targetBlank == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (group != null ? group.hashCode() : 0);
+    result = 31 * result + (icon != null ? icon.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    result = 31 * result + (info != null ? info.hashCode() : 0);
+    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
+    result = 31 * result + location;
+    return result;
+  }
 }

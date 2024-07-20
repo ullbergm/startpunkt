@@ -177,4 +177,53 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     // Compare by name
     return this.getName().compareTo(other.getName());
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
+
+    ApplicationSpec that = (ApplicationSpec) o;
+    if (location != that.location) {
+      return false;
+    }
+    if (name != null ? !name.equals(that.name) : that.name != null) {
+      return false;
+    }
+    if (group != null ? !group.equals(that.group) : that.group != null) {
+      return false;
+    }
+    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {
+      return false;
+    }
+    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {
+      return false;
+    }
+    if (url != null ? !url.equals(that.url) : that.url != null) {
+      return false;
+    }
+    if (info != null ? !info.equals(that.info) : that.info != null) {
+      return false;
+    }
+    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {
+      return false;
+    }
+    return enabled != null ? enabled.equals(that.enabled) : that.enabled == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (group != null ? group.hashCode() : 0);
+    result = 31 * result + (icon != null ? icon.hashCode() : 0);
+    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    result = 31 * result + (info != null ? info.hashCode() : 0);
+    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
+    result = 31 * result + location;
+    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
+    return result;
+  }
 }
