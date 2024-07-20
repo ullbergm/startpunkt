@@ -14,9 +14,9 @@ import { BookmarkGroupList } from './BookmarkGroupList'
 import { useLocalStorage } from '@rehooks/local-storage';
 import { writeStorage } from '@rehooks/local-storage';
 
+import { useMediaQuery } from "react-responsive";
+
 export function ForkMe() {
-  // if the config object is not empty and the web.showGitHubLink is true, show the fork me link
-  //  if (config && config.web && config.web.showGitHubLink) {
   return (
     <a href="https://github.com/ullbergm/startpunkt" class="github-corner" aria-label="View source on GitHub" target="_blank">
       <svg width="50" height="50" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
@@ -26,71 +26,43 @@ export function ForkMe() {
       </svg>
     </a>
   );
-  // }
-  // return null;
 }
 
 export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handleAutoThemeClick) {
+  const [isDark, setIsDark] = useState(false);
 
-  const [themeIcon, setThemeIcon] = useState("#circle-half");
+  // Read the theme from local storage and set the theme
+  const [theme] = useLocalStorage('theme', 'auto');
 
-  const [theme] = useLocalStorage('theme', 'light');
-  useEffect(() => {
-    if (theme === 'light') {
-      handleLightThemeClick();
-    } else if (theme === 'dark') {
-      handleDarkThemeClick();
-    } else if (theme === 'auto') {
-      handleAutoThemeClick();
-    }
-  }, [])
+  // Read the system prefers-color-scheme and set the theme
+  const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, (isSystemDark) => { if (theme == 'auto') setIsDark(isSystemDark) });
 
+  // Set the active class based on the current theme
   const lightClass = theme === 'light' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
   const darkClass = theme === 'dark' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
   const autoClass = theme === 'auto' ? 'dropdown-item d-flex align-items-center active' : 'dropdown-item d-flex align-items-center';
 
-  function handleLightThemeClick(setIcon = true) {
-    console.log("light theme");
+  // Set the icon based on the current theme
+  const themeIcon = theme === 'light' ? "#sun-fill" : theme === 'dark' ? "#moon-stars-fill" : "#circle-half";
 
-    if (setIcon) {
-      setThemeIcon("#sun-fill");
-      writeStorage('theme', 'light');
-    }
-    document.body.style.setProperty('--bs-body-bg', '#F8F6F1');
-    document.body.style.setProperty('--bs-body-color', '#696969');
-    document.body.style.setProperty('--bs-emphasis-color', '#000');
-    document.body.style.setProperty('--color-text-pri', '#4C432E');
-    document.body.style.setProperty('--color-text-acc', '#AA9A73');
-  }
-  function handleDarkThemeClick(setIcon = true) {
-    console.log("dark theme");
-
-    if (setIcon) {
-      setThemeIcon("#moon-stars-fill");
-      writeStorage('theme', 'dark');
-    }
-    document.body.style.setProperty('--bs-body-bg', '#232530');
-    document.body.style.setProperty('--bs-body-color', '#696969');
-    document.body.style.setProperty('--bs-emphasis-color', '#FAB795');
-    document.body.style.setProperty('--color-text-pri', '#FAB795');
-    document.body.style.setProperty('--color-text-acc', '#E95678');
-  }
-  function handleAutoThemeClick() {
-    console.log("auto theme");
-
-    setThemeIcon("#circle-half");
-
-    writeStorage('theme', 'auto');
-    // if its after dark, set dark theme
-    // else set light theme
-    const now = new Date();
-    const hour = now.getHours();
-    if (hour > 18 || hour < 6) {
-      handleDarkThemeClick(false);
+  // Toggle the color scheme based on the isDark state
+  useEffect(() => {
+    if (theme === 'dark' || (theme === 'auto' && systemPrefersDark)) {
+      console.log("Setting dark theme");
+      document.body.style.setProperty('--bs-body-bg', '#232530');
+      document.body.style.setProperty('--bs-body-color', '#696969');
+      document.body.style.setProperty('--bs-emphasis-color', '#FAB795');
+      document.body.style.setProperty('--color-text-pri', '#FAB795');
+      document.body.style.setProperty('--color-text-acc', '#E95678');
     } else {
-      handleLightThemeClick(false);
+      console.log("Setting light theme");
+      document.body.style.setProperty('--bs-body-bg', '#F8F6F1');
+      document.body.style.setProperty('--bs-body-color', '#696969');
+      document.body.style.setProperty('--bs-emphasis-color', '#000');
+      document.body.style.setProperty('--color-text-pri', '#4C432E');
+      document.body.style.setProperty('--color-text-acc', '#AA9A73');
     }
-  }
+  }, [isDark, theme, systemPrefersDark]);
 
   return (<>
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
@@ -124,7 +96,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
       <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
         <li>
           <button type="button" class={lightClass} data-bs-theme-value="light"
-            aria-pressed="false" onClick={handleLightThemeClick}>
+            aria-pressed="false" onClick={() => {writeStorage('theme', 'light')}}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#sun-fill"></use>
             </svg>
@@ -136,7 +108,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
         </li>
         <li>
           <button type="button" class={darkClass} data-bs-theme-value="dark"
-            aria-pressed="false" onClick={handleDarkThemeClick}>
+            aria-pressed="false" onClick={() => {writeStorage('theme', 'dark')}}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#moon-stars-fill"></use>
             </svg>
@@ -148,7 +120,7 @@ export function ThemeSwitcher(handleLightThemeClick, handleDarkThemeClick, handl
         </li>
         <li>
           <button type="button" class={autoClass} data-bs-theme-value="auto"
-            aria-pressed="true" onClick={handleAutoThemeClick}>
+            aria-pressed="true" onClick={() => {writeStorage('theme', 'auto')}}>
             <svg class="bi me-2 opacity-50" width="1em" height="1em">
               <use href="#circle-half"></use>
             </svg>
@@ -257,7 +229,7 @@ export function App() {
 
         </main>
         <footer class="mt-auto text-white-50">
-          <p>Startpunkt v{version}, by <a href="https://ullberg.us" class="text-white-50">Magnus Ullberg</a>.</p>
+          <p><a href="https://github.com/ullbergm/startpunkt" class="text-white-50" target="_blank">Startpunkt</a> v{version}, by <a href="https://ullberg.us" class="text-white-50" target="_blank">Magnus Ullberg</a>.</p>
         </footer>
       </div>
     </IntlProvider>
