@@ -56,7 +56,8 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
     }
     ApplicationGroup otherGroup = (ApplicationGroup) other;
     return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
-        && (applications != null ? applications.equals(otherGroup.applications) : otherGroup.applications == null);
+        && (applications != null ? applications.equals(otherGroup.applications)
+            : otherGroup.applications == null);
   }
 
   @Override

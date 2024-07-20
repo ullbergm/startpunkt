@@ -54,8 +54,9 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
       return false;
     }
     BookmarkGroup otherGroup = (BookmarkGroup) other;
-    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null) &&
-        (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks) : otherGroup.bookmarks == null);
+    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
+        && (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks)
+            : otherGroup.bookmarks == null);
   }
 
   @Override

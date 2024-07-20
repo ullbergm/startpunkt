@@ -38,8 +38,8 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
 
   // Method to create a ResourceDefinitionContext for the custom resource
   private ResourceDefinitionContext getResourceDefinitionContext() {
-    return new ResourceDefinitionContext.Builder()
-        .withGroup(group).withVersion(version).withPlural(pluralKind).withNamespaced(true).build();
+    return new ResourceDefinitionContext.Builder().withGroup(group).withVersion(version)
+        .withPlural(pluralKind).withNamespaced(true).build();
   }
 
   // Method to get a list of GenericKubernetesResource objects
@@ -83,8 +83,8 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
           int appLocation = getAppLocation(item);
           Boolean appEnabled = getAppEnabled(item);
 
-          return new ApplicationSpec(appName, appGroup, appIcon, appIconColor, appUrl, appInfo, appTargetBlank, appLocation,
-              appEnabled);
+          return new ApplicationSpec(appName, appGroup, appIcon, appIconColor, appUrl, appInfo,
+              appTargetBlank, appLocation, appEnabled);
         }).toList();
   }
 
