@@ -54,13 +54,15 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
       return false;
     }
     BookmarkGroup otherGroup = (BookmarkGroup) other;
-    if (name != null ? !name.equals(otherGroup.name) : otherGroup.name != null) {
-      return false;
-    }
-    if (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks) : otherGroup.bookmarks != null) {
-      return false;
-    }
-    return true;
+    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null) &&
+        (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks) : otherGroup.bookmarks == null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (bookmarks != null ? bookmarks.hashCode() : 0);
+    return result;
   }
 
   // Method to add a bookmark to the bookmarks list

@@ -210,9 +210,20 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {
       return false;
     }
-    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {
-      return false;
-    }
-    return true;
+    return enabled != null ? enabled.equals(that.enabled) : that.enabled == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (group != null ? group.hashCode() : 0);
+    result = 31 * result + (icon != null ? icon.hashCode() : 0);
+    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    result = 31 * result + (info != null ? info.hashCode() : 0);
+    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
+    result = 31 * result + location;
+    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
+    return result;
   }
 }

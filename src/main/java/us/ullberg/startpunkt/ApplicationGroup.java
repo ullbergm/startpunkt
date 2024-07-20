@@ -21,7 +21,8 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
     applications = new ArrayList<>();
   }
 
-  // Constructor to initialize the ApplicationGroup with a name and a list of applications
+  // Constructor to initialize the ApplicationGroup with a name and a list of
+  // applications
   public ApplicationGroup(String name, ArrayList<ApplicationSpec> applications) {
     this.name = name;
     this.applications = applications;
@@ -54,14 +55,15 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
       return false;
     }
     ApplicationGroup otherGroup = (ApplicationGroup) other;
-    if (name != null ? !name.equals(otherGroup.name) : otherGroup.name != null) {
-      return false;
-    }
-    if (applications != null ? applications.equals(otherGroup.applications)
-        : otherGroup.applications != null) {
-      return false;
-    }
-    return true;
+    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
+        && (applications != null ? applications.equals(otherGroup.applications) : otherGroup.applications == null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (applications != null ? applications.hashCode() : 0);
+    return result;
   }
 
   // Method to add an application to the applications list
