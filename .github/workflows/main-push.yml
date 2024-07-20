@@ -45,6 +45,6 @@ jobs:
         run: $MVN test --batch-mode --fail-at-end
 
       - name: 📡 SonarCloud Scan
-        run: $MVN verify sonar:sonar -Dsonar.organization=magnus-ullberg -Dsonar.projectKey=magnus-ullberg_startpunkt
+        run: $MVN verify sonar:sonar -Dsonar.organization=magnus-ullberg -Dsonar.projectKey=magnus-ullberg_startpunkt -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
