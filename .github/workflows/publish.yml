@@ -5,6 +5,9 @@ concurrency:
   group: ci
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   release:
