@@ -20,7 +20,7 @@ startpunkt:
   # OpenShift integration, read OpenShift Routes
   openshift:
     enabled: true  # If true, enable the reading of OpenShift Route resources
-    onlyAnnotated: trfalseue  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+    onlyAnnotated: false  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
