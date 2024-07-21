@@ -4,14 +4,20 @@
   <br/><br/>
   <img width="130" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png"/>
   <br/><br/>
-  <a target="_blank" href="https://github.com/ullbergm/startpunkt/releases"><img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?style=flat-square&logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/></a>
-  <a target="_blank" href="https://github.com/ullbergm/startpunkt"><img src="https://img.shields.io/github/last-commit/ullbergm/startpunkt?style=flat-square&logo=github&color=609966&logoColor=fff" alt="Last commit"/></a>
-  <a href="https://github.com/ullbergm/startpunkt/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?style=flat-square&logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
-  <a href="https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?style=flat-square&color=609966&logoColor=fff&label=links" alt="Link checker"/></a>
+  <a target="_blank" href="https://github.com/ullbergm/startpunkt/releases"><img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/></a>
+  <a target="_blank" href="https://github.com/ullbergm/startpunkt"><img src="https://img.shields.io/github/last-commit/ullbergm/startpunkt?logo=github&color=609966&logoColor=fff" alt="Last commit"/></a>
+  <a href="https://github.com/ullbergm/startpunkt/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-609966?logo=opensourceinitiative&logoColor=fff" alt="License MIT"/></a>
+  <a href="https://github.com/ullbergm/startpunkt/actions/workflows/schedule-link-checker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ullbergm/startpunkt/schedule-link-checker.yml?color=609966&logoColor=fff&label=links" alt="Link checker"/></a>
   <br/>
-  <a href="https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22"><img src="https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square&color=609966&logoColor=fff&label=PRs" alt="Pull Requests welcome"/></a>
-  <a href="https://buymeacoffee.com/magnus.ullberg"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?style=flat-square&color=aa1414&logoColor=fff&label=Buy%20me%20a" alt="buy me a coffee"/></a>
-  <a href="https://ullberg.us/cv.pdf"><img src="https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?style=flat-square&color=0000f4&logoColor=fff&label=Offer%20me%20a" alt="offer me a job"/></a>
+  <a href="https://sonarcloud.io/summary/overall?id=magnus-ullberg_startpunkt"><img src="https://sonarcloud.io/api/project_badges/measure?project=magnus-ullberg_startpunkt&metric=security_rating" alt="Security Rating" /></a>
+  <a href="https://sonarcloud.io/summary/overall?id=magnus-ullberg_startpunkt"><img src="https://sonarcloud.io/api/project_badges/measure?project=magnus-ullberg_startpunkt&metric=reliability_rating" alt="Reliability Rating" /></a>
+  <a href="https://sonarcloud.io/summary/overall?id=magnus-ullberg_startpunkt"><img src="https://sonarcloud.io/api/project_badges/measure?project=magnus-ullberg_startpunkt&metric=sqale_rating" alt="Maintainability Rating" /></a>
+  <br/>
+  <a href="https://sonarcloud.io/summary/overall?id=magnus-ullberg_startpunkt"><img src="https://sonarcloud.io/api/project_badges/measure?project=magnus-ullberg_startpunkt&metric=code_smells" alt="Code Smells" /></a>
+  <a href="https://sonarcloud.io/summary/overall?id=magnus-ullberg_startpunkt"><img src="https://sonarcloud.io/api/project_badges/measure?project=magnus-ullberg_startpunkt&metric=coverage" alt="Test Coverage" /></a>
+  <br/>
+  <a href="https://buymeacoffee.com/magnus.ullberg"><img src="https://img.shields.io/badge/Buy%20me%20a-coffee-ff1414.svg?color=aa1414&logoColor=fff&label=Buy%20me%20a" alt="buy me a coffee"/></a>
+  <a href="https://ullberg.us/cv.pdf"><img src="https://img.shields.io/badge/Offer%20me%20a-job-00d414.svg?color=0000f4&logoColor=fff&label=Offer%20me%20a" alt="offer me a job"/></a>
   <br/><br/>
   <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report a Bug</a> ·
   <a href="https://github.com/ullbergm/startpunkt/issues/new?assignees=&labels=enhancement&template=02_FEATURE_REQUEST.md&title=feat%3A+">Request a Feature</a> ·
