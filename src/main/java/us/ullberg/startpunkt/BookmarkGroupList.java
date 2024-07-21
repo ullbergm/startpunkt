@@ -4,6 +4,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection(registerFullHierarchy = true)
 public class BookmarkGroupList {
   private List<BookmarkGroup> list;
 
