@@ -1,5 +1,7 @@
 package us.ullberg.startpunkt;
 
+import java.io.IOException;
+
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
@@ -30,13 +32,17 @@ public class I8nResource {
       description = "Get the translation for a given language")
   @CacheResult(cacheName = "getTranslation")
   public Response getTranslation(@PathParam("language") String language) {
-    String translation = i8nService.getTranslation(language);
+    try {
+      String translation = i8nService.getTranslation(language);
 
-    // Log the translation
-    Log.debug("Translation for language " + language + ":" + translation);
+      // Log the translation
+      Log.debug("Translation for language " + language + ":" + translation);
 
-    // Return the translation as a string
-    return Response.ok(translation).build();
+      // Return the translation as a string
+      return Response.ok(translation).build();
+    } catch (IOException e) {
+      return Response.serverError().entity("Error getting translation").build();
+    }
   }
 
   // Default endpoint to get the translation for the default language
@@ -45,12 +51,17 @@ public class I8nResource {
       description = "Get the translation for the default language")
   @CacheResult(cacheName = "getDefaultTranslation")
   public Response getDefaultTranslation() {
-    String translation = i8nService.getTranslation("en-US");
+    String translation;
+    try {
+      translation = i8nService.getTranslation("en-US");
 
-    // Log the translation
-    Log.debug("Default translation:" + translation);
+      // Log the translation
+      Log.debug("Default translation:" + translation);
 
-    // Return the translation as a string
-    return Response.ok(translation).build();
+      // Return the translation as a string
+      return Response.ok(translation).build();
+    } catch (IOException e) {
+      return Response.serverError().entity("Error getting translation").build();
+    }
   }
 }

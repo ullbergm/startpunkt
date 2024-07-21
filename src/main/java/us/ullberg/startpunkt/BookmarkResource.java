@@ -2,7 +2,6 @@ package us.ullberg.startpunkt;
 
 import java.util.ArrayList;
 import java.util.Collections;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.micrometer.core.annotation.Timed;
@@ -85,6 +84,6 @@ public class BookmarkResource {
     }
 
     // Return the list of bookmark groups
-    return Response.ok(groups).build();
+    return Response.ok(new BookmarkGroupList(groups)).build();
   }
 }

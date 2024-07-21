@@ -16,7 +16,7 @@ public class I8nService {
   private String defaultLanguage;
 
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
-  public String getTranslation(String language) {
+  public String getTranslation(String language) throws IOException {
     // if the language does not match standard i8n format, log a warning and fall back to US English
     InputStream translation;
 
@@ -35,18 +35,6 @@ public class I8nService {
       translation = getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json");
     }
 
-    // If the default language translation is also not found, log a warning and fall
-    // back to English
-    if (translation == null) {
-      Log.warn("Default language invalid, falling back to US English");
-      translation = getClass().getResourceAsStream("/i8n/en-US.json");
-    }
-
-    try {
-      return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      Log.error("Failed to read translation for language: " + language, e);
-      return null;
-    }
+    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
   }
 }

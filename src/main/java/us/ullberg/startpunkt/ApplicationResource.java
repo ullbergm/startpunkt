@@ -10,7 +10,6 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
-import io.quarkus.logging.Log;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -89,12 +88,9 @@ public class ApplicationResource {
     var apps = new ArrayList<ApplicationSpec>();
 
     // Retrieve the applications from the application wrappers
+    final KubernetesClient client = new KubernetesClientBuilder().build();
     for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-      try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
-        apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
-      } catch (Exception e) {
-        Log.error("Error retrieving applications", e);
-      }
+      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
     }
 
     // Sort the list of applications
@@ -106,28 +102,19 @@ public class ApplicationResource {
 
   // GET endpoint to retrieve an application by its name
   @GET
-  @Path("{appName}")
+  @Path("{groupName}/{appName}")
+  @Timed(value = "startpunkt.api.getapp", description = "Get a application")
   @CacheResult(cacheName = "getApp")
-  public Response getApps(@PathParam("appName") String appName) {
-    // Retrieve the list of applications
-    ArrayList<ApplicationSpec> applist = retrieveApps();
-
-    // Create a list to store the found application
-    ArrayList<ApplicationSpec> retval = new ArrayList<>();
-
+  public Response getApps(@PathParam("appName") String appName,
+      @PathParam("groupName") String groupName) {
     // Find the application with the specified name
-    for (ApplicationSpec a : applist) {
-      if (a.getName().equals(appName)) {
-        retval.add(a);
+    for (ApplicationSpec a : retrieveApps()) {
+      if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
+        return Response.ok(a).build();
       }
     }
 
-    // If the application was not found, return a 404 response
-    if (retval.isEmpty())
-      return Response.status(404, "Application not found").build();
-
-    // If the application was found, return it
-    return Response.ok(retval).build();
+    return Response.status(404, "Application not found").build();
   }
 
   // GET endpoint to retrieve the list of all applications, grouped by application
@@ -164,6 +151,6 @@ public class ApplicationResource {
     }
 
     // Return the list of application groups
-    return Response.ok(groups).build();
+    return Response.ok(new ApplicationGroupList(groups)).build();
   }
 }

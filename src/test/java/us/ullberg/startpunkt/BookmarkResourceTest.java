@@ -58,10 +58,9 @@ class BookmarkResourceTest {
 
     // Create a new BookmarkSpec for the Makerworld bookmark
     BookmarkSpec makerworldSpec = new BookmarkSpec();
-    makerworldSpec.setName("Makerworld");
-    makerworldSpec.setGroup("Media");
+    makerworldSpec.setGroup("3D Printing");
     makerworldSpec.setIcon("simple-icons:makerworld");
-    makerworldSpec.setUrl("https://makerworld.com");
+    makerworldSpec.setTargetBlank(true);
 
     // Create a new Bookmark resource using the BookmarkSpec
     Bookmark makerworld = new Bookmark();
@@ -70,6 +69,36 @@ class BookmarkResourceTest {
 
     // Create or replace the Makerworld bookmark resource in the default namespace
     createOrReplace("default", makerworld);
+
+    // Create a new BookmarkSpec for the Printables bookmark
+    BookmarkSpec printablesSpec = new BookmarkSpec();
+    printablesSpec.setName("Printables");
+    printablesSpec.setGroup("3D Printing");
+    printablesSpec.setUrl("https://printables.com");
+    printablesSpec.setLocation(1);
+
+    // Create a new Bookmark resource using the BookmarkSpec
+    Bookmark printables = new Bookmark();
+    printables.setMetadata(new ObjectMetaBuilder().withName("printables").build());
+    printables.setSpec(printablesSpec);
+
+    // Create or replace the Printables bookmark resource in the default namespace
+    createOrReplace("default", printables);
+
+    // Create a new BookmarkSpec for the Quarkus bookmark
+    BookmarkSpec quarkusSpec = new BookmarkSpec();
+    quarkusSpec.setName("Quarkus");
+    quarkusSpec.setIcon("simple-icons:quarkus");
+    quarkusSpec.setInfo("Java framework for microservices");
+    quarkusSpec.setUrl("https://quarkus.io");
+
+    // Create a new Bookmark resource using the BookmarkSpec
+    Bookmark quarkus = new Bookmark();
+    quarkus.setMetadata(new ObjectMetaBuilder().withName("quarkus").build());
+    quarkus.setSpec(quarkusSpec);
+
+    // Create or replace the Quarkus bookmark resource in the default namespace
+    createOrReplace("default", quarkus);
   }
 
   // Method to create or replace a custom resource in the specified namespace
@@ -90,45 +119,45 @@ class BookmarkResourceTest {
   // Test to verify that the bookmarks API endpoint is accessible
   @Test
   void testBookmarkApiEndpoint() {
-    given().when().get("/api/bookmarks").then().statusCode(200);
-  }
-
-  // Test to get a list of bookmarks from the cluster and expect to see the
-  // Makerworld bookmark
-  @Test
-  void testBookmarkList() {
     given().when().get("/api/bookmarks").then().log().all().statusCode(200);
   }
 
-  // Test to verify that the list of bookmarks contains exactly one bookmark
+  // Test to verify that the list of bookmarks contains exactly two groups
   @Test
-  void testBookmarkListSize() {
-    given().when().get("/api/bookmarks").then().body("bookmarks.size()", equalTo(1));
+  void testGroupListSize() {
+    given().when().get("/api/bookmarks").then().body("groups.size()", equalTo(2));
   }
 
-  // Test to verify that the first bookmark's name is "Makerworld"
+  // Test to verify that the groups are in the right order
   @Test
-  void testBookmarkName() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].name[0]", equalTo("Makerworld"));
+  void testGroupOrder() {
+    given().when().get("/api/bookmarks").then().body("groups[0].name", equalTo("3d printing"))
+        .body("groups[1].name", equalTo("default"));
   }
 
-  // Test to verify that the first bookmark's group is "media"
+  // Test to verify that the number of bookmarks in the two groups are correct
   @Test
-  void testBookmarkGroup() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].group[0]", equalTo("media"));
+  void testBookmarkCount() {
+    given().when().get("/api/bookmarks").then().body("groups[0].bookmarks.size()", equalTo(2))
+        .body("groups[1].bookmarks.size()", equalTo(1));
   }
 
-  // Test to verify that the first bookmark's icon is "simple-icons:makerworld"
+  // Test to verify that all the bookmarks are present and the values are correct
   @Test
-  void testBookmarkIcon() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].icon[0]",
-        equalTo("simple-icons:makerworld"));
-  }
+  void testBookmarkValues() {
+    given().when().get("/api/bookmarks").then()
+        .body("groups[0].bookmarks[0].name", equalTo("Printables"))
+        .body("groups[0].bookmarks[0].url", equalTo("https://printables.com"))
+        .body("groups[0].bookmarks[0].location", equalTo(1))
 
-  // Test to verify that the first bookmark's URL is "https://makerworld.com"
-  @Test
-  void testBookmarkUrl() {
-    given().when().get("/api/bookmarks").then().body("bookmarks[0].url[0]",
-        equalTo("https://makerworld.com"));
+        .body("groups[0].bookmarks[1].name", equalTo("makerworld"))
+        .body("groups[0].bookmarks[1].icon", equalTo("simple-icons:makerworld"))
+        .body("groups[0].bookmarks[1].targetBlank", equalTo(true))
+        .body("groups[0].bookmarks[1].location", equalTo(1000))
+
+        .body("groups[1].bookmarks[0].name", equalTo("Quarkus"))
+        .body("groups[1].bookmarks[0].url", equalTo("https://quarkus.io"))
+        .body("groups[1].bookmarks[0].icon", equalTo("simple-icons:quarkus"))
+        .body("groups[1].bookmarks[0].location", equalTo(1000));
   }
 }

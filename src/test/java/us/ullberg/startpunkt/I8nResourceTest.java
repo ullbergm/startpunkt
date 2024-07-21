@@ -30,6 +30,13 @@ class I8nResourceTest {
   }
 
   @Test
+  void testMissingLanguage() {
+    given().when().get("/api/i8n/fi").then().statusCode(200)
+        .body("home.applications", equalTo("Applications"))
+        .body("home.bookmarks", equalTo("Bookmarks"));
+  }
+
+  @Test
   void testUnknownLanguage() {
     given().when().get("/api/i8n/unknown").then().statusCode(200)
         .body("home.applications", equalTo("Applications"))
