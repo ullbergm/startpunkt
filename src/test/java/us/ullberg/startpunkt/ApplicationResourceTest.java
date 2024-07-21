@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.HttpURLConnection;
 
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +66,8 @@ class ApplicationResourceTest {
     homeAssistant.setMetadata(new ObjectMetaBuilder().withName("homeassistant").build());
     homeAssistant.setSpec(homeAssistantSpec);
 
-    // Create or replace the HomeAssistant application resource in the default namespace
+    // Create or replace the HomeAssistant application resource in the default
+    // namespace
     createOrReplace("default", homeAssistant);
 
     // Create new ApplicationSpec for the Node-Red application
@@ -152,7 +152,8 @@ class ApplicationResourceTest {
         .body("groups[1].applications.size()", equalTo(1));
   }
 
-  // Test to verify that all the applications are present and the values are correct
+  // Test to verify that all the applications are present and the values are
+  // correct
   @Test
   void testApplicationsValues() {
     given().when().get("/api/apps").then().statusCode(200)
@@ -182,5 +183,22 @@ class ApplicationResourceTest {
         .body("groups[1].applications[0].info", equalTo("Cyber Swiss Army Knife"))
         .body("groups[1].applications[0].targetBlank", equalTo(true))
         .body("groups[1].applications[0].enabled", equalTo(true));
+  }
+
+  // Test reading the information of a single application
+  @Test
+  void testApplicationInfo() {
+    given().when().get("/api/apps/home automation/home assistant").then().statusCode(200)
+        .body("name", equalTo("home assistant")).body("group", equalTo("home automation"))
+        .body("icon", equalTo("mdi:home-automation"))
+        .body("url", equalTo("https://homeassistant.ullberg.us"))
+        .body("info", equalTo("Smart Home Manager")).body("targetBlank", equalTo(true))
+        .body("location", equalTo(1000)).body("enabled", equalTo(true));
+  }
+
+  // Test reading the information for a missing application
+  @Test
+  void testMissingApplicationInfo() {
+    given().when().get("/api/apps/home automation/missing").then().statusCode(404);
   }
 }
