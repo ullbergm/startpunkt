@@ -18,23 +18,21 @@ class I8nResourceTest {
 
   @Test
   void testEnglishLanguage() {
-    given().when().get("/api/i8n/en-US").then().statusCode(200);
-    given().when().get("/api/i8n/en-US").then().body("home.applications", equalTo("Applications"));
-    given().when().get("/api/i8n/en-US").then().body("home.bookmarks", equalTo("Bookmarks"));
+    given().when().get("/api/i8n/en-US").then().statusCode(200)
+        .body("home.applications", equalTo("Applications"))
+        .body("home.bookmarks", equalTo("Bookmarks"));
   }
 
   @Test
   void testSwedishLanguage() {
-    given().when().get("/api/i8n/sv-SE").then().statusCode(200);
-    given().when().get("/api/i8n/sv-SE").then().body("home.applications", equalTo("Program"));
-    given().when().get("/api/i8n/sv-SE").then().body("home.bookmarks", equalTo("Bokmärken"));
+    given().when().get("/api/i8n/sv-SE").then().statusCode(200)
+        .body("home.applications", equalTo("Program")).body("home.bookmarks", equalTo("Bokmärken"));
   }
 
   @Test
   void testUnknownLanguage() {
-    given().when().get("/api/i8n/unknown").then().statusCode(200);
-    given().when().get("/api/i8n/unknown").then().body("home.applications",
-        equalTo("Applications"));
-    given().when().get("/api/i8n/unknown").then().body("home.bookmarks", equalTo("Bookmarks"));
+    given().when().get("/api/i8n/unknown").then().statusCode(200)
+        .body("home.applications", equalTo("Applications"))
+        .body("home.bookmarks", equalTo("Bookmarks"));
   }
 }
