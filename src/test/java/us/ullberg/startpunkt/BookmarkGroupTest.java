@@ -1,4 +1,3 @@
-//new BookmarkSpec("Bookmark 1", "Group", "mdi:bookmark", "https://example.com/bookmark1", "Description 1", true, 0);
 package us.ullberg.startpunkt;
 
 import static org.hamcrest.Matchers.contains;
