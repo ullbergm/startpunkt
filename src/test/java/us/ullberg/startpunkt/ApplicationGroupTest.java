@@ -1,9 +1,13 @@
 package us.ullberg.startpunkt;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,16 +19,10 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 class ApplicationGroupTest {
 
   private ApplicationGroup applicationGroup;
-  private List<ApplicationSpec> applications;
 
   @BeforeEach
   void setUp() {
-    applications = new LinkedList<>();
-    applications.add(new ApplicationSpec("App1", "Group1", "mdi:application", "red",
-        "https://www.example.com/", "Description 1", true, 0, true));
-    applications.add(new ApplicationSpec("App2", "Group1", "mdi:application", "red",
-        "https://www.test.com/", "Description 1", true, 0, true));
-    applicationGroup = new ApplicationGroup("Group1", applications);
+    applicationGroup = new ApplicationGroup("Group1");
   }
 
   @Test
@@ -34,6 +32,11 @@ class ApplicationGroupTest {
 
   @Test
   void testGetApplications() {
+    List<ApplicationSpec> applications = new LinkedList<>(
+        Arrays.asList(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+            "https://www.testing.com/", "Description 1", true, 0, true)));
+    applicationGroup.addApplication(applications.get(0));
+
     assertEquals(applications, applicationGroup.getApplications());
   }
 
@@ -42,28 +45,49 @@ class ApplicationGroupTest {
     ApplicationSpec newApp = new ApplicationSpec("App3", "Group1", "mdi:application", "red",
         "https://www.testing.com/", "Description 1", true, 0, true);
     applicationGroup.addApplication(newApp);
-    assertTrue(applicationGroup.getApplications().contains(newApp));
+    assertThat(applicationGroup.getApplications(), contains(newApp));
   }
 
   @Test
   void testCompareTo() {
     ApplicationGroup otherGroup = new ApplicationGroup("Group2");
-    assertTrue(applicationGroup.compareTo(otherGroup) < 0);
-    assertTrue(otherGroup.compareTo(applicationGroup) > 0);
+    assertThat(applicationGroup.compareTo(otherGroup), lessThan(0));
+    assertThat(otherGroup.compareTo(applicationGroup), greaterThan(0));
     assertEquals(0, applicationGroup.compareTo(applicationGroup));
   }
 
   @Test
   void testEquals() {
-    ApplicationGroup sameGroup = new ApplicationGroup("Group1", applications);
-    ApplicationGroup differentGroup = new ApplicationGroup("Group2", applications);
-    assertTrue(applicationGroup.equals(sameGroup));
-    assertFalse(applicationGroup.equals(differentGroup));
+    applicationGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+
+    ApplicationGroup sameGroup = new ApplicationGroup("Group1");
+    sameGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+
+    ApplicationGroup differentGroup = new ApplicationGroup("Group2");
+    differentGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+
+    ApplicationGroup differentGroup2 = new ApplicationGroup("Group2");
+    differentGroup2.addApplication(new ApplicationSpec("App2", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+
+    assertEquals(applicationGroup, sameGroup);
+    assertNotEquals(applicationGroup, differentGroup);
+    assertNotEquals(applicationGroup, differentGroup2);
   }
 
   @Test
   void testHashCode() {
-    ApplicationGroup sameGroup = new ApplicationGroup("Group1", applications);
+    ApplicationGroup sameGroup = new ApplicationGroup("Group1");
+    assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
+
+    applicationGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+    sameGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
+        "https://www.testing.com/", "Description 1", true, 0, true));
+
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
   }
 }
