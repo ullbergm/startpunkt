@@ -178,6 +178,14 @@ public class BookmarkService {
   private int getLocation(GenericKubernetesResource item) {
     Map<String, Object> spec = getSpec(item);
 
-    return spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
+    var location =
+        spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
+
+    // This is for backwards compatibility with Hajimari, 0 is the same as blank
+    if (location == 0) {
+      return 1000;
+    }
+
+    return location;
   }
 }

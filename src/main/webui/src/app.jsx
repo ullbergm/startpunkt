@@ -183,6 +183,7 @@ export function App() {
   useEffect(() => {
     fetch('/api/apps')
       .then((res) => res.json())
+      .then((res) => res.groups)
       .then(setApplicationGroups)
   }, [])
 
@@ -191,6 +192,7 @@ export function App() {
   useEffect(() => {
     fetch('/api/bookmarks')
       .then((res) => res.json())
+      .then((res) => res.groups)
       .then(setBookmarkGroups)
   }, [])
 

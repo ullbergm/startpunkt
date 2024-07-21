@@ -164,6 +164,6 @@ public class ApplicationResource {
     }
 
     // Return the list of application groups
-    return Response.ok(groups).build();
+    return Response.ok(new ApplicationGroupList(groups)).build();
   }
 }

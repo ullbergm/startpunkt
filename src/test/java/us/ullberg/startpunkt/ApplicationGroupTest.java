@@ -32,9 +32,9 @@ class ApplicationGroupTest {
 
   @Test
   void testGetApplications() {
-    List<ApplicationSpec> applications = new LinkedList<>(
-        Arrays.asList(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-            "https://www.testing.com/", "Description 1", true, 0, true)));
+    List<ApplicationSpec> applications =
+        new LinkedList<>(Arrays.asList(new ApplicationSpec("App3", "Group1", "mdi:application",
+            "red", "https://www.testing.com/", "Description 1", true, 0, true)));
     applicationGroup.addApplication(applications.get(0));
 
     assertEquals(applications, applicationGroup.getApplications());

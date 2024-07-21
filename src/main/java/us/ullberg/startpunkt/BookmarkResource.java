@@ -2,8 +2,11 @@ package us.ullberg.startpunkt;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -85,6 +88,6 @@ public class BookmarkResource {
     }
 
     // Return the list of bookmark groups
-    return Response.ok(groups).build();
+    return Response.ok(new BookmarkGroupList(groups)).build();
   }
 }
