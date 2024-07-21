@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.HttpURLConnection;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +93,8 @@ class BookmarkResourceTest {
     given().when().get("/api/bookmarks").then().statusCode(200);
   }
 
-  // Test to get a list of bookmarks from the cluster and expect to see the Makerworld bookmark
+  // Test to get a list of bookmarks from the cluster and expect to see the
+  // Makerworld bookmark
   @Test
   void testBookmarkList() {
     given().when().get("/api/bookmarks").then().log().all().statusCode(200);
