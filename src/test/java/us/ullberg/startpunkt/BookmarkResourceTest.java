@@ -58,10 +58,9 @@ class BookmarkResourceTest {
 
     // Create a new BookmarkSpec for the Makerworld bookmark
     BookmarkSpec makerworldSpec = new BookmarkSpec();
-    makerworldSpec.setName("Makerworld");
     makerworldSpec.setGroup("3D Printing");
     makerworldSpec.setIcon("simple-icons:makerworld");
-    makerworldSpec.setUrl("https://makerworld.com");
+    makerworldSpec.setTargetBlank(true);
 
     // Create a new Bookmark resource using the BookmarkSpec
     Bookmark makerworld = new Bookmark();
@@ -75,7 +74,6 @@ class BookmarkResourceTest {
     BookmarkSpec printablesSpec = new BookmarkSpec();
     printablesSpec.setName("Printables");
     printablesSpec.setGroup("3D Printing");
-    printablesSpec.setIcon("simple-icons:printables");
     printablesSpec.setUrl("https://printables.com");
     printablesSpec.setLocation(1);
 
@@ -90,8 +88,8 @@ class BookmarkResourceTest {
     // Create a new BookmarkSpec for the Quarkus bookmark
     BookmarkSpec quarkusSpec = new BookmarkSpec();
     quarkusSpec.setName("Quarkus");
-    quarkusSpec.setGroup("Development");
     quarkusSpec.setIcon("simple-icons:quarkus");
+    quarkusSpec.setInfo("Java framework for microservices");
     quarkusSpec.setUrl("https://quarkus.io");
 
     // Create a new Bookmark resource using the BookmarkSpec
@@ -134,7 +132,7 @@ class BookmarkResourceTest {
   @Test
   void testGroupOrder() {
     given().when().get("/api/bookmarks").then().body("groups[0].name", equalTo("3d printing"))
-        .body("groups[1].name", equalTo("development"));
+        .body("groups[1].name", equalTo("default"));
   }
 
   // Test to verify that the number of bookmarks in the two groups are correct
@@ -150,14 +148,16 @@ class BookmarkResourceTest {
     given().when().get("/api/bookmarks").then()
         .body("groups[0].bookmarks[0].name", equalTo("Printables"))
         .body("groups[0].bookmarks[0].url", equalTo("https://printables.com"))
-        .body("groups[0].bookmarks[0].icon", equalTo("simple-icons:printables"))
+        .body("groups[0].bookmarks[0].location", equalTo(1))
 
-        .body("groups[0].bookmarks[1].name", equalTo("Makerworld"))
-        .body("groups[0].bookmarks[1].url", equalTo("https://makerworld.com"))
+        .body("groups[0].bookmarks[1].name", equalTo("makerworld"))
         .body("groups[0].bookmarks[1].icon", equalTo("simple-icons:makerworld"))
+        .body("groups[0].bookmarks[1].targetBlank", equalTo(true))
+        .body("groups[0].bookmarks[1].location", equalTo(1000))
 
         .body("groups[1].bookmarks[0].name", equalTo("Quarkus"))
         .body("groups[1].bookmarks[0].url", equalTo("https://quarkus.io"))
-        .body("groups[1].bookmarks[0].icon", equalTo("simple-icons:quarkus"));
+        .body("groups[1].bookmarks[0].icon", equalTo("simple-icons:quarkus"))
+        .body("groups[1].bookmarks[0].location", equalTo(1000));
   }
 }
