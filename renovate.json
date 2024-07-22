@@ -284,7 +284,7 @@
             "patch"
          ],
          "groupName": "all minor/patch version npm",
-         "groupSlug": "all-npm-minor",
+         "groupSlug": "all-npm-minor"
       }
    ]
 }
