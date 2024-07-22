@@ -258,6 +258,17 @@
          "addLabels": [
             "renovate/github-action"
          ]
+      },
+      {
+         "matchManagers": [
+            "github-actions"
+         ],
+         "matchUpdateTypes": [
+            "minor",
+            "patch"
+         ],
+         "groupName": "all minor/patch version github actions",
+         "groupSlug": "all-github-minor"
       }
    ]
 }
