@@ -5,6 +5,7 @@
       ":dependencyDashboard",
       ":semanticCommits"
    ],
+   "prHourlyLimit": 5,
    "commitMessageTopic": "{{depName}}",
    "commitMessageExtra": "to {{newVersion}}",
    "commitMessageSuffix": "",
@@ -71,8 +72,6 @@
          "matchUpdateTypes": [
             "minor"
          ],
-         "groupName": "all minor version npm",
-         "groupSlug": "all-npm-minor",
          "semanticCommitType": "feat",
          "semanticCommitScope": "js"
       },
@@ -83,8 +82,6 @@
          "matchUpdateTypes": [
             "patch"
          ],
-         "groupName": "all patch version npm",
-         "groupSlug": "all-npm-patch",
          "semanticCommitType": "fix",
          "semanticCommitScope": "js"
       },
@@ -106,8 +103,6 @@
          "matchUpdateTypes": [
             "minor"
          ],
-         "groupName": "all minor version docker containers",
-         "groupSlug": "all-docker-minor",
          "semanticCommitType": "feat",
          "semanticCommitScope": "container"
       },
@@ -119,8 +114,6 @@
             "digest",
             "patch"
          ],
-         "groupName": "all patch version docker containers",
-         "groupSlug": "all-docker-patch",
          "semanticCommitType": "fix",
          "semanticCommitScope": "container"
       },
@@ -269,6 +262,29 @@
          ],
          "groupName": "all minor/patch version github actions",
          "groupSlug": "all-github-minor"
+      },
+      {
+         "matchManagers": [
+            "docker"
+         ],
+         "matchUpdateTypes": [
+            "minor",
+            "digest",
+            "patch"
+         ],
+         "groupName": "all minor/digest/patch version docker images",
+         "groupSlug": "all-docker-minor"
+      },
+      {
+         "matchManagers": [
+            "npm"
+         ],
+         "matchUpdateTypes": [
+            "minor",
+            "patch"
+         ],
+         "groupName": "all minor/patch version npm",
+         "groupSlug": "all-npm-minor",
       }
    ]
 }
