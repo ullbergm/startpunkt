@@ -264,7 +264,7 @@
          "groupSlug": "all-github-minor"
       },
       {
-         "matchManagers": [
+         "matchDatasources": [
             "docker"
          ],
          "matchUpdateTypes": [
@@ -276,7 +276,7 @@
          "groupSlug": "all-docker-minor"
       },
       {
-         "matchManagers": [
+         "matchDatasources": [
             "npm"
          ],
          "matchUpdateTypes": [
