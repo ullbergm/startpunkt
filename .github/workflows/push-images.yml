@@ -104,7 +104,7 @@ jobs:
           install: true
 
       - name: Build JVM image (${{ matrix.arch }})
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/${{ matrix.arch }}
@@ -183,7 +183,7 @@ jobs:
           install: true
 
       - name: Build native image (${{ matrix.arch }})
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/${{ matrix.arch }}
