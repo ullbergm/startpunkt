@@ -26,8 +26,9 @@ permissions:
   contents: write
   packages: write
 
+# Only process one workflow run at a time
 concurrency:
-  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}"
+  group: "workflow = ${{ github.workflow }}}"
   cancel-in-progress: false
 
 jobs:
