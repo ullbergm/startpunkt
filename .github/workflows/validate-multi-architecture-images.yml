@@ -1,0 +1,19 @@
+name: Validate multi architecture images
+
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  validate-multi-architecture-images:
+    name: Validate multi architecture images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          dry-run: True
+          validate: true
