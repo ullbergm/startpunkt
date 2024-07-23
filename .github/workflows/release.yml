@@ -27,7 +27,6 @@ jobs:
           #configuration: ".github/workflows/changelog/configuration.json"
           owner: "ullbergm"
           repo: "startpunkt"
-          ignorePreReleases: "false"
           configuration: ".github/workflows/changelog/configuration.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

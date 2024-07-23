@@ -3,13 +3,31 @@
         {
             "title": "## 🚀 Features",
             "labels": [
-                "feature"
+                "feature",
+                "feat",
+                "chore(enhancement)",
+                "feat(enhancement)",
+                "chore(documentation)",
+                "feat(i8n)"
             ]
         },
         {
             "title": "## 🐛 Fixes",
             "labels": [
-                "fix"
+                "fix",
+                "feat(fix)"
+            ]
+        },
+        {
+            "title": "## 📦 Dependencies",
+            "labels": [
+                "chore(deps)",
+                "fix(deps)",
+                "feat(github-action)",
+                "fix(js)",
+                "fix(container)",
+                "feat(container)",
+                "feat(js)"
             ]
         },
         {
@@ -17,14 +35,47 @@
             "labels": [
                 "test"
             ]
+        },
+        {
+            "title": "## 🚀 CI/CD Workflows",
+            "labels": [
+                "ci"
+            ]
+        },
+        {
+            "title": "## 🚀 Build / Deploy",
+            "labels": [
+                "chore(build)"
+            ]
+        },
+        {
+            "title": "## Other",
+            "exhaustive": true,
+            "exhaustive_rules": "false",
+            "empty_content": "- no matching PRs",
+            "rules": [
+                {
+                    "pattern": "open",
+                    "on_property": "status",
+                    "flags": "gu"
+                }
+            ]
         }
     ],
-    "ignore_labels": [
-        "ignore"
+    "label_extractor": [
+        {
+            "method": "regexr",
+            "pattern": "(.+?)!?:.+",
+            "target": "$1",
+            "on_property": "title"
+        }
     ],
-    "sort": "ASC",
-    "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
-    "pr_template": "- ${{TITLE}}",
+    "sort": {
+        "order": "ASC",
+        "on_property": "mergedAt"
+    },
+    "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+    "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
     "empty_template": "- no changes",
     "transformers": [
         {
@@ -32,12 +83,10 @@
             "target": "- $4\n  - $6"
         }
     ],
+    "trim_values": false,
     "max_tags_to_fetch": 200,
     "max_pull_requests": 200,
     "max_back_track_time_days": 365,
-    "exclude_merge_branches": [
-        "Owner/qa"
-    ],
     "tag_resolver": {
         "method": "semver"
     }
