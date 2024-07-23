@@ -376,16 +376,16 @@ jobs:
             -a ${{ env.TAG }}-amd64
           docker manifest push ${{ matrix.tag }}
 
-  cleanup-artifacts:
-    needs:
-      - create-multiarch-jvm-manifests
-      - create-multiarch-native-manifests
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # cleanup-artifacts:
+  #   needs:
+  #     - create-multiarch-jvm-manifests
+  #     - create-multiarch-native-manifests
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Delete Untagged Images
-        uses: dataaxiom/ghcr-cleanup-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Delete Untagged Images
+  #       uses: dataaxiom/ghcr-cleanup-action@v1
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
