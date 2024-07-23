@@ -57,7 +57,7 @@ jobs:
       - name: 'build-test-jvm-java-${{ env.JAVA_VERSION }}'
         working-directory: .
         run: >-
-          if [[ ${{ github.repository }} != 'ullbergm/startpunkt' || startsWith(github.ref, 'refs/heads/renovate') ]]; then
+          if [[ ${{ github.repository }} != 'ullbergm/startpunkt' || ${{ startsWith(github.ref, 'refs/heads/renovate') }} ]]; then
             ./mvnw -B -fae clean verify -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
           else
             ./mvnw -B -fae clean verify sonar:sonar -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
