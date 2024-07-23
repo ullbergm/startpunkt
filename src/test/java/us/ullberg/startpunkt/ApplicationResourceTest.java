@@ -11,14 +11,12 @@ import org.junit.jupiter.api.Test;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import jakarta.inject.Inject;
 import us.ullberg.startpunkt.crd.Application;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
@@ -31,9 +29,6 @@ class ApplicationResourceTest {
   @KubernetesTestServer
   KubernetesServer server; // Mock Kubernetes server for testing
 
-  @Inject
-  KubernetesClient client; // Kubernetes client for interacting with the cluster
-
   @BeforeEach
   public void before() {
 
@@ -44,6 +39,9 @@ class ApplicationResourceTest {
     // Set up the mock server to expect a POST request for creating the CRD
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
+
+    // Get the Kubernetes client from the mock server
+    var client = server.getClient();
 
     // Create the CRD in the mock Kubernetes cluster
     CustomResourceDefinition createdApplicationCrd =
@@ -111,6 +109,9 @@ class ApplicationResourceTest {
 
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Application object) {
+    // Get the Kubernetes client from the mock server
+    var client = server.getClient();
+
     Resource<Application> resource =
         client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 

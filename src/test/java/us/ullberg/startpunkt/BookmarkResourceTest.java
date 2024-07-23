@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Test;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import jakarta.inject.Inject;
 import us.ullberg.startpunkt.crd.Bookmark;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
@@ -33,10 +31,6 @@ class BookmarkResourceTest {
   @KubernetesTestServer
   KubernetesServer server;
 
-  // Inject the Kubernetes client
-  @Inject
-  KubernetesClient client;
-
   // Setup method to initialize the test environment before each test
   @BeforeEach
   public void before() {
@@ -48,6 +42,9 @@ class BookmarkResourceTest {
     // Set up the mock server to expect a POST request for creating the CRD
     server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
         .andReturn(HttpURLConnection.HTTP_OK, crd).once();
+
+    // Get the Kubernetes client from the mock server
+    var client = server.getClient();
 
     // Create the CRD in the mock Kubernetes cluster
     CustomResourceDefinition createdBookmarkCrd =
@@ -103,6 +100,9 @@ class BookmarkResourceTest {
 
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Bookmark object) {
+    // Get the Kubernetes client from the mock server
+    var client = server.getClient();
+
     Resource<Bookmark> resource =
         client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 
