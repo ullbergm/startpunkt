@@ -257,11 +257,12 @@
             "github-actions"
          ],
          "matchUpdateTypes": [
+            "major",
             "minor",
             "patch"
          ],
-         "groupName": "all minor/patch version github actions",
-         "groupSlug": "all-github-minor"
+         "groupName": "all github actions",
+         "groupSlug": "all-github"
       },
       {
          "matchDatasources": [
