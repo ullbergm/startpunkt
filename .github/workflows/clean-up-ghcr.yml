@@ -1,0 +1,26 @@
+name: Clean up GHCR
+
+on:
+  workflow_run:
+    workflows:
+      - "Push Images"
+    types:
+      - completed
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+jobs:
+  delete-untagged-images:
+    name: Delete untagged images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+    - uses: quartx-analytics/ghcr-cleaner@v1
+      with:
+          owner-type: user
+          token: ${{ secrets.PAT_TOKEN }}
+          repository_owner: ${{ github.repository_owner }}
+          repository-name: ${{ github.repository }}
+          delete-untagged: true
