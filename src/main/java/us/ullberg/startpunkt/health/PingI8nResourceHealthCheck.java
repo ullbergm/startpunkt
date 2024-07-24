@@ -7,7 +7,7 @@ import org.eclipse.microprofile.health.Liveness;
 import us.ullberg.startpunkt.I8nResource;
 
 /**
- * {@link HealthCheck} to ping the Hero service
+ * {@link HealthCheck} to ping the I8n service
  */
 @Liveness
 public class PingI8nResourceHealthCheck implements HealthCheck {

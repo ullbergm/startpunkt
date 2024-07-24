@@ -7,7 +7,7 @@ import org.eclipse.microprofile.health.Liveness;
 import us.ullberg.startpunkt.BookmarkResource;
 
 /**
- * {@link HealthCheck} to ping the Hero service
+ * {@link HealthCheck} to ping the Bookmark service
  */
 @Liveness
 public class PingBookmarkResourceHealthCheck implements HealthCheck {
