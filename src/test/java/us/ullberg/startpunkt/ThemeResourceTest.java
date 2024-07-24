@@ -35,6 +35,7 @@ class ThemeResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/theme/ping").then().statusCode(200).body(equalTo(new ThemeResource().ping()));
+    given().when().get("/api/theme/ping").then().statusCode(200)
+        .body(equalTo(new ThemeResource().ping()));
   }
 }

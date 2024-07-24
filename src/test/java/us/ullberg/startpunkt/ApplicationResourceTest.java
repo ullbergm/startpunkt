@@ -206,6 +206,7 @@ class ApplicationResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/apps/ping").then().statusCode(200).body(equalTo(new ApplicationResource().ping()));
+    given().when().get("/api/apps/ping").then().statusCode(200)
+        .body(equalTo(new ApplicationResource().ping()));
   }
 }

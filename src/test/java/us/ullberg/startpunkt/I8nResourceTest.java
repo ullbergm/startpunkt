@@ -46,6 +46,7 @@ class I8nResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/i8n/ping").then().statusCode(200).body(equalTo(new I8nResource().ping()));
+    given().when().get("/api/i8n/ping").then().statusCode(200)
+        .body(equalTo(new I8nResource().ping()));
   }
 }

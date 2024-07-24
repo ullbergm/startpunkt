@@ -21,6 +21,7 @@ public class PingApplicationResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     var response = this.applicationResource.ping();
 
-    return HealthCheckResponse.named("Ping Application REST Endpoint").withData("Response", response).up().build();
+    return HealthCheckResponse.named("Ping Application REST Endpoint")
+        .withData("Response", response).up().build();
   }
 }

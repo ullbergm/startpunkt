@@ -67,7 +67,7 @@ public class ThemeResource {
                 darkThemeEmphasisColor, "textPrimaryColor", darkThemeTextPrimary, "textAccentColor",
                 darkThemeTextAccent)));
   }
-  
+
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

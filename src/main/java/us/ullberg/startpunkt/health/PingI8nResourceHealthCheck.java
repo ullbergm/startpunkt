@@ -21,6 +21,7 @@ public class PingI8nResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     var response = this.i8nResource.ping();
 
-    return HealthCheckResponse.named("Ping I8n REST Endpoint").withData("Response", response).up().build();
+    return HealthCheckResponse.named("Ping I8n REST Endpoint").withData("Response", response).up()
+        .build();
   }
 }

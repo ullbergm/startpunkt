@@ -91,7 +91,7 @@ public class BookmarkResource {
     // Return the list of bookmark groups
     return Response.ok(new BookmarkGroupList(groups)).build();
   }
-  
+
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

@@ -21,6 +21,7 @@ public class PingThemeResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     var response = this.themeResource.ping();
 
-    return HealthCheckResponse.named("Ping Theme REST Endpoint").withData("Response", response).up().build();
+    return HealthCheckResponse.named("Ping Theme REST Endpoint").withData("Response", response).up()
+        .build();
   }
 }

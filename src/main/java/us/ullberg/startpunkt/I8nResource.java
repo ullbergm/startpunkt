@@ -70,7 +70,7 @@ public class I8nResource {
     }
   }
 
-  
+
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

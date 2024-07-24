@@ -21,6 +21,7 @@ public class PingBookmarkResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     var response = this.bookmarkResource.ping();
 
-    return HealthCheckResponse.named("Ping Bookmark REST Endpoint").withData("Response", response).up().build();
+    return HealthCheckResponse.named("Ping Bookmark REST Endpoint").withData("Response", response)
+        .up().build();
   }
 }

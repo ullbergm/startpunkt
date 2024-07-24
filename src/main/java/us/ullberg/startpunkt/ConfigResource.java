@@ -42,7 +42,7 @@ public class ConfigResource {
     return Map.of("config", Map.of("version", version, "web", Map.of("showGithubLink",
         showGithubLink, "checkForUpdates", checkForUpdates, "title", title)));
   }
-  
+
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

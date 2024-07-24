@@ -164,6 +164,7 @@ class BookmarkResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/bookmarks/ping").then().statusCode(200).body(equalTo(new BookmarkResource().ping()));
+    given().when().get("/api/bookmarks/ping").then().statusCode(200)
+        .body(equalTo(new BookmarkResource().ping()));
   }
 }
