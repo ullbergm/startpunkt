@@ -60,6 +60,11 @@ jobs:
           if [[ "${{ github.repository }}" != "ullbergm/startpunkt" ]] || ${{ startsWith(github.ref, 'refs/heads/renovate') }}; then
             echo "Skipping Sonar analysis"
             ./mvnw -B -fae clean verify -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
+          elif [[ ${{ startsWith(github.ref, 'refs/pull/') }} == 'true' ]]; then
+            echo "Running Sonar analysis with quality gate on PR"
+            ./mvnw -B -fae clean verify sonar:sonar -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }} -Dsonar.projectKey=${{ env.SONAR_PROJECTKEY }} -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
+            -D sonar.qualitygate.wait=true
           else
             echo "Running Sonar analysis"
             ./mvnw -B -fae clean verify sonar:sonar -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
