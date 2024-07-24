@@ -10,7 +10,6 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -24,7 +23,6 @@ import us.ullberg.startpunkt.service.I8nService;
 @Produces(MediaType.APPLICATION_JSON)
 public class I8nResource {
 
-  @Inject
   I8nService i8nService;
 
   // Constructor

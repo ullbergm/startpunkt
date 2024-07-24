@@ -12,7 +12,6 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -28,7 +27,6 @@ import us.ullberg.startpunkt.service.BookmarkService;
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
   // Inject the BookmarkService to manage bookmark-related operations
-  @Inject
   BookmarkService bookmarkService;
 
   // Configuration property to enable or disable Hajimari bookmarks
