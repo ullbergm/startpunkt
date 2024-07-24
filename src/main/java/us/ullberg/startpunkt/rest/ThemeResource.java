@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -17,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 
 // REST API resource class for application configuration
 @Path("/api/theme")
+@Tag(name = "theme")
 @Produces(MediaType.APPLICATION_JSON)
 public class ThemeResource {
   @ConfigProperty(name = "startpunkt.web.theme.light.bodyBgColor", defaultValue = "#F8F6F1")
@@ -51,6 +54,10 @@ public class ThemeResource {
 
   // GET endpoint to retrieve the list of bookmarks
   @GET
+  @Operation(summary = "Returns application configuration")
+  @APIResponse(responseCode = "200", description = "Gets application configuration",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = Map.class, required = true)))
   public Response getTheme() {
     return Response.ok(generateTheme()).build();
   }

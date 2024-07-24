@@ -5,6 +5,9 @@ import java.util.Collections;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -32,6 +35,7 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 
 // REST API resource class for managing applications
 @Path("/api/apps")
+@Tag(name = "apps")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApplicationResource {
   // Configuration properties for enabling different types of application wrappers
@@ -103,6 +107,11 @@ public class ApplicationResource {
   // GET endpoint to retrieve an application by its name
   @GET
   @Path("{groupName}/{appName}")
+  @Operation(summary = "Returns an application")
+  @APIResponse(responseCode = "200", description = "Gets an application",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = ApplicationSpec.class, required = true)))
+  @APIResponse(responseCode = "404", description = "No application found")
   @Timed(value = "startpunkt.api.getapp", description = "Get a application")
   @CacheResult(cacheName = "getApp")
   public Response getApps(@PathParam("appName") String appName,
@@ -114,12 +123,17 @@ public class ApplicationResource {
       }
     }
 
-    return Response.status(404, "Application not found").build();
+    return Response.status(404, "No application found").build();
   }
 
   // GET endpoint to retrieve the list of all applications, grouped by application
   // group
   @GET
+  @Operation(summary = "Returns all applications")
+  @APIResponse(responseCode = "200", description = "Gets all applications",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(responseCode = "404", description = "No applications found")
   @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
   public Response getApps() {
@@ -148,6 +162,10 @@ public class ApplicationResource {
 
       // Add the application to the group
       group.addApplication(a);
+    }
+
+    if (groups.isEmpty()) {
+      return Response.status(404, "No applications found").build();
     }
 
     // Return the list of application groups

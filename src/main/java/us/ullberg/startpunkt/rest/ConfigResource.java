@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -17,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 
 // REST API resource class for application configuration
 @Path("/api/config")
+@Tag(name = "config")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
@@ -33,6 +36,10 @@ public class ConfigResource {
 
   // GET endpoint to retrieve the list of bookmarks
   @GET
+  @Operation(summary = "Returns the configuration")
+  @APIResponse(responseCode = "200", description = "Gets the configuration",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = Map.class, required = true)))
   public Response getConfig() {
     return Response.ok(generateConfig()).build();
   }
