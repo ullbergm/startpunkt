@@ -2,13 +2,13 @@ package us.ullberg.startpunkt.rest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
