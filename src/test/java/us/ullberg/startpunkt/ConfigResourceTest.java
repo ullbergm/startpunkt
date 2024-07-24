@@ -20,4 +20,10 @@ class ConfigResourceTest {
         .body("config.web.checkForUpdates", equalTo(true))
         .body("config.web.title", equalTo("Startpunkt"));
   }
+
+  // Test the ping endpoint
+  @Test
+  void testPingEndpoint() {
+    given().when().get("/api/config/ping").then().statusCode(200).body(equalTo(new ConfigResource().ping()));
+  }
 }

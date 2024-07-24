@@ -160,4 +160,10 @@ class BookmarkResourceTest {
         .body("groups[1].bookmarks[0].icon", equalTo("simple-icons:quarkus"))
         .body("groups[1].bookmarks[0].location", equalTo(1000));
   }
+
+  // Test the ping endpoint
+  @Test
+  void testPingEndpoint() {
+    given().when().get("/api/bookmarks/ping").then().statusCode(200).body(equalTo(new BookmarkResource().ping()));
+  }
 }
