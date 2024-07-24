@@ -4,9 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.eclipse.microprofile.health.HealthCheckResponse;
 
-import us.ullberg.startpunkt.I8nResource;
+import us.ullberg.startpunkt.rest.I8nResource;
+
+import org.eclipse.microprofile.health.HealthCheckResponse;
 
 class PingI8nResourceHealthCheckTest {
 

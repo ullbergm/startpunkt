@@ -4,7 +4,7 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
 
-import us.ullberg.startpunkt.ConfigResource;
+import us.ullberg.startpunkt.rest.ConfigResource;
 
 /**
  * {@link HealthCheck} to ping the Config service
