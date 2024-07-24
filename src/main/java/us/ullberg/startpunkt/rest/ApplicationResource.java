@@ -36,11 +36,6 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 @Path("/api/apps")
 @Produces(MediaType.APPLICATION_JSON)
 public class ApplicationResource {
-
-  // Inject the MeterRegistry for metrics
-  @Inject
-  MeterRegistry registry;
-
   // Configuration properties for enabling different types of application wrappers
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   private boolean hajimariEnabled = false;

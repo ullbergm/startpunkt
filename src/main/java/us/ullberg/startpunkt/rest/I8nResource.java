@@ -28,9 +28,10 @@ public class I8nResource {
   @Inject
   I8nService i8nService;
 
-  // Inject the MeterRegistry for metrics
-  @Inject
-  MeterRegistry registry;
+  // Constructor
+  public I8nResource(I8nService i8nService) {
+    this.i8nService = i8nService;
+  }
 
   @GET
   @Path("{language}")

@@ -27,18 +27,18 @@ import us.ullberg.startpunkt.service.BookmarkService;
 @Path("/api/bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
-
   // Inject the BookmarkService to manage bookmark-related operations
   @Inject
   BookmarkService bookmarkService;
 
-  // Inject the MeterRegistry for metrics
-  @Inject
-  MeterRegistry registry;
-
   // Configuration property to enable or disable Hajimari bookmarks
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
+
+  // Constructor
+  public BookmarkResource(BookmarkService bookmarkService) {
+    this.bookmarkService = bookmarkService;
+  }
 
   // Method to retrieve the list of bookmarks
   private ArrayList<BookmarkSpec> retrieveBookmarks() {
