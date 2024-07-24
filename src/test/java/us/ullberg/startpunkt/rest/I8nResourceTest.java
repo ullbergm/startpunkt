@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
+import us.ullberg.startpunkt.service.I8nService;
 
 // Mark this class as a Quarkus test
 @QuarkusTest
@@ -47,6 +48,6 @@ class I8nResourceTest {
   @Test
   void testPingEndpoint() {
     given().when().get("/api/i8n/ping").then().statusCode(200)
-        .body(equalTo(new I8nResource().ping()));
+        .body(equalTo(new I8nResource(new I8nService()).ping()));
   }
 }

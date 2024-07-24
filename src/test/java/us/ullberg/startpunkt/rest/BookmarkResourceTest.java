@@ -18,6 +18,7 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import us.ullberg.startpunkt.crd.Bookmark;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
+import us.ullberg.startpunkt.service.BookmarkService;
 
 // Mark this class as a Quarkus test
 @QuarkusTest
@@ -165,6 +166,6 @@ class BookmarkResourceTest {
   @Test
   void testPingEndpoint() {
     given().when().get("/api/bookmarks/ping").then().statusCode(200)
-        .body(equalTo(new BookmarkResource().ping()));
+        .body(equalTo(new BookmarkResource(new BookmarkService()).ping()));
   }
 }
