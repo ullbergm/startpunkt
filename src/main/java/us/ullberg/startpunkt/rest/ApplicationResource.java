@@ -114,8 +114,8 @@ public class ApplicationResource {
   @APIResponse(responseCode = "404", description = "No application found")
   @Timed(value = "startpunkt.api.getapp", description = "Get a application")
   @CacheResult(cacheName = "getApp")
-  public Response getApps(@PathParam("appName") String appName,
-      @PathParam("groupName") String groupName) {
+  public Response getApp(@PathParam("groupName") String groupName,
+      @PathParam("appName") String appName) {
     // Find the application with the specified name
     for (ApplicationSpec a : retrieveApps()) {
       if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
