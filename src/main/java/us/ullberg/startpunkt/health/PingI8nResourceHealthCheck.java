@@ -4,7 +4,7 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
 
-import us.ullberg.startpunkt.I8nResource;
+import us.ullberg.startpunkt.rest.I8nResource;
 
 /**
  * {@link HealthCheck} to ping the I8n service

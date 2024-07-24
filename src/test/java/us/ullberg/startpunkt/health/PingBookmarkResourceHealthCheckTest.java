@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.eclipse.microprofile.health.HealthCheckResponse;
 
-import us.ullberg.startpunkt.BookmarkResource;
+import us.ullberg.startpunkt.rest.BookmarkResource;
+import us.ullberg.startpunkt.service.BookmarkService;
+
+import org.eclipse.microprofile.health.HealthCheckResponse;
 
 class PingBookmarkResourceHealthCheckTest {
 
@@ -14,12 +16,12 @@ class PingBookmarkResourceHealthCheckTest {
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingBookmarkResourceHealthCheck(new BookmarkResource());
+    healthCheck = new PingBookmarkResourceHealthCheck(new BookmarkResource(new BookmarkService()));
   }
 
   @Test
   void testPing() {
-    var response = new BookmarkResource().ping();
+    var response = new BookmarkResource(new BookmarkService()).ping();
     var expectedResponse = HealthCheckResponse.named("Ping Bookmark REST Endpoint")
         .withData("Response", response).up().build();
 

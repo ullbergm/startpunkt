@@ -4,7 +4,7 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
 
-import us.ullberg.startpunkt.BookmarkResource;
+import us.ullberg.startpunkt.rest.BookmarkResource;
 
 /**
  * {@link HealthCheck} to ping the Bookmark service
