@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.micrometer.core.annotation.Timed;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -15,6 +16,7 @@ public class I8nService {
   @ConfigProperty(name = "startpunkt.defaultLanguage", defaultValue = "en-US")
   private String defaultLanguage;
 
+  @WithSpan("I8nService.getTranslation")
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
   public String getTranslation(String language) throws IOException {
     // if the language does not match standard i8n format, log a warning and fall back to US English

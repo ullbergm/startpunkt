@@ -3,6 +3,8 @@ package us.ullberg.startpunkt.rest;
 import java.io.IOException;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -20,6 +22,7 @@ import us.ullberg.startpunkt.service.I8nService;
 
 // REST API resource class for managing language translations
 @Path("/api/i8n")
+@Tag(name = "i8n")
 @Produces(MediaType.APPLICATION_JSON)
 public class I8nResource {
 
@@ -32,6 +35,11 @@ public class I8nResource {
 
   @GET
   @Path("{language}")
+  @Operation(summary = "Returns a translation")
+  @APIResponse(responseCode = "200", description = "Gets an translation",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(responseCode = "404", description = "No translation found")
   @Timed(value = "startpunkt.api.gettranslation",
       description = "Get the translation for a given language")
   @CacheResult(cacheName = "getTranslation")
@@ -45,12 +53,17 @@ public class I8nResource {
       // Return the translation as a string
       return Response.ok(translation).build();
     } catch (IOException e) {
-      return Response.serverError().entity("Error getting translation").build();
+      return Response.status(404, "No translation found").build();
     }
   }
 
   // Default endpoint to get the translation for the default language
   @GET
+  @Operation(summary = "Returns default translation")
+  @APIResponse(responseCode = "200", description = "Gets default translation",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(responseCode = "404", description = "No translation found")
   @Timed(value = "startpunkt.api.getdefaulttranslation",
       description = "Get the translation for the default language")
   @CacheResult(cacheName = "getDefaultTranslation")
@@ -65,10 +78,9 @@ public class I8nResource {
       // Return the translation as a string
       return Response.ok(translation).build();
     } catch (IOException e) {
-      return Response.serverError().entity("Error getting translation").build();
+      return Response.status(404, "No translation found").build();
     }
   }
-
 
   @GET
   @Path("/ping")

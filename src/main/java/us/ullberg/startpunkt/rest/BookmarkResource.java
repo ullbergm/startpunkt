@@ -5,6 +5,9 @@ import java.util.Collections;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -24,6 +27,7 @@ import us.ullberg.startpunkt.service.BookmarkService;
 
 // REST API resource class for managing bookmarks
 @Path("/api/bookmarks")
+@Tag(name = "bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
   // Inject the BookmarkService to manage bookmark-related operations
@@ -59,6 +63,11 @@ public class BookmarkResource {
 
   // GET endpoint to retrieve the list of bookmarks
   @GET
+  @Operation(summary = "Returns all bookmarks")
+  @APIResponse(responseCode = "200", description = "Gets all bookmarks",
+      content = @Content(mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(implementation = BookmarkGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(responseCode = "404", description = "No bookmarks found")
   @Timed(value = "startpunkt.api.getbookmarks", description = "Get the list of bookmarks")
   @CacheResult(cacheName = "getBookmarks")
   public Response getBookmarks() {
@@ -87,6 +96,10 @@ public class BookmarkResource {
 
       // Add the bookmark to the group
       group.addBookmark(bookmark);
+    }
+
+    if (groups.isEmpty()) {
+      return Response.status(404, "No bookmarks found").build();
     }
 
     // Return the list of bookmark groups
