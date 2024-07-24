@@ -2,6 +2,7 @@ package us.ullberg.startpunkt.rest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -72,31 +73,10 @@ public class BookmarkResource {
   @CacheResult(cacheName = "getBookmarks")
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-    ArrayList<BookmarkSpec> bookmarklist = retrieveBookmarks();
+    List<BookmarkSpec> bookmarklist = retrieveBookmarks();
 
     // Create a list to store bookmark groups
-    ArrayList<BookmarkGroup> groups = new ArrayList<>();
-
-    // Group the bookmarks by their group property
-    for (BookmarkSpec bookmark : bookmarklist) {
-      // Find the existing group
-      BookmarkGroup group = null;
-      for (BookmarkGroup g : groups) {
-        if (g.getName().equals(bookmark.getGroup())) {
-          group = g;
-          break;
-        }
-      }
-
-      // If the group doesn't exist, create a new one
-      if (group == null) {
-        group = new BookmarkGroup(bookmark.getGroup());
-        groups.add(group);
-      }
-
-      // Add the bookmark to the group
-      group.addBookmark(bookmark);
-    }
+    List<BookmarkGroup> groups = bookmarkService.generateBookmarkGroups(bookmarklist);
 
     if (groups.isEmpty()) {
       return Response.status(404, "No bookmarks found").build();

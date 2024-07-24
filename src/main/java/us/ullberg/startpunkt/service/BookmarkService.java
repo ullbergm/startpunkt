@@ -1,5 +1,6 @@
 package us.ullberg.startpunkt.service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import io.quarkus.logging.Log;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
+import us.ullberg.startpunkt.objects.BookmarkGroup;
 
 // Service class for managing bookmarks
 @ApplicationScoped
@@ -102,7 +104,33 @@ public class BookmarkService {
 
       return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
     }).toList();
+  }
 
+  public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpec> bookmarklist) {
+    var groups = new LinkedList<BookmarkGroup>();
+
+    // Group the bookmarks by their group property
+    for (BookmarkSpec bookmark : bookmarklist) {
+      // Find the existing group
+      BookmarkGroup group = null;
+      for (BookmarkGroup g : groups) {
+        if (g.getName().equals(bookmark.getGroup())) {
+          group = g;
+          break;
+        }
+      }
+
+      // If the group doesn't exist, create a new one
+      if (group == null) {
+        group = new BookmarkGroup(bookmark.getGroup());
+        groups.add(group);
+      }
+
+      // Add the bookmark to the group
+      group.addBookmark(bookmark);
+    }
+
+    return groups;
   }
 
   private Map<String, Object> getSpec(GenericKubernetesResource item) {
