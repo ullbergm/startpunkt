@@ -3,10 +3,15 @@ package us.ullberg.startpunkt;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.NonBlocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -85,5 +90,17 @@ public class BookmarkResource {
 
     // Return the list of bookmark groups
     return Response.ok(new BookmarkGroupList(groups)).build();
+  }
+  
+  @GET
+  @Path("/ping")
+  @Produces(MediaType.TEXT_PLAIN)
+  @Tag(name = "ping")
+  @Operation(summary = "Ping")
+  @APIResponse(responseCode = "200", description = "Ping")
+  @NonBlocking
+  public String ping() {
+    Log.debug("Ping Bookmark Resource");
+    return "Pong from Bookmark Resource";
   }
 }
