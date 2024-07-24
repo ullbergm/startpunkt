@@ -25,7 +25,14 @@ public class KubernetesConnectionHealthCheck implements HealthCheck {
 
     try {
       // Attempt to list namespaces to check the connection to Kubernetes
-      responseBuilder.withData("Response", client.namespaces().list().getItems().size() + " namespaces found");
+      responseBuilder.withData("Version", client.getKubernetesVersion().getGitVersion());
+      responseBuilder.withData("Nodes", client.nodes().list().getItems().size());
+      responseBuilder.withData("Namespaces", client.namespaces().list().getItems().size());
+      responseBuilder.withData("Startpunkt API group found", client.hasApiGroup("startpunkt.ullberg.us", true));
+      responseBuilder.withData("OpenShift Route API group found", client.hasApiGroup("route.openshift.io", true));
+      responseBuilder.withData("Hajimari API group found", client.hasApiGroup("hajimari.io", true));
+      responseBuilder.withData("ForeCastle API group found", client.hasApiGroup("forecastle.stakater.com", true));
+      responseBuilder.withData("Traefik API group found", client.hasApiGroup("traefik.io", true));
 
       // If successful, mark the health check as 'up'
       responseBuilder.up();
