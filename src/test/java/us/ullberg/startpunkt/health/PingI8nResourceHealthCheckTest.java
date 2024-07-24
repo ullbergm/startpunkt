@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import us.ullberg.startpunkt.rest.I8nResource;
+import us.ullberg.startpunkt.service.I8nService;
 
 import org.eclipse.microprofile.health.HealthCheckResponse;
 
@@ -15,12 +16,12 @@ class PingI8nResourceHealthCheckTest {
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingI8nResourceHealthCheck(new I8nResource());
+    healthCheck = new PingI8nResourceHealthCheck(new I8nResource(new I8nService()));
   }
 
   @Test
   void testPing() {
-    var response = new I8nResource().ping();
+    var response = new I8nResource(new I8nService()).ping();
     var expectedResponse = HealthCheckResponse.named("Ping I8n REST Endpoint")
         .withData("Response", response).up().build();
 
