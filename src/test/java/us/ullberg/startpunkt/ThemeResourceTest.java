@@ -31,4 +31,11 @@ class ThemeResourceTest {
         .body("theme.dark.textPrimaryColor", equalTo("#FAB795"))
         .body("theme.dark.textAccentColor", equalTo("#E95678"));
   }
+
+  // Test the ping endpoint
+  @Test
+  void testPingEndpoint() {
+    given().when().get("/api/theme/ping").then().statusCode(200)
+        .body(equalTo(new ThemeResource().ping()));
+  }
 }

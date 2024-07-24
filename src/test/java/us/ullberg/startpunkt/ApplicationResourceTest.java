@@ -202,4 +202,11 @@ class ApplicationResourceTest {
   void testMissingApplicationInfo() {
     given().when().get("/api/apps/home automation/missing").then().statusCode(404);
   }
+
+  // Test the ping endpoint
+  @Test
+  void testPingEndpoint() {
+    given().when().get("/api/apps/ping").then().statusCode(200)
+        .body(equalTo(new ApplicationResource().ping()));
+  }
 }

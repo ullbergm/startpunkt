@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.NonBlocking;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -152,5 +157,17 @@ public class ApplicationResource {
 
     // Return the list of application groups
     return Response.ok(new ApplicationGroupList(groups)).build();
+  }
+
+  @GET
+  @Path("/ping")
+  @Produces(MediaType.TEXT_PLAIN)
+  @Tag(name = "ping")
+  @Operation(summary = "Ping")
+  @APIResponse(responseCode = "200", description = "Ping")
+  @NonBlocking
+  public String ping() {
+    Log.debug("Ping Application Resource");
+    return "Pong from Application Resource";
   }
 }

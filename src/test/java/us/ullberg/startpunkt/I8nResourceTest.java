@@ -42,4 +42,11 @@ class I8nResourceTest {
         .body("home.applications", equalTo("Applications"))
         .body("home.bookmarks", equalTo("Bookmarks"));
   }
+
+  // Test the ping endpoint
+  @Test
+  void testPingEndpoint() {
+    given().when().get("/api/i8n/ping").then().statusCode(200)
+        .body(equalTo(new I8nResource().ping()));
+  }
 }
