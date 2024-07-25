@@ -343,7 +343,7 @@ spec:
             timeoutSeconds: 10
           resources:
             limits:
-              memory: 768Mi
+              memory: 512Mi
             requests:
               memory: 256Mi
           startupProbe:
