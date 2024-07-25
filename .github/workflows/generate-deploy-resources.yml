@@ -1,0 +1,76 @@
+name: Generate deploy resources
+
+env:
+  JAVA_VERSION: '21'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-deploy-resources:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Setup Java ${{ env.JAVA_VERSION }}'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '${{ env.JAVA_VERSION }}'
+          distribution: temurin
+          cache: maven
+
+      - name: Create CRDs
+        shell: bash
+        run: |
+          ./mvnw package -DskipTests
+
+      - name: Create common yaml
+        shell: bash
+        run: |
+          cp src/main/kubernetes/config.yml src/main/kubernetes/common.yml
+          echo "---" >> src/main/kubernetes/common.yml
+          cat target/classes/META-INF/fabric8/applications.startpunkt.ullberg.us-v1.yml >> src/main/kubernetes/common.yml
+          echo "---" >> src/main/kubernetes/common.yml
+          cat target/classes/META-INF/fabric8/bookmarks.startpunkt.ullberg.us-v1.yml >> src/main/kubernetes/common.yml
+
+      - name: Create native deployment yaml
+        shell: bash
+        run: |
+          ./mvnw package -DskipTests -Dquarkus.kubernetes.resources.limits.memory=512Mi -Dquarkus.kubernetes.resources.requests.memory=256Mi -Dquarkus.container-image.tag=latest -Dquarkus.kubernetes.version=latest
+
+          cp target/kubernetes/openshift.yml deploy/openshift/startpunkt-native.yaml
+          cp target/kubernetes/kubernetes.yml deploy/kubernetes/startpunkt-native.yaml
+
+      - name: Create jvm deployment yaml
+        shell: bash
+        run: |
+          ./mvnw package -DskipTests -Dquarkus.kubernetes.resources.limits.memory=512Mi -Dquarkus.kubernetes.resources.requests.memory=256Mi -Dquarkus.container-image.tag=latest -Dquarkus.kubernetes.version=latest
+
+          cp target/kubernetes/openshift.yml deploy/openshift/startpunkt-jvm.yaml
+          cp target/kubernetes/kubernetes.yml deploy/kubernetes/startpunkt-jvm.yaml
+
+      - name: Clean up generated resources
+        shell: bash
+        run: |
+          pip install yamlfix
+
+          yamlfix deploy/kubernetes/startpunkt-*.yaml deploy/openshift/startpunkt-*.yaml
+
+      - name: Commit generated resources
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          add-paths: |
+            deploy/kubernetes/startpunkt-*.yaml
+            deploy/openshift/startpunkt-*.yaml
+            src/main/kubernetes/common.yml
+          commit-message: "[skip ci] fix: update deploy resources"
+          branch: update-deploy-resources
+          delete-branch: true
+          title: "fix: update deploy resources"
+          labels: |
+            Generated Resources
