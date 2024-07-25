@@ -3,7 +3,9 @@
    "extends": [
       "config:recommended",
       ":dependencyDashboard",
-      ":semanticCommits"
+      ":semanticCommits",
+      "npm:unpublishSafe",
+      ":maintainLockFilesWeekly"
    ],
    "prHourlyLimit": 5,
    "commitMessageTopic": "{{depName}}",
