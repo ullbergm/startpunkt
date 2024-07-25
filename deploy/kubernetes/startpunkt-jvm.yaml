@@ -176,7 +176,7 @@ metadata:
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
-    app.kubernetes.io/version: latest
+    app.kubernetes.io/version: latest-jvm
   name: startpunkt-role
   namespace: default
 rules:
@@ -208,7 +208,7 @@ metadata:
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
-    app.kubernetes.io/version: latest
+    app.kubernetes.io/version: latest-jvm
   name: startpunkt-cluster-role-binding
   namespace: default
 roleRef:
@@ -314,7 +314,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: SMALLRYE_CONFIG_LOCATIONS
               value: /mnt/app-config-map
-          image: ghcr.io/ullbergm/startpunkt:latest
+          image: ghcr.io/ullbergm/startpunkt:latest-jvm
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
