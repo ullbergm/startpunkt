@@ -40,7 +40,7 @@ jobs:
       - name: Create native deployment yaml
         shell: bash
         run: |
-          ./mvnw package -DskipTests -Dquarkus.kubernetes.resources.limits.memory=512Mi -Dquarkus.kubernetes.resources.requests.memory=32Mi -Dquarkus.container-image.tag=latest -Dquarkus.kubernetes.version=latest
+          ./mvnw package -DskipTests -Dquarkus.kubernetes.resources.limits.memory=768Mi -Dquarkus.kubernetes.resources.requests.memory=256Mi -Dquarkus.container-image.tag=latest -Dquarkus.kubernetes.version=latest
 
           cp target/kubernetes/openshift.yml deploy/openshift/startpunkt-native.yaml
           cp target/kubernetes/kubernetes.yml deploy/kubernetes/startpunkt-native.yaml

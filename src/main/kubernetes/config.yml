@@ -4,9 +4,9 @@ apiVersion: v1
 metadata:
   name: startpunkt-config
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt

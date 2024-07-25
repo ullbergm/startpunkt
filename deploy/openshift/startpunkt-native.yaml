@@ -3,9 +3,9 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
@@ -18,9 +18,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
@@ -226,9 +226,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
@@ -249,9 +249,9 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
     prometheus.io/scrape: 'true'
     prometheus.io/path: /q/metrics
     prometheus.io/port: '8080'
@@ -278,9 +278,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
     prometheus.io/scrape: 'true'
     prometheus.io/path: /q/metrics
     prometheus.io/port: '8080'
@@ -302,9 +302,9 @@ spec:
     metadata:
       annotations:
         alpha.image.policy.openshift.io/resolve-names: '*'
-        app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+        app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
         app.quarkus.io/quarkus-version: 3.12.3
-        app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+        app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
         prometheus.io/scrape: 'true'
         prometheus.io/path: /q/metrics
         prometheus.io/port: '8080'
@@ -349,9 +349,9 @@ spec:
             timeoutSeconds: 10
           resources:
             limits:
-              memory: 512Mi
+              memory: 768Mi
             requests:
-              memory: 32Mi
+              memory: 256Mi
           startupProbe:
             failureThreshold: 3
             httpGet:
@@ -377,9 +377,9 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
@@ -401,9 +401,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   annotations:
-    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt
     app.quarkus.io/quarkus-version: 3.12.3
-    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt.git
   labels:
     app.kubernetes.io/name: startpunkt
     app.kubernetes.io/part-of: startpunkt
