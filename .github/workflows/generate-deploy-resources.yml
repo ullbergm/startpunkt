@@ -33,9 +33,9 @@ jobs:
         run: |
           cp src/main/kubernetes/config.yml src/main/kubernetes/common.yml
           echo "---" >> src/main/kubernetes/common.yml
-          cat target/classes/META-INF/fabric8/applications.startpunkt.ullberg.us-v1beta1.yml >> src/main/kubernetes/common.yml
+          cat target/classes/META-INF/fabric8/applications.startpunkt.ullberg.us-v1.yml >> src/main/kubernetes/common.yml
           echo "---" >> src/main/kubernetes/common.yml
-          cat target/classes/META-INF/fabric8/bookmarks.startpunkt.ullberg.us-v1beta1.yml >> src/main/kubernetes/common.yml
+          cat target/classes/META-INF/fabric8/bookmarks.startpunkt.ullberg.us-v1.yml >> src/main/kubernetes/common.yml
 
       - name: Create native deployment yaml
         shell: bash
