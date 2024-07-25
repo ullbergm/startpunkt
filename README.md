@@ -32,7 +32,11 @@
 - [🎯 Features](#-features)
 - [🚀 Getting started](#-getting-started)
   - [Kubernetes](#kubernetes)
+    - [JVM based containers (supports amd64 and arm64)](#jvm-based-containers-supports-amd64-and-arm64)
+    - [Native containers (supports amd64)](#native-containers-supports-amd64)
   - [OpenShift](#openshift)
+    - [JVM based containers (supports amd64 and arm64)](#jvm-based-containers-supports-amd64-and-arm64-1)
+    - [Native containers (supports amd64)](#native-containers-supports-amd64-1)
 - [⚙️ Configuration](#️-configuration)
   - [✍️ Application settings](#️-application-settings)
   - [📝 Custom applications](#-custom-applications)
@@ -86,20 +90,38 @@ helm .....
 
 ### Kubernetes
 
-They kubectl yaml needed is included in the repo.
+The kubectl yaml needed is included in the repo.
+
+> **_NOTE:_**  This will deploy to the 'default' namespace.
+
+#### JVM based containers (supports amd64 and arm64)
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/kubernetes/startpunkt.yaml
+kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/kubernetes/startpunkt-jvm.yaml
 ```
 
-> **_NOTE:_**  Ingress url is "startpunkt.example.com".
+#### Native containers (supports amd64)
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/kubernetes/startpunkt-native.yaml
+```
 
 ### OpenShift
 
-They openshift yaml needed is included in the repo.
+The openshift yaml needed is included in the repo.
+
+> **_NOTE:_**  This will deploy to the 'default' namespace.
+
+#### JVM based containers (supports amd64 and arm64)
 
 ```shell
-oc apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/openshift/startpunkt.yaml
+oc apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/openshift/startpunkt-jvm.yaml
+```
+
+#### Native containers (supports amd64)
+
+```shell
+oc apply -f https://raw.githubusercontent.com/ullbergm/startpunkt/main/deploy/openshift/startpunkt-native.yaml
 ```
 
 ## ⚙️ Configuration

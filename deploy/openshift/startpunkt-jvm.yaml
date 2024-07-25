@@ -1,0 +1,442 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt-config
+  namespace: default
+data:
+  application.yaml: |-
+    startpunkt:
+      # Default protocol for links if not specified in the resource
+      defaultProtocol: "http"
+
+      # Default language for the web UI
+      defaultLanguage: "en-US"
+
+      # Namespace selector determines which namespaces to look for resources in
+      namespaceSelector:
+        any: true  # If true, look for resources in all namespaces
+        # matchNames:  # Uncomment and specify namespace names to limit the search to specific namespaces
+        #   - default
+        #   - startpunkt
+
+      # Kubernetes integration, read ingress resources
+      ingress:
+        enabled: true  # If true, enable the reading of ingress resources
+        onlyAnnotated: false  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
+      # OpenShift integration, read OpenShift Routes
+      openshift:
+        enabled: true  # If true, enable the reading of OpenShift Route resources
+        onlyAnnotated: false  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
+      # Hajimari integration, read Hajimari Applications and Bookmarks
+      hajimari:
+        enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
+
+      # Istio Virtual Service integration, read Istio VirtualService resources
+      istio:
+        virtualservice:
+          enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
+          onlyAnnotated: false  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
+      # Web ui configuration
+      web:
+        title: "Startpunkt"  # Title of the web UI
+        githubLink:
+          enabled: true  # If true, enable the GitHub link in the web UI
+        checkForUpdates: true  # If true, check for updates and show a notification in the web UI
+        theme:
+          light:
+            bodyBgColor: "#F8F6F1"
+            bodyColor: "#696969"
+            emphasisColor: "#000000"
+            textPrimaryColor: "#4C432E"
+            textAccentColor: "#AA9A73"
+          dark:
+            bodyBgColor: "#232530"
+            bodyColor: "#696969"
+            emphasisColor: "#FAB795"
+            textPrimaryColor: "#FAB795"
+            textAccentColor: "#E95678"
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: applications.startpunkt.ullberg.us
+  namespace: default
+spec:
+  group: startpunkt.ullberg.us
+  names:
+    kind: Application
+    plural: applications
+    singular: application
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            enabled:
+              description: Enable the bookmark
+              type: boolean
+            group:
+              description: Group the bookmark belongs to
+              type: string
+            icon:
+              description: Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'
+              type: string
+            iconColor:
+              description: Application icon color, e.g. 'red'
+              type: string
+            info:
+              description: Description of the bookmark
+              type: string
+            location:
+              description: Sorting order of the bookmark
+              type: integer
+            name:
+              description: Application name
+              type: string
+            targetBlank:
+              description: Open the URL in a new tab
+              type: boolean
+            url:
+              description: Application URL
+              type: string
+          required: [name, url]
+          type: object
+        status:
+          type: object
+      type: object
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: bookmarks.startpunkt.ullberg.us
+  namespace: default
+spec:
+  group: startpunkt.ullberg.us
+  names:
+    kind: Bookmark
+    plural: bookmarks
+    singular: bookmark
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            group:
+              description: Group the bookmark belongs to
+              type: string
+            icon:
+              description: Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'
+              type: string
+            info:
+              description: Description of the bookmark
+              type: string
+            location:
+              description: Sorting order of the bookmark
+              type: integer
+            name:
+              description: Bookmark name
+              type: string
+            targetBlank:
+              description: Open the URL in a new tab
+              type: boolean
+            url:
+              description: Bookmark URL
+              type: string
+          required: [group, name, url]
+          type: object
+        status:
+          type: object
+      type: object
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/version: latest
+  name: startpunkt-role
+  namespace: default
+rules:
+  - apiGroups: ['']
+    resources: [namespaces]
+    verbs: [get, list]
+  - apiGroups: [startpunkt.ullberg.us]
+    resources: [applications, bookmarks]
+    verbs: [get, list, create, update, delete]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses]
+    verbs: [get, list]
+  - apiGroups: [route.openshift.io]
+    resources: [routes]
+    verbs: [get, list]
+  - apiGroups: [hajimari.io]
+    resources: [applications, bookmarks]
+    verbs: [get, list]
+  - apiGroups: [traefik.io]
+    resources: [ingressroutes]
+    verbs: [get, list]
+  - apiGroups: [forecastle.stakater.com]
+    resources: [forecastleapps]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/version: latest
+  name: startpunkt-cluster-role-binding
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: startpunkt-role
+subjects:
+  - kind: ServiceAccount
+    name: startpunkt
+    namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: startpunkt-role
+subjects:
+  - kind: ServiceAccount
+    name: startpunkt
+    namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: /q/metrics
+    prometheus.io/port: '8080'
+    prometheus.io/scheme: http
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: /q/metrics
+    prometheus.io/port: '8080'
+    prometheus.io/scheme: http
+  labels:
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+  name: startpunkt
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: startpunkt
+      app.kubernetes.io/part-of: startpunkt
+  template:
+    metadata:
+      annotations:
+        alpha.image.policy.openshift.io/resolve-names: '*'
+        app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+        app.quarkus.io/quarkus-version: 3.12.3
+        app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: /q/metrics
+        prometheus.io/port: '8080'
+        prometheus.io/scheme: http
+      labels:
+        app.kubernetes.io/managed-by: quarkus
+        app.openshift.io/runtime: quarkus
+        app.kubernetes.io/name: startpunkt
+        app.kubernetes.io/part-of: startpunkt
+      namespace: default
+    spec:
+      containers:
+        - env:
+            - name: SMALLRYE_CONFIG_LOCATIONS
+              value: /mnt/app-config-map
+          image: ghcr.io/ullbergm/startpunkt:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: startpunkt
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          resources:
+            limits:
+              memory: 768Mi
+            requests:
+              memory: 256Mi
+          startupProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /q/health/started
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          volumeMounts:
+            - mountPath: /mnt/app-config-map
+              name: app-config-map
+              readOnly: false
+      serviceAccountName: startpunkt
+      volumes:
+        - configMap:
+            name: startpunkt-config
+            optional: false
+          name: app-config-map
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt
+  namespace: default
+spec:
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Allow
+    termination: edge
+  to:
+    kind: Service
+    name: startpunkt
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test
+    app.quarkus.io/quarkus-version: 3.12.3
+    app.quarkus.io/vcs-uri: https://github.com/ullbergm/startpunkt-ci-test.git
+  labels:
+    app.kubernetes.io/name: startpunkt
+    app.kubernetes.io/part-of: startpunkt
+    app.kubernetes.io/managed-by: quarkus
+    app.openshift.io/runtime: quarkus
+  name: startpunkt
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: startpunkt
+      app.kubernetes.io/part-of: startpunkt
+  endpoints:
+    - scheme: http
+      targetPort: 8080
+      path: /q/metrics
+      interval: 10s
+      honorLabels: true
