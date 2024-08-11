@@ -11,16 +11,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  delete-untagged-images:
-    name: Delete untagged images
+  clean-up-ghcr:
+    name: Clean up docker images
     runs-on: ubuntu-latest
     permissions:
       packages: write
     steps:
-    - uses: quartx-analytics/ghcr-cleaner@v1
-      with:
-          owner-type: user
-          token: ${{ secrets.PAT_TOKEN }}
-          repository_owner: ${{ github.repository_owner }}
-          repository-name: ${{ github.repository }}
+      - name: 'Clean up docker images'
+        uses: dataaxiom/ghcr-cleanup-action@main
+        with:
           delete-untagged: true
+          validate: true
+          keep-n-untagged: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
