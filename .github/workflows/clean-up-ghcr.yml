@@ -24,5 +24,5 @@ jobs:
           validate: true
           dry-run: true
           keep-n-untagged: 0
-          keep-n-tagged: 10
+          keep-n-tagged: 11
           token: ${{ secrets.GITHUB_TOKEN }}
