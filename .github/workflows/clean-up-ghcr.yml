@@ -22,7 +22,6 @@ jobs:
         with:
           delete-untagged: true
           validate: true
-          dry-run: false
+          dry-run: true
           keep-n-untagged: 0
-          keep-n-tagged: 11
           token: ${{ secrets.GITHUB_TOKEN }}
