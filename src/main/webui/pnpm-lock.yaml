@@ -9,8 +9,8 @@ dependencies:
     specifier: ^2.11.8
     version: 2.11.8
   '@preact/compat':
-    specifier: ^17.1.2
-    version: 17.1.2(preact@10.24.0)
+    specifier: ^18.0.0
+    version: 18.3.1(preact@10.24.0)
   '@rehooks/local-storage':
     specifier: ^2.4.5
     version: 2.4.5(react@18.3.1)
@@ -664,8 +664,8 @@ packages:
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
     dev: false
 
-  /@preact/compat@17.1.2(preact@10.24.0):
-    resolution: {integrity: sha512-7pOZN9lMDDRQ+6aWvjwTp483KR8/zOpfS83wmOo3zfuLKdngS8/5RLbsFWzFZMGdYlotAhX980hJ75bjOHTwWg==}
+  /@preact/compat@18.3.1(preact@10.24.0):
+    resolution: {integrity: sha512-Kog4PSRxtT4COtOXjsuQPV1vMXpUzREQfv+6Dmcy9/rMk0HOPK0HTE9fspFjAmY8R80T/T8gtgmZ68u5bOSngw==}
     peerDependencies:
       preact: '*'
     dependencies:
