@@ -23,6 +23,6 @@
       "@iconify/react": "^5.0.1",
       "@preact/preset-vite": "^2.8.3",
       "sass": "^1.77.6",
-      "vite": "^5.3.2"
+      "vite": "^6.0.0"
    }
 }
