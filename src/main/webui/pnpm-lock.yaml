@@ -24,7 +24,7 @@ dependencies:
     specifier: ^5.3.3
     version: 5.3.3(@popperjs/core@2.11.8)
   preact:
-    specifier: ^10.25.0
+    specifier: ^10.22.0
     version: 10.25.0
   preact-i18n:
     specifier: ^2.4.0-preactx
@@ -38,13 +38,13 @@ devDependencies:
     specifier: ^5.0.1
     version: 5.0.2(react@18.3.1)
   '@preact/preset-vite':
-    specifier: ^2.9.2
+    specifier: ^2.8.3
     version: 2.9.2(@babel/core@7.26.0)(preact@10.25.0)(vite@5.4.11)
   sass:
-    specifier: ^1.81.0
+    specifier: ^1.77.6
     version: 1.81.0
   vite:
-    specifier: ^5.4.11
+    specifier: ^5.3.2
     version: 5.4.11(sass@1.81.0)
 
 packages:
@@ -536,7 +536,7 @@ packages:
       '@octokit/graphql': 7.1.0
       '@octokit/request': 8.4.0
       '@octokit/request-error': 5.1.0
-      '@octokit/types': 13.6.1
+      '@octokit/types': 13.6.2
       before-after-hook: 2.2.3
       universal-user-agent: 6.0.1
     dev: false
@@ -554,7 +554,7 @@ packages:
     resolution: {integrity: sha512-ekqR4/+PCLkEBF6qgj8WqJfvDq65RH85OAgrtnVp1mSxaXF03u2xW/hUdweGS5654IlC0wkNYC18Z50tSYTAFw==}
     engines: {node: '>= 18'}
     dependencies:
-      '@octokit/types': 13.6.1
+      '@octokit/types': 13.6.2
       universal-user-agent: 6.0.1
     dev: false
 
@@ -574,7 +574,7 @@ packages:
     engines: {node: '>= 18'}
     dependencies:
       '@octokit/request': 8.4.0
-      '@octokit/types': 13.6.1
+      '@octokit/types': 13.6.2
       universal-user-agent: 6.0.1
     dev: false
 
@@ -599,7 +599,7 @@ packages:
     resolution: {integrity: sha512-GETXfE05J0+7H2STzekpKObFe765O5dlAKUTLNGeH+x47z7JjXHfsHKo5z21D/o/IOZTUEI6nyWyR+bZVP/n5Q==}
     engines: {node: '>= 18'}
     dependencies:
-      '@octokit/types': 13.6.1
+      '@octokit/types': 13.6.2
       deprecation: 2.3.1
       once: 1.4.0
     dev: false
@@ -624,12 +624,12 @@ packages:
     dependencies:
       '@octokit/endpoint': 9.0.5
       '@octokit/request-error': 5.1.0
-      '@octokit/types': 13.6.1
+      '@octokit/types': 13.6.2
       universal-user-agent: 6.0.1
     dev: false
 
-  /@octokit/types@13.6.1:
-    resolution: {integrity: sha512-PHZE9Z+kWXb23Ndik8MKPirBPziOc0D2/3KH1P+6jK5nGWe96kadZuE4jev2/Jq7FvIfTlT2Ltg8Fv2x1v0a5g==}
+  /@octokit/types@13.6.2:
+    resolution: {integrity: sha512-WpbZfZUcZU77DrSW4wbsSgTPfKcp286q3ItaIgvSbBpZJlu6mnYXAkjZz6LVZPXkEvLIM8McanyZejKTYUHipA==}
     dependencies:
       '@octokit/openapi-types': 22.2.0
     dev: false
@@ -1023,8 +1023,8 @@ packages:
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
     dev: true
 
-  /@types/node@18.19.54:
-    resolution: {integrity: sha512-+BRgt0G5gYjTvdLac9sIeE0iZcJxi4Jc4PV5EUzqi+88jmQLr+fRZdv2tCTV7IHKSGxM6SaLoOXQWWUiLUItMw==}
+  /@types/node@18.19.67:
+    resolution: {integrity: sha512-wI8uHusga+0ZugNp0Ol/3BqQfEcCCNfojtO6Oou9iVNGPTL6QNSdnUdqq85fRgIorLhLMuPIKpsN98QE9Nh+KQ==}
     dependencies:
       undici-types: 5.26.5
     dev: false
@@ -1033,7 +1033,7 @@ packages:
     resolution: {integrity: sha512-830iF/I3I8ZLu9EBHWN8sMzQeSOZhFSq6s2gIY6KOAkCTfQLJfkgGE6Hmh4pEOn5FATCJiVfX/QhYIB+xvUy1Q==}
     dependencies:
       '@sindresorhus/tsconfig': 3.0.1
-      '@types/node': 18.19.54
+      '@types/node': 18.19.67
       typescript: 4.9.5
     dev: false
 
