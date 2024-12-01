@@ -66,7 +66,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -135,7 +135,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -219,7 +219,7 @@ jobs:
       - name: 📝 Extract Docker metadata
         if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -260,7 +260,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -287,7 +287,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -314,7 +314,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
 
@@ -352,7 +352,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         with:
           images: ${{env.IMAGE_FULL_NAME}}
 
