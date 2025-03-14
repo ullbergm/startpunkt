@@ -66,7 +66,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -135,7 +135,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -219,7 +219,7 @@ jobs:
       - name: 📝 Extract Docker metadata
         if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -238,7 +238,7 @@ jobs:
 
       - name: 🔑 Log into registry ${{ env.REGISTRY }}
         if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -260,7 +260,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -287,7 +287,7 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
           tags: |
@@ -314,12 +314,12 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
 
       - name: 🔑 Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -352,12 +352,12 @@ jobs:
 
       - name: 📝 Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
         with:
           images: ${{env.IMAGE_FULL_NAME}}
 
       - name: 🔑 Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
