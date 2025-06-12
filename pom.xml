@@ -110,9 +110,11 @@
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
-      <artifactId>crd-generator-apt</artifactId>
-      <version>7.0.1</version>
-      <scope>provided</scope>
+      <artifactId>crd-generator-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>crd-generator-api-v2</artifactId>
     </dependency>
   </dependencies>
 
@@ -243,6 +245,18 @@
           <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
           <scmCommentPrefix>build(release):</scmCommentPrefix>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>crd-generator-maven-plugin</artifactId>
+        <version>7.3.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
