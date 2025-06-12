@@ -115,7 +115,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Save JVM Image (${{ matrix.arch }})
-        uses: ishworkh/docker-image-artifact-upload@v1
+        uses: ishworkh/container-image-artifact-upload@v2.0.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
 
@@ -194,7 +194,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Save native Image (${{ matrix.arch }})
-        uses: ishworkh/docker-image-artifact-upload@v1
+        uses: ishworkh/container-image-artifact-upload@v2.0.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
 
