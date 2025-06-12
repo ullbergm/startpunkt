@@ -108,12 +108,6 @@
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>crd-generator-apt</artifactId>
-      <version>7.3.1</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -243,6 +237,18 @@
           <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
           <scmCommentPrefix>build(release):</scmCommentPrefix>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>crd-generator-maven-plugin</artifactId>
+        <version>${fabric8.kubernetes-client.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
