@@ -232,7 +232,7 @@ jobs:
 
       - name: Get saved images (${{ matrix.kind }}${{ matrix.arch }})
         if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
-        uses: ishworkh/container-image-artifact-download@v2.0.0
+        uses: ishworkh/container-image-artifact-download@v2.1.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
 
