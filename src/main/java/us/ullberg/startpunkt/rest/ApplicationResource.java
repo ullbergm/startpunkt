@@ -30,6 +30,7 @@ import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
 import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.GatewayAPIHTTPRouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 
@@ -60,6 +61,12 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.istio.virtualservice.onlyAnnotated", defaultValue = "true")
   private boolean istioVirtualServiceOnlyAnnotated = true;
 
+  @ConfigProperty(name = "startpunkt.gatewayapi.enabled", defaultValue = "false")
+  private boolean gatewayAPIEnabled = false;
+
+  @ConfigProperty(name = "startpunkt.gatewayapi.httproute.onlyAnnotated", defaultValue = "true")
+  private boolean gatewayAPIHTTPRouteAnnotated = true;
+
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
 
@@ -87,6 +94,10 @@ public class ApplicationResource {
     if (istioVirtualServiceEnabled)
       applicationWrappers.add(new IstioVirtualServiceApplicationWrapper(
           istioVirtualServiceOnlyAnnotated, defaultProtocol));
+
+    if (gatewayAPIEnabled)
+      applicationWrappers.add(
+          new GatewayAPIHTTPRouteApplicationWrapper(gatewayAPIHTTPRouteAnnotated, defaultProtocol));
 
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();

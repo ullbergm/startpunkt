@@ -70,6 +70,7 @@
   - OpenShift Routes
   - Hajimari CRDs
   - Istio VirtualServices.
+  - GatewayAPI HTTPRoutes.
 - 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
 - 🌎 **Internationalized**. Supports multiple languages.
 - 🎨 **Themes**. Supports themes.
@@ -162,6 +163,12 @@ startpunkt:
   # Istio Virtual Service integration, read Istio VirtualService resources
   istio:
     virtualservice:
+      enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
+  # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
+  gatewayapi:
+    httproute:
       enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
       onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 
