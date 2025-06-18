@@ -48,6 +48,12 @@ data:
           enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
           onlyAnnotated: false  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
 
+      # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
+      gatewayapi:
+        httproute:
+          enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
+          onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+
       # Web ui configuration
       web:
         title: "Startpunkt"  # Title of the web UI
