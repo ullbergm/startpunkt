@@ -1,15 +1,16 @@
 package us.ullberg.startpunkt.objects;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
@@ -130,13 +131,8 @@ class ApplicationGroupTest {
     assertThat(applicationGroup.equals(differentGroup), is(false));
     assertThat(applicationGroup.equals(differentGroup2), is(false));
 
-    // test comparing to null
     assertThat(applicationGroup.equals(null), is(false));
-
-    // test comparing to a different object
     assertThat(applicationGroup.equals(new Object()), is(false));
-
-    // test comparing to itself
     assertThat(applicationGroup.equals(applicationGroup), is(true));
   }
 
@@ -171,7 +167,6 @@ class ApplicationGroupTest {
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
   }
 
-  // Test creating an application group with a supplied list of applications
   @Test
   void testApplicationGroupWithApplications() {
     List<ApplicationSpec> applications =

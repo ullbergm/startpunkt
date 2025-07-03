@@ -10,21 +10,23 @@ import us.ullberg.startpunkt.rest.ApplicationResource;
 class PingApplicationResourceHealthCheckTest {
 
   private PingApplicationResourceHealthCheck healthCheck;
+  private ApplicationResource applicationResource;
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingApplicationResourceHealthCheck(new ApplicationResource());
+    applicationResource = new ApplicationResource();
+    healthCheck = new PingApplicationResourceHealthCheck(applicationResource);
   }
 
   @Test
   void testPing() {
-    var response = new ApplicationResource().ping();
-    var expectedResponse =
-        HealthCheckResponse.named("Ping Application REST Endpoint")
-            .withData("Response", response)
-            .up()
-            .build();
+    var response = applicationResource.ping();
 
-    assertEquals(healthCheck.call().getData(), expectedResponse.getData());
+    var expectedResponse = HealthCheckResponse.named("Ping Application REST Endpoint")
+        .withData("Response", response)
+        .up()
+        .build();
+
+    assertEquals(expectedResponse.getData(), healthCheck.call().getData());
   }
 }

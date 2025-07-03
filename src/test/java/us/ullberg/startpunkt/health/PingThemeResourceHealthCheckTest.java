@@ -10,21 +10,23 @@ import us.ullberg.startpunkt.rest.ThemeResource;
 class PingThemeResourceHealthCheckTest {
 
   private PingThemeResourceHealthCheck healthCheck;
+  private ThemeResource themeResource;
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingThemeResourceHealthCheck(new ThemeResource());
+    themeResource = new ThemeResource();
+    healthCheck = new PingThemeResourceHealthCheck(themeResource);
   }
 
   @Test
   void testPing() {
-    var response = new ThemeResource().ping();
-    var expectedResponse =
-        HealthCheckResponse.named("Ping Theme REST Endpoint")
-            .withData("Response", response)
-            .up()
-            .build();
+    var response = themeResource.ping();
 
-    assertEquals(healthCheck.call().getData(), expectedResponse.getData());
+    var expectedResponse = HealthCheckResponse.named("Ping Theme REST Endpoint")
+        .withData("Response", response)
+        .up()
+        .build();
+
+    assertEquals(expectedResponse.getData(), healthCheck.call().getData());
   }
 }

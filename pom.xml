@@ -25,18 +25,18 @@
     <!-- Quarkus Platform -->
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>3.17.6</quarkus.platform.version>
+    <quarkus.platform.version>3.20.1</quarkus.platform.version>
 
     <!-- Dependency Versions -->
     <jackson.annotations.version>2.18.2</jackson.annotations.version>
     <commons.lang3.version>3.17.0</commons.lang3.version>
-    <junit.jupiter.version>5.10.5</junit.jupiter.version>
-    <micrometer.core.version>1.13.7</micrometer.core.version>
+    <junit.jupiter.version>5.12.1</junit.jupiter.version>
+    <micrometer.core.version>1.14.5</micrometer.core.version>
     <hamcrest.version>3.0</hamcrest.version>
     <jakarta.annotation.version>3.0.0</jakarta.annotation.version>
-    <smallrye.common.annotation.version>2.9.0</smallrye.common.annotation.version>
+    <smallrye.common.annotation.version>2.12.0</smallrye.common.annotation.version>
     <jakarta.ws.rs.api.version>3.1.0</jakarta.ws.rs.api.version>
-    <fabric8.kubernetes.version>6.13.4</fabric8.kubernetes.version>
+    <fabric8.kubernetes.version>7.1.0</fabric8.kubernetes.version>
     <microprofile.health.api.version>4.0.1</microprofile.health.api.version>
     <microprofile.config.api.version>3.1</microprofile.config.api.version>
     <microprofile.openapi.api.version>4.0.2</microprofile.openapi.api.version>
@@ -200,6 +200,12 @@
       <version>${smallrye.common.annotation.version}</version>
     </dependency>
     <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <version>2.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
       <version>${jakarta.ws.rs.api.version}</version>
@@ -239,12 +245,6 @@
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -443,7 +443,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.4</version>
         <configuration>
           <skip>true</skip>
         </configuration>

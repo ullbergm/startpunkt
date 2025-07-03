@@ -11,21 +11,23 @@ import us.ullberg.startpunkt.service.I8nService;
 class PingI8nResourceHealthCheckTest {
 
   private PingI8nResourceHealthCheck healthCheck;
+  private I8nResource i8nResource;
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingI8nResourceHealthCheck(new I8nResource(new I8nService()));
+    i8nResource = new I8nResource(new I8nService());
+    healthCheck = new PingI8nResourceHealthCheck(i8nResource);
   }
 
   @Test
   void testPing() {
-    var response = new I8nResource(new I8nService()).ping();
-    var expectedResponse =
-        HealthCheckResponse.named("Ping I8n REST Endpoint")
-            .withData("Response", response)
-            .up()
-            .build();
+    var response = i8nResource.ping();
 
-    assertEquals(healthCheck.call().getData(), expectedResponse.getData());
+    var expectedResponse = HealthCheckResponse.named("Ping I8n REST Endpoint")
+        .withData("Response", response)
+        .up()
+        .build();
+
+    assertEquals(expectedResponse.getData(), healthCheck.call().getData());
   }
 }
