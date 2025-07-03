@@ -219,7 +219,7 @@ The annotations can go on Ingresses or OpenShift Routes.
 
 | Annotation | Description                                                                                                             | Required |
 |-------------------------------------|------------------------------------------------------------------------------------------------|----------|
-| `startpunkt.ullberg.us/enable`     | Add this with value true if you want the application to show up in Startpunk                   | No       |
+| `startpunkt.ullberg.us/enable`      | Add this with value true if you want the application to show up in Startpunk                   | No       |
 | `startpunkt.ullberg.us/icon`        | Icon/Image URL of the application. Icons can come from material design, etc.                   | No       |
 | `startpunkt.ullberg.us/iconColor`   | Color to display the icon in.                                                                  | No       |
 | `startpunkt.ullberg.us/name`        | A custom name for your application. Use if you don’t want to use the name of the ingress/route | No       |
