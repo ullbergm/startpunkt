@@ -61,7 +61,7 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.istio.virtualservice.onlyAnnotated", defaultValue = "true")
   private boolean istioVirtualServiceOnlyAnnotated = true;
 
-  @ConfigProperty(name = "startpunkt.gatewayapi.enabled", defaultValue = "false")
+  @ConfigProperty(name = "startpunkt.gatewayapi.httproute.enabled", defaultValue = "false")
   private boolean gatewayAPIEnabled = false;
 
   @ConfigProperty(name = "startpunkt.gatewayapi.httproute.onlyAnnotated", defaultValue = "true")

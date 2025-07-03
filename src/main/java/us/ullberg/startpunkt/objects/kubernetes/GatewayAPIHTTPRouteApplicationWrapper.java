@@ -19,7 +19,7 @@ public class GatewayAPIHTTPRouteApplicationWrapper extends AnnotatedKubernetesOb
   // Constructor to initialize the VirtualServiceApplicationWrapper with specific
   // group, version, and pluralkind
   public GatewayAPIHTTPRouteApplicationWrapper(Boolean onlyAnnotated, String defaultProtocol) {
-    super("gateway.networking.k8s.io", "v1", "virtualservices");
+    super("gateway.networking.k8s.io", "v1", "httproutes");
     this.onlyAnnotated = onlyAnnotated;
     this.defaultProtocol = defaultProtocol;
   }
