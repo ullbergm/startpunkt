@@ -1,16 +1,12 @@
 package us.ullberg.startpunkt.health;
 
+import java.util.logging.Logger;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Liveness;
-
 import us.ullberg.startpunkt.rest.ConfigResource;
 
-import java.util.logging.Logger;
-
-/**
- * {@link HealthCheck} to ping the Config service
- */
+/** {@link HealthCheck} to ping the Config service */
 @Liveness
 public class PingConfigResourceHealthCheck implements HealthCheck {
   private static final Logger LOGGER =
@@ -25,12 +21,16 @@ public class PingConfigResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     try {
       var response = this.configResource.ping();
-      return HealthCheckResponse.named("Ping Config REST Endpoint").withData("Response", response)
-          .up().build();
+      return HealthCheckResponse.named("Ping Config REST Endpoint")
+          .withData("Response", response)
+          .up()
+          .build();
     } catch (Exception e) {
       LOGGER.severe("Ping to ConfigResource failed: " + e.getMessage());
       return HealthCheckResponse.named("Ping Config REST Endpoint")
-          .withData("error", e.getMessage()).down().build();
+          .withData("error", e.getMessage())
+          .down()
+          .build();
     }
   }
 }

@@ -1,8 +1,7 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
-import java.util.List;
-
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import java.util.List;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Abstract class representing a Kubernetes object with annotations
@@ -18,8 +17,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   protected String getAppName(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
 
-    String[] annotationKeys =
-        {"startpunkt.ullberg.us/appName", "hajimari.io/appName", "forecastle.stakater.com/appName"};
+    String[] annotationKeys = {
+      "startpunkt.ullberg.us/appName", "hajimari.io/appName", "forecastle.stakater.com/appName"
+    };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
         return annotations.get(key).toLowerCase();
@@ -35,8 +35,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   protected String getAppGroup(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
 
-    String[] annotationKeys =
-        {"startpunkt.ullberg.us/group", "hajimari.io/group", "forecastle.stakater.com/group"};
+    String[] annotationKeys = {
+      "startpunkt.ullberg.us/group", "hajimari.io/group", "forecastle.stakater.com/group"
+    };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
         return annotations.get(key).toLowerCase();
@@ -52,8 +53,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   protected String getAppUrl(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
 
-    String[] annotationKeys =
-        {"startpunkt.ullberg.us/url", "hajimari.io/url", "forecastle.stakater.com/url"};
+    String[] annotationKeys = {
+      "startpunkt.ullberg.us/url", "hajimari.io/url", "forecastle.stakater.com/url"
+    };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
         return annotations.get(key).toLowerCase();
@@ -69,8 +71,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   protected String getAppIcon(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
 
-    String[] annotationKeys =
-        {"startpunkt.ullberg.us/icon", "hajimari.io/icon", "forecastle.stakater.com/icon"};
+    String[] annotationKeys = {
+      "startpunkt.ullberg.us/icon", "hajimari.io/icon", "forecastle.stakater.com/icon"
+    };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
         return annotations.get(key).toLowerCase();
@@ -159,8 +162,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
 
-    String[] annotationKeys =
-        {"startpunkt.ullberg.us/enable", "hajimari.io/enable", "forecastle.stakater.com/expose"};
+    String[] annotationKeys = {
+      "startpunkt.ullberg.us/enable", "hajimari.io/enable", "forecastle.stakater.com/expose"
+    };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
         return Boolean.parseBoolean(annotations.get(key));

@@ -1,13 +1,10 @@
 package us.ullberg.startpunkt.objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.Collections;
-
 import java.util.LinkedList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 // Class representing a group of bookmarks
@@ -66,7 +63,8 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     }
     BookmarkGroup otherGroup = (BookmarkGroup) other;
     return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
-        && (bookmarks != null ? bookmarks.equals(otherGroup.bookmarks)
+        && (bookmarks != null
+            ? bookmarks.equals(otherGroup.bookmarks)
             : otherGroup.bookmarks == null);
   }
 
@@ -79,8 +77,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Method to add a bookmark to the bookmarks list
   public void addBookmark(BookmarkSpec bookmark) {
-    if (bookmark == null)
-      throw new IllegalArgumentException("Bookmark cannot be null");
+    if (bookmark == null) throw new IllegalArgumentException("Bookmark cannot be null");
 
     bookmarks.add(bookmark);
   }

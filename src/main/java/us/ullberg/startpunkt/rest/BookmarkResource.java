@@ -1,17 +1,5 @@
 package us.ullberg.startpunkt.rest;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
@@ -21,12 +9,25 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
 import us.ullberg.startpunkt.service.BookmarkService;
 
-// REST API resource class for managing bookmarks
+/**
+ * REST API resource class for managing bookmarks. Supports retrieving bookmarks grouped by their
+ * group names, including optional integration with Hajimari bookmarks.
+ */
 @Path("/api/bookmarks")
 @Tag(name = "bookmarks")
 @Produces(MediaType.APPLICATION_JSON)
@@ -52,8 +53,9 @@ public class BookmarkResource {
     bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
     // If Hajimari bookmarks are enabled, add them to the list
-    if (hajimariEnabled)
+    if (hajimariEnabled) {
       bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+    }
 
     // Sort the list of bookmarks
     Collections.sort(bookmarks);
@@ -62,12 +64,20 @@ public class BookmarkResource {
     return bookmarks;
   }
 
-  // GET endpoint to retrieve the list of bookmarks
+  /**
+   * REST GET endpoint to retrieve all bookmarks grouped by their group names.
+   *
+   * @return HTTP 200 with grouped bookmarks or HTTP 404 if none found
+   */
   @GET
   @Operation(summary = "Returns all bookmarks")
-  @APIResponse(responseCode = "200", description = "Gets all bookmarks",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = BookmarkGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets all bookmarks",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = BookmarkGroup.class, type = SchemaType.ARRAY)))
   @APIResponse(responseCode = "404", description = "No bookmarks found")
   @Timed(value = "startpunkt.api.getbookmarks", description = "Get the list of bookmarks")
   @CacheResult(cacheName = "getBookmarks")
@@ -86,6 +96,11 @@ public class BookmarkResource {
     return Response.ok(new BookmarkGroupList(groups)).build();
   }
 
+  /**
+   * Ping endpoint for health checking this resource.
+   *
+   * @return a simple string confirming the resource is alive
+   */
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

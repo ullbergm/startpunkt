@@ -3,13 +3,14 @@ package us.ullberg.startpunkt.crd;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-// Include non-empty JSON properties in serialization
+/**
+ * Represents the specification for an application bookmark. Includes metadata like name, group,
+ * icon, URL, etc.
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-// Register class for reflection, including the full hierarchy
 @RegisterForReflection(registerFullHierarchy = true)
 public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
@@ -63,9 +64,29 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   // Default constructor
   public ApplicationSpec() {}
 
-  // Parameterized constructor to initialize the fields
-  public ApplicationSpec(String name, String group, String icon, String iconColor, String url,
-      String info, Boolean targetBlank, int location, Boolean enabled) {
+  /**
+   * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -153,13 +174,40 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   // Override the toString method to provide a string representation of the object
   @Override
   public String toString() {
-    return "ApplicationSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='"
-        + icon + '\'' + ", iconColor='" + iconColor + '\'' + ", url='" + url + '\'' + ", info='"
-        + info + '\'' + ", targetBlank=" + targetBlank + ", location=" + location + ", enabled="
-        + enabled + '}';
+    return "ApplicationSpec{"
+        + "name='"
+        + name
+        + '\''
+        + ", group='"
+        + group
+        + '\''
+        + ", icon='"
+        + icon
+        + '\''
+        + ", iconColor='"
+        + iconColor
+        + '\''
+        + ", url='"
+        + url
+        + '\''
+        + ", info='"
+        + info
+        + '\''
+        + ", targetBlank="
+        + targetBlank
+        + ", location="
+        + location
+        + ", enabled="
+        + enabled
+        + '}';
   }
 
-  // Implement the Comparable interface to compare ApplicationSpec objects
+  /**
+   * Compares this ApplicationSpec with another for sorting. Sort order: group, location, then name.
+   *
+   * @param other the other ApplicationSpec to compare with
+   * @return comparison result
+   */
   @Override
   public int compareTo(ApplicationSpec other) {
     // Compare by group
@@ -180,10 +228,12 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
 
     ApplicationSpec that = (ApplicationSpec) o;
     if (location != that.location) {

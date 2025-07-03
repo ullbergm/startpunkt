@@ -272,22 +272,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>net.revelc.code.formatter</groupId>
-        <artifactId>formatter-maven-plugin</artifactId>
-        <version>2.27.0</version>
-        <configuration>
-          <configFile>src/eclipse-formatter-config.xml</configFile>
-          <encoding>UTF-8</encoding>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
         <artifactId>sortpom-maven-plugin</artifactId>
         <version>4.0.0</version>
@@ -489,6 +473,25 @@
               <goal>check</goal>
             </goals>
             <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.40.0</version>
+        <configuration>
+          <java>
+            <googleJavaFormat></googleJavaFormat>
+            <removeUnusedImports></removeUnusedImports>
+          </java>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>apply</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

@@ -1,14 +1,5 @@
 package us.ullberg.startpunkt.rest;
 
-import java.util.Map;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
 import jakarta.ws.rs.GET;
@@ -16,7 +7,14 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+/** REST resource providing theme configuration for the application. */
 @Path("/api/theme")
 @Tag(name = "theme")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,19 +52,33 @@ public class ThemeResource {
 
   @GET
   @Operation(summary = "Returns application configuration")
-  @APIResponse(responseCode = "200", description = "Gets application configuration",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = Theme.class, required = true)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets application configuration",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Theme.class, required = true)))
   public Response getTheme() {
     return Response.ok(generateTheme()).build();
   }
 
   private Theme generateTheme() {
-    ThemeColors light = new ThemeColors(lightThemeBodyBg, lightThemeBodyColor,
-        lightThemeEmphasisColor, lightThemeTextPrimary, lightThemeTextAccent);
+    ThemeColors light =
+        new ThemeColors(
+            lightThemeBodyBg,
+            lightThemeBodyColor,
+            lightThemeEmphasisColor,
+            lightThemeTextPrimary,
+            lightThemeTextAccent);
 
-    ThemeColors dark = new ThemeColors(darkThemeBodyBg, darkThemeBodyColor, darkThemeEmphasisColor,
-        darkThemeTextPrimary, darkThemeTextAccent);
+    ThemeColors dark =
+        new ThemeColors(
+            darkThemeBodyBg,
+            darkThemeBodyColor,
+            darkThemeEmphasisColor,
+            darkThemeTextPrimary,
+            darkThemeTextAccent);
 
     return new Theme(light, dark);
   }

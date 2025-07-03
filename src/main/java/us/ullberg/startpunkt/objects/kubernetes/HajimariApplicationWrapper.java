@@ -2,7 +2,10 @@ package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 
-// Class representing a wrapper for Hajimari applications
+/**
+ * Wrapper for Hajimari application custom resources. Provides access to application properties from
+ * the Kubernetes resource spec.
+ */
 public class HajimariApplicationWrapper extends BaseKubernetesObject {
 
   // Constructor to initialize the custom resource with specific group, version, and plural kind

@@ -1,11 +1,9 @@
 package us.ullberg.startpunkt.objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Class representing a group of applications
@@ -72,7 +70,8 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
     }
     ApplicationGroup otherGroup = (ApplicationGroup) other;
     return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
-        && (applications != null ? applications.equals(otherGroup.applications)
+        && (applications != null
+            ? applications.equals(otherGroup.applications)
             : otherGroup.applications == null);
   }
 
@@ -85,8 +84,7 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   // Method to add an application to the applications list
   public void addApplication(ApplicationSpec app) {
-    if (app == null)
-      throw new IllegalArgumentException("Application cannot be null");
+    if (app == null) throw new IllegalArgumentException("Application cannot be null");
     applications.add(app);
   }
 

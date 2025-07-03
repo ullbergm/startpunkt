@@ -2,36 +2,62 @@ package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 
-// Class representing a wrapper for Startpunkt application objects
+/**
+ * Wrapper for Startpunkt application Kubernetes custom resources. This class extracts
+ * application-specific information from the resource's spec with fallbacks to defaults from the
+ * base class.
+ */
 public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
-  // Constructor to initialize the StartpunktApplicationWrapper with specific group, version, and
-  // plural kind
+  /**
+   * Constructs a StartpunktApplicationWrapper with group "startpunkt.ullberg.us", version
+   * "v1alpha1", and plural "applications".
+   */
   public StartpunktApplicationWrapper() {
     super("startpunkt.ullberg.us", "v1alpha1", "applications");
   }
 
-  // Override getAppName since the spec has a required property called name
+  /**
+   * Retrieves the application name from the resource spec. This property is required.
+   *
+   * @param item Kubernetes resource
+   * @return application name in lowercase
+   */
   @Override
   protected String getAppName(GenericKubernetesResource item) {
     return getSpec(item).get("name").toString().toLowerCase();
   }
 
-  // Override getAppGroup since the spec has an optional property called group
-  // If the group is not set, return the super.getAppGroup response
+  /**
+   * Retrieves the application group from the resource spec. Returns base class group if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return application group in lowercase
+   */
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "group", super.getAppGroup(item)).toLowerCase();
   }
 
-  // Override getAppUrl since the spec has a required property called url
+  /**
+   * Retrieves the application icon from the resource spec. Returns base class icon if not present.
+   *
+   * @param item Kubernetes resource
+   * @return icon string or fallback value
+   */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
     return getSpec(item).get("url").toString();
   }
 
-  // Override getAppIcon since the spec has an optional property called icon
-  // If the icon is not set, return the super.getAppIcon response
+  /**
+   * Retrieves the application icon color from the resource spec. Returns base class icon color if
+   * not present.
+   *
+   * @param item Kubernetes resource
+   * @return icon color string or fallback value
+   */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "icon", super.getAppIcon(item));
@@ -44,30 +70,49 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
     return getOptionalSpecString(item, "iconColor", super.getAppIconColor(item));
   }
 
-  // Override getAppInfo since the spec has an optional property called info
-  // If the info is not set, return the super.getAppInfo response
+  /**
+   * Retrieves additional information (info) from the resource spec. Returns base class info if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return info string or fallback value
+   */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "info", super.getAppInfo(item));
   }
 
-  // Override getAppTargetBlank since the spec has an optional property called targetBlank
-  // If the targetBlank is not set, return the super.getAppTargetBlank response
+  /**
+   * Retrieves the targetBlank flag from the resource spec. Returns base class targetBlank if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating if the link should open in a new tab
+   */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "targetBlank", super.getAppTargetBlank(item));
   }
 
-  // Override getAppLocation since the spec has an optional property called location
-  // If the location is not set, return the super.getAppLocation response
+  /**
+   * Retrieves the location (sorting order) from the resource spec. If location is zero, returns
+   * 1000 for backwards compatibility. Returns base class location if not present.
+   *
+   * @param item Kubernetes resource
+   * @return integer location value
+   */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
     int location = getOptionalSpecInteger(item, "location", super.getAppLocation(item));
     return location == 0 ? 1000 : location;
   }
 
-  // Override getAppEnabled since the spec has an optional property called enabled
-  // If the enabled is not set, return the super.getAppEnabled response
+  /**
+   * Retrieves the enabled flag from the resource spec. Returns base class enabled if not present.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating if the application is enabled
+   */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));

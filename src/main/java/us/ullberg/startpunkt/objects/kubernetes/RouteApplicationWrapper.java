@@ -1,12 +1,14 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
-import java.util.List;
-
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.List;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
-// Class representing a wrapper for OpenShift Route objects
+/**
+ * Wrapper for OpenShift Route custom resources to extract application information. Supports
+ * filtering for only annotated routes if specified.
+ */
 public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
   // Field to indicate if only annotated objects should be processed
@@ -38,8 +40,8 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
   // Override method to get a list of ApplicationSpec objects
   @Override
-  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, boolean anyNamespace,
-      List<String> matchNames) {
+  public List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     // Get the application specs from the parent class
     var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
 

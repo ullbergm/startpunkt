@@ -10,10 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 class ApplicationGroupTest {
@@ -33,8 +31,18 @@ class ApplicationGroupTest {
   @Test
   void testGetApplications() {
     List<ApplicationSpec> applications =
-        new LinkedList<>(Arrays.asList(new ApplicationSpec("App3", "Group1", "mdi:application",
-            "red", "https://www.testing.com/", "Description 1", true, 0, true)));
+        new LinkedList<>(
+            Arrays.asList(
+                new ApplicationSpec(
+                    "App3",
+                    "Group1",
+                    "mdi:application",
+                    "red",
+                    "https://www.testing.com/",
+                    "Description 1",
+                    true,
+                    0,
+                    true)));
     applicationGroup.addApplication(applications.get(0));
 
     assertEquals(applications, applicationGroup.getApplications());
@@ -42,8 +50,17 @@ class ApplicationGroupTest {
 
   @Test
   void testAddApplication() {
-    ApplicationSpec newApp = new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true);
+    ApplicationSpec newApp =
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true);
     applicationGroup.addApplication(newApp);
     assertThat(applicationGroup.getApplications(), contains(newApp));
   }
@@ -58,20 +75,56 @@ class ApplicationGroupTest {
 
   @Test
   void testEquals() {
-    applicationGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
+    applicationGroup.addApplication(
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
 
     ApplicationGroup sameGroup = new ApplicationGroup("Group1");
-    sameGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
+    sameGroup.addApplication(
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
 
     ApplicationGroup differentGroup = new ApplicationGroup("Group2");
-    differentGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
+    differentGroup.addApplication(
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
 
     ApplicationGroup differentGroup2 = new ApplicationGroup("Group2");
-    differentGroup2.addApplication(new ApplicationSpec("App2", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
+    differentGroup2.addApplication(
+        new ApplicationSpec(
+            "App2",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
 
     assertThat(applicationGroup.equals(sameGroup), is(true));
     assertThat(applicationGroup.equals(differentGroup), is(false));
@@ -92,10 +145,28 @@ class ApplicationGroupTest {
     ApplicationGroup sameGroup = new ApplicationGroup("Group1");
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
 
-    applicationGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
-    sameGroup.addApplication(new ApplicationSpec("App3", "Group1", "mdi:application", "red",
-        "https://www.testing.com/", "Description 1", true, 0, true));
+    applicationGroup.addApplication(
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
+    sameGroup.addApplication(
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true));
 
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
   }
@@ -104,8 +175,18 @@ class ApplicationGroupTest {
   @Test
   void testApplicationGroupWithApplications() {
     List<ApplicationSpec> applications =
-        new LinkedList<>(Arrays.asList(new ApplicationSpec("App3", "Group1", "mdi:application",
-            "red", "https://www.testing.com/", "Description 1", true, 0, true)));
+        new LinkedList<>(
+            Arrays.asList(
+                new ApplicationSpec(
+                    "App3",
+                    "Group1",
+                    "mdi:application",
+                    "red",
+                    "https://www.testing.com/",
+                    "Description 1",
+                    true,
+                    0,
+                    true)));
     ApplicationGroup groupWithApps = new ApplicationGroup("Group1", applications);
 
     assertEquals("Group1", groupWithApps.getName());

@@ -1,13 +1,5 @@
 package us.ullberg.startpunkt.rest;
 
-import java.io.IOException;
-
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
@@ -18,9 +10,18 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.service.I8nService;
 
-// REST API resource class for managing language translations
+/**
+ * REST API resource class for managing language translations. Provides endpoints to retrieve
+ * translations for specified languages.
+ */
 @Path("/api/i8n")
 @Tag(name = "i8n")
 @Produces(MediaType.APPLICATION_JSON)
@@ -28,19 +29,34 @@ public class I8nResource {
 
   I8nService i8nService;
 
-  // Constructor
+  /**
+   * Constructs the resource with an injected {@link I8nService}.
+   *
+   * @param i8nService the internationalization service
+   */
   public I8nResource(I8nService i8nService) {
     this.i8nService = i8nService;
   }
 
+  /**
+   * Retrieves the translation JSON for the specified language.
+   *
+   * @param language the language code (e.g. "en-US")
+   * @return HTTP 200 with translation JSON if found; HTTP 404 if not found
+   */
   @GET
   @Path("{language}")
   @Operation(summary = "Returns a translation")
-  @APIResponse(responseCode = "200", description = "Gets an translation",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets an translation",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class, required = true)))
   @APIResponse(responseCode = "404", description = "No translation found")
-  @Timed(value = "startpunkt.api.gettranslation",
+  @Timed(
+      value = "startpunkt.api.gettranslation",
       description = "Get the translation for a given language")
   @CacheResult(cacheName = "getTranslation")
   public Response getTranslation(@PathParam("language") String language) {
@@ -57,14 +73,23 @@ public class I8nResource {
     }
   }
 
-  // Default endpoint to get the translation for the default language
+  /**
+   * Retrieves the translation JSON for the default language ("en-US").
+   *
+   * @return HTTP 200 with translation JSON if found; HTTP 404 if not found
+   */
   @GET
   @Operation(summary = "Returns default translation")
-  @APIResponse(responseCode = "200", description = "Gets default translation",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets default translation",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class, required = true)))
   @APIResponse(responseCode = "404", description = "No translation found")
-  @Timed(value = "startpunkt.api.getdefaulttranslation",
+  @Timed(
+      value = "startpunkt.api.getdefaulttranslation",
       description = "Get the translation for the default language")
   @CacheResult(cacheName = "getDefaultTranslation")
   public Response getDefaultTranslation() {

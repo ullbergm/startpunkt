@@ -1,17 +1,5 @@
 package us.ullberg.startpunkt.rest;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
@@ -24,6 +12,16 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
@@ -34,7 +32,10 @@ import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWr
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 
-// REST API resource class for managing applications
+/**
+ * REST API resource class for managing applications. Supports retrieval from multiple Kubernetes
+ * resource types, grouping applications by their group property.
+ */
 @Path("/api/apps")
 @Tag(name = "apps")
 @Produces(MediaType.APPLICATION_JSON)
@@ -76,18 +77,23 @@ public class ApplicationResource {
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
     applicationWrappers.add(new StartpunktApplicationWrapper());
 
-    if (hajimariEnabled)
+    if (hajimariEnabled) {
       applicationWrappers.add(new HajimariApplicationWrapper());
+    }
 
-    if (openshiftEnabled)
+    if (openshiftEnabled) {
       applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
+    }
 
-    if (ingressEnabled)
+    if (ingressEnabled) {
       applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+    }
 
-    if (istioVirtualServiceEnabled)
-      applicationWrappers.add(new IstioVirtualServiceApplicationWrapper(
-          istioVirtualServiceOnlyAnnotated, defaultProtocol));
+    if (istioVirtualServiceEnabled) {
+      applicationWrappers.add(
+          new IstioVirtualServiceApplicationWrapper(
+              istioVirtualServiceOnlyAnnotated, defaultProtocol));
+    }
 
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
@@ -105,18 +111,28 @@ public class ApplicationResource {
     return apps;
   }
 
-  // GET endpoint to retrieve an application by its name
+  /**
+   * GET endpoint to retrieve an application by its group and name.
+   *
+   * @param groupName the group name of the application
+   * @param appName the name of the application
+   * @return HTTP 200 with application or 404 if not found
+   */
   @GET
   @Path("{groupName}/{appName}")
   @Operation(summary = "Returns an application")
-  @APIResponse(responseCode = "200", description = "Gets an application",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = ApplicationSpec.class, required = true)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets an application",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = ApplicationSpec.class, required = true)))
   @APIResponse(responseCode = "404", description = "No application found")
   @Timed(value = "startpunkt.api.getapp", description = "Get a application")
   @CacheResult(cacheName = "getApp")
-  public Response getApp(@PathParam("groupName") String groupName,
-      @PathParam("appName") String appName) {
+  public Response getApp(
+      @PathParam("groupName") String groupName, @PathParam("appName") String appName) {
     // Find the application with the specified name
     for (ApplicationSpec a : retrieveApps()) {
       if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
@@ -127,13 +143,20 @@ public class ApplicationResource {
     return Response.status(404, "No application found").build();
   }
 
-  // GET endpoint to retrieve the list of all applications, grouped by application
-  // group
+  /**
+   * GET endpoint to retrieve all applications grouped by their group property.
+   *
+   * @return HTTP 200 with grouped applications or 404 if none found
+   */
   @GET
   @Operation(summary = "Returns all applications")
-  @APIResponse(responseCode = "200", description = "Gets all applications",
-      content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets all applications",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
   @APIResponse(responseCode = "404", description = "No applications found")
   @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
@@ -173,6 +196,11 @@ public class ApplicationResource {
     return Response.ok(new ApplicationGroupList(groups)).build();
   }
 
+  /**
+   * Ping endpoint for health checking this resource.
+   *
+   * @return a simple string confirming the resource is alive
+   */
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

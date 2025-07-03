@@ -3,7 +3,6 @@ package us.ullberg.startpunkt.crd;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -55,8 +54,14 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   public BookmarkSpec() {}
 
   // Parameterized constructor to initialize the fields
-  public BookmarkSpec(String name, String group, String icon, String url, String info,
-      Boolean targetBlank, int location) {
+  public BookmarkSpec(
+      String name,
+      String group,
+      String icon,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -126,9 +131,27 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   // Override the toString method to provide a string representation of the object
   @Override
   public String toString() {
-    return "BookmarkSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='" + icon
-        + '\'' + ", url='" + url + '\'' + ", info='" + info + '\'' + ", targetBlank=" + targetBlank
-        + ", location=" + location + '}';
+    return "BookmarkSpec{"
+        + "name='"
+        + name
+        + '\''
+        + ", group='"
+        + group
+        + '\''
+        + ", icon='"
+        + icon
+        + '\''
+        + ", url='"
+        + url
+        + '\''
+        + ", info='"
+        + info
+        + '\''
+        + ", targetBlank="
+        + targetBlank
+        + ", location="
+        + location
+        + '}';
   }
 
   // Implement the Comparable interface to compare BookmarkSpec objects
@@ -177,7 +200,8 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {
       return false;
     }
-    return targetBlank != null ? targetBlank.equals(otherSpec.targetBlank)
+    return targetBlank != null
+        ? targetBlank.equals(otherSpec.targetBlank)
         : otherSpec.targetBlank == null;
   }
 

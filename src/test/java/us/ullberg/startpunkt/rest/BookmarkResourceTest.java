@@ -4,10 +4,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.net.HttpURLConnection;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -16,6 +12,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import java.net.HttpURLConnection;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.Bookmark;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 import us.ullberg.startpunkt.service.BookmarkService;
@@ -29,8 +28,7 @@ class BookmarkResourceTest {
   private static final Class<Bookmark> RESOURCE_TYPE = Bookmark.class;
 
   // Inject the Kubernetes mock server
-  @KubernetesTestServer
-  KubernetesServer server;
+  @KubernetesTestServer KubernetesServer server;
 
   // Setup method to initialize the test environment before each test
   @BeforeEach
@@ -41,8 +39,12 @@ class BookmarkResourceTest {
         CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Bookmark.class).build();
 
     // Set up the mock server to expect a POST request for creating the CRD
-    server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
-        .andReturn(HttpURLConnection.HTTP_OK, crd).once();
+    server
+        .expect()
+        .post()
+        .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+        .andReturn(HttpURLConnection.HTTP_OK, crd)
+        .once();
 
     // Get the Kubernetes client from the mock server
     var client = server.getClient();
@@ -132,30 +134,39 @@ class BookmarkResourceTest {
   // Test to verify that the groups are in the right order
   @Test
   void testGroupOrder() {
-    given().when().get("/api/bookmarks").then().body("groups[0].name", equalTo("3d printing"))
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .body("groups[0].name", equalTo("3d printing"))
         .body("groups[1].name", equalTo("default"));
   }
 
   // Test to verify that the number of bookmarks in the two groups are correct
   @Test
   void testBookmarkCount() {
-    given().when().get("/api/bookmarks").then().body("groups[0].bookmarks.size()", equalTo(2))
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .body("groups[0].bookmarks.size()", equalTo(2))
         .body("groups[1].bookmarks.size()", equalTo(1));
   }
 
   // Test to verify that all the bookmarks are present and the values are correct
   @Test
   void testBookmarkValues() {
-    given().when().get("/api/bookmarks").then()
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
         .body("groups[0].bookmarks[0].name", equalTo("Printables"))
         .body("groups[0].bookmarks[0].url", equalTo("https://printables.com"))
         .body("groups[0].bookmarks[0].location", equalTo(1))
-
         .body("groups[0].bookmarks[1].name", equalTo("makerworld"))
         .body("groups[0].bookmarks[1].icon", equalTo("simple-icons:makerworld"))
         .body("groups[0].bookmarks[1].targetBlank", equalTo(true))
         .body("groups[0].bookmarks[1].location", equalTo(1000))
-
         .body("groups[1].bookmarks[0].name", equalTo("Quarkus"))
         .body("groups[1].bookmarks[0].url", equalTo("https://quarkus.io"))
         .body("groups[1].bookmarks[0].icon", equalTo("simple-icons:quarkus"))
@@ -165,7 +176,11 @@ class BookmarkResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/bookmarks/ping").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/bookmarks/ping")
+        .then()
+        .statusCode(200)
         .body(equalTo(new BookmarkResource(new BookmarkService()).ping()));
   }
 }
