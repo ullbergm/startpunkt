@@ -24,16 +24,12 @@ public class PingI8nResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     try {
       var response = this.i8nResource.ping();
-      return HealthCheckResponse.named("Ping I8n REST Endpoint")
-          .withData("Response", response)
-          .up()
+      return HealthCheckResponse.named("Ping I8n REST Endpoint").withData("Response", response).up()
           .build();
     } catch (Exception e) {
       LOGGER.severe("Ping to I8nResource failed: " + e.getMessage());
-      return HealthCheckResponse.named("Ping I8n REST Endpoint")
-          .withData("error", e.getMessage())
-          .down()
-          .build();
+      return HealthCheckResponse.named("Ping I8n REST Endpoint").withData("error", e.getMessage())
+          .down().build();
     }
   }
 }

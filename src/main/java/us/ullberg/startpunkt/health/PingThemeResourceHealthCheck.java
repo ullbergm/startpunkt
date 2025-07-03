@@ -13,7 +13,8 @@ import java.util.logging.Logger;
  */
 @Liveness
 public class PingThemeResourceHealthCheck implements HealthCheck {
-  private static final Logger LOGGER = Logger.getLogger(PingThemeResourceHealthCheck.class.getName());
+  private static final Logger LOGGER =
+      Logger.getLogger(PingThemeResourceHealthCheck.class.getName());
   private final ThemeResource themeResource;
 
   public PingThemeResourceHealthCheck(ThemeResource themeResource) {
@@ -24,16 +25,12 @@ public class PingThemeResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     try {
       var response = this.themeResource.ping();
-      return HealthCheckResponse.named("Ping Theme REST Endpoint")
-          .withData("Response", response)
-          .up()
-          .build();
+      return HealthCheckResponse.named("Ping Theme REST Endpoint").withData("Response", response)
+          .up().build();
     } catch (Exception e) {
       LOGGER.severe("Ping to ThemeResource failed: " + e.getMessage());
-      return HealthCheckResponse.named("Ping Theme REST Endpoint")
-          .withData("error", e.getMessage())
-          .down()
-          .build();
+      return HealthCheckResponse.named("Ping Theme REST Endpoint").withData("error", e.getMessage())
+          .down().build();
     }
   }
 }

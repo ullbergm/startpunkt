@@ -13,7 +13,8 @@ import java.util.logging.Logger;
  */
 @Liveness
 public class PingConfigResourceHealthCheck implements HealthCheck {
-  private static final Logger LOGGER = Logger.getLogger(PingConfigResourceHealthCheck.class.getName());
+  private static final Logger LOGGER =
+      Logger.getLogger(PingConfigResourceHealthCheck.class.getName());
   private final ConfigResource configResource;
 
   public PingConfigResourceHealthCheck(ConfigResource configResource) {
@@ -24,16 +25,12 @@ public class PingConfigResourceHealthCheck implements HealthCheck {
   public HealthCheckResponse call() {
     try {
       var response = this.configResource.ping();
-      return HealthCheckResponse.named("Ping Config REST Endpoint")
-          .withData("Response", response)
-          .up()
-          .build();
+      return HealthCheckResponse.named("Ping Config REST Endpoint").withData("Response", response)
+          .up().build();
     } catch (Exception e) {
       LOGGER.severe("Ping to ConfigResource failed: " + e.getMessage());
       return HealthCheckResponse.named("Ping Config REST Endpoint")
-          .withData("error", e.getMessage())
-          .down()
-          .build();
+          .withData("error", e.getMessage()).down().build();
     }
   }
 }

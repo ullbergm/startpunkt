@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Plural;
 import io.fabric8.kubernetes.model.annotation.Version;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 // Annotation to specify the version of the custom resource
 @Version("v1alpha1")
@@ -48,13 +49,11 @@ public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus> imple
     return new EqualsBuilder().append(getSpec(), rhs.getSpec()).append(getStatus(), rhs.getStatus())
         .isEquals();
   }
-  
+
   @Override
-public String toString() {
-  return new ToStringBuilder(this)
-    .append("spec", getSpec())
-    .append("status", getStatus())
-    .toString();
-}
+  public String toString() {
+    return new ToStringBuilder(this).append("spec", getSpec()).append("status", getStatus())
+        .toString();
+  }
 
 }
