@@ -51,4 +51,12 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
     return new EqualsBuilder().append(getSpec(), rhs.getSpec()).append(getStatus(), rhs.getStatus())
         .isEquals();
   }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+      .append("spec", getSpec())
+      .append("status", getStatus())
+      .toString();
+  }
 }

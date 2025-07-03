@@ -6,12 +6,14 @@ import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Readiness;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.logging.Logger;
 
 /**
  * {@link HealthCheck} to validate the service can talk to Kubernetes
  */
 @Readiness
 public class KubernetesConnectionHealthCheck implements HealthCheck {
+  private static final Logger LOGGER = Logger.getLogger(KubernetesConnectionHealthCheck.class.getName());
   private final KubernetesClient client;
 
   public KubernetesConnectionHealthCheck(KubernetesClient client) {
@@ -20,31 +22,25 @@ public class KubernetesConnectionHealthCheck implements HealthCheck {
 
   @Override
   public HealthCheckResponse call() {
-    HealthCheckResponseBuilder responseBuilder =
-        HealthCheckResponse.named("Kubernetes connection health check");
+    HealthCheckResponseBuilder responseBuilder = HealthCheckResponse.named("Kubernetes connection health check");
 
     try {
-      // Attempt to list namespaces to check the connection to Kubernetes
       responseBuilder.withData("Version", client.getKubernetesVersion().getGitVersion());
       responseBuilder.withData("Nodes", client.nodes().list().getItems().size());
       responseBuilder.withData("Namespaces", client.namespaces().list().getItems().size());
-      responseBuilder.withData("Startpunkt API group found",
-          client.hasApiGroup("startpunkt.ullberg.us", true));
-      responseBuilder.withData("OpenShift Route API group found",
-          client.hasApiGroup("route.openshift.io", true));
+      responseBuilder.withData("Startpunkt API group found", client.hasApiGroup("startpunkt.ullberg.us", true));
+      responseBuilder.withData("OpenShift Route API group found", client.hasApiGroup("route.openshift.io", true));
       responseBuilder.withData("Hajimari API group found", client.hasApiGroup("hajimari.io", true));
-      responseBuilder.withData("ForeCastle API group found",
-          client.hasApiGroup("forecastle.stakater.com", true));
+      responseBuilder.withData("ForeCastle API group found", client.hasApiGroup("forecastle.stakater.com", true));
       responseBuilder.withData("Traefik API group found", client.hasApiGroup("traefik.io", true));
 
-      // If successful, mark the health check as 'up'
       responseBuilder.up();
     } catch (Exception e) {
-      // If an exception occurs, mark the health check as 'down'
-      responseBuilder.down();
+      LOGGER.severe("Kubernetes health check failed: " + e.getMessage());
+      responseBuilder.down()
+        .withData("error", e.getMessage());
     }
 
-    // Build and return the health check response
     return responseBuilder.build();
   }
 }

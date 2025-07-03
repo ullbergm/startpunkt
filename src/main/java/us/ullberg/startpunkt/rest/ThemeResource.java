@@ -17,11 +17,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-// REST API resource class for application configuration
 @Path("/api/theme")
 @Tag(name = "theme")
 @Produces(MediaType.APPLICATION_JSON)
 public class ThemeResource {
+
   @ConfigProperty(name = "startpunkt.web.theme.light.bodyBgColor", defaultValue = "#F8F6F1")
   public String lightThemeBodyBg;
 
@@ -52,27 +52,23 @@ public class ThemeResource {
   @ConfigProperty(name = "startpunkt.web.theme.dark.textAccentColor", defaultValue = "#AA9A73")
   public String darkThemeTextAccent;
 
-  // GET endpoint to retrieve the list of bookmarks
   @GET
   @Operation(summary = "Returns application configuration")
   @APIResponse(responseCode = "200", description = "Gets application configuration",
       content = @Content(mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(implementation = Map.class, required = true)))
+          schema = @Schema(implementation = Theme.class, required = true)))
   public Response getTheme() {
     return Response.ok(generateTheme()).build();
   }
 
-  private Map<String, Object> generateTheme() {
-    // Create a response with the configuration value
-    return Map.of("theme",
-        Map.of("light",
-            Map.of("bodyBgColor", lightThemeBodyBg, "bodyColor", lightThemeBodyColor,
-                "emphasisColor", lightThemeEmphasisColor, "textPrimaryColor", lightThemeTextPrimary,
-                "textAccentColor", lightThemeTextAccent),
-            "dark",
-            Map.of("bodyBgColor", darkThemeBodyBg, "bodyColor", darkThemeBodyColor, "emphasisColor",
-                darkThemeEmphasisColor, "textPrimaryColor", darkThemeTextPrimary, "textAccentColor",
-                darkThemeTextAccent)));
+  private Theme generateTheme() {
+    ThemeColors light = new ThemeColors(lightThemeBodyBg, lightThemeBodyColor,
+        lightThemeEmphasisColor, lightThemeTextPrimary, lightThemeTextAccent);
+
+    ThemeColors dark = new ThemeColors(darkThemeBodyBg, darkThemeBodyColor, darkThemeEmphasisColor,
+        darkThemeTextPrimary, darkThemeTextAccent);
+
+    return new Theme(light, dark);
   }
 
   @GET

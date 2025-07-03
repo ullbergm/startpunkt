@@ -32,30 +32,17 @@ public class BookmarkService {
   // Method to retrieve the list of bookmarks
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkSpec> retrieveBookmarks() {
-    Log.info("Retrieve Bookmarks");
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder().withGroup("startpunkt.ullberg.us")
+              .withVersion("v1alpha1").withPlural("bookmarks").withNamespaced(true).build();
 
-    final KubernetesClient client = new KubernetesClientBuilder().build();
-
-    // Define the resource context for Startpunkt bookmarks
-    ResourceDefinitionContext resourceDefinitionContext =
-        new ResourceDefinitionContext.Builder().withGroup("startpunkt.ullberg.us")
-            .withVersion("v1alpha1").withPlural("bookmarks").withNamespaced(true).build();
-
-    // Get the list of resources
-    GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
-
-    // Map the list of resources to a list of BookmarkSpec objects
-    return list.getItems().stream().map(item -> {
-      String name = getBookmarkName(item);
-      String url = getUrl(item);
-      String icon = getIcon(item);
-      String info = getInfo(item);
-      String group = getGroup(item);
-      Boolean targetBlank = getTargetBlank(item);
-      int location = getLocation(item);
-
-      return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
-    }).toList();
+      GenericKubernetesResourceList list = getResourceList(client, ctx);
+      return mapResourcesToBookmarks(list);
+    } catch (Exception e) {
+      Log.error("Error retrieving bookmarks", e);
+      return List.of();
+    }
   }
 
   // Method to get the list of resources from the Kubernetes cluster
@@ -67,40 +54,52 @@ public class BookmarkService {
 
     // For each specified namespace, get the resource
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
-    for (String namespace : matchNames) {
+    for (String ns : matchNames) {
       list.getItems().addAll(client.genericKubernetesResources(resourceDefinitionContext)
-          .inNamespace(namespace).list().getItems());
+          .inNamespace(ns).list().getItems());
     }
 
     return list;
   }
 
-  // Method to retrieve the list of Hajimari bookmarks
-  @Timed(value = "startpunkt.kubernetes.hajimari", description = "Get a list of hajimari bookmarks")
-  public List<BookmarkSpec> retrieveHajimariBookmarks() {
-    Log.info("Retrieve Hajimari Bookmarks");
-
-    final KubernetesClient client = new KubernetesClientBuilder().build();
-    // Define the resource context for Hajimari bookmarks
-    ResourceDefinitionContext resourceDefinitionContext =
-        new ResourceDefinitionContext.Builder().withGroup("hajimari.io").withVersion("v1alpha1")
-            .withPlural("bookmarks").withNamespaced(true).build();
-
-    // Get the list of resources
-    GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
-
-    // Map the list of resources to a list of BookmarkSpec objects
+  private List<BookmarkSpec> mapResourcesToBookmarks(GenericKubernetesResourceList list) {
     return list.getItems().stream().map(item -> {
-      String name = getBookmarkName(item);
-      String url = getUrl(item);
-      String icon = getIcon(item);
-      String info = getInfo(item);
-      String group = getGroup(item);
-      Boolean targetBlank = getTargetBlank(item);
-      int location = getLocation(item);
+      Map<String, Object> spec = getSpec(item);
+      String name = spec.getOrDefault("name", item.getMetadata().getName()).toString();
+      String url = (String) spec.get("url");
+      String icon = (String) spec.get("icon");
+      String info = (String) spec.get("info");
+      String group = (spec.containsKey("group") ? spec.get("group").toString()
+          : item.getMetadata().getNamespace()).toLowerCase();
+      Boolean targetBlank =
+          spec.containsKey("targetBlank") ? Boolean.parseBoolean(spec.get("targetBlank").toString())
+              : null;
+      int location =
+          spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
+      if (location == 0)
+        location = 1000;
 
       return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
     }).toList();
+  }
+
+
+
+  // Method to retrieve the list of Hajimari bookmarks
+  public List<BookmarkSpec> retrieveHajimariBookmarks() {
+    Log.info("Retrieve Hajimari Bookmarks");
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+      ResourceDefinitionContext resourceDefinitionContext =
+          new ResourceDefinitionContext.Builder().withGroup("hajimari.io").withVersion("v1alpha1")
+              .withPlural("bookmarks").withNamespaced(true).build();
+
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
+
+      return mapResourcesToBookmarks(list);
+    } catch (Exception e) {
+      Log.error("Error retrieving hajimari bookmarks", e);
+      return List.of();
+    }
   }
 
   public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpec> bookmarklist) {
@@ -132,9 +131,11 @@ public class BookmarkService {
 
   private Map<String, Object> getSpec(GenericKubernetesResource item) {
     Map<String, Object> props = item.getAdditionalProperties();
+    if (props == null)
+      return Map.of();
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
-    return spec;
+    return spec != null ? spec : Map.of();
   }
 
   // Helper method to get the URL of a bookmark from the resource

@@ -17,24 +17,28 @@ public class I8nService {
 
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
   public String getTranslation(String language) throws IOException {
-    // if the language does not match standard i8n format, log a warning and fall back to US English
-    InputStream translation;
+    String lang =
+        (language != null && language.matches("^[a-z]{2}(-[A-Z]{2})?$")) ? language : "en-US";
 
-    if (language.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
-      translation = getClass().getResourceAsStream("/i8n/" + language + ".json");
-    } else {
+    if (!lang.equals(language)) {
       Log.warn("Invalid language format, falling back to US English");
-      translation = getClass().getResourceAsStream("/i8n/en-US.json");
     }
 
-    // If the translation is not found, log a warning and fall back to the default
-    // language from the configuration
-    if (translation == null) {
-      Log.info("No translation found for language: " + language
-          + ", falling back to default language: " + defaultLanguage);
-      translation = getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json");
-    }
+    try (InputStream translation = getClass().getResourceAsStream("/i8n/" + lang + ".json")) {
+      if (translation == null) {
+        Log.info("No translation found for language: " + lang
+            + ", falling back to default language: " + defaultLanguage);
 
-    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+        try (InputStream fallback =
+            getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json")) {
+          if (fallback == null) {
+            Log.error("Fallback translation file not found: " + defaultLanguage + ".json");
+            throw new IOException("Translation files missing");
+          }
+          return new String(fallback.readAllBytes(), StandardCharsets.UTF_8);
+        }
+      }
+      return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+    }
   }
 }
