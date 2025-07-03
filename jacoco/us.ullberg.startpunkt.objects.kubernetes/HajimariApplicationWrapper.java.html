@@ -8,61 +8,106 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
  */
 public class HajimariApplicationWrapper extends BaseKubernetesObject {
 
-  // Constructor to initialize the custom resource with specific group, version, and plural kind
+  /**
+   * Constructs a wrapper for Hajimari application custom resources. Uses group &quot;hajimari.io&quot;,
+   * version &quot;v1alpha1&quot;, and plural &quot;applications&quot;.
+   */
   public HajimariApplicationWrapper() {
-<span class="fc" id="L13">    super(&quot;hajimari.io&quot;, &quot;v1alpha1&quot;, &quot;applications&quot;);</span>
-<span class="fc" id="L14">  }</span>
+<span class="fc" id="L16">    super(&quot;hajimari.io&quot;, &quot;v1alpha1&quot;, &quot;applications&quot;);</span>
+<span class="fc" id="L17">  }</span>
 
-  // Override getAppName since the spec has a required property called name
+  /**
+   * Gets the application name from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application name in lowercase
+   */
   @Override
   protected String getAppName(GenericKubernetesResource item) {
-<span class="nc" id="L19">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
+<span class="nc" id="L27">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
   }
 
-  // Override getAppGroup since the spec has a required property called group
+  /**
+   * Gets the application group from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application group in lowercase
+   */
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
-<span class="nc" id="L25">    return getSpec(item).get(&quot;group&quot;).toString().toLowerCase();</span>
+<span class="nc" id="L38">    return getSpec(item).get(&quot;group&quot;).toString().toLowerCase();</span>
   }
 
-  // Override getAppUrl since the spec has a required property called url
+  /**
+   * Gets the application URL from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application URL as string
+   */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="nc" id="L31">    return getSpec(item).get(&quot;url&quot;).toString();</span>
+<span class="nc" id="L49">    return getSpec(item).get(&quot;url&quot;).toString();</span>
   }
 
-  // Override getAppIcon since the spec has an optional property called icon
-  // If the icon is not set, return the super.getAppIcon response
+  /**
+   * Gets the application icon from the resource spec. Falls back to parent implementation if not
+   * set.
+   *
+   * @param item the Kubernetes resource
+   * @return icon URL or default value from super
+   */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="nc" id="L38">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+<span class="nc" id="L61">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
   }
 
+  /**
+   * Gets the application enabled status from the resource spec. Falls back to parent implementation
+   * if not set.
+   *
+   * @param item the Kubernetes resource
+   * @return true if app is enabled, otherwise value from super
+   */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="nc" id="L43">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+<span class="nc" id="L73">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
   }
 
-  // Override getAppInfo since the spec has an optional property called info
-  // If the info is not set, return the super.getAppInfo response
+  /**
+   * Gets additional application info from the resource spec. Falls back to parent implementation if
+   * not set.
+   *
+   * @param item the Kubernetes resource
+   * @return info text or default from super
+   */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="nc" id="L50">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+<span class="nc" id="L85">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
   }
 
-  // Override getAppTargetBlank since the spec has an optional property called targetBlank
-  // If the targetBlank is not set, return the super.getAppTargetBlank response
+  /**
+   * Gets whether the application should open in a new tab from the resource spec. Falls back to
+   * parent implementation if not set.
+   *
+   * @param item the Kubernetes resource
+   * @return true if targetBlank is set, otherwise value from super
+   */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="nc" id="L57">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+<span class="nc" id="L97">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
   }
 
-  // Override getAppLocation since the spec has an optional property called location
-  // If the location is not set, return the super.getAppLocation response
+  /**
+   * Gets the application location ordering value from the resource spec. Falls back to super if not
+   * set. If 0 is returned, substitutes 1000.
+   *
+   * @param item the Kubernetes resource
+   * @return location value for sorting
+   */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="nc" id="L64">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">    return location == 0 ? 1000 : location;</span>
+<span class="nc" id="L109">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    return location == 0 ? 1000 : location;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

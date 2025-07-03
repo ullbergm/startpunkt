@@ -3,10 +3,19 @@
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 
 /**
- * Represents a list of Bookmark custom resources. Extends DefaultKubernetesResourceList to provide
- * standard list behavior.
+ * Represents a list of {@link Bookmark} custom resources.
+ * Extends {@link DefaultKubernetesResourceList} to provide standard list behavior.
  */
-<span class="nc" id="L9">public class BookmarkList extends DefaultKubernetesResourceList&lt;Bookmark&gt; {</span>
+public class BookmarkList extends DefaultKubernetesResourceList&lt;Bookmark&gt; {
+
+  /**
+   * Creates an empty BookmarkList.
+   * Required to satisfy tools that enforce explicit constructor documentation.
+   */
+  public BookmarkList() {
+<span class="nc" id="L16">    super();</span>
+<span class="nc" id="L17">  }</span>
+
   // No additional implementation needed; inherits list behavior.
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

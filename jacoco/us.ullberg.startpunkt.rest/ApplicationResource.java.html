@@ -39,7 +39,7 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 @Path(&quot;/api/apps&quot;)
 @Tag(name = &quot;apps&quot;)
 @Produces(MediaType.APPLICATION_JSON)
-<span class="fc" id="L42">public class ApplicationResource {</span>
+public class ApplicationResource {
   // Configuration properties for enabling different types of application wrappers
 <span class="fc" id="L44">  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;, defaultValue = &quot;false&quot;)</span>
   private boolean hajimariEnabled = false;
@@ -71,44 +71,51 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 <span class="fc" id="L71">  @ConfigProperty(name = &quot;startpunkt.defaultProtocol&quot;, defaultValue = &quot;http&quot;)</span>
   private String defaultProtocol = &quot;http&quot;;
 
+  /**
+   * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
+   */
+  public ApplicationResource() {
+<span class="fc" id="L78">    super();</span>
+<span class="fc" id="L79">  }</span>
+
   // Method to retrieve the list of applications
   private ArrayList&lt;ApplicationSpec&gt; retrieveApps() {
     // Create a list of application wrappers to retrieve applications from
-<span class="fc" id="L77">    var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
-<span class="fc" id="L78">    applicationWrappers.add(new StartpunktApplicationWrapper());</span>
+<span class="fc" id="L84">    var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
+<span class="fc" id="L85">    applicationWrappers.add(new StartpunktApplicationWrapper());</span>
 
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="fc" id="L81">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L88">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
     }
 
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (openshiftEnabled) {</span>
-<span class="fc" id="L85">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (openshiftEnabled) {</span>
+<span class="fc" id="L92">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
     }
 
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (ingressEnabled) {</span>
-<span class="fc" id="L89">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    if (ingressEnabled) {</span>
+<span class="fc" id="L96">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
     }
 
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
-<span class="fc" id="L93">      applicationWrappers.add(</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
+<span class="fc" id="L100">      applicationWrappers.add(</span>
           new IstioVirtualServiceApplicationWrapper(
               istioVirtualServiceOnlyAnnotated, defaultProtocol));
     }
 
     // Create a list of applications
-<span class="fc" id="L99">    var apps = new ArrayList&lt;ApplicationSpec&gt;();</span>
+<span class="fc" id="L106">    var apps = new ArrayList&lt;ApplicationSpec&gt;();</span>
 
     // Retrieve the applications from the application wrappers
-<span class="fc" id="L102">    final KubernetesClient client = new KubernetesClientBuilder().build();</span>
-<span class="fc bfc" id="L103" title="All 2 branches covered.">    for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
-<span class="fc" id="L104">      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L109">    final KubernetesClient client = new KubernetesClientBuilder().build();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
+<span class="fc" id="L111">      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));</span>
+<span class="fc" id="L112">    }</span>
 
     // Sort the list of applications
-<span class="fc" id="L108">    Collections.sort(apps);</span>
+<span class="fc" id="L115">    Collections.sort(apps);</span>
 
     // Return the list of applications
-<span class="fc" id="L111">    return apps;</span>
+<span class="fc" id="L118">    return apps;</span>
   }
 
   /**
@@ -134,13 +141,13 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
   public Response getApp(
       @PathParam(&quot;groupName&quot;) String groupName, @PathParam(&quot;appName&quot;) String appName) {
     // Find the application with the specified name
-<span class="fc bfc" id="L137" title="All 2 branches covered.">    for (ApplicationSpec a : retrieveApps()) {</span>
-<span class="fc bfc" id="L138" title="All 4 branches covered.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
-<span class="fc" id="L139">        return Response.ok(a).build();</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">    for (ApplicationSpec a : retrieveApps()) {</span>
+<span class="fc bfc" id="L145" title="All 4 branches covered.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
+<span class="fc" id="L146">        return Response.ok(a).build();</span>
       }
-<span class="fc" id="L141">    }</span>
+<span class="fc" id="L148">    }</span>
 
-<span class="fc" id="L143">    return Response.status(404, &quot;No application found&quot;).build();</span>
+<span class="fc" id="L150">    return Response.status(404, &quot;No application found&quot;).build();</span>
   }
 
   /**
@@ -162,38 +169,38 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
   @CacheResult(cacheName = &quot;getApps&quot;)
   public Response getApps() {
     // Retrieve the list of applications
-<span class="fc" id="L165">    ArrayList&lt;ApplicationSpec&gt; applist = retrieveApps();</span>
+<span class="fc" id="L172">    ArrayList&lt;ApplicationSpec&gt; applist = retrieveApps();</span>
 
     // Create a list to store application groups
-<span class="fc" id="L168">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L175">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
 
     // Group the applications by their group property
-<span class="fc bfc" id="L171" title="All 2 branches covered.">    for (ApplicationSpec a : applist) {</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">    for (ApplicationSpec a : applist) {</span>
       // Find the group
-<span class="fc" id="L173">      ApplicationGroup group = null;</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">      for (ApplicationGroup g : groups) {</span>
-<span class="fc bfc" id="L175" title="All 2 branches covered.">        if (g.getName().equals(a.getGroup())) {</span>
-<span class="fc" id="L176">          group = g;</span>
-<span class="fc" id="L177">          break;</span>
+<span class="fc" id="L180">      ApplicationGroup group = null;</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">      for (ApplicationGroup g : groups) {</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (g.getName().equals(a.getGroup())) {</span>
+<span class="fc" id="L183">          group = g;</span>
+<span class="fc" id="L184">          break;</span>
         }
-<span class="fc" id="L179">      }</span>
+<span class="fc" id="L186">      }</span>
 
       // If the group doesn't exist, create it
-<span class="fc bfc" id="L182" title="All 2 branches covered.">      if (group == null) {</span>
-<span class="fc" id="L183">        group = new ApplicationGroup(a.getGroup());</span>
-<span class="fc" id="L184">        groups.add(group);</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">      if (group == null) {</span>
+<span class="fc" id="L190">        group = new ApplicationGroup(a.getGroup());</span>
+<span class="fc" id="L191">        groups.add(group);</span>
       }
 
       // Add the application to the group
-<span class="fc" id="L188">      group.addApplication(a);</span>
-<span class="fc" id="L189">    }</span>
+<span class="fc" id="L195">      group.addApplication(a);</span>
+<span class="fc" id="L196">    }</span>
 
-<span class="pc bpc" id="L191" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
-<span class="nc" id="L192">      return Response.status(404, &quot;No applications found&quot;).build();</span>
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
+<span class="nc" id="L199">      return Response.status(404, &quot;No applications found&quot;).build();</span>
     }
 
     // Return the list of application groups
-<span class="fc" id="L196">    return Response.ok(new ApplicationGroupList(groups)).build();</span>
+<span class="fc" id="L203">    return Response.ok(new ApplicationGroupList(groups)).build();</span>
   }
 
   /**
@@ -209,8 +216,8 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L212">    Log.debug(&quot;Ping Application Resource&quot;);</span>
-<span class="fc" id="L213">    return &quot;Pong from Application Resource&quot;;</span>
+<span class="fc" id="L219">    Log.debug(&quot;Ping Application Resource&quot;);</span>
+<span class="fc" id="L220">    return &quot;Pong from Application Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

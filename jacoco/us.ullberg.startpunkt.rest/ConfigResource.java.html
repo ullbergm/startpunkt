@@ -23,19 +23,28 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = &quot;config&quot;)
 @Produces(MediaType.APPLICATION_JSON)
 <span class="fc" id="L25">public class ConfigResource {</span>
+
+  /** Indicates whether the GitHub link should be shown in the UI. */
   @ConfigProperty(name = &quot;startpunkt.web.githubLink.enabled&quot;, defaultValue = &quot;true&quot;)
   public boolean showGithubLink;
 
+  /** Indicates whether the application should check for updates. */
   @ConfigProperty(name = &quot;startpunkt.web.checkForUpdates&quot;, defaultValue = &quot;true&quot;)
   public boolean checkForUpdates;
 
+  /** Title of the application as shown in the UI. */
   @ConfigProperty(name = &quot;startpunkt.web.title&quot;, defaultValue = &quot;Startpunkt&quot;)
   public String title;
 
+  /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = &quot;quarkus.application.version&quot;, defaultValue = &quot;0&quot;)
   public String version;
 
-  // GET endpoint to retrieve the list of bookmarks
+  /**
+   * Retrieves the current application configuration.
+   *
+   * @return HTTP 200 response containing the configuration as JSON
+   */
   @GET
   @Operation(summary = &quot;Returns the configuration&quot;)
   @APIResponse(
@@ -46,26 +55,35 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
               mediaType = MediaType.APPLICATION_JSON,
               schema = @Schema(implementation = Map.class, required = true)))
   public Response getConfig() {
-<span class="fc" id="L49">    return Response.ok(generateConfig()).build();</span>
+<span class="fc" id="L58">    return Response.ok(generateConfig()).build();</span>
   }
 
+  /**
+   * Assembles the application configuration into a structured map.
+   *
+   * @return a map representing the config payload
+   */
   private Map&lt;String, Object&gt; generateConfig() {
-    // Create a response with the configuration value
-<span class="fc" id="L54">    return Map.of(</span>
+<span class="fc" id="L67">    return Map.of(</span>
         &quot;config&quot;,
-<span class="fc" id="L56">        Map.of(</span>
+<span class="fc" id="L69">        Map.of(</span>
             &quot;version&quot;,
             version,
             &quot;web&quot;,
-<span class="fc" id="L60">            Map.of(</span>
+<span class="fc" id="L73">            Map.of(</span>
                 &quot;showGithubLink&quot;,
-<span class="fc" id="L62">                showGithubLink,</span>
+<span class="fc" id="L75">                showGithubLink,</span>
                 &quot;checkForUpdates&quot;,
-<span class="fc" id="L64">                checkForUpdates,</span>
+<span class="fc" id="L77">                checkForUpdates,</span>
                 &quot;title&quot;,
                 title)));
   }
 
+  /**
+   * Health check endpoint for the config resource.
+   *
+   * @return plain text &quot;Pong from Config Resource&quot;
+   */
   @GET
   @Path(&quot;/ping&quot;)
   @Produces(MediaType.TEXT_PLAIN)
@@ -74,8 +92,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L77">    Log.debug(&quot;Ping Config Resource&quot;);</span>
-<span class="fc" id="L78">    return &quot;Pong from Config Resource&quot;;</span>
+<span class="fc" id="L95">    Log.debug(&quot;Ping Config Resource&quot;);</span>
+<span class="fc" id="L96">    return &quot;Pong from Config Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -6,8 +6,16 @@ import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
  * Represents a list of {@link Application} custom resources. Extends DefaultKubernetesResourceList
  * to provide type safety for collections of Application objects.
  */
-<span class="nc" id="L9">public class ApplicationList extends DefaultKubernetesResourceList&lt;Application&gt; {</span>
+public class ApplicationList extends DefaultKubernetesResourceList&lt;Application&gt; {
   // No additional fields or methods are defined,
   // this class simply serves as a type-safe list for Application custom resources
+
+  /**
+   * Creates an empty ApplicationList. Required to suppress warnings about the implicit default
+   * constructor.
+   */
+  public ApplicationList() {
+<span class="nc" id="L18">    super();</span>
+<span class="nc" id="L19">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

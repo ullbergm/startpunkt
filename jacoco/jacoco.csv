@@ -1,11 +1,11 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 startpunkt,us.ullberg.startpunkt.crd,BookmarkStatus,3,0,0,0,1,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd,Application,70,3,4,0,17,2,6,1,4,1
-startpunkt,us.ullberg.startpunkt.crd,ApplicationStatus,3,0,0,0,1,0,1,0,1,0
+startpunkt,us.ullberg.startpunkt.crd,ApplicationStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd,BookmarkSpec,220,96,55,3,30,37,31,18,3,17
-startpunkt,us.ullberg.startpunkt.crd,ApplicationSpec,280,116,71,3,34,45,39,22,3,21
-startpunkt,us.ullberg.startpunkt.crd,BookmarkList,3,0,0,0,1,0,1,0,1,0
-startpunkt,us.ullberg.startpunkt.crd,ApplicationList,3,0,0,0,1,0,1,0,1,0
+startpunkt,us.ullberg.startpunkt.crd,ApplicationSpec,281,116,73,3,36,45,40,22,3,21
+startpunkt,us.ullberg.startpunkt.crd,BookmarkList,3,0,0,0,2,0,1,0,1,0
+startpunkt,us.ullberg.startpunkt.crd,ApplicationList,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd,Bookmark,68,3,4,0,17,1,6,1,4,1
 startpunkt,us.ullberg.startpunkt.health,PingThemeResourceHealthCheck,38,0,0,0,16,0,3,0,3,0
 startpunkt,us.ullberg.startpunkt.health,PingI8nResourceHealthCheck,38,0,0,0,15,0,3,0,3,0
@@ -17,7 +17,7 @@ startpunkt,us.ullberg.startpunkt.rest,ThemeResource,0,46,0,0,0,7,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,BookmarkResource,5,54,2,2,1,16,2,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,ConfigResource,0,32,0,0,0,9,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,I8nResource,12,35,0,0,4,11,0,4,0,4
-startpunkt,us.ullberg.startpunkt.rest,ApplicationResource,5,215,5,21,1,49,5,13,0,5
+startpunkt,us.ullberg.startpunkt.rest,ApplicationResource,5,215,5,21,1,50,5,13,0,5
 startpunkt,us.ullberg.startpunkt.rest,ThemeColors,23,33,0,0,11,12,6,6,6,6
 startpunkt,us.ullberg.startpunkt.rest,Theme,11,15,0,0,5,6,3,3,3,3
 startpunkt,us.ullberg.startpunkt.objects,BookmarkGroupList,17,13,3,1,5,4,5,2,3,2

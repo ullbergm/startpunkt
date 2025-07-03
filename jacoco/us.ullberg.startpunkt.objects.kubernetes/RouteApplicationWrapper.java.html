@@ -11,42 +11,51 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
  */
 public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
-  // Field to indicate if only annotated objects should be processed
+  /** Indicates whether only annotated objects should be processed. */
   private final boolean onlyAnnotated;
 
-  // Constructor to initialize the RouteApplicationWrapper with specific group, version, and plural
-  // kind
-  // Also initializes the onlyAnnotated field
+  /**
+   * Constructs a RouteApplicationWrapper for OpenShift Routes.
+   *
+   * @param onlyAnnotated if true, only annotated routes will be considered when extracting specs
+   */
   public RouteApplicationWrapper(boolean onlyAnnotated) {
-<span class="fc" id="L21">    super(&quot;route.openshift.io&quot;, &quot;v1&quot;, &quot;routes&quot;);</span>
-<span class="fc" id="L22">    this.onlyAnnotated = onlyAnnotated;</span>
-<span class="fc" id="L23">  }</span>
+<span class="fc" id="L23">    super(&quot;route.openshift.io&quot;, &quot;v1&quot;, &quot;routes&quot;);</span>
+<span class="fc" id="L24">    this.onlyAnnotated = onlyAnnotated;</span>
+<span class="fc" id="L25">  }</span>
 
-  // Override method to get the application URL from the route's spec
+  /**
+   * Extracts the application URL from the Route's spec. Builds a URL using the protocol
+   * (http/https), host, and path fields.
+   *
+   * @param item the Kubernetes resource representing the route
+   * @return the constructed application URL
+   */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="nc" id="L28">    var spec = getSpec(item);</span>
+<span class="nc" id="L36">    var spec = getSpec(item);</span>
 
-    // Determine the protocol based on whether 'tls' is present in the spec
-<span class="nc bnc" id="L31" title="All 2 branches missed.">    String protocol = spec.containsKey(&quot;tls&quot;) ? &quot;https://&quot; : &quot;http://&quot;;</span>
-    // Get the host from the spec, default to &quot;localhost&quot; if not present
-<span class="nc bnc" id="L33" title="All 2 branches missed.">    String host = spec.containsKey(&quot;host&quot;) ? spec.get(&quot;host&quot;).toString() : &quot;localhost&quot;;</span>
-    // Get the path from the spec, default to an empty string if not present
-<span class="nc bnc" id="L35" title="All 2 branches missed.">    String path = spec.containsKey(&quot;path&quot;) ? spec.get(&quot;path&quot;).toString() : &quot;&quot;;</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">    String protocol = spec.containsKey(&quot;tls&quot;) ? &quot;https://&quot; : &quot;http://&quot;;</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    String host = spec.containsKey(&quot;host&quot;) ? spec.get(&quot;host&quot;).toString() : &quot;localhost&quot;;</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    String path = spec.containsKey(&quot;path&quot;) ? spec.get(&quot;path&quot;).toString() : &quot;&quot;;</span>
 
-    // Construct and return the full URL
-<span class="nc" id="L38">    return protocol + host + path;</span>
+<span class="nc" id="L42">    return protocol + host + path;</span>
   }
 
-  // Override method to get a list of ApplicationSpec objects
+  /**
+   * Retrieves a list of {@link ApplicationSpec} objects from OpenShift Route resources. Applies
+   * filtering based on annotation settings.
+   *
+   * @param client the Kubernetes client
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames a list of route names to match
+   * @return a list of ApplicationSpec objects, possibly filtered to only annotated ones
+   */
   @Override
   public List&lt;ApplicationSpec&gt; getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-    // Get the application specs from the parent class
-<span class="fc" id="L46">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
-
-    // If onlyAnnotated is true, filter the list to include only enabled applications
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+<span class="fc" id="L57">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

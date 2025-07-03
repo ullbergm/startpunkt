@@ -9,7 +9,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * &lt;p&gt;Non-empty JSON properties are included in serialization.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-<span class="nc" id="L12">public class ApplicationStatus {</span>
-  // This class is currently empty, but it can be extended to include status fields
+public class ApplicationStatus {
+  // This class is currently empty, but it can be extended to include status fields 
+  /**
+   * Creates an empty ApplicationStatus.
+   * Explicit constructor provided for clarity and documentation compliance.
+   */
+  public ApplicationStatus() {
+<span class="nc" id="L19">    super();</span>
+<span class="nc" id="L20">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -5,10 +5,15 @@
  * light and dark modes.
  */
 public class Theme {
+
+  /** Color scheme used in light mode. */
   private ThemeColors light;
+
+  /** Color scheme used in dark mode. */
   private ThemeColors dark;
 
-<span class="nc" id="L11">  public Theme() {}</span>
+  /** Default constructor for frameworks and serialization. */
+<span class="nc" id="L16">  public Theme() {}</span>
 
   /**
    * Constructs a Theme with specified light and dark color schemes.
@@ -16,25 +21,45 @@ public class Theme {
    * @param light the color scheme for light mode
    * @param dark the color scheme for dark mode
    */
-<span class="fc" id="L19">  public Theme(ThemeColors light, ThemeColors dark) {</span>
-<span class="fc" id="L20">    this.light = light;</span>
-<span class="fc" id="L21">    this.dark = dark;</span>
-<span class="fc" id="L22">  }</span>
+<span class="fc" id="L24">  public Theme(ThemeColors light, ThemeColors dark) {</span>
+<span class="fc" id="L25">    this.light = light;</span>
+<span class="fc" id="L26">    this.dark = dark;</span>
+<span class="fc" id="L27">  }</span>
 
+  /**
+   * Gets the color scheme used for light mode.
+   *
+   * @return the light mode color scheme
+   */
   public ThemeColors getLight() {
-<span class="fc" id="L25">    return light;</span>
+<span class="fc" id="L35">    return light;</span>
   }
 
+  /**
+   * Sets the color scheme used for light mode.
+   *
+   * @param light the light mode color scheme
+   */
   public void setLight(ThemeColors light) {
-<span class="nc" id="L29">    this.light = light;</span>
-<span class="nc" id="L30">  }</span>
+<span class="nc" id="L44">    this.light = light;</span>
+<span class="nc" id="L45">  }</span>
 
+  /**
+   * Gets the color scheme used for dark mode.
+   *
+   * @return the dark mode color scheme
+   */
   public ThemeColors getDark() {
-<span class="fc" id="L33">    return dark;</span>
+<span class="fc" id="L53">    return dark;</span>
   }
 
+  /**
+   * Sets the color scheme used for dark mode.
+   *
+   * @param dark the dark mode color scheme
+   */
   public void setDark(ThemeColors dark) {
-<span class="nc" id="L37">    this.dark = dark;</span>
-<span class="nc" id="L38">  }</span>
+<span class="nc" id="L62">    this.dark = dark;</span>
+<span class="nc" id="L63">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

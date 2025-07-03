@@ -27,6 +27,7 @@ import us.ullberg.startpunkt.service.I8nService;
 @Produces(MediaType.APPLICATION_JSON)
 public class I8nResource {
 
+  /** Internationalization service that provides translation content. */
   I8nService i8nService;
 
   /**
@@ -34,9 +35,9 @@ public class I8nResource {
    *
    * @param i8nService the internationalization service
    */
-<span class="fc" id="L37">  public I8nResource(I8nService i8nService) {</span>
-<span class="fc" id="L38">    this.i8nService = i8nService;</span>
-<span class="fc" id="L39">  }</span>
+<span class="fc" id="L38">  public I8nResource(I8nService i8nService) {</span>
+<span class="fc" id="L39">    this.i8nService = i8nService;</span>
+<span class="fc" id="L40">  }</span>
 
   /**
    * Retrieves the translation JSON for the specified language.
@@ -49,7 +50,7 @@ public class I8nResource {
   @Operation(summary = &quot;Returns a translation&quot;)
   @APIResponse(
       responseCode = &quot;200&quot;,
-      description = &quot;Gets an translation&quot;,
+      description = &quot;Gets a translation&quot;,
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
@@ -61,15 +62,11 @@ public class I8nResource {
   @CacheResult(cacheName = &quot;getTranslation&quot;)
   public Response getTranslation(@PathParam(&quot;language&quot;) String language) {
     try {
-<span class="fc" id="L64">      String translation = i8nService.getTranslation(language);</span>
-
-      // Log the translation
-<span class="fc" id="L67">      Log.debug(&quot;Translation for language &quot; + language + &quot;:&quot; + translation);</span>
-
-      // Return the translation as a string
-<span class="fc" id="L70">      return Response.ok(translation).build();</span>
-<span class="nc" id="L71">    } catch (IOException e) {</span>
-<span class="nc" id="L72">      return Response.status(404, &quot;No translation found&quot;).build();</span>
+<span class="fc" id="L65">      String translation = i8nService.getTranslation(language);</span>
+<span class="fc" id="L66">      Log.debug(&quot;Translation for language &quot; + language + &quot;:&quot; + translation);</span>
+<span class="fc" id="L67">      return Response.ok(translation).build();</span>
+<span class="nc" id="L68">    } catch (IOException e) {</span>
+<span class="nc" id="L69">      return Response.status(404, &quot;No translation found&quot;).build();</span>
     }
   }
 
@@ -93,20 +90,20 @@ public class I8nResource {
       description = &quot;Get the translation for the default language&quot;)
   @CacheResult(cacheName = &quot;getDefaultTranslation&quot;)
   public Response getDefaultTranslation() {
-    String translation;
     try {
-<span class="fc" id="L98">      translation = i8nService.getTranslation(&quot;en-US&quot;);</span>
-
-      // Log the translation
-<span class="fc" id="L101">      Log.debug(&quot;Default translation:&quot; + translation);</span>
-
-      // Return the translation as a string
-<span class="fc" id="L104">      return Response.ok(translation).build();</span>
-<span class="nc" id="L105">    } catch (IOException e) {</span>
-<span class="nc" id="L106">      return Response.status(404, &quot;No translation found&quot;).build();</span>
+<span class="fc" id="L94">      String translation = i8nService.getTranslation(&quot;en-US&quot;);</span>
+<span class="fc" id="L95">      Log.debug(&quot;Default translation:&quot; + translation);</span>
+<span class="fc" id="L96">      return Response.ok(translation).build();</span>
+<span class="nc" id="L97">    } catch (IOException e) {</span>
+<span class="nc" id="L98">      return Response.status(404, &quot;No translation found&quot;).build();</span>
     }
   }
 
+  /**
+   * Health check endpoint to verify the I8n resource is reachable.
+   *
+   * @return plain text response &quot;Pong from I8n Resource&quot;
+   */
   @GET
   @Path(&quot;/ping&quot;)
   @Produces(MediaType.TEXT_PLAIN)
@@ -115,8 +112,8 @@ public class I8nResource {
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L118">    Log.debug(&quot;Ping I8n Resource&quot;);</span>
-<span class="fc" id="L119">    return &quot;Pong from I8n Resource&quot;;</span>
+<span class="fc" id="L115">    Log.debug(&quot;Ping I8n Resource&quot;);</span>
+<span class="fc" id="L116">    return &quot;Pong from I8n Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
