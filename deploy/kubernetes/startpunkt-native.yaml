@@ -207,6 +207,9 @@ rules:
   - apiGroups: [forecastle.stakater.com]
     resources: [forecastleapps]
     verbs: [get, list]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [httproutes]
+    verbs: [get, list]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
