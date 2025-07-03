@@ -10,23 +10,30 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Class representing a group of applications
 @RegisterForReflection(registerFullHierarchy = true)
-public class ApplicationGroup implements Comparable<ApplicationGroup> {
+public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   // Private fields
   private String name;
   private LinkedList<ApplicationSpec> applications;
 
+  // For deserialization
+  public ApplicationGroup() {
+    this.applications = new LinkedList<>();
+  }
+
   // Constructor to initialize the ApplicationGroup with a name
   public ApplicationGroup(String name) {
-    this.name = name;
-    applications = new LinkedList<>();
+    this(name, new LinkedList<>());
   }
 
   // Constructor to initialize the ApplicationGroup with a name and a list of
   // applications
   public ApplicationGroup(String name, List<ApplicationSpec> applications) {
+    if (name == null || name.isBlank()) {
+      throw new IllegalArgumentException("ApplicationGroup name cannot be null or empty");
+    }
     this.name = name;
-    this.applications = (LinkedList<ApplicationSpec>) applications;
+    this.applications = applications != null ? new LinkedList<>(applications) : new LinkedList<>();
   }
 
   // Getter method for the name field with JSON property annotation
@@ -35,10 +42,18 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
     return name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
+
   // Getter method for the applications field with JSON property annotation
   @JsonProperty("applications")
   public List<ApplicationSpec> getApplications() {
-    return applications;
+    return List.copyOf(applications);
+  }
+
+  public void setApplications(List<ApplicationSpec> applications) {
+    this.applications = applications != null ? new LinkedList<>(applications) : new LinkedList<>();
   }
 
   // Override compareTo method to compare ApplicationGroup objects by name
@@ -70,6 +85,13 @@ public class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   // Method to add an application to the applications list
   public void addApplication(ApplicationSpec app) {
+    if (app == null)
+      throw new IllegalArgumentException("Application cannot be null");
     applications.add(app);
+  }
+
+  @Override
+  public String toString() {
+    return "ApplicationGroup{name='" + name + "', applications=" + applications + '}';
   }
 }

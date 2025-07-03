@@ -19,8 +19,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
   // Override getAppGroup since the spec has a required property called group
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
-    var spec = getSpec(item);
-    return spec.get("group").toString().toLowerCase();
+    return getSpec(item).get("group").toString().toLowerCase();
   }
 
   // Override getAppUrl since the spec has a required property called url
@@ -33,54 +32,33 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
   // If the icon is not set, return the super.getAppIcon response
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-    var spec = getSpec(item);
+    return getOptionalSpecString(item, "icon", super.getAppIcon(item));
+  }
 
-    if (spec.containsKey("icon"))
-      return spec.get("icon").toString();
-
-    return super.getAppIcon(item);
+  @Override
+  protected Boolean getAppEnabled(GenericKubernetesResource item) {
+    return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
   }
 
   // Override getAppInfo since the spec has an optional property called info
   // If the info is not set, return the super.getAppInfo response
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-    var spec = getSpec(item);
-
-    if (spec.containsKey("info"))
-      return spec.get("info").toString();
-
-    return super.getAppInfo(item);
+    return getOptionalSpecString(item, "info", super.getAppInfo(item));
   }
 
   // Override getAppTargetBlank since the spec has an optional property called targetBlank
   // If the targetBlank is not set, return the super.getAppTargetBlank response
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-    var spec = getSpec(item);
-
-    if (spec.containsKey("targetBlank"))
-      return Boolean.parseBoolean(spec.get("targetBlank").toString());
-
-    return super.getAppTargetBlank(item);
+    return getOptionalSpecBoolean(item, "targetBlank", super.getAppTargetBlank(item));
   }
 
   // Override getAppLocation since the spec has an optional property called location
   // If the location is not set, return the super.getAppLocation response
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-    var spec = getSpec(item);
-
-    if (spec.containsKey("location")) {
-      var location = Integer.parseInt(spec.get("location").toString());
-
-      // Backwards compatibility for location 0
-      if (location == 0)
-        return 1000;
-
-      return location;
-    }
-
-    return super.getAppLocation(item);
+    int location = getOptionalSpecInteger(item, "location", super.getAppLocation(item));
+    return location == 0 ? 1000 : location;
   }
 }

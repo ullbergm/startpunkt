@@ -8,14 +8,28 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection(registerFullHierarchy = true)
 public class BookmarkGroupList {
-  private List<BookmarkGroup> list;
+  private List<BookmarkGroup> groups;
 
-  public BookmarkGroupList(List<BookmarkGroup> list) {
-    this.list = list;
+  public BookmarkGroupList() {
+    // default constructor for deserialization
+  }
+
+  public BookmarkGroupList(List<BookmarkGroup> groups) {
+    this.groups = groups;
   }
 
   @JsonProperty("groups")
-  public List<BookmarkGroup> groups() {
-    return list;
+  public List<BookmarkGroup> getGroups() {
+    return groups != null ? groups : List.of();
+  }
+
+  @JsonProperty("groups")
+  public void setGroups(List<BookmarkGroup> groups) {
+    this.groups = groups != null ? groups : List.of();
+  }
+
+  @Override
+  public String toString() {
+    return "BookmarkGroupList{groups=" + groups + '}';
   }
 }

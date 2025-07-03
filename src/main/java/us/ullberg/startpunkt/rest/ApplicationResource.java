@@ -2,6 +2,7 @@ package us.ullberg.startpunkt.rest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -64,7 +65,7 @@ public class ApplicationResource {
   private boolean anyNamespace;
 
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
-  private String[] matchNames;
+  private List<String> matchNames;
 
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";

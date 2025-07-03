@@ -1,5 +1,7 @@
 package us.ullberg.startpunkt.objects;
 
+import java.util.Collections;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,14 +20,22 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Constructor to initialize the BookmarkGroup with a name
   public BookmarkGroup(String name) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("BookmarkGroup name cannot be null or empty");
+    }
+
     this.name = name;
     bookmarks = new LinkedList<>();
   }
 
   // Constructor to initialize the BookmarkGroup with a name and a list of bookmarks
   public BookmarkGroup(String name, List<BookmarkSpec> bookmarks) {
+    if (name == null || name.trim().isEmpty()) {
+      throw new IllegalArgumentException("BookmarkGroup name cannot be null or empty");
+    }
+
     this.name = name;
-    this.bookmarks = (LinkedList<BookmarkSpec>) bookmarks;
+    this.bookmarks = bookmarks != null ? new LinkedList<>(bookmarks) : new LinkedList<>();
   }
 
   // Getter method for the name field with JSON property annotation
@@ -37,7 +47,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
   // Getter method for the bookmarks field with JSON property annotation
   @JsonProperty("bookmarks")
   public List<BookmarkSpec> getBookmarks() {
-    return bookmarks;
+    return Collections.unmodifiableList(bookmarks);
   }
 
   // Override compareTo method to compare BookmarkGroup objects by name
@@ -69,6 +79,14 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   // Method to add a bookmark to the bookmarks list
   public void addBookmark(BookmarkSpec bookmark) {
+    if (bookmark == null)
+      throw new IllegalArgumentException("Bookmark cannot be null");
+
     bookmarks.add(bookmark);
+  }
+
+  @Override
+  public String toString() {
+    return "BookmarkGroup{name='" + name + "', bookmarks=" + bookmarks + '}';
   }
 }

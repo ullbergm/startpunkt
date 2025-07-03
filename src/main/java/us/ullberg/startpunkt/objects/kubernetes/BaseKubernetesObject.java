@@ -44,12 +44,12 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
 
   // Method to get a list of GenericKubernetesResource objects
   protected GenericKubernetesResourceList getGenericKubernetesResources(KubernetesClient client,
-      Boolean anyNamespace, String[] matchNames) {
+      boolean anyNamespace, List<String> matchNames) {
     ResourceDefinitionContext resourceDefinitionContext = getResourceDefinitionContext();
 
     try {
       // If anyNamespace is true, list resources in all namespaces
-      if (Boolean.TRUE.equals(anyNamespace)) {
+      if (anyNamespace) {
         return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
       }
 
@@ -69,23 +69,16 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
   }
 
   // Method to get a list of ApplicationSpec objects
-  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, Boolean anyNamespace,
-      String[] matchNames) {
+  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, boolean anyNamespace,
+      List<String> matchNames) {
     return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()
-        .map(item -> {
-          String appName = getAppName(item);
-          String appGroup = getAppGroup(item);
-          String appUrl = getAppUrl(item);
-          String appIcon = getAppIcon(item);
-          String appIconColor = getAppIconColor(item);
-          String appInfo = getAppInfo(item);
-          Boolean appTargetBlank = getAppTargetBlank(item);
-          int appLocation = getAppLocation(item);
-          Boolean appEnabled = getAppEnabled(item);
+        .map(this::mapToApplicationSpec).toList();
+  }
 
-          return new ApplicationSpec(appName, appGroup, appIcon, appIconColor, appUrl, appInfo,
-              appTargetBlank, appLocation, appEnabled);
-        }).toList();
+  protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item) {
+    return new ApplicationSpec(getAppName(item), getAppGroup(item), getAppIcon(item),
+        getAppIconColor(item), getAppUrl(item), getAppInfo(item), getAppTargetBlank(item),
+        getAppLocation(item), getAppEnabled(item));
   }
 
   // Method to get annotations from a GenericKubernetesResource object
@@ -163,7 +156,7 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
    * @return
    */
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-    return null;
+    return false;
   }
 
   // Method to get the application location from a GenericKubernetesResource
@@ -184,7 +177,7 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
    */
   @Nullable
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-    return null;
+    return false;
   }
 
   // Default method to get the application protocol from a
@@ -195,5 +188,23 @@ public abstract class BaseKubernetesObject implements IKubernetesObject {
    */
   protected String getAppProtocol(GenericKubernetesResource item) {
     return null;
+  }
+
+  protected String getOptionalSpecString(GenericKubernetesResource item, String key,
+      String fallback) {
+    var spec = getSpec(item);
+    return spec.containsKey(key) ? spec.get(key).toString() : fallback;
+  }
+
+  protected Boolean getOptionalSpecBoolean(GenericKubernetesResource item, String key,
+      Boolean fallback) {
+    var spec = getSpec(item);
+    return spec.containsKey(key) ? Boolean.parseBoolean(spec.get(key).toString()) : fallback;
+  }
+
+  protected Integer getOptionalSpecInteger(GenericKubernetesResource item, String key,
+      Integer fallback) {
+    var spec = getSpec(item);
+    return spec.containsKey(key) ? Integer.parseInt(spec.get(key).toString()) : fallback;
   }
 }

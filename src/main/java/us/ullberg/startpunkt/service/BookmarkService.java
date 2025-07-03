@@ -12,7 +12,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
-import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.logging.Log;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -31,7 +30,6 @@ public class BookmarkService {
   private String[] matchNames;
 
   // Method to retrieve the list of bookmarks
-  @WithSpan("BookmarkService.retrieveBookmarks")
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkSpec> retrieveBookmarks() {
     Log.info("Retrieve Bookmarks");
@@ -78,7 +76,6 @@ public class BookmarkService {
   }
 
   // Method to retrieve the list of Hajimari bookmarks
-  @WithSpan("BookmarkService.retrieveHajimariBookmarks")
   @Timed(value = "startpunkt.kubernetes.hajimari", description = "Get a list of hajimari bookmarks")
   public List<BookmarkSpec> retrieveHajimariBookmarks() {
     Log.info("Retrieve Hajimari Bookmarks");

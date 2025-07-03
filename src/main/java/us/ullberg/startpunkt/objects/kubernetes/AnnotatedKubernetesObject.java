@@ -1,6 +1,9 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Abstract class representing a Kubernetes object with annotations
 public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
@@ -182,5 +185,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
 
     // If no annotation matches, return the super class' getAppProtocol method
     return super.getAppProtocol(item);
+  }
+
+  protected List<ApplicationSpec> filterEnabled(List<ApplicationSpec> specs) {
+    return specs.stream().filter(app -> Boolean.TRUE.equals(app.getEnabled())).toList();
   }
 }

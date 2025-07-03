@@ -7,20 +7,29 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 
 // Interface defining methods for Kubernetes objects
 interface IKubernetesObject {
-
-  // Method to get the group of the Kubernetes resource
+  /**
+   * @return the API group of the Kubernetes resource.
+   */
   String getGroup();
 
-  // Method to get the version of the Kubernetes resource
+  /**
+   * @return the API version of the Kubernetes resource.
+   */
   String getVersion();
 
-  // Method to get the plural kind of the Kubernetes resource
+  /**
+   * @return the plural kind name of the Kubernetes resource (e.g., "applications").
+   */
   String getPluralKind();
 
-  // Method to get a list of ApplicationSpec objects
-  // client: Kubernetes client to interact with the cluster
-  // anyNamespace: Boolean to specify whether to search in all namespaces
-  // matchNames: Array of namespace names to search in if anyNamespace is false
-  List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, Boolean anyNamespace,
-      String[] matchNames);
+  /**
+   * Retrieves the ApplicationSpec instances from the cluster.
+   *
+   * @param client Kubernetes client instance
+   * @param anyNamespace if true, search all namespaces; otherwise use matchNames
+   * @param matchNames list of namespace names to filter by (used only if anyNamespace is false)
+   * @return list of ApplicationSpec objects found
+   */
+  List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, boolean anyNamespace,
+      List<String> matchNames);
 }

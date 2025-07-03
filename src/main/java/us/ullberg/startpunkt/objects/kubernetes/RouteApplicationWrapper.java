@@ -10,12 +10,12 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
   // Field to indicate if only annotated objects should be processed
-  private Boolean onlyAnnotated = false;
+  private final boolean onlyAnnotated;
 
   // Constructor to initialize the RouteApplicationWrapper with specific group, version, and plural
   // kind
   // Also initializes the onlyAnnotated field
-  public RouteApplicationWrapper(Boolean onlyAnnotated) {
+  public RouteApplicationWrapper(boolean onlyAnnotated) {
     super("route.openshift.io", "v1", "routes");
     this.onlyAnnotated = onlyAnnotated;
   }
@@ -38,18 +38,12 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
   // Override method to get a list of ApplicationSpec objects
   @Override
-  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, Boolean anyNamespace,
-      String[] matchNames) {
+  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, boolean anyNamespace,
+      List<String> matchNames) {
     // Get the application specs from the parent class
     var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
 
     // If onlyAnnotated is true, filter the list to include only enabled applications
-    if (Boolean.TRUE.equals(onlyAnnotated)) {
-      return applicationSpecs.stream().filter(app -> app.getEnabled() != null && app.getEnabled())
-          .toList();
-    }
-
-    // If onlyAnnotated is false, return the full list of application specs
-    return applicationSpecs;
+    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
 }
