@@ -6,26 +6,38 @@ import java.util.LinkedList;
 import java.util.List;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
-// Class representing a group of applications
+/**
+ * Represents a group of applications, each group identified by a name and containing a list of
+ * {@link ApplicationSpec} objects.
+ */
 @RegisterForReflection(registerFullHierarchy = true)
 public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
-  // Private fields
   private String name;
   private LinkedList<ApplicationSpec> applications;
 
-  // For deserialization
+  /** Default constructor for deserialization purposes. */
   public ApplicationGroup() {
     this.applications = new LinkedList<>();
   }
 
-  // Constructor to initialize the ApplicationGroup with a name
+  /**
+   * Constructs an ApplicationGroup with the given name and an empty list of applications.
+   *
+   * @param name the name of the application group, must not be null or blank
+   * @throws IllegalArgumentException if name is null or blank
+   */
   public ApplicationGroup(String name) {
     this(name, new LinkedList<>());
   }
 
-  // Constructor to initialize the ApplicationGroup with a name and a list of
-  // applications
+  /**
+   * Constructs an ApplicationGroup with the given name and list of applications.
+   *
+   * @param name the name of the application group, must not be null or blank
+   * @param applications the list of applications; if null, initialized to an empty list
+   * @throws IllegalArgumentException if name is null or blank
+   */
   public ApplicationGroup(String name, List<ApplicationSpec> applications) {
     if (name == null || name.isBlank()) {
       throw new IllegalArgumentException("ApplicationGroup name cannot be null or empty");
@@ -34,27 +46,50 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
     this.applications = applications != null ? new LinkedList<>(applications) : new LinkedList<>();
   }
 
-  // Getter method for the name field with JSON property annotation
+  /**
+   * Returns the name of the application group.
+   *
+   * @return the group name
+   */
   @JsonProperty("name")
   public String getName() {
     return name;
   }
 
+  /**
+   * Sets the name of the application group.
+   *
+   * @param name the new name
+   */
   public void setName(String name) {
     this.name = name;
   }
 
-  // Getter method for the applications field with JSON property annotation
+  /**
+   * Returns an unmodifiable copy of the applications list.
+   *
+   * @return list of applications in this group
+   */
   @JsonProperty("applications")
   public List<ApplicationSpec> getApplications() {
     return List.copyOf(applications);
   }
 
+  /**
+   * Sets the list of applications in this group.
+   *
+   * @param applications the new list of applications; if null, resets to empty list
+   */
   public void setApplications(List<ApplicationSpec> applications) {
     this.applications = applications != null ? new LinkedList<>(applications) : new LinkedList<>();
   }
 
-  // Override compareTo method to compare ApplicationGroup objects by name
+  /**
+   * Compares this ApplicationGroup to another by their name.
+   *
+   * @param other the other ApplicationGroup to compare to
+   * @return comparison result based on group name
+   */
   @Override
   public int compareTo(ApplicationGroup other) {
     return this.getName().compareTo(other.getName());
@@ -82,9 +117,16 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
     return result;
   }
 
-  // Method to add an application to the applications list
+  /**
+   * Adds an application to the group.
+   *
+   * @param app the application to add; must not be null
+   * @throws IllegalArgumentException if app is null
+   */
   public void addApplication(ApplicationSpec app) {
-    if (app == null) throw new IllegalArgumentException("Application cannot be null");
+    if (app == null) {
+      throw new IllegalArgumentException("Application cannot be null");
+    }
     applications.add(app);
   }
 

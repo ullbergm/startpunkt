@@ -7,15 +7,22 @@ import java.util.LinkedList;
 import java.util.List;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
-// Class representing a group of bookmarks
+/**
+ * Represents a group of bookmarks with a name and a list of {@link BookmarkSpec}. Implements
+ * Comparable to allow sorting by group name.
+ */
 @RegisterForReflection(registerFullHierarchy = true)
 public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
-  // Private fields
   private String name;
   private LinkedList<BookmarkSpec> bookmarks;
 
-  // Constructor to initialize the BookmarkGroup with a name
+  /**
+   * Constructs a BookmarkGroup with the specified name.
+   *
+   * @param name the name of the bookmark group, cannot be null or empty
+   * @throws IllegalArgumentException if name is null or empty
+   */
   public BookmarkGroup(String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("BookmarkGroup name cannot be null or empty");
@@ -25,7 +32,13 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     bookmarks = new LinkedList<>();
   }
 
-  // Constructor to initialize the BookmarkGroup with a name and a list of bookmarks
+  /**
+   * Constructs a BookmarkGroup with the specified name and bookmarks list.
+   *
+   * @param name the name of the bookmark group, cannot be null or empty
+   * @param bookmarks the list of bookmarks to initialize with, may be null or empty
+   * @throws IllegalArgumentException if name is null or empty
+   */
   public BookmarkGroup(String name, List<BookmarkSpec> bookmarks) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("BookmarkGroup name cannot be null or empty");
@@ -35,19 +48,32 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     this.bookmarks = bookmarks != null ? new LinkedList<>(bookmarks) : new LinkedList<>();
   }
 
-  // Getter method for the name field with JSON property annotation
+  /**
+   * Returns the name of the bookmark group.
+   *
+   * @return the group name
+   */
   @JsonProperty("name")
   public String getName() {
     return name;
   }
 
-  // Getter method for the bookmarks field with JSON property annotation
+  /**
+   * Returns an unmodifiable list of bookmarks in this group.
+   *
+   * @return list of bookmarks
+   */
   @JsonProperty("bookmarks")
   public List<BookmarkSpec> getBookmarks() {
     return Collections.unmodifiableList(bookmarks);
   }
 
-  // Override compareTo method to compare BookmarkGroup objects by name
+  /**
+   * Compares this BookmarkGroup to another based on the group name.
+   *
+   * @param other the other BookmarkGroup to compare to
+   * @return comparison result based on name lexicographical order
+   */
   @Override
   public int compareTo(BookmarkGroup other) {
     return this.getName().compareTo(other.getName());
@@ -75,9 +101,16 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
     return result;
   }
 
-  // Method to add a bookmark to the bookmarks list
+  /**
+   * Adds a bookmark to this group.
+   *
+   * @param bookmark the bookmark to add, must not be null
+   * @throws IllegalArgumentException if bookmark is null
+   */
   public void addBookmark(BookmarkSpec bookmark) {
-    if (bookmark == null) throw new IllegalArgumentException("Bookmark cannot be null");
+    if (bookmark == null) {
+      throw new IllegalArgumentException("Bookmark cannot be null");
+    }
 
     bookmarks.add(bookmark);
   }

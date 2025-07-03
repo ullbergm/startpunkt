@@ -459,9 +459,7 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <!-- Use your custom checkstyle config or a default one -->
           <configLocation>google_checks.xml</configLocation>
-          <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>

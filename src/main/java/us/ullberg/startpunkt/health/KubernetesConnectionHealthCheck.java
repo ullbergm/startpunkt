@@ -7,17 +7,32 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Readiness;
 
-/** {@link HealthCheck} to validate the service can talk to Kubernetes */
+/**
+ * {@link HealthCheck} that verifies connectivity and availability of key Kubernetes API groups.
+ *
+ * <p>This readiness check queries the Kubernetes cluster for its version, node count, namespace
+ * count, and presence of specific API groups used by the application.
+ */
 @Readiness
 public class KubernetesConnectionHealthCheck implements HealthCheck {
   private static final Logger LOGGER =
       Logger.getLogger(KubernetesConnectionHealthCheck.class.getName());
   private final KubernetesClient client;
 
+  /**
+   * Constructs a KubernetesConnectionHealthCheck with the given Kubernetes client.
+   *
+   * @param client the Kubernetes client to use for health checks
+   */
   public KubernetesConnectionHealthCheck(KubernetesClient client) {
     this.client = client;
   }
 
+  /**
+   * Performs the health check by querying Kubernetes cluster details and API group availability.
+   *
+   * @return a HealthCheckResponse indicating up/down status and cluster information
+   */
   @Override
   public HealthCheckResponse call() {
     HealthCheckResponseBuilder responseBuilder =
