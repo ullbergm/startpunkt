@@ -5,8 +5,6 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -15,7 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  * languages.
  */
 @ApplicationScoped
-<span class="fc" id="L18">public class I8nService {</span>
+<span class="fc" id="L16">public class I8nService {</span>
   @ConfigProperty(name = &quot;startpunkt.defaultLanguage&quot;, defaultValue = &quot;en-US&quot;)
   private String defaultLanguage;
 
@@ -29,48 +27,28 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
    */
   @Timed(value = &quot;startpunkt.i8n&quot;, description = &quot;Get a translation for a given language&quot;)
   public String getTranslation(String language) throws IOException {
-    String lang =
-<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        (language != null &amp;&amp; language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) ? language : &quot;en-US&quot;;</span>
+    // if the language does not match standard i8n format, log a warning and fall back to US English
+    InputStream translation;
 
-<span class="fc bfc" id="L35" title="All 2 branches covered.">    if (!lang.equals(language)) {</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">    if (language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) {</span>
+<span class="fc" id="L34">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + language + &quot;.json&quot;);</span>
+    } else {
 <span class="fc" id="L36">      Log.warn(&quot;Invalid language format, falling back to US English&quot;);</span>
+<span class="fc" id="L37">      translation = getClass().getResourceAsStream(&quot;/i8n/en-US.json&quot;);</span>
     }
 
-    try {
-<span class="fc" id="L40">      Path basePath = Paths.get(getClass().getResource(&quot;/i8n/&quot;).toURI());</span>
-<span class="fc" id="L41">      Path translationPath = basePath.resolve(lang + &quot;.json&quot;).normalize();</span>
-
-      // Ensure the resolved path is within the intended directory
-<span class="pc bpc" id="L44" title="1 of 2 branches missed.">      if (!translationPath.startsWith(basePath)) {</span>
-<span class="nc" id="L45">        Log.warn(&quot;Invalid language path, falling back to default language&quot;);</span>
-<span class="nc" id="L46">        lang = defaultLanguage;</span>
-<span class="nc" id="L47">        translationPath = basePath.resolve(defaultLanguage + &quot;.json&quot;).normalize();</span>
-      }
-
-<span class="fc" id="L50">      try (InputStream translation = translationPath.toUri().toURL().openStream()) {</span>
-<span class="fc" id="L51">        return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
-      }
-<span class="fc" id="L53">      catch( Exception e ) {</span>
-<span class="fc" id="L54">          Log.info(</span>
-              &quot;No translation found for language: &quot;
-                  + lang
-                  + &quot;, falling back to default language: &quot;
-                  + defaultLanguage);
-
-<span class="fc" id="L60">            try (InputStream fallback =</span>
-<span class="fc" id="L61">              basePath.resolve(defaultLanguage + &quot;.json&quot;).toUri().toURL().openStream()) {</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if (fallback == null) {</span>
-<span class="nc" id="L63">              Log.error(&quot;Fallback translation file not found: &quot; + defaultLanguage + &quot;.json&quot;);</span>
-<span class="nc" id="L64">              throw new IOException(&quot;Translation files missing&quot;);</span>
-            }
-<span class="fc" id="L66">            return new String(fallback.readAllBytes(), StandardCharsets.UTF_8);</span>
-          }
-
-      }
-<span class="nc" id="L70">    } catch (Exception e) {</span>
-<span class="nc" id="L71">      Log.error(&quot;Error resolving translation path&quot;, e);</span>
-<span class="nc" id="L72">      throw new IOException(&quot;Translation files missing&quot;, e);</span>
+    // If the translation is not found, log a warning and fall back to the default
+    // language from the configuration
+<span class="fc bfc" id="L42" title="All 2 branches covered.">    if (translation == null) {</span>
+<span class="fc" id="L43">      Log.info(</span>
+          &quot;No translation found for language: &quot;
+              + language
+              + &quot;, falling back to default language: &quot;
+              + defaultLanguage);
+<span class="fc" id="L48">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + defaultLanguage + &quot;.json&quot;);</span>
     }
+
+<span class="fc" id="L51">    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

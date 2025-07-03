@@ -24,7 +24,7 @@ startpunkt,us.ullberg.startpunkt.objects,BookmarkGroupList,17,13,3,1,5,4,5,2,3,2
 startpunkt,us.ullberg.startpunkt.objects,ApplicationGroupList,17,13,3,1,5,4,5,2,3,2
 startpunkt,us.ullberg.startpunkt.objects,ApplicationGroup,122,42,28,4,21,12,23,5,7,5
 startpunkt,us.ullberg.startpunkt.objects,BookmarkGroup,123,32,31,3,20,10,22,4,5,4
-startpunkt,us.ullberg.startpunkt.service,I8nService,31,76,3,7,8,15,3,4,0,2
+startpunkt,us.ullberg.startpunkt.service,I8nService,0,42,0,4,0,9,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,BookmarkService,172,231,22,18,46,61,20,15,7,8
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,HajimariApplicationWrapper,71,6,2,0,9,2,9,1,8,1
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IngressApplicationWrapper,4,20,1,1,1,6,1,2,0,2
