@@ -5,6 +5,8 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -34,24 +36,39 @@ public class I8nService {
       Log.warn("Invalid language format, falling back to US English");
     }
 
-    try (InputStream translation = getClass().getResourceAsStream("/i8n/" + lang + ".json")) {
-      if (translation == null) {
-        Log.info(
-            "No translation found for language: "
-                + lang
-                + ", falling back to default language: "
-                + defaultLanguage);
+    try {
+      Path basePath = Paths.get(getClass().getResource("/i8n/").toURI());
+      Path translationPath = basePath.resolve(lang + ".json").normalize();
 
-        try (InputStream fallback =
-            getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json")) {
-          if (fallback == null) {
-            Log.error("Fallback translation file not found: " + defaultLanguage + ".json");
-            throw new IOException("Translation files missing");
-          }
-          return new String(fallback.readAllBytes(), StandardCharsets.UTF_8);
-        }
+      // Ensure the resolved path is within the intended directory
+      if (!translationPath.startsWith(basePath)) {
+        Log.warn("Invalid language path, falling back to default language");
+        lang = defaultLanguage;
+        translationPath = basePath.resolve(lang + ".json").normalize();
       }
-      return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+
+      try (InputStream translation = translationPath.toUri().toURL().openStream()) {
+        if (translation == null) {
+          Log.info(
+              "No translation found for language: "
+                  + lang
+                  + ", falling back to default language: "
+                  + defaultLanguage);
+
+          try (InputStream fallback =
+              basePath.resolve(defaultLanguage + ".json").toUri().toURL().openStream()) {
+            if (fallback == null) {
+              Log.error("Fallback translation file not found: " + defaultLanguage + ".json");
+              throw new IOException("Translation files missing");
+            }
+            return new String(fallback.readAllBytes(), StandardCharsets.UTF_8);
+          }
+        }
+        return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+      }
+    } catch (Exception e) {
+      Log.error("Error resolving translation path", e);
+      throw new IOException("Translation files missing", e);
     }
   }
 }
