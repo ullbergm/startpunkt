@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseKubernetesObject.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">BaseKubernetesObject.java</span></div><h1>BaseKubernetesObject.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
+import jakarta.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
+
+/**
+ * Abstract base class representing a Kubernetes custom resource wrapper. Provides common
+ * functionality to retrieve application specifications and metadata from Kubernetes generic
+ * resources.
+ */
+public abstract class BaseKubernetesObject implements KubernetesObject {
+  private String group;
+  private String version;
+  private String pluralKind;
+
+  /**
+   * Constructs the wrapper with the specified API group, version, and plural kind.
+   *
+   * @param group the API group of the Kubernetes resource
+   * @param version the API version of the Kubernetes resource
+   * @param pluralKind the plural kind name of the Kubernetes resource
+   */
+<span class="fc" id="L29">  protected BaseKubernetesObject(String group, String version, String pluralKind) {</span>
+<span class="fc" id="L30">    this.group = group;</span>
+<span class="fc" id="L31">    this.version = version;</span>
+<span class="fc" id="L32">    this.pluralKind = pluralKind;</span>
+<span class="fc" id="L33">  }</span>
+
+  /**
+   * Returns the API group of the Kubernetes resource.
+   *
+   * @return the API group string
+   */
+  public String getGroup() {
+<span class="nc" id="L41">    return group;</span>
+  }
+
+  /**
+   * Returns the API version of the Kubernetes resource.
+   *
+   * @return the API version string
+   */
+  public String getVersion() {
+<span class="nc" id="L50">    return version;</span>
+  }
+
+  /**
+   * Returns the plural kind name of the Kubernetes resource.
+   *
+   * @return the plural kind string
+   */
+  public String getPluralKind() {
+<span class="nc" id="L59">    return pluralKind;</span>
+  }
+
+  /**
+   * Builds a ResourceDefinitionContext for the Kubernetes custom resource.
+   *
+   * @return the resource definition context
+   */
+  private ResourceDefinitionContext getResourceDefinitionContext() {
+<span class="fc" id="L68">    return new ResourceDefinitionContext.Builder()</span>
+<span class="fc" id="L69">        .withGroup(group)</span>
+<span class="fc" id="L70">        .withVersion(version)</span>
+<span class="fc" id="L71">        .withPlural(pluralKind)</span>
+<span class="fc" id="L72">        .withNamespaced(true)</span>
+<span class="fc" id="L73">        .build();</span>
+  }
+
+  /**
+   * Retrieves a list of generic Kubernetes resources of this type, filtered by namespaces.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace if true, searches across all namespaces; otherwise uses matchNames
+   * @param matchNames list of namespace names to filter on (used only if anyNamespace is false)
+   * @return list of GenericKubernetesResource objects
+   */
+  protected GenericKubernetesResourceList getGenericKubernetesResources(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
+<span class="fc" id="L86">    ResourceDefinitionContext resourceDefinitionContext = getResourceDefinitionContext();</span>
+
+    try {
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">      if (anyNamespace) {</span>
+<span class="fc" id="L90">        return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();</span>
+      }
+
+<span class="nc" id="L93">      GenericKubernetesResourceList list = new GenericKubernetesResourceList();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">      for (String namespace : matchNames) {</span>
+<span class="nc" id="L95">        list.getItems()</span>
+<span class="nc" id="L96">            .addAll(</span>
+                client
+<span class="nc" id="L98">                    .genericKubernetesResources(resourceDefinitionContext)</span>
+<span class="nc" id="L99">                    .inNamespace(namespace)</span>
+<span class="nc" id="L100">                    .list()</span>
+<span class="nc" id="L101">                    .getItems());</span>
+<span class="nc" id="L102">      }</span>
+
+<span class="nc" id="L104">      return list;</span>
+<span class="nc" id="L105">    } catch (Exception ex) {</span>
+      // Returning empty list if retrieval fails. Consider improving error handling.
+<span class="nc" id="L107">      return new GenericKubernetesResourceList();</span>
+    }
+  }
+
+  /**
+   * Retrieves application specifications by mapping Kubernetes generic resources.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @return list of ApplicationSpec instances
+   */
+  public List&lt;ApplicationSpec&gt; getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
+<span class="fc" id="L121">    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()</span>
+<span class="fc" id="L122">        .map(this::mapToApplicationSpec)</span>
+<span class="fc" id="L123">        .toList();</span>
+  }
+
+  /**
+   * Maps a GenericKubernetesResource to an ApplicationSpec instance.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the ApplicationSpec mapped from the resource
+   */
+  protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item) {
+<span class="fc" id="L133">    return new ApplicationSpec(</span>
+<span class="fc" id="L134">        getAppName(item),</span>
+<span class="fc" id="L135">        getAppGroup(item),</span>
+<span class="fc" id="L136">        getAppIcon(item),</span>
+<span class="fc" id="L137">        getAppIconColor(item),</span>
+<span class="fc" id="L138">        getAppUrl(item),</span>
+<span class="fc" id="L139">        getAppInfo(item),</span>
+<span class="fc" id="L140">        getAppTargetBlank(item),</span>
+<span class="fc" id="L141">        getAppLocation(item),</span>
+<span class="fc" id="L142">        getAppEnabled(item));</span>
+  }
+
+  /**
+   * Returns the annotations map from the Kubernetes resource metadata.
+   *
+   * @param item the Kubernetes generic resource
+   * @return map of annotations or null if none present
+   */
+  protected Map&lt;String, String&gt; getAnnotations(GenericKubernetesResource item) {
+<span class="nc" id="L152">    return item.getMetadata().getAnnotations();</span>
+  }
+
+  /**
+   * Returns the spec map from the Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return spec map or null if not present
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  protected Map&lt;String, Object&gt; getSpec(GenericKubernetesResource item) {
+<span class="fc" id="L163">    Map&lt;String, Object&gt; props = getProps(item);</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">    if (props == null) {</span>
+<span class="nc" id="L165">      return Map.of();</span>
+    }
+<span class="fc" id="L167">    return (Map&lt;String, Object&gt;) props.get(&quot;spec&quot;);</span>
+  }
+
+  /**
+   * Returns additional properties map from the Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return map of additional properties or null if none present
+   */
+  protected Map&lt;String, Object&gt; getProps(GenericKubernetesResource item) {
+<span class="fc" id="L177">    return item.getAdditionalProperties();</span>
+  }
+
+  /**
+   * Returns the application name. Defaults to resource metadata name in lowercase.
+   *
+   * @param item the Kubernetes generic resource
+   * @return application name
+   */
+  protected String getAppName(GenericKubernetesResource item) {
+<span class="nc" id="L187">    return item.getMetadata().getName().toLowerCase();</span>
+  }
+
+  /**
+   * Returns the application group. Defaults to resource namespace in lowercase.
+   *
+   * @param item the Kubernetes generic resource
+   * @return application group
+   */
+  protected String getAppGroup(GenericKubernetesResource item) {
+<span class="fc" id="L197">    return item.getMetadata().getNamespace().toLowerCase();</span>
+  }
+
+  /**
+   * Returns the application URL from the resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return URL string or null if not provided
+   */
+  protected String getAppUrl(GenericKubernetesResource item) {
+<span class="nc" id="L207">    return null;</span>
+  }
+
+  /**
+   * Returns the application icon from the resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return icon string or null if not provided
+   */
+  protected String getAppIcon(GenericKubernetesResource item) {
+<span class="fc" id="L217">    return null;</span>
+  }
+
+  /**
+   * Returns the application icon color from the resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return icon color string or null if not provided
+   */
+  protected String getAppIconColor(GenericKubernetesResource item) {
+<span class="fc" id="L227">    return null;</span>
+  }
+
+  /**
+   * Returns application info from the resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return info string or null if not provided
+   */
+  protected String getAppInfo(GenericKubernetesResource item) {
+<span class="fc" id="L237">    return null;</span>
+  }
+
+  /**
+   * Returns whether the application URL should open in a new tab.
+   *
+   * @param item the Kubernetes generic resource
+   * @return Boolean flag or false if not specified
+   */
+  @Nullable
+  protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
+<span class="fc" id="L248">    return false;</span>
+  }
+
+  /**
+   * Returns the sorting location for the application.
+   *
+   * @param item the Kubernetes generic resource
+   * @return integer location, default is 1000
+   */
+  protected int getAppLocation(GenericKubernetesResource item) {
+<span class="fc" id="L258">    return 1000;</span>
+  }
+
+  /**
+   * Returns whether the application is enabled.
+   *
+   * @param item the Kubernetes generic resource
+   * @return Boolean flag or false if not specified
+   */
+  @Nullable
+  protected Boolean getAppEnabled(GenericKubernetesResource item) {
+<span class="fc" id="L269">    return false;</span>
+  }
+
+  /**
+   * Returns the protocol of the application URL.
+   *
+   * @param item the Kubernetes generic resource
+   * @return protocol string or null if not specified
+   */
+  protected String getAppProtocol(GenericKubernetesResource item) {
+<span class="nc" id="L279">    return null;</span>
+  }
+
+  /**
+   * Retrieves a string property from the spec or returns a fallback value.
+   *
+   * @param item the Kubernetes generic resource
+   * @param key the key to lookup in the spec
+   * @param fallback fallback value if key is absent
+   * @return value from spec or fallback
+   */
+  protected String getOptionalSpecString(
+      GenericKubernetesResource item, String key, String fallback) {
+<span class="fc" id="L292">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L293" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key) ? spec.get(key).toString() : fallback;</span>
+  }
+
+  /**
+   * Retrieves a boolean property from the spec or returns a fallback value.
+   *
+   * @param item the Kubernetes generic resource
+   * @param key the key to lookup in the spec
+   * @param fallback fallback boolean value if key is absent
+   * @return boolean value from spec or fallback
+   */
+  protected Boolean getOptionalSpecBoolean(
+      GenericKubernetesResource item, String key, Boolean fallback) {
+<span class="fc" id="L306">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L307" title="2 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L308">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
+<span class="nc" id="L309">        : fallback;</span>
+  }
+
+  /**
+   * Retrieves an integer property from the spec or returns a fallback value.
+   *
+   * @param item the Kubernetes generic resource
+   * @param key the key to lookup in the spec
+   * @param fallback fallback integer value if key is absent
+   * @return integer value from spec or fallback
+   */
+  protected Integer getOptionalSpecInteger(
+      GenericKubernetesResource item, String key, Integer fallback) {
+<span class="fc" id="L322">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L323" title="2 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L324">        ? Integer.parseInt(spec.get(key).toString())</span>
+<span class="nc" id="L325">        : fallback;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

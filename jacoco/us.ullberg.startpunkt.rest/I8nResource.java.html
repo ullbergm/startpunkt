@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>I8nResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.rest</a> &gt; <span class="el_source">I8nResource.java</span></div><h1>I8nResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.rest;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.NonBlocking;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import us.ullberg.startpunkt.service.I8nService;
+
+/**
+ * REST API resource class for managing language translations. Provides endpoints to retrieve
+ * translations for specified languages.
+ */
+@Path(&quot;/api/i8n&quot;)
+@Tag(name = &quot;i8n&quot;)
+@Produces(MediaType.APPLICATION_JSON)
+public class I8nResource {
+
+  I8nService i8nService;
+
+  /**
+   * Constructs the resource with an injected {@link I8nService}.
+   *
+   * @param i8nService the internationalization service
+   */
+<span class="fc" id="L37">  public I8nResource(I8nService i8nService) {</span>
+<span class="fc" id="L38">    this.i8nService = i8nService;</span>
+<span class="fc" id="L39">  }</span>
+
+  /**
+   * Retrieves the translation JSON for the specified language.
+   *
+   * @param language the language code (e.g. &quot;en-US&quot;)
+   * @return HTTP 200 with translation JSON if found; HTTP 404 if not found
+   */
+  @GET
+  @Path(&quot;{language}&quot;)
+  @Operation(summary = &quot;Returns a translation&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Gets an translation&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;No translation found&quot;)
+  @Timed(
+      value = &quot;startpunkt.api.gettranslation&quot;,
+      description = &quot;Get the translation for a given language&quot;)
+  @CacheResult(cacheName = &quot;getTranslation&quot;)
+  public Response getTranslation(@PathParam(&quot;language&quot;) String language) {
+    try {
+<span class="fc" id="L64">      String translation = i8nService.getTranslation(language);</span>
+
+      // Log the translation
+<span class="fc" id="L67">      Log.debug(&quot;Translation for language &quot; + language + &quot;:&quot; + translation);</span>
+
+      // Return the translation as a string
+<span class="fc" id="L70">      return Response.ok(translation).build();</span>
+<span class="nc" id="L71">    } catch (IOException e) {</span>
+<span class="nc" id="L72">      return Response.status(404, &quot;No translation found&quot;).build();</span>
+    }
+  }
+
+  /**
+   * Retrieves the translation JSON for the default language (&quot;en-US&quot;).
+   *
+   * @return HTTP 200 with translation JSON if found; HTTP 404 if not found
+   */
+  @GET
+  @Operation(summary = &quot;Returns default translation&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Gets default translation&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class, required = true)))
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;No translation found&quot;)
+  @Timed(
+      value = &quot;startpunkt.api.getdefaulttranslation&quot;,
+      description = &quot;Get the translation for the default language&quot;)
+  @CacheResult(cacheName = &quot;getDefaultTranslation&quot;)
+  public Response getDefaultTranslation() {
+    String translation;
+    try {
+<span class="fc" id="L98">      translation = i8nService.getTranslation(&quot;en-US&quot;);</span>
+
+      // Log the translation
+<span class="fc" id="L101">      Log.debug(&quot;Default translation:&quot; + translation);</span>
+
+      // Return the translation as a string
+<span class="fc" id="L104">      return Response.ok(translation).build();</span>
+<span class="nc" id="L105">    } catch (IOException e) {</span>
+<span class="nc" id="L106">      return Response.status(404, &quot;No translation found&quot;).build();</span>
+    }
+  }
+
+  @GET
+  @Path(&quot;/ping&quot;)
+  @Produces(MediaType.TEXT_PLAIN)
+  @Tag(name = &quot;ping&quot;)
+  @Operation(summary = &quot;Ping&quot;)
+  @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
+  @NonBlocking
+  public String ping() {
+<span class="fc" id="L118">    Log.debug(&quot;Ping I8n Resource&quot;);</span>
+<span class="fc" id="L119">    return &quot;Pong from I8n Resource&quot;;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

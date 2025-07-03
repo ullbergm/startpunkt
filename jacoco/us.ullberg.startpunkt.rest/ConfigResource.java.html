@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfigResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.rest</a> &gt; <span class="el_source">ConfigResource.java</span></div><h1>ConfigResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.rest;
+
+import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.NonBlocking;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.util.Map;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
+/**
+ * REST API resource class for application configuration. Provides endpoints to retrieve
+ * configuration settings and a ping for health check.
+ */
+@Path(&quot;/api/config&quot;)
+@Tag(name = &quot;config&quot;)
+@Produces(MediaType.APPLICATION_JSON)
+<span class="fc" id="L25">public class ConfigResource {</span>
+  @ConfigProperty(name = &quot;startpunkt.web.githubLink.enabled&quot;, defaultValue = &quot;true&quot;)
+  public boolean showGithubLink;
+
+  @ConfigProperty(name = &quot;startpunkt.web.checkForUpdates&quot;, defaultValue = &quot;true&quot;)
+  public boolean checkForUpdates;
+
+  @ConfigProperty(name = &quot;startpunkt.web.title&quot;, defaultValue = &quot;Startpunkt&quot;)
+  public String title;
+
+  @ConfigProperty(name = &quot;quarkus.application.version&quot;, defaultValue = &quot;0&quot;)
+  public String version;
+
+  // GET endpoint to retrieve the list of bookmarks
+  @GET
+  @Operation(summary = &quot;Returns the configuration&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Gets the configuration&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Map.class, required = true)))
+  public Response getConfig() {
+<span class="fc" id="L49">    return Response.ok(generateConfig()).build();</span>
+  }
+
+  private Map&lt;String, Object&gt; generateConfig() {
+    // Create a response with the configuration value
+<span class="fc" id="L54">    return Map.of(</span>
+        &quot;config&quot;,
+<span class="fc" id="L56">        Map.of(</span>
+            &quot;version&quot;,
+            version,
+            &quot;web&quot;,
+<span class="fc" id="L60">            Map.of(</span>
+                &quot;showGithubLink&quot;,
+<span class="fc" id="L62">                showGithubLink,</span>
+                &quot;checkForUpdates&quot;,
+<span class="fc" id="L64">                checkForUpdates,</span>
+                &quot;title&quot;,
+                title)));
+  }
+
+  @GET
+  @Path(&quot;/ping&quot;)
+  @Produces(MediaType.TEXT_PLAIN)
+  @Tag(name = &quot;ping&quot;)
+  @Operation(summary = &quot;Ping&quot;)
+  @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
+  @NonBlocking
+  public String ping() {
+<span class="fc" id="L77">    Log.debug(&quot;Ping Config Resource&quot;);</span>
+<span class="fc" id="L78">    return &quot;Pong from Config Resource&quot;;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

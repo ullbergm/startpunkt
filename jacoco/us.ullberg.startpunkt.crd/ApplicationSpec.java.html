@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationSpec.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.crd</a> &gt; <span class="el_source">ApplicationSpec.java</span></div><h1>ApplicationSpec.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.crd;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.generator.annotation.Required;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+/**
+ * Represents the specification for an application bookmark. Includes metadata like name, group,
+ * icon, URL, etc.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
+public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
+
+  // Application name, marked as required
+  @JsonProperty(&quot;name&quot;)
+  @JsonPropertyDescription(&quot;Application name&quot;)
+  @Required
+  public String name;
+
+  // Group the bookmark belongs to
+  @JsonProperty(&quot;group&quot;)
+  @JsonPropertyDescription(&quot;Group the bookmark belongs to&quot;)
+  private String group;
+
+  // Application icon, either as an icon name or URL
+  @JsonProperty(&quot;icon&quot;)
+  @JsonPropertyDescription(&quot;Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'&quot;)
+  private String icon;
+
+  // Application icon color
+  @JsonProperty(&quot;iconColor&quot;)
+  @JsonPropertyDescription(&quot;Application icon color, e.g. 'red'&quot;)
+  private String iconColor;
+
+  // Application URL, marked as required
+  @JsonProperty(&quot;url&quot;)
+  @JsonPropertyDescription(&quot;Application URL&quot;)
+  @Required
+  private String url;
+
+  // Description of the bookmark
+  @JsonProperty(&quot;info&quot;)
+  @JsonPropertyDescription(&quot;Description of the bookmark&quot;)
+  private String info;
+
+  // Flag to open the URL in a new tab
+  @JsonProperty(&quot;targetBlank&quot;)
+  @JsonPropertyDescription(&quot;Open the URL in a new tab&quot;)
+  private Boolean targetBlank;
+
+  // Sorting order of the bookmark
+  @JsonProperty(&quot;location&quot;)
+  @JsonPropertyDescription(&quot;Sorting order of the bookmark&quot;)
+  private int location;
+
+  // Enable the bookmark
+  @JsonProperty(&quot;enabled&quot;)
+  @JsonPropertyDescription(&quot;Enable the bookmark&quot;)
+  private Boolean enabled;
+
+  // Default constructor
+<span class="fc" id="L65">  public ApplicationSpec() {}</span>
+
+  /**
+   * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+<span class="fc" id="L89">      Boolean enabled) {</span>
+<span class="fc" id="L90">    this.name = name;</span>
+<span class="fc" id="L91">    this.group = group;</span>
+<span class="fc" id="L92">    this.icon = icon;</span>
+<span class="fc" id="L93">    this.iconColor = iconColor;</span>
+<span class="fc" id="L94">    this.url = url;</span>
+<span class="fc" id="L95">    this.info = info;</span>
+<span class="fc" id="L96">    this.targetBlank = targetBlank;</span>
+<span class="fc" id="L97">    this.location = location;</span>
+<span class="fc" id="L98">    this.enabled = enabled;</span>
+<span class="fc" id="L99">  }</span>
+
+  // Getters and setters for each field
+  public String getName() {
+<span class="fc" id="L103">    return name;</span>
+  }
+
+  public void setName(String name) {
+<span class="fc" id="L107">    this.name = name;</span>
+<span class="fc" id="L108">  }</span>
+
+  public String getGroup() {
+<span class="fc" id="L111">    return group;</span>
+  }
+
+  public void setGroup(String group) {
+<span class="fc" id="L115">    this.group = group;</span>
+<span class="fc" id="L116">  }</span>
+
+  public String getIcon() {
+<span class="fc" id="L119">    return icon;</span>
+  }
+
+  public void setIcon(String icon) {
+<span class="fc" id="L123">    this.icon = icon;</span>
+<span class="fc" id="L124">  }</span>
+
+  public String getIconColor() {
+<span class="fc" id="L127">    return iconColor;</span>
+  }
+
+  public void setIconColor(String iconColor) {
+<span class="fc" id="L131">    this.iconColor = iconColor;</span>
+<span class="fc" id="L132">  }</span>
+
+  public String getUrl() {
+<span class="fc" id="L135">    return url;</span>
+  }
+
+  public void setUrl(String url) {
+<span class="fc" id="L139">    this.url = url;</span>
+<span class="fc" id="L140">  }</span>
+
+  public String getInfo() {
+<span class="fc" id="L143">    return info;</span>
+  }
+
+  public void setInfo(String info) {
+<span class="fc" id="L147">    this.info = info;</span>
+<span class="fc" id="L148">  }</span>
+
+  public Boolean getTargetBlank() {
+<span class="fc" id="L151">    return targetBlank;</span>
+  }
+
+  public void setTargetBlank(Boolean targetBlank) {
+<span class="fc" id="L155">    this.targetBlank = targetBlank;</span>
+<span class="fc" id="L156">  }</span>
+
+  public int getLocation() {
+<span class="fc" id="L159">    return location;</span>
+  }
+
+  public void setLocation(int location) {
+<span class="fc" id="L163">    this.location = location;</span>
+<span class="fc" id="L164">  }</span>
+
+  public Boolean getEnabled() {
+<span class="fc" id="L167">    return enabled;</span>
+  }
+
+  public void setEnabled(Boolean enabled) {
+<span class="fc" id="L171">    this.enabled = enabled;</span>
+<span class="fc" id="L172">  }</span>
+
+  // Override the toString method to provide a string representation of the object
+  @Override
+  public String toString() {
+<span class="nc" id="L177">    return &quot;ApplicationSpec{&quot;</span>
+        + &quot;name='&quot;
+        + name
+        + '\''
+        + &quot;, group='&quot;
+        + group
+        + '\''
+        + &quot;, icon='&quot;
+        + icon
+        + '\''
+        + &quot;, iconColor='&quot;
+        + iconColor
+        + '\''
+        + &quot;, url='&quot;
+        + url
+        + '\''
+        + &quot;, info='&quot;
+        + info
+        + '\''
+        + &quot;, targetBlank=&quot;
+        + targetBlank
+        + &quot;, location=&quot;
+        + location
+        + &quot;, enabled=&quot;
+        + enabled
+        + '}';
+  }
+
+  /**
+   * Compares this ApplicationSpec with another for sorting. Sort order: group, location, then name.
+   *
+   * @param other the other ApplicationSpec to compare with
+   * @return comparison result
+   */
+  @Override
+  public int compareTo(ApplicationSpec other) {
+    // Compare by group
+<span class="fc" id="L214">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
+<span class="fc" id="L216">      return groupCompare;</span>
+    }
+
+    // Compare by location
+<span class="fc" id="L220">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="fc" id="L222">      return locationCompare;</span>
+    }
+
+    // Compare by name
+<span class="nc" id="L226">    return this.getName().compareTo(other.getName());</span>
+  }
+
+  @Override
+  public boolean equals(Object o) {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L232">      return true;</span>
+    }
+<span class="nc bnc" id="L234" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L235">      return false;</span>
+    }
+
+<span class="nc" id="L238">    ApplicationSpec that = (ApplicationSpec) o;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">    if (location != that.location) {</span>
+<span class="nc" id="L240">      return false;</span>
+    }
+<span class="nc bnc" id="L242" title="All 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
+<span class="nc" id="L243">      return false;</span>
+    }
+<span class="nc bnc" id="L245" title="All 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
+<span class="nc" id="L246">      return false;</span>
+    }
+<span class="nc bnc" id="L248" title="All 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
+<span class="nc" id="L249">      return false;</span>
+    }
+<span class="nc bnc" id="L251" title="All 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
+<span class="nc" id="L252">      return false;</span>
+    }
+<span class="nc bnc" id="L254" title="All 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
+<span class="nc" id="L255">      return false;</span>
+    }
+<span class="nc bnc" id="L257" title="All 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
+<span class="nc" id="L258">      return false;</span>
+    }
+<span class="nc bnc" id="L260" title="All 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
+<span class="nc" id="L261">      return false;</span>
+    }
+<span class="nc bnc" id="L263" title="All 4 branches missed.">    return enabled != null ? enabled.equals(that.enabled) : that.enabled == null;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc bnc" id="L268" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="nc" id="L275">    result = 31 * result + location;</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
+<span class="nc" id="L277">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

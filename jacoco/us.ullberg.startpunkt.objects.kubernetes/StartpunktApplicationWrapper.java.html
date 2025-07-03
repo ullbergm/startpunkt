@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StartpunktApplicationWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">StartpunktApplicationWrapper.java</span></div><h1>StartpunktApplicationWrapper.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+
+/**
+ * Wrapper for Startpunkt application Kubernetes custom resources. This class extracts
+ * application-specific information from the resource's spec with fallbacks to defaults from the
+ * base class.
+ */
+public class StartpunktApplicationWrapper extends BaseKubernetesObject {
+
+  /**
+   * Constructs a StartpunktApplicationWrapper with group &quot;startpunkt.ullberg.us&quot;, version
+   * &quot;v1alpha1&quot;, and plural &quot;applications&quot;.
+   */
+  public StartpunktApplicationWrapper() {
+<span class="fc" id="L17">    super(&quot;startpunkt.ullberg.us&quot;, &quot;v1alpha1&quot;, &quot;applications&quot;);</span>
+<span class="fc" id="L18">  }</span>
+
+  /**
+   * Retrieves the application name from the resource spec. This property is required.
+   *
+   * @param item Kubernetes resource
+   * @return application name in lowercase
+   */
+  @Override
+  protected String getAppName(GenericKubernetesResource item) {
+<span class="fc" id="L28">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
+  }
+
+  /**
+   * Retrieves the application group from the resource spec. Returns base class group if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return application group in lowercase
+   */
+  @Override
+  protected String getAppGroup(GenericKubernetesResource item) {
+<span class="fc" id="L40">    return getOptionalSpecString(item, &quot;group&quot;, super.getAppGroup(item)).toLowerCase();</span>
+  }
+
+  /**
+   * Retrieves the application icon from the resource spec. Returns base class icon if not present.
+   *
+   * @param item Kubernetes resource
+   * @return icon string or fallback value
+   */
+  @Override
+  protected String getAppUrl(GenericKubernetesResource item) {
+<span class="fc" id="L51">    return getSpec(item).get(&quot;url&quot;).toString();</span>
+  }
+
+  /**
+   * Retrieves the application icon color from the resource spec. Returns base class icon color if
+   * not present.
+   *
+   * @param item Kubernetes resource
+   * @return icon color string or fallback value
+   */
+  @Override
+  protected String getAppIcon(GenericKubernetesResource item) {
+<span class="fc" id="L63">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+  }
+
+  // Override getAppIconColor since the spec has an optional property called iconColor
+  // If the iconColor is not set, return the super.getAppIconColor response
+  @Override
+  protected String getAppIconColor(GenericKubernetesResource item) {
+<span class="fc" id="L70">    return getOptionalSpecString(item, &quot;iconColor&quot;, super.getAppIconColor(item));</span>
+  }
+
+  /**
+   * Retrieves additional information (info) from the resource spec. Returns base class info if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return info string or fallback value
+   */
+  @Override
+  protected String getAppInfo(GenericKubernetesResource item) {
+<span class="fc" id="L82">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+  }
+
+  /**
+   * Retrieves the targetBlank flag from the resource spec. Returns base class targetBlank if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating if the link should open in a new tab
+   */
+  @Override
+  protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
+<span class="fc" id="L94">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+  }
+
+  /**
+   * Retrieves the location (sorting order) from the resource spec. If location is zero, returns
+   * 1000 for backwards compatibility. Returns base class location if not present.
+   *
+   * @param item Kubernetes resource
+   * @return integer location value
+   */
+  @Override
+  protected int getAppLocation(GenericKubernetesResource item) {
+<span class="fc" id="L106">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
+  }
+
+  /**
+   * Retrieves the enabled flag from the resource spec. Returns base class enabled if not present.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating if the application is enabled
+   */
+  @Override
+  protected Boolean getAppEnabled(GenericKubernetesResource item) {
+<span class="fc" id="L118">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

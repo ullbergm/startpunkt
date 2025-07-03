@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HajimariApplicationWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">HajimariApplicationWrapper.java</span></div><h1>HajimariApplicationWrapper.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+
+/**
+ * Wrapper for Hajimari application custom resources. Provides access to application properties from
+ * the Kubernetes resource spec.
+ */
+public class HajimariApplicationWrapper extends BaseKubernetesObject {
+
+  // Constructor to initialize the custom resource with specific group, version, and plural kind
+  public HajimariApplicationWrapper() {
+<span class="fc" id="L13">    super(&quot;hajimari.io&quot;, &quot;v1alpha1&quot;, &quot;applications&quot;);</span>
+<span class="fc" id="L14">  }</span>
+
+  // Override getAppName since the spec has a required property called name
+  @Override
+  protected String getAppName(GenericKubernetesResource item) {
+<span class="nc" id="L19">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
+  }
+
+  // Override getAppGroup since the spec has a required property called group
+  @Override
+  protected String getAppGroup(GenericKubernetesResource item) {
+<span class="nc" id="L25">    return getSpec(item).get(&quot;group&quot;).toString().toLowerCase();</span>
+  }
+
+  // Override getAppUrl since the spec has a required property called url
+  @Override
+  protected String getAppUrl(GenericKubernetesResource item) {
+<span class="nc" id="L31">    return getSpec(item).get(&quot;url&quot;).toString();</span>
+  }
+
+  // Override getAppIcon since the spec has an optional property called icon
+  // If the icon is not set, return the super.getAppIcon response
+  @Override
+  protected String getAppIcon(GenericKubernetesResource item) {
+<span class="nc" id="L38">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+  }
+
+  @Override
+  protected Boolean getAppEnabled(GenericKubernetesResource item) {
+<span class="nc" id="L43">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+  }
+
+  // Override getAppInfo since the spec has an optional property called info
+  // If the info is not set, return the super.getAppInfo response
+  @Override
+  protected String getAppInfo(GenericKubernetesResource item) {
+<span class="nc" id="L50">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+  }
+
+  // Override getAppTargetBlank since the spec has an optional property called targetBlank
+  // If the targetBlank is not set, return the super.getAppTargetBlank response
+  @Override
+  protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
+<span class="nc" id="L57">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+  }
+
+  // Override getAppLocation since the spec has an optional property called location
+  // If the location is not set, return the super.getAppLocation response
+  @Override
+  protected int getAppLocation(GenericKubernetesResource item) {
+<span class="nc" id="L64">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    return location == 0 ? 1000 : location;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

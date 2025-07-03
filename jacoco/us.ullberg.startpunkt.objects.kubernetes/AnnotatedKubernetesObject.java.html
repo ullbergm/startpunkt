@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnnotatedKubernetesObject.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">AnnotatedKubernetesObject.java</span></div><h1>AnnotatedKubernetesObject.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import java.util.List;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
+
+/**
+ * Abstract base class for Kubernetes objects that extract application properties from annotations.
+ * Extends {@link BaseKubernetesObject} and overrides methods to get app info from Kubernetes
+ * resource annotations.
+ */
+public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
+
+  /**
+   * Constructs an AnnotatedKubernetesObject with the given group, version, and plural kind.
+   *
+   * @param group API group of the Kubernetes resource
+   * @param version API version of the Kubernetes resource
+   * @param pluralKind plural kind name of the Kubernetes resource
+   */
+  protected AnnotatedKubernetesObject(String group, String version, String pluralKind) {
+<span class="fc" id="L22">    super(group, version, pluralKind);</span>
+<span class="fc" id="L23">  }</span>
+
+  /**
+   * Retrieves the application name from resource annotations or falls back to metadata name.
+   *
+   * @param item Kubernetes resource
+   * @return application name in lowercase
+   */
+  @Override
+  protected String getAppName(GenericKubernetesResource item) {
+<span class="nc" id="L33">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L35">    String[] annotationKeys = {</span>
+      &quot;startpunkt.ullberg.us/appName&quot;, &quot;hajimari.io/appName&quot;, &quot;forecastle.stakater.com/appName&quot;
+    };
+<span class="nc bnc" id="L38" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L40">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L43">    return super.getAppName(item);</span>
+  }
+
+  /**
+   * Retrieves the application group from resource annotations or falls back to metadata namespace.
+   *
+   * @param item Kubernetes resource
+   * @return application group in lowercase
+   */
+  @Override
+  protected String getAppGroup(GenericKubernetesResource item) {
+<span class="nc" id="L54">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L56">    String[] annotationKeys = {</span>
+      &quot;startpunkt.ullberg.us/group&quot;, &quot;hajimari.io/group&quot;, &quot;forecastle.stakater.com/group&quot;
+    };
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L61">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L64">    return super.getAppGroup(item);</span>
+  }
+
+  /**
+   * Retrieves the application URL from resource annotations or falls back to spec URL.
+   *
+   * @param item Kubernetes resource
+   * @return application URL or null if not found
+   */
+  @Override
+  protected String getAppUrl(GenericKubernetesResource item) {
+<span class="nc" id="L75">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L77">    String[] annotationKeys = {</span>
+      &quot;startpunkt.ullberg.us/url&quot;, &quot;hajimari.io/url&quot;, &quot;forecastle.stakater.com/url&quot;
+    };
+<span class="nc bnc" id="L80" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L82">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L85">    return super.getAppUrl(item);</span>
+  }
+
+  /**
+   * Retrieves the application icon from resource annotations or falls back to spec icon.
+   *
+   * @param item Kubernetes resource
+   * @return application icon or null if not found
+   */
+  @Override
+  protected String getAppIcon(GenericKubernetesResource item) {
+<span class="nc" id="L96">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L98">    String[] annotationKeys = {</span>
+      &quot;startpunkt.ullberg.us/icon&quot;, &quot;hajimari.io/icon&quot;, &quot;forecastle.stakater.com/icon&quot;
+    };
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L103">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L106">    return super.getAppIcon(item);</span>
+  }
+
+  /**
+   * Retrieves the application icon color from resource annotations or falls back to spec iconColor.
+   *
+   * @param item Kubernetes resource
+   * @return application icon color or null if not found
+   */
+  @Override
+  protected String getAppIconColor(GenericKubernetesResource item) {
+<span class="nc" id="L117">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L119">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/iconColor&quot;, &quot;hajimari.io/iconColor&quot;};</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L122">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L125">    return super.getAppIconColor(item);</span>
+  }
+
+  /**
+   * Retrieves the application info from resource annotations or falls back to spec info.
+   *
+   * @param item Kubernetes resource
+   * @return application info or null if not found
+   */
+  @Override
+  protected String getAppInfo(GenericKubernetesResource item) {
+<span class="nc" id="L136">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L138">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/info&quot;, &quot;hajimari.io/info&quot;};</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L141">        return annotations.get(key).toLowerCase();</span>
+      }
+    }
+<span class="nc" id="L144">    return super.getAppInfo(item);</span>
+  }
+
+  /**
+   * Determines if the application URL should open in a new tab based on annotations or spec.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating targetBlank or false if not set
+   */
+  @Override
+  protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
+<span class="nc" id="L155">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L157">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/targetBlank&quot;, &quot;hajimari.io/targetBlank&quot;};</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L160">        return Boolean.parseBoolean(annotations.get(key));</span>
+      }
+    }
+<span class="nc" id="L163">    return super.getAppTargetBlank(item);</span>
+  }
+
+  /**
+   * Retrieves the application location (sort order) from annotations or spec. Treats 0 as 1000 for
+   * backwards compatibility.
+   *
+   * @param item Kubernetes resource
+   * @return location integer
+   */
+  @Override
+  protected int getAppLocation(GenericKubernetesResource item) {
+<span class="nc" id="L175">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L177">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/location&quot;, &quot;hajimari.io/location&quot;};</span>
+<span class="nc" id="L178">    int location = super.getAppLocation(item);</span>
+
+<span class="nc bnc" id="L180" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L182">        location = Integer.parseInt(annotations.get(key));</span>
+<span class="nc" id="L183">        break;</span>
+      }
+    }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    if (location == 0) {</span>
+<span class="nc" id="L187">      return 1000;</span>
+    }
+<span class="nc" id="L189">    return location;</span>
+  }
+
+  /**
+   * Determines if the application is enabled based on annotations or spec.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating enabled status or false if not set
+   */
+  @Override
+  protected Boolean getAppEnabled(GenericKubernetesResource item) {
+<span class="nc" id="L200">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L202">    String[] annotationKeys = {</span>
+      &quot;startpunkt.ullberg.us/enable&quot;, &quot;hajimari.io/enable&quot;, &quot;forecastle.stakater.com/expose&quot;
+    };
+<span class="nc bnc" id="L205" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L207">        return Boolean.parseBoolean(annotations.get(key));</span>
+      }
+    }
+<span class="nc" id="L210">    return super.getAppEnabled(item);</span>
+  }
+
+  /**
+   * Retrieves the application protocol from annotations or spec.
+   *
+   * @param item Kubernetes resource
+   * @return protocol string or null if not set
+   */
+  @Override
+  protected String getAppProtocol(GenericKubernetesResource item) {
+<span class="nc" id="L221">    var annotations = getAnnotations(item);</span>
+
+<span class="nc" id="L223">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/protocol&quot;};</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L226">        return annotations.get(key);</span>
+      }
+    }
+<span class="nc" id="L229">    return super.getAppProtocol(item);</span>
+  }
+
+  /**
+   * Filters a list of ApplicationSpec to include only those that are enabled.
+   *
+   * @param specs list of ApplicationSpec objects
+   * @return filtered list containing only enabled applications
+   */
+  protected List&lt;ApplicationSpec&gt; filterEnabled(List&lt;ApplicationSpec&gt; specs) {
+<span class="nc" id="L239">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

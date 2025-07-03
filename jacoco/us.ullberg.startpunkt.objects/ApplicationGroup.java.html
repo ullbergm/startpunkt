@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationGroup.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects</a> &gt; <span class="el_source">ApplicationGroup.java</span></div><h1>ApplicationGroup.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.util.LinkedList;
+import java.util.List;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
+
+/**
+ * Represents a group of applications, each group identified by a name and containing a list of
+ * {@link ApplicationSpec} objects.
+ */
+@RegisterForReflection(registerFullHierarchy = true)
+public final class ApplicationGroup implements Comparable&lt;ApplicationGroup&gt; {
+
+  private String name;
+  private LinkedList&lt;ApplicationSpec&gt; applications;
+
+  /** Default constructor for deserialization purposes. */
+<span class="nc" id="L20">  public ApplicationGroup() {</span>
+<span class="nc" id="L21">    this.applications = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L22">  }</span>
+
+  /**
+   * Constructs an ApplicationGroup with the given name and an empty list of applications.
+   *
+   * @param name the name of the application group, must not be null or blank
+   * @throws IllegalArgumentException if name is null or blank
+   */
+  public ApplicationGroup(String name) {
+<span class="fc" id="L31">    this(name, new LinkedList&lt;&gt;());</span>
+<span class="fc" id="L32">  }</span>
+
+  /**
+   * Constructs an ApplicationGroup with the given name and list of applications.
+   *
+   * @param name the name of the application group, must not be null or blank
+   * @param applications the list of applications; if null, initialized to an empty list
+   * @throws IllegalArgumentException if name is null or blank
+   */
+<span class="fc" id="L41">  public ApplicationGroup(String name, List&lt;ApplicationSpec&gt; applications) {</span>
+<span class="pc bpc" id="L42" title="2 of 4 branches missed.">    if (name == null || name.isBlank()) {</span>
+<span class="nc" id="L43">      throw new IllegalArgumentException(&quot;ApplicationGroup name cannot be null or empty&quot;);</span>
+    }
+<span class="fc" id="L45">    this.name = name;</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    this.applications = applications != null ? new LinkedList&lt;&gt;(applications) : new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L47">  }</span>
+
+  /**
+   * Returns the name of the application group.
+   *
+   * @return the group name
+   */
+  @JsonProperty(&quot;name&quot;)
+  public String getName() {
+<span class="fc" id="L56">    return name;</span>
+  }
+
+  /**
+   * Sets the name of the application group.
+   *
+   * @param name the new name
+   */
+  public void setName(String name) {
+<span class="nc" id="L65">    this.name = name;</span>
+<span class="nc" id="L66">  }</span>
+
+  /**
+   * Returns an unmodifiable copy of the applications list.
+   *
+   * @return list of applications in this group
+   */
+  @JsonProperty(&quot;applications&quot;)
+  public List&lt;ApplicationSpec&gt; getApplications() {
+<span class="fc" id="L75">    return List.copyOf(applications);</span>
+  }
+
+  /**
+   * Sets the list of applications in this group.
+   *
+   * @param applications the new list of applications; if null, resets to empty list
+   */
+  public void setApplications(List&lt;ApplicationSpec&gt; applications) {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    this.applications = applications != null ? new LinkedList&lt;&gt;(applications) : new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L85">  }</span>
+
+  /**
+   * Compares this ApplicationGroup to another by their name.
+   *
+   * @param other the other ApplicationGroup to compare to
+   * @return comparison result based on group name
+   */
+  @Override
+  public int compareTo(ApplicationGroup other) {
+<span class="nc" id="L95">    return this.getName().compareTo(other.getName());</span>
+  }
+
+  @Override
+  public boolean equals(Object other) {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (this == other) {</span>
+<span class="nc" id="L101">      return true;</span>
+    }
+<span class="nc bnc" id="L103" title="All 4 branches missed.">    if (other == null || getClass() != other.getClass()) {</span>
+<span class="nc" id="L104">      return false;</span>
+    }
+<span class="nc" id="L106">    ApplicationGroup otherGroup = (ApplicationGroup) other;</span>
+<span class="nc bnc" id="L107" title="All 8 branches missed.">    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)</span>
+        &amp;&amp; (applications != null
+<span class="nc bnc" id="L109" title="All 4 branches missed.">            ? applications.equals(otherGroup.applications)</span>
+            : otherGroup.applications == null);
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    result = 31 * result + (applications != null ? applications.hashCode() : 0);</span>
+<span class="nc" id="L117">    return result;</span>
+  }
+
+  /**
+   * Adds an application to the group.
+   *
+   * @param app the application to add; must not be null
+   * @throws IllegalArgumentException if app is null
+   */
+  public void addApplication(ApplicationSpec app) {
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    if (app == null) {</span>
+<span class="nc" id="L128">      throw new IllegalArgumentException(&quot;Application cannot be null&quot;);</span>
+    }
+<span class="fc" id="L130">    applications.add(app);</span>
+<span class="fc" id="L131">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L135">    return &quot;ApplicationGroup{name='&quot; + name + &quot;', applications=&quot; + applications + '}';</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

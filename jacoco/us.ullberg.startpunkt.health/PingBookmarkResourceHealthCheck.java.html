@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PingBookmarkResourceHealthCheck.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.health</a> &gt; <span class="el_source">PingBookmarkResourceHealthCheck.java</span></div><h1>PingBookmarkResourceHealthCheck.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.health;
+
+import java.util.logging.Logger;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Liveness;
+import us.ullberg.startpunkt.rest.BookmarkResource;
+
+/**
+ * {@link HealthCheck} implementation that performs a liveness check by pinging the Bookmark REST
+ * resource.
+ */
+@Liveness
+public class PingBookmarkResourceHealthCheck implements HealthCheck {
+<span class="nc" id="L15">  private static final Logger LOGGER =</span>
+<span class="nc" id="L16">      Logger.getLogger(PingBookmarkResourceHealthCheck.class.getName());</span>
+
+  private final BookmarkResource bookmarkResource;
+
+  /**
+   * Constructor injecting the BookmarkResource to be pinged.
+   *
+   * @param bookmarkResource the Bookmark REST endpoint
+   */
+<span class="nc" id="L25">  public PingBookmarkResourceHealthCheck(BookmarkResource bookmarkResource) {</span>
+<span class="nc" id="L26">    this.bookmarkResource = bookmarkResource;</span>
+<span class="nc" id="L27">  }</span>
+
+  /**
+   * Executes the health check by invoking the ping method on BookmarkResource.
+   *
+   * @return a HealthCheckResponse indicating up or down status with response data or error message
+   */
+  @Override
+  public HealthCheckResponse call() {
+    try {
+<span class="nc" id="L37">      var response = this.bookmarkResource.ping();</span>
+<span class="nc" id="L38">      return HealthCheckResponse.named(&quot;Ping Bookmark REST Endpoint&quot;)</span>
+<span class="nc" id="L39">          .withData(&quot;Response&quot;, response)</span>
+<span class="nc" id="L40">          .up()</span>
+<span class="nc" id="L41">          .build();</span>
+<span class="nc" id="L42">    } catch (Exception e) {</span>
+<span class="nc" id="L43">      LOGGER.severe(&quot;Ping to BookmarkResource failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L44">      return HealthCheckResponse.named(&quot;Ping Bookmark REST Endpoint&quot;)</span>
+<span class="nc" id="L45">          .withData(&quot;error&quot;, e.getMessage())</span>
+<span class="nc" id="L46">          .down()</span>
+<span class="nc" id="L47">          .build();</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

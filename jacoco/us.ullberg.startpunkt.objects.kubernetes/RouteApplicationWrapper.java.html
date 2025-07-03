@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RouteApplicationWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">RouteApplicationWrapper.java</span></div><h1>RouteApplicationWrapper.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.List;
+import us.ullberg.startpunkt.crd.ApplicationSpec;
+
+/**
+ * Wrapper for OpenShift Route custom resources to extract application information. Supports
+ * filtering for only annotated routes if specified.
+ */
+public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
+
+  // Field to indicate if only annotated objects should be processed
+  private final boolean onlyAnnotated;
+
+  // Constructor to initialize the RouteApplicationWrapper with specific group, version, and plural
+  // kind
+  // Also initializes the onlyAnnotated field
+  public RouteApplicationWrapper(boolean onlyAnnotated) {
+<span class="fc" id="L21">    super(&quot;route.openshift.io&quot;, &quot;v1&quot;, &quot;routes&quot;);</span>
+<span class="fc" id="L22">    this.onlyAnnotated = onlyAnnotated;</span>
+<span class="fc" id="L23">  }</span>
+
+  // Override method to get the application URL from the route's spec
+  @Override
+  protected String getAppUrl(GenericKubernetesResource item) {
+<span class="nc" id="L28">    var spec = getSpec(item);</span>
+
+    // Determine the protocol based on whether 'tls' is present in the spec
+<span class="nc bnc" id="L31" title="All 2 branches missed.">    String protocol = spec.containsKey(&quot;tls&quot;) ? &quot;https://&quot; : &quot;http://&quot;;</span>
+    // Get the host from the spec, default to &quot;localhost&quot; if not present
+<span class="nc bnc" id="L33" title="All 2 branches missed.">    String host = spec.containsKey(&quot;host&quot;) ? spec.get(&quot;host&quot;).toString() : &quot;localhost&quot;;</span>
+    // Get the path from the spec, default to an empty string if not present
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    String path = spec.containsKey(&quot;path&quot;) ? spec.get(&quot;path&quot;).toString() : &quot;&quot;;</span>
+
+    // Construct and return the full URL
+<span class="nc" id="L38">    return protocol + host + path;</span>
+  }
+
+  // Override method to get a list of ApplicationSpec objects
+  @Override
+  public List&lt;ApplicationSpec&gt; getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
+    // Get the application specs from the parent class
+<span class="fc" id="L46">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+
+    // If onlyAnnotated is true, filter the list to include only enabled applications
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

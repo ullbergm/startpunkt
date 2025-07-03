@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.rest</a> &gt; <span class="el_source">BookmarkResource.java</span></div><h1>BookmarkResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.rest;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.NonBlocking;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import us.ullberg.startpunkt.crd.BookmarkSpec;
+import us.ullberg.startpunkt.objects.BookmarkGroup;
+import us.ullberg.startpunkt.objects.BookmarkGroupList;
+import us.ullberg.startpunkt.service.BookmarkService;
+
+/**
+ * REST API resource class for managing bookmarks. Supports retrieving bookmarks grouped by their
+ * group names, including optional integration with Hajimari bookmarks.
+ */
+@Path(&quot;/api/bookmarks&quot;)
+@Tag(name = &quot;bookmarks&quot;)
+@Produces(MediaType.APPLICATION_JSON)
+public class BookmarkResource {
+  // Inject the BookmarkService to manage bookmark-related operations
+  BookmarkService bookmarkService;
+
+  // Configuration property to enable or disable Hajimari bookmarks
+<span class="fc" id="L39">  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;)</span>
+  private boolean hajimariEnabled = true;
+
+  // Constructor
+<span class="fc" id="L43">  public BookmarkResource(BookmarkService bookmarkService) {</span>
+<span class="fc" id="L44">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L45">  }</span>
+
+  // Method to retrieve the list of bookmarks
+  private ArrayList&lt;BookmarkSpec&gt; retrieveBookmarks() {
+    // Create a list to store bookmarks
+<span class="fc" id="L50">    var bookmarks = new ArrayList&lt;BookmarkSpec&gt;();</span>
+
+    // Add bookmarks retrieved from the BookmarkService
+<span class="fc" id="L53">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
+
+    // If Hajimari bookmarks are enabled, add them to the list
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L57">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+    }
+
+    // Sort the list of bookmarks
+<span class="fc" id="L61">    Collections.sort(bookmarks);</span>
+
+    // Return the sorted list of bookmarks
+<span class="fc" id="L64">    return bookmarks;</span>
+  }
+
+  /**
+   * REST GET endpoint to retrieve all bookmarks grouped by their group names.
+   *
+   * @return HTTP 200 with grouped bookmarks or HTTP 404 if none found
+   */
+  @GET
+  @Operation(summary = &quot;Returns all bookmarks&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Gets all bookmarks&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = BookmarkGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;No bookmarks found&quot;)
+  @Timed(value = &quot;startpunkt.api.getbookmarks&quot;, description = &quot;Get the list of bookmarks&quot;)
+  @CacheResult(cacheName = &quot;getBookmarks&quot;)
+  public Response getBookmarks() {
+    // Retrieve the list of bookmarks
+<span class="fc" id="L86">    List&lt;BookmarkSpec&gt; bookmarklist = retrieveBookmarks();</span>
+
+    // Create a list to store bookmark groups
+<span class="fc" id="L89">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarklist);</span>
+
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
+<span class="nc" id="L92">      return Response.status(404, &quot;No bookmarks found&quot;).build();</span>
+    }
+
+    // Return the list of bookmark groups
+<span class="fc" id="L96">    return Response.ok(new BookmarkGroupList(groups)).build();</span>
+  }
+
+  /**
+   * Ping endpoint for health checking this resource.
+   *
+   * @return a simple string confirming the resource is alive
+   */
+  @GET
+  @Path(&quot;/ping&quot;)
+  @Produces(MediaType.TEXT_PLAIN)
+  @Tag(name = &quot;ping&quot;)
+  @Operation(summary = &quot;Ping&quot;)
+  @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
+  @NonBlocking
+  public String ping() {
+<span class="fc" id="L112">    Log.debug(&quot;Ping Bookmark Resource&quot;);</span>
+<span class="fc" id="L113">    return &quot;Pong from Bookmark Resource&quot;;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
