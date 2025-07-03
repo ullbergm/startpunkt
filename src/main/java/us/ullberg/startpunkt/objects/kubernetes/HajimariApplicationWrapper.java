@@ -8,57 +8,102 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
  */
 public class HajimariApplicationWrapper extends BaseKubernetesObject {
 
-  // Constructor to initialize the custom resource with specific group, version, and plural kind
+  /**
+   * Constructs a wrapper for Hajimari application custom resources. Uses group "hajimari.io",
+   * version "v1alpha1", and plural "applications".
+   */
   public HajimariApplicationWrapper() {
     super("hajimari.io", "v1alpha1", "applications");
   }
 
-  // Override getAppName since the spec has a required property called name
+  /**
+   * Gets the application name from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application name in lowercase
+   */
   @Override
   protected String getAppName(GenericKubernetesResource item) {
     return getSpec(item).get("name").toString().toLowerCase();
   }
 
-  // Override getAppGroup since the spec has a required property called group
+  /**
+   * Gets the application group from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application group in lowercase
+   */
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
     return getSpec(item).get("group").toString().toLowerCase();
   }
 
-  // Override getAppUrl since the spec has a required property called url
+  /**
+   * Gets the application URL from the resource spec.
+   *
+   * @param item the Kubernetes resource
+   * @return application URL as string
+   */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
     return getSpec(item).get("url").toString();
   }
 
-  // Override getAppIcon since the spec has an optional property called icon
-  // If the icon is not set, return the super.getAppIcon response
+  /**
+   * Gets the application icon from the resource spec. Falls back to parent implementation if not
+   * set.
+   *
+   * @param item the Kubernetes resource
+   * @return icon URL or default value from super
+   */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "icon", super.getAppIcon(item));
   }
 
+  /**
+   * Gets the application enabled status from the resource spec. Falls back to parent implementation
+   * if not set.
+   *
+   * @param item the Kubernetes resource
+   * @return true if app is enabled, otherwise value from super
+   */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
   }
 
-  // Override getAppInfo since the spec has an optional property called info
-  // If the info is not set, return the super.getAppInfo response
+  /**
+   * Gets additional application info from the resource spec. Falls back to parent implementation if
+   * not set.
+   *
+   * @param item the Kubernetes resource
+   * @return info text or default from super
+   */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "info", super.getAppInfo(item));
   }
 
-  // Override getAppTargetBlank since the spec has an optional property called targetBlank
-  // If the targetBlank is not set, return the super.getAppTargetBlank response
+  /**
+   * Gets whether the application should open in a new tab from the resource spec. Falls back to
+   * parent implementation if not set.
+   *
+   * @param item the Kubernetes resource
+   * @return true if targetBlank is set, otherwise value from super
+   */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "targetBlank", super.getAppTargetBlank(item));
   }
 
-  // Override getAppLocation since the spec has an optional property called location
-  // If the location is not set, return the super.getAppLocation response
+  /**
+   * Gets the application location ordering value from the resource spec. Falls back to super if not
+   * set. If 0 is returned, substitutes 1000.
+   *
+   * @param item the Kubernetes resource
+   * @return location value for sorting
+   */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
     int location = getOptionalSpecInteger(item, "location", super.getAppLocation(item));

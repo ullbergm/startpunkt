@@ -5,9 +5,14 @@ package us.ullberg.startpunkt.rest;
  * light and dark modes.
  */
 public class Theme {
+
+  /** Color scheme used in light mode. */
   private ThemeColors light;
+
+  /** Color scheme used in dark mode. */
   private ThemeColors dark;
 
+  /** Default constructor for frameworks and serialization. */
   public Theme() {}
 
   /**
@@ -21,18 +26,38 @@ public class Theme {
     this.dark = dark;
   }
 
+  /**
+   * Gets the color scheme used for light mode.
+   *
+   * @return the light mode color scheme
+   */
   public ThemeColors getLight() {
     return light;
   }
 
+  /**
+   * Sets the color scheme used for light mode.
+   *
+   * @param light the light mode color scheme
+   */
   public void setLight(ThemeColors light) {
     this.light = light;
   }
 
+  /**
+   * Gets the color scheme used for dark mode.
+   *
+   * @return the dark mode color scheme
+   */
   public ThemeColors getDark() {
     return dark;
   }
 
+  /**
+   * Sets the color scheme used for dark mode.
+   *
+   * @param dark the dark mode color scheme
+   */
   public void setDark(ThemeColors dark) {
     this.dark = dark;
   }

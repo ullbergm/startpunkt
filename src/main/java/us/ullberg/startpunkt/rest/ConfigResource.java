@@ -23,19 +23,28 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "config")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
+
+  /** Indicates whether the GitHub link should be shown in the UI. */
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
   public boolean showGithubLink;
 
+  /** Indicates whether the application should check for updates. */
   @ConfigProperty(name = "startpunkt.web.checkForUpdates", defaultValue = "true")
   public boolean checkForUpdates;
 
+  /** Title of the application as shown in the UI. */
   @ConfigProperty(name = "startpunkt.web.title", defaultValue = "Startpunkt")
   public String title;
 
+  /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   public String version;
 
-  // GET endpoint to retrieve the list of bookmarks
+  /**
+   * Retrieves the current application configuration.
+   *
+   * @return HTTP 200 response containing the configuration as JSON
+   */
   @GET
   @Operation(summary = "Returns the configuration")
   @APIResponse(
@@ -49,8 +58,12 @@ public class ConfigResource {
     return Response.ok(generateConfig()).build();
   }
 
+  /**
+   * Assembles the application configuration into a structured map.
+   *
+   * @return a map representing the config payload
+   */
   private Map<String, Object> generateConfig() {
-    // Create a response with the configuration value
     return Map.of(
         "config",
         Map.of(
@@ -66,6 +79,11 @@ public class ConfigResource {
                 title)));
   }
 
+  /**
+   * Health check endpoint for the config resource.
+   *
+   * @return plain text "Pong from Config Resource"
+   */
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

@@ -7,61 +7,67 @@ import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
- * Represents the specification for an application bookmark. Includes metadata like name, group,
- * icon, URL, etc.
+ * Represents a single application bookmark specification in the Startpunkt UI.
+ *
+ * <p>This object defines all metadata related to a user-facing bookmark or link, such as its name,
+ * group, URL, icon, sorting order, visibility, and display behavior. It is typically used as the
+ * spec section in a Kubernetes custom resource representing application shortcuts.
+ *
+ * <p>The {@code name} and {@code url} fields are required. Other fields are optional and enhance
+ * the UI experience.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
 public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
-  // Application name, marked as required
+  /** Application name (required). */
   @JsonProperty("name")
   @JsonPropertyDescription("Application name")
   @Required
   public String name;
 
-  // Group the bookmark belongs to
+  /** Group the bookmark belongs to. */
   @JsonProperty("group")
   @JsonPropertyDescription("Group the bookmark belongs to")
   private String group;
 
-  // Application icon, either as an icon name or URL
+  /** Application icon, either as a name (e.g. mdi:home) or URL. */
   @JsonProperty("icon")
   @JsonPropertyDescription("Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'")
   private String icon;
 
-  // Application icon color
+  /** Color for the application icon. */
   @JsonProperty("iconColor")
   @JsonPropertyDescription("Application icon color, e.g. 'red'")
   private String iconColor;
 
-  // Application URL, marked as required
+  /** Application URL (required). */
   @JsonProperty("url")
   @JsonPropertyDescription("Application URL")
   @Required
   private String url;
 
-  // Description of the bookmark
+  /** Description or additional info about the bookmark. */
   @JsonProperty("info")
   @JsonPropertyDescription("Description of the bookmark")
   private String info;
 
-  // Flag to open the URL in a new tab
+  /** Whether the link should open in a new browser tab. */
   @JsonProperty("targetBlank")
   @JsonPropertyDescription("Open the URL in a new tab")
   private Boolean targetBlank;
 
-  // Sorting order of the bookmark
+  /** Sorting order for the bookmark in the UI. */
   @JsonProperty("location")
   @JsonPropertyDescription("Sorting order of the bookmark")
   private int location;
 
-  // Enable the bookmark
+  /** Whether the bookmark is enabled and should be shown. */
   @JsonProperty("enabled")
   @JsonPropertyDescription("Enable the bookmark")
   private Boolean enabled;
 
-  // Default constructor
+  /** Default constructor. */
   public ApplicationSpec() {}
 
   /**
@@ -98,80 +104,261 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     this.enabled = enabled;
   }
 
-  // Getters and setters for each field
+  /**
+   * Gets the name of the application bookmark.
+   *
+   * @return application name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Sets the name of the application bookmark.
+   *
+   * @param name application name
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * Gets the group this bookmark belongs to.
+   *
+   * @return group the bookmark belongs to
+   */
   public String getGroup() {
     return group;
   }
 
+  /**
+   * Sets the group this bookmark belongs to.
+   *
+   * @param group the group name
+   */
   public void setGroup(String group) {
     this.group = group;
   }
 
+  /**
+   * Gets the icon for this bookmark.
+   *
+   * @return application icon
+   */
   public String getIcon() {
     return icon;
   }
 
+  /**
+   * Sets the icon for this bookmark.
+   *
+   * @param icon icon name or URL
+   */
   public void setIcon(String icon) {
     this.icon = icon;
   }
 
+  /**
+   * Gets the color of the bookmark icon.
+   *
+   * @return icon color
+   */
   public String getIconColor() {
     return iconColor;
   }
 
+  /**
+   * Sets the color of the bookmark icon.
+   *
+   * @param iconColor icon color name
+   */
   public void setIconColor(String iconColor) {
     this.iconColor = iconColor;
   }
 
+  /**
+   * Gets the URL the bookmark points to.
+   *
+   * @return application URL
+   */
   public String getUrl() {
     return url;
   }
 
+  /**
+   * Sets the URL the bookmark points to.
+   *
+   * @param url application URL
+   */
   public void setUrl(String url) {
     this.url = url;
   }
 
+  /**
+   * Gets the optional info or description of the bookmark.
+   *
+   * @return additional info or description
+   */
   public String getInfo() {
     return info;
   }
 
+  /**
+   * Sets the optional info or description of the bookmark.
+   *
+   * @param info additional bookmark info
+   */
   public void setInfo(String info) {
     this.info = info;
   }
 
+  /**
+   * Gets whether the URL should open in a new browser tab.
+   *
+   * @return true if the link should open in a new tab
+   */
   public Boolean getTargetBlank() {
     return targetBlank;
   }
 
+  /**
+   * Sets whether the URL should open in a new browser tab.
+   *
+   * @param targetBlank whether to open the URL in a new tab
+   */
   public void setTargetBlank(Boolean targetBlank) {
     this.targetBlank = targetBlank;
   }
 
+  /**
+   * Gets the sorting order of the bookmark.
+   *
+   * @return sorting order
+   */
   public int getLocation() {
     return location;
   }
 
+  /**
+   * Sets the sorting order of the bookmark.
+   *
+   * @param location sorting order
+   */
   public void setLocation(int location) {
     this.location = location;
   }
 
+  /**
+   * Gets whether the bookmark is enabled.
+   *
+   * @return true if the bookmark is enabled
+   */
   public Boolean getEnabled() {
     return enabled;
   }
 
+  /**
+   * Sets whether the bookmark is enabled.
+   *
+   * @param enabled whether the bookmark is enabled
+   */
   public void setEnabled(Boolean enabled) {
     this.enabled = enabled;
   }
 
-  // Override the toString method to provide a string representation of the object
+  /**
+   * Compares this ApplicationSpec with another for sorting by group, location, and name.
+   *
+   * @param other the other ApplicationSpec
+   * @return negative, zero, or positive integer
+   */
+  @Override
+  public int compareTo(ApplicationSpec other) {
+    int groupCompare = this.getGroup().compareTo(other.getGroup());
+    if (groupCompare != 0) {
+      return groupCompare;
+    }
+
+    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());
+    if (locationCompare != 0) {
+      return locationCompare;
+    }
+
+    return this.getName().compareTo(other.getName());
+  }
+
+  /**
+   * Checks if this ApplicationSpec is equal to another object.
+   *
+   * @param o other object
+   * @return true if equal
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ApplicationSpec that = (ApplicationSpec) o;
+
+    if (location != that.location) {
+      return false;
+    }
+    if (name != null ? !name.equals(that.name) : that.name != null) {
+      return false;
+    }
+    if (group != null ? !group.equals(that.group) : that.group != null) {
+      return false;
+    }
+    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {
+      return false;
+    }
+    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {
+      return false;
+    }
+    if (url != null ? !url.equals(that.url) : that.url != null) {
+      return false;
+    }
+    if (info != null ? !info.equals(that.info) : that.info != null) {
+      return false;
+    }
+    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {
+      return false;
+    }
+    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Computes a hash code for this ApplicationSpec.
+   *
+   * @return hash code
+   */
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (group != null ? group.hashCode() : 0);
+    result = 31 * result + (icon != null ? icon.hashCode() : 0);
+    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    result = 31 * result + (info != null ? info.hashCode() : 0);
+    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
+    result = 31 * result + location;
+    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
+    return result;
+  }
+
+  /**
+   * Returns a string representation of this ApplicationSpec.
+   *
+   * @return string with field values
+   */
   @Override
   public String toString() {
     return "ApplicationSpec{"
@@ -200,80 +387,5 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
         + ", enabled="
         + enabled
         + '}';
-  }
-
-  /**
-   * Compares this ApplicationSpec with another for sorting. Sort order: group, location, then name.
-   *
-   * @param other the other ApplicationSpec to compare with
-   * @return comparison result
-   */
-  @Override
-  public int compareTo(ApplicationSpec other) {
-    // Compare by group
-    int groupCompare = this.getGroup().compareTo(other.getGroup());
-    if (groupCompare != 0) {
-      return groupCompare;
-    }
-
-    // Compare by location
-    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());
-    if (locationCompare != 0) {
-      return locationCompare;
-    }
-
-    // Compare by name
-    return this.getName().compareTo(other.getName());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ApplicationSpec that = (ApplicationSpec) o;
-    if (location != that.location) {
-      return false;
-    }
-    if (name != null ? !name.equals(that.name) : that.name != null) {
-      return false;
-    }
-    if (group != null ? !group.equals(that.group) : that.group != null) {
-      return false;
-    }
-    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {
-      return false;
-    }
-    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {
-      return false;
-    }
-    if (url != null ? !url.equals(that.url) : that.url != null) {
-      return false;
-    }
-    if (info != null ? !info.equals(that.info) : that.info != null) {
-      return false;
-    }
-    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {
-      return false;
-    }
-    return enabled != null ? enabled.equals(that.enabled) : that.enabled == null;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + (group != null ? group.hashCode() : 0);
-    result = 31 * result + (icon != null ? icon.hashCode() : 0);
-    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);
-    result = 31 * result + (url != null ? url.hashCode() : 0);
-    result = 31 * result + (info != null ? info.hashCode() : 0);
-    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
-    result = 31 * result + location;
-    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
-    return result;
   }
 }

@@ -20,7 +20,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public class Application extends CustomResource<ApplicationSpec, ApplicationStatus>
     implements Namespaced {
 
-  // Default constructor
+  /** Creates a new Application instance with default values. */
   public Application() {
     super();
   }

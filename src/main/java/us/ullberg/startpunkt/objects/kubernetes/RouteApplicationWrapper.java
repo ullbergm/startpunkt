@@ -11,41 +11,50 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
  */
 public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
-  // Field to indicate if only annotated objects should be processed
+  /** Indicates whether only annotated objects should be processed. */
   private final boolean onlyAnnotated;
 
-  // Constructor to initialize the RouteApplicationWrapper with specific group, version, and plural
-  // kind
-  // Also initializes the onlyAnnotated field
+  /**
+   * Constructs a RouteApplicationWrapper for OpenShift Routes.
+   *
+   * @param onlyAnnotated if true, only annotated routes will be considered when extracting specs
+   */
   public RouteApplicationWrapper(boolean onlyAnnotated) {
     super("route.openshift.io", "v1", "routes");
     this.onlyAnnotated = onlyAnnotated;
   }
 
-  // Override method to get the application URL from the route's spec
+  /**
+   * Extracts the application URL from the Route's spec. Builds a URL using the protocol
+   * (http/https), host, and path fields.
+   *
+   * @param item the Kubernetes resource representing the route
+   * @return the constructed application URL
+   */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
     var spec = getSpec(item);
 
-    // Determine the protocol based on whether 'tls' is present in the spec
     String protocol = spec.containsKey("tls") ? "https://" : "http://";
-    // Get the host from the spec, default to "localhost" if not present
     String host = spec.containsKey("host") ? spec.get("host").toString() : "localhost";
-    // Get the path from the spec, default to an empty string if not present
     String path = spec.containsKey("path") ? spec.get("path").toString() : "";
 
-    // Construct and return the full URL
     return protocol + host + path;
   }
 
-  // Override method to get a list of ApplicationSpec objects
+  /**
+   * Retrieves a list of {@link ApplicationSpec} objects from OpenShift Route resources. Applies
+   * filtering based on annotation settings.
+   *
+   * @param client the Kubernetes client
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames a list of route names to match
+   * @return a list of ApplicationSpec objects, possibly filtered to only annotated ones
+   */
   @Override
   public List<ApplicationSpec> getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
-    // Get the application specs from the parent class
     var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
-
-    // If onlyAnnotated is true, filter the list to include only enabled applications
     return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
 }

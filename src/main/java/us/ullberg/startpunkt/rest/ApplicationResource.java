@@ -71,6 +71,13 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";
 
+  /**
+   * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
+   */
+  public ApplicationResource() {
+    super();
+  }
+
   // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
     // Create a list of application wrappers to retrieve applications from

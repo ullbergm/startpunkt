@@ -27,6 +27,7 @@ import us.ullberg.startpunkt.service.I8nService;
 @Produces(MediaType.APPLICATION_JSON)
 public class I8nResource {
 
+  /** Internationalization service that provides translation content. */
   I8nService i8nService;
 
   /**
@@ -49,7 +50,7 @@ public class I8nResource {
   @Operation(summary = "Returns a translation")
   @APIResponse(
       responseCode = "200",
-      description = "Gets an translation",
+      description = "Gets a translation",
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
@@ -62,11 +63,7 @@ public class I8nResource {
   public Response getTranslation(@PathParam("language") String language) {
     try {
       String translation = i8nService.getTranslation(language);
-
-      // Log the translation
       Log.debug("Translation for language " + language + ":" + translation);
-
-      // Return the translation as a string
       return Response.ok(translation).build();
     } catch (IOException e) {
       return Response.status(404, "No translation found").build();
@@ -93,20 +90,20 @@ public class I8nResource {
       description = "Get the translation for the default language")
   @CacheResult(cacheName = "getDefaultTranslation")
   public Response getDefaultTranslation() {
-    String translation;
     try {
-      translation = i8nService.getTranslation("en-US");
-
-      // Log the translation
+      String translation = i8nService.getTranslation("en-US");
       Log.debug("Default translation:" + translation);
-
-      // Return the translation as a string
       return Response.ok(translation).build();
     } catch (IOException e) {
       return Response.status(404, "No translation found").build();
     }
   }
 
+  /**
+   * Health check endpoint to verify the I8n resource is reachable.
+   *
+   * @return plain text response "Pong from I8n Resource"
+   */
   @GET
   @Path("/ping")
   @Produces(MediaType.TEXT_PLAIN)

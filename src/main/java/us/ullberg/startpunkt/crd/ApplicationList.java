@@ -9,4 +9,12 @@ import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 public class ApplicationList extends DefaultKubernetesResourceList<Application> {
   // No additional fields or methods are defined,
   // this class simply serves as a type-safe list for Application custom resources
+
+  /**
+   * Creates an empty ApplicationList. Required to suppress warnings about the implicit default
+   * constructor.
+   */
+  public ApplicationList() {
+    super();
+  }
 }
