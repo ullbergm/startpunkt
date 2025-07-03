@@ -44,18 +44,20 @@ public class I8nService {
       if (!translationPath.startsWith(basePath)) {
         Log.warn("Invalid language path, falling back to default language");
         lang = defaultLanguage;
-        translationPath = basePath.resolve(lang + ".json").normalize();
+        translationPath = basePath.resolve(defaultLanguage + ".json").normalize();
       }
 
       try (InputStream translation = translationPath.toUri().toURL().openStream()) {
-        if (translation == null) {
+        return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+      }
+      catch( Exception e ) {
           Log.info(
               "No translation found for language: "
                   + lang
                   + ", falling back to default language: "
                   + defaultLanguage);
 
-          try (InputStream fallback =
+            try (InputStream fallback =
               basePath.resolve(defaultLanguage + ".json").toUri().toURL().openStream()) {
             if (fallback == null) {
               Log.error("Fallback translation file not found: " + defaultLanguage + ".json");
@@ -63,8 +65,7 @@ public class I8nService {
             }
             return new String(fallback.readAllBytes(), StandardCharsets.UTF_8);
           }
-        }
-        return new String(translation.readAllBytes(), StandardCharsets.UTF_8);
+
       }
     } catch (Exception e) {
       Log.error("Error resolving translation path", e);
