@@ -32,7 +32,7 @@
     <commons.lang3.version>3.17.0</commons.lang3.version>
     <junit.jupiter.version>5.10.5</junit.jupiter.version>
     <micrometer.core.version>1.13.7</micrometer.core.version>
-    <hamcrest.version>2.2</hamcrest.version>
+    <hamcrest.version>3.0</hamcrest.version>
     <jakarta.annotation.version>3.0.0</jakarta.annotation.version>
     <smallrye.common.annotation.version>2.9.0</smallrye.common.annotation.version>
     <jakarta.ws.rs.api.version>3.1.0</jakarta.ws.rs.api.version>
@@ -374,7 +374,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.6.3</version>
+        <version>3.11.2</version>
         <configuration>
           <encoding>${project.build.sourceEncoding}</encoding>
           <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
@@ -451,7 +451,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>3.8.1</version>
         <executions>
           <execution>
             <id>analyze</id>
@@ -484,7 +484,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <id>enforce-rules</id>
@@ -528,7 +528,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.6.3</version>
+        <version>3.11.2</version>
         <configuration>
           <additionalJOptions>
             <additionalJOption>-Xdoclint:none</additionalJOption>
@@ -544,7 +544,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.4.5</version>
+        <version>3.9.0</version>
       </plugin>
     </plugins>
   </reporting>
