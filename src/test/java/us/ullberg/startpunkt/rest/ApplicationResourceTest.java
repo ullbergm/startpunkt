@@ -4,11 +4,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.net.HttpURLConnection;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -17,6 +12,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import java.net.HttpURLConnection;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.Application;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
@@ -26,8 +24,7 @@ class ApplicationResourceTest {
   // Define the type of the custom resource
   private static final Class<Application> RESOURCE_TYPE = Application.class;
 
-  @KubernetesTestServer
-  KubernetesServer server; // Mock Kubernetes server for testing
+  @KubernetesTestServer KubernetesServer server; // Mock Kubernetes server for testing
 
   @BeforeEach
   public void before() {
@@ -37,8 +34,12 @@ class ApplicationResourceTest {
         CustomResourceDefinitionContext.v1CRDFromCustomResourceType(RESOURCE_TYPE).build();
 
     // Set up the mock server to expect a POST request for creating the CRD
-    server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
-        .andReturn(HttpURLConnection.HTTP_OK, crd).once();
+    server
+        .expect()
+        .post()
+        .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+        .andReturn(HttpURLConnection.HTTP_OK, crd)
+        .once();
 
     // Get the Kubernetes client from the mock server
     var client = server.getClient();
@@ -140,7 +141,11 @@ class ApplicationResourceTest {
   // Test to verify that the groups are in the right order
   @Test
   void testApplicationsGroupOrder() {
-    given().when().get("/api/apps").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
         .body("groups[0].name", equalTo("home automation"))
         .body("groups[1].name", equalTo("utilities"));
   }
@@ -148,7 +153,11 @@ class ApplicationResourceTest {
   // Test to verify that the number of applications are correct in each group
   @Test
   void testApplicationsCount() {
-    given().when().get("/api/apps").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
         .body("groups[0].applications.size()", equalTo(2))
         .body("groups[1].applications.size()", equalTo(1));
   }
@@ -157,7 +166,11 @@ class ApplicationResourceTest {
   // correct
   @Test
   void testApplicationsValues() {
-    given().when().get("/api/apps").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
         .body("groups[0].applications[0].name", equalTo("node-red"))
         .body("groups[0].applications[0].group", equalTo("home automation"))
         .body("groups[0].applications[0].icon", equalTo("mdi:node-red"))
@@ -167,7 +180,6 @@ class ApplicationResourceTest {
         .body("groups[0].applications[0].targetBlank", equalTo(true))
         .body("groups[0].applications[0].location", equalTo(1))
         .body("groups[0].applications[0].enabled", equalTo(true))
-
         .body("groups[0].applications[1].name", equalTo("home assistant"))
         .body("groups[0].applications[1].group", equalTo("home automation"))
         .body("groups[0].applications[1].icon", equalTo("mdi:home-automation"))
@@ -176,7 +188,6 @@ class ApplicationResourceTest {
         .body("groups[0].applications[1].targetBlank", equalTo(true))
         .body("groups[0].applications[1].location", equalTo(1000))
         .body("groups[0].applications[1].enabled", equalTo(true))
-
         .body("groups[1].applications[0].name", equalTo("cyberchef"))
         .body("groups[1].applications[0].group", equalTo("utilities"))
         .body("groups[1].applications[0].icon", equalTo("mdi:chef-hat"))
@@ -189,12 +200,19 @@ class ApplicationResourceTest {
   // Test reading the information of a single application
   @Test
   void testApplicationInfo() {
-    given().when().get("/api/apps/home automation/home assistant").then().statusCode(200)
-        .body("name", equalTo("home assistant")).body("group", equalTo("home automation"))
+    given()
+        .when()
+        .get("/api/apps/home automation/home assistant")
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("home assistant"))
+        .body("group", equalTo("home automation"))
         .body("icon", equalTo("mdi:home-automation"))
         .body("url", equalTo("https://homeassistant.ullberg.us"))
-        .body("info", equalTo("Smart Home Manager")).body("targetBlank", equalTo(true))
-        .body("location", equalTo(1000)).body("enabled", equalTo(true));
+        .body("info", equalTo("Smart Home Manager"))
+        .body("targetBlank", equalTo(true))
+        .body("location", equalTo(1000))
+        .body("enabled", equalTo(true));
   }
 
   // Test reading the information for a missing application
@@ -206,7 +224,11 @@ class ApplicationResourceTest {
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/apps/ping").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/apps/ping")
+        .then()
+        .statusCode(200)
         .body(equalTo(new ApplicationResource().ping()));
   }
 }

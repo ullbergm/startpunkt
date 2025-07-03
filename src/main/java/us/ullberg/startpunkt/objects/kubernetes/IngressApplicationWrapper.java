@@ -1,35 +1,46 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
-import java.util.List;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.List;
 import us.ullberg.startpunkt.crd.ApplicationSpec;
 
-// Class representing a wrapper for Kubernetes Ingress objects
+/**
+ * Wrapper class for Kubernetes Ingress resources. Allows retrieval of application specifications
+ * from Ingresses, optionally filtering only annotated resources.
+ */
 public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
 
   // Field to indicate if only annotated objects should be processed
-  private Boolean onlyAnnotated = false;
+  private final boolean onlyAnnotated;
 
-  // Constructor to initialize the IngressApplicationWrapper with specific group, version, and
-  // plural kind
-  // Also initializes the onlyAnnotated field
-  public IngressApplicationWrapper(Boolean onlyAnnotated) {
+  /**
+   * Constructs an IngressApplicationWrapper.
+   *
+   * @param onlyAnnotated if true, only annotated Ingress resources will be processed
+   */
+  public IngressApplicationWrapper(boolean onlyAnnotated) {
     super("networking.k8s.io", "v1", "ingresses");
     this.onlyAnnotated = onlyAnnotated;
   }
 
-  // Override method to get a list of ApplicationSpec objects
+  /**
+   * Retrieves application specs from Kubernetes Ingress resources, filtering them based on the
+   * onlyAnnotated flag.
+   *
+   * @param client Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames specific namespaces to include in the search
+   * @return list of {@link ApplicationSpec} extracted from Ingress resources
+   */
   @Override
-  public List<ApplicationSpec> getApplicationSpecs(KubernetesClient client, Boolean anyNamespace,
-      String[] matchNames) {
+  public List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     // Get the application specs from the parent class
     var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
 
     // If onlyAnnotated is true, filter the list to include only enabled applications
-    if (Boolean.TRUE.equals(onlyAnnotated)) {
-      return applicationSpecs.stream().filter(app -> app.getEnabled() != null && app.getEnabled())
-          .toList();
+    if (onlyAnnotated) {
+      return filterEnabled(applicationSpecs);
     }
 
     // If onlyAnnotated is false, return the full list of application specs

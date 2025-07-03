@@ -3,9 +3,8 @@ package us.ullberg.startpunkt.rest;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.junit.jupiter.api.Test;
-
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class ThemeResourceTest {
@@ -16,26 +15,38 @@ class ThemeResourceTest {
 
   @Test
   void testLightThemeConfiguration() {
-    given().when().get("/api/theme").then().body("theme.light.bodyBgColor", equalTo("#F8F6F1"))
-        .body("theme.light.bodyColor", equalTo("#696969"))
-        .body("theme.light.emphasisColor", equalTo("#000000"))
-        .body("theme.light.textPrimaryColor", equalTo("#4C432E"))
-        .body("theme.light.textAccentColor", equalTo("#AA9A73"));
+    given()
+        .when()
+        .get("/api/theme")
+        .then()
+        .body("light.bodyBgColor", equalTo("#F8F6F1"))
+        .body("light.bodyColor", equalTo("#696969"))
+        .body("light.emphasisColor", equalTo("#000000"))
+        .body("light.textPrimaryColor", equalTo("#4C432E"))
+        .body("light.textAccentColor", equalTo("#AA9A73"));
   }
 
   @Test
   void testDarkThemeConfiguration() {
-    given().when().get("/api/theme").then().body("theme.dark.bodyBgColor", equalTo("#232530"))
-        .body("theme.dark.bodyColor", equalTo("#696969"))
-        .body("theme.dark.emphasisColor", equalTo("#FAB795"))
-        .body("theme.dark.textPrimaryColor", equalTo("#FAB795"))
-        .body("theme.dark.textAccentColor", equalTo("#E95678"));
+    given()
+        .when()
+        .get("/api/theme")
+        .then()
+        .body("dark.bodyBgColor", equalTo("#232530"))
+        .body("dark.bodyColor", equalTo("#696969"))
+        .body("dark.emphasisColor", equalTo("#FAB795"))
+        .body("dark.textPrimaryColor", equalTo("#FAB795"))
+        .body("dark.textAccentColor", equalTo("#E95678"));
   }
 
   // Test the ping endpoint
   @Test
   void testPingEndpoint() {
-    given().when().get("/api/theme/ping").then().statusCode(200)
+    given()
+        .when()
+        .get("/api/theme/ping")
+        .then()
+        .statusCode(200)
         .body(equalTo(new ThemeResource().ping()));
   }
 }

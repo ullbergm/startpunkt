@@ -22,15 +22,15 @@ export function ThemeSwitcher() {
       bodyBgColor: '#f8f9fa',
       bodyColor: '#696969',
       emphasisColor: '#000',
-      textPrimary: '#4C432E',
-      textAccent: '#AA9A73'
+      textPrimaryColor: '#4C432E',
+      textAccentColor: '#AA9A73'
     },
     dark: {
       bodyBgColor: '#232530',
       bodyColor: '#696969',
       emphasisColor: '#FAB795',
-      textPrimary: '#FAB795',
-      textAccent: '#E95678'
+      textPrimaryColor: '#FAB795',
+      textAccentColor: '#E95678'
     }
   });
 
@@ -38,7 +38,7 @@ export function ThemeSwitcher() {
     var config = fetch('/api/theme')
       .then((res) => res.json())
       .then((res) => {
-        setThemes(res.theme);
+        setThemes(res);
       });
   }, [])
 
@@ -63,15 +63,15 @@ export function ThemeSwitcher() {
       document.body.style.setProperty('--bs-body-bg', themes.dark.bodyBgColor);
       document.body.style.setProperty('--bs-body-color', themes.dark.bodyColor);
       document.body.style.setProperty('--bs-emphasis-color', themes.dark.emphasisColor);
-      document.body.style.setProperty('--color-text-pri', themes.dark.textPrimary);
-      document.body.style.setProperty('--color-text-acc', themes.dark.textAccent);
+      document.body.style.setProperty('--color-text-pri', themes.dark.textPrimaryColor);
+      document.body.style.setProperty('--color-text-acc', themes.dark.textAccentColor);
     } else {
       console.log("Setting light theme");
       document.body.style.setProperty('--bs-body-bg', themes.light.bodyBgColor);
       document.body.style.setProperty('--bs-body-color', themes.light.bodyColor);
       document.body.style.setProperty('--bs-emphasis-color', themes.light.emphasisColor);
-      document.body.style.setProperty('--color-text-pri', themes.light.textPrimary);
-      document.body.style.setProperty('--color-text-acc', themes.light.textAccent);
+      document.body.style.setProperty('--color-text-pri', themes.light.textPrimaryColor);
+      document.body.style.setProperty('--color-text-acc', themes.light.textAccentColor);
     }
   }, [theme, themes, systemPrefersDark]);
 

@@ -1,35 +1,58 @@
 package us.ullberg.startpunkt.crd;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Plural;
 import io.fabric8.kubernetes.model.annotation.Version;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
-// Annotation to specify the version of the custom resource
+/**
+ * Represents the CustomResource for an Application. Maps to the Kubernetes resource
+ * "applications.startpunkt.ullberg.us" version "v1alpha1". Contains the spec and status for the
+ * Application.
+ */
 @Version("v1alpha1")
-// Annotation to specify the group name of the custom resource
 @Group("startpunkt.ullberg.us")
-// Annotation to specify the plural name of the custom resource
 @Plural("applications")
 public class Application extends CustomResource<ApplicationSpec, ApplicationStatus>
     implements Namespaced {
 
-  // Default constructor
+  /** Creates a new Application instance with default values. */
   public Application() {
     super();
   }
 
-  // Constructor to initialize the custom resource with specified values
-  public Application(String name, String group, String icon, String iconColor, String url,
-      String info, Boolean targetBlank, int location, Boolean enabled) {
+  /**
+   * Constructs an Application with the specified specification fields.
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled) {
     super();
     // Initialize the spec of the custom resource with the provided values
-    this.spec = new ApplicationSpec(name, group, icon, iconColor, url, info, targetBlank, location,
-        enabled);
+    this.spec =
+        new ApplicationSpec(
+            name, group, icon, iconColor, url, info, targetBlank, location, enabled);
   }
 
   // Override the hashCode method to generate a hash code based on the spec and status
@@ -48,7 +71,17 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
       return false;
     }
     Application rhs = ((Application) other);
-    return new EqualsBuilder().append(getSpec(), rhs.getSpec()).append(getStatus(), rhs.getStatus())
+    return new EqualsBuilder()
+        .append(getSpec(), rhs.getSpec())
+        .append(getStatus(), rhs.getStatus())
         .isEquals();
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+        .append("spec", getSpec())
+        .append("status", getStatus())
+        .toString();
   }
 }

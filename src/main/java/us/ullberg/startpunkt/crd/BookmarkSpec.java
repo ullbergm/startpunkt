@@ -3,60 +3,77 @@ package us.ullberg.startpunkt.crd;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-
 import io.fabric8.generator.annotation.Required;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-// Include non-empty JSON properties in serialization
+/**
+ * Represents the specification of a Bookmark custom resource. Includes properties such as name,
+ * group, icon, URL, info, target behavior, and sorting location.
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-// Register class for reflection, including the full hierarchy
 @RegisterForReflection(registerFullHierarchy = true)
 public class BookmarkSpec implements Comparable<BookmarkSpec> {
 
-  // Bookmark name, marked as required
+  /** Bookmark name (required). */
   @JsonProperty("name")
   @JsonPropertyDescription("Bookmark name")
   @Required
   public String name;
 
-  // Group the bookmark belongs to, marked as required
+  /** Group the bookmark belongs to (required). */
   @JsonProperty("group")
   @JsonPropertyDescription("Group the bookmark belongs to")
   @Required
   private String group;
 
-  // Bookmark icon, either as an icon name or URL
+  /** Bookmark icon (optional), e.g. icon name or URL. */
   @JsonProperty("icon")
   @JsonPropertyDescription("Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'")
   private String icon;
 
-  // Bookmark URL, marked as required
+  /** Bookmark URL (required). */
   @JsonProperty("url")
   @JsonPropertyDescription("Bookmark URL")
   @Required
   private String url;
 
-  // Description of the bookmark
+  /** Description or additional info about the bookmark (optional). */
   @JsonProperty("info")
   @JsonPropertyDescription("Description of the bookmark")
   private String info;
 
-  // Flag to open the URL in a new tab
+  /** Whether the URL should open in a new tab (optional). */
   @JsonProperty("targetBlank")
   @JsonPropertyDescription("Open the URL in a new tab")
   private Boolean targetBlank;
 
-  // Sorting order of the bookmark
+  /** Sorting order for bookmarks (optional). Lower numbers sort first. */
   @JsonProperty("location")
   @JsonPropertyDescription("Sorting order of the bookmark")
   private int location;
 
-  // Default constructor
+  /** Default no-argument constructor. */
   public BookmarkSpec() {}
 
-  // Parameterized constructor to initialize the fields
-  public BookmarkSpec(String name, String group, String icon, String url, String info,
-      Boolean targetBlank, int location) {
+  /**
+   * Constructs a BookmarkSpec with all properties.
+   *
+   * @param name bookmark name
+   * @param group bookmark group
+   * @param icon bookmark icon (optional)
+   * @param url bookmark URL
+   * @param info description or info (optional)
+   * @param targetBlank whether to open in new tab (optional)
+   * @param location sorting order
+   */
+  public BookmarkSpec(
+      String name,
+      String group,
+      String icon,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location) {
     this.name = name;
     this.group = group;
     this.icon = icon;
@@ -66,87 +83,151 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     this.location = location;
   }
 
-  // Getters and setters for each field
+  /**
+   * Get the bookmark name.
+   *
+   * @return the bookmark name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Set the bookmark name.
+   *
+   * @param name the bookmark name to set
+   */
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * Get the bookmark group.
+   *
+   * @return the bookmark group
+   */
   public String getGroup() {
     return group;
   }
 
+  /**
+   * Set the bookmark group.
+   *
+   * @param group the bookmark group to set
+   */
   public void setGroup(String group) {
     this.group = group;
   }
 
+  /**
+   * Get the bookmark icon.
+   *
+   * @return the bookmark icon
+   */
   public String getIcon() {
     return icon;
   }
 
+  /**
+   * Set the bookmark icon.
+   *
+   * @param icon the bookmark icon to set
+   */
   public void setIcon(String icon) {
     this.icon = icon;
   }
 
+  /**
+   * Get the bookmark url.
+   *
+   * @return the bookmark URL
+   */
   public String getUrl() {
     return url;
   }
 
+  /**
+   * Set the bookmark url.
+   *
+   * @param url the bookmark URL to set
+   */
   public void setUrl(String url) {
     this.url = url;
   }
 
+  /**
+   * Get the bookmark info.
+   *
+   * @return the bookmark info/description
+   */
   public String getInfo() {
     return info;
   }
 
+  /**
+   * Set the bookmark info.
+   *
+   * @param info the bookmark info to set
+   */
   public void setInfo(String info) {
     this.info = info;
   }
 
+  /**
+   * Get whether the url should open in a new tab.
+   *
+   * @return whether the URL should open in a new tab
+   */
   public Boolean getTargetBlank() {
     return targetBlank;
   }
 
+  /**
+   * Set whether the url should open in a new tab.
+   *
+   * @param targetBlank the targetBlank flag to set
+   */
   public void setTargetBlank(Boolean targetBlank) {
     this.targetBlank = targetBlank;
   }
 
+  /**
+   * Get the sorting location.
+   *
+   * @return the sorting location of the bookmark
+   */
   public int getLocation() {
     return location;
   }
 
+  /**
+   * Set the sorting location.
+   *
+   * @param location the sorting location to set
+   */
   public void setLocation(int location) {
     this.location = location;
   }
 
-  // Override the toString method to provide a string representation of the object
-  @Override
-  public String toString() {
-    return "BookmarkSpec{" + "name='" + name + '\'' + ", group='" + group + '\'' + ", icon='" + icon
-        + '\'' + ", url='" + url + '\'' + ", info='" + info + '\'' + ", targetBlank=" + targetBlank
-        + ", location=" + location + '}';
-  }
-
-  // Implement the Comparable interface to compare BookmarkSpec objects
+  /**
+   * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
+   * then name.
+   *
+   * @param other another BookmarkSpec to compare against
+   * @return negative if this precedes other, positive if after, zero if equal
+   */
   @Override
   public int compareTo(BookmarkSpec other) {
-    // Compare by group
     int groupCompare = this.getGroup().compareTo(other.getGroup());
     if (groupCompare != 0) {
       return groupCompare;
     }
 
-    // Compare by location
     int locationCompare = Integer.compare(this.getLocation(), other.getLocation());
     if (locationCompare != 0) {
       return locationCompare;
     }
 
-    // Compare by name
     return this.getName().compareTo(other.getName());
   }
 
@@ -177,7 +258,8 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {
       return false;
     }
-    return targetBlank != null ? targetBlank.equals(otherSpec.targetBlank)
+    return targetBlank != null
+        ? targetBlank.equals(otherSpec.targetBlank)
         : otherSpec.targetBlank == null;
   }
 
@@ -191,5 +273,30 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
     result = 31 * result + location;
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "BookmarkSpec{"
+        + "name='"
+        + name
+        + '\''
+        + ", group='"
+        + group
+        + '\''
+        + ", icon='"
+        + icon
+        + '\''
+        + ", url='"
+        + url
+        + '\''
+        + ", info='"
+        + info
+        + '\''
+        + ", targetBlank="
+        + targetBlank
+        + ", location="
+        + location
+        + '}';
   }
 }

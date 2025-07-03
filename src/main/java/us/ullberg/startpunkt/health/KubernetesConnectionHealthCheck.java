@@ -1,50 +1,62 @@
 package us.ullberg.startpunkt.health;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Readiness;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-
 /**
- * {@link HealthCheck} to validate the service can talk to Kubernetes
+ * {@link HealthCheck} that verifies connectivity and availability of key Kubernetes API groups.
+ *
+ * <p>This readiness check queries the Kubernetes cluster for its version, node count, namespace
+ * count, and presence of specific API groups used by the application.
  */
 @Readiness
 public class KubernetesConnectionHealthCheck implements HealthCheck {
+  private static final Logger LOGGER =
+      Logger.getLogger(KubernetesConnectionHealthCheck.class.getName());
   private final KubernetesClient client;
 
+  /**
+   * Constructs a KubernetesConnectionHealthCheck with the given Kubernetes client.
+   *
+   * @param client the Kubernetes client to use for health checks
+   */
   public KubernetesConnectionHealthCheck(KubernetesClient client) {
     this.client = client;
   }
 
+  /**
+   * Performs the health check by querying Kubernetes cluster details and API group availability.
+   *
+   * @return a HealthCheckResponse indicating up/down status and cluster information
+   */
   @Override
   public HealthCheckResponse call() {
     HealthCheckResponseBuilder responseBuilder =
         HealthCheckResponse.named("Kubernetes connection health check");
 
     try {
-      // Attempt to list namespaces to check the connection to Kubernetes
       responseBuilder.withData("Version", client.getKubernetesVersion().getGitVersion());
       responseBuilder.withData("Nodes", client.nodes().list().getItems().size());
       responseBuilder.withData("Namespaces", client.namespaces().list().getItems().size());
-      responseBuilder.withData("Startpunkt API group found",
-          client.hasApiGroup("startpunkt.ullberg.us", true));
-      responseBuilder.withData("OpenShift Route API group found",
-          client.hasApiGroup("route.openshift.io", true));
+      responseBuilder.withData(
+          "Startpunkt API group found", client.hasApiGroup("startpunkt.ullberg.us", true));
+      responseBuilder.withData(
+          "OpenShift Route API group found", client.hasApiGroup("route.openshift.io", true));
       responseBuilder.withData("Hajimari API group found", client.hasApiGroup("hajimari.io", true));
-      responseBuilder.withData("ForeCastle API group found",
-          client.hasApiGroup("forecastle.stakater.com", true));
+      responseBuilder.withData(
+          "ForeCastle API group found", client.hasApiGroup("forecastle.stakater.com", true));
       responseBuilder.withData("Traefik API group found", client.hasApiGroup("traefik.io", true));
 
-      // If successful, mark the health check as 'up'
       responseBuilder.up();
     } catch (Exception e) {
-      // If an exception occurs, mark the health check as 'down'
-      responseBuilder.down();
+      LOGGER.severe("Kubernetes health check failed: " + e.getMessage());
+      responseBuilder.down().withData("error", e.getMessage());
     }
 
-    // Build and return the health check response
     return responseBuilder.build();
   }
 }

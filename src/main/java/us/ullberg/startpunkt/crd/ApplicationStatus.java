@@ -2,9 +2,20 @@ package us.ullberg.startpunkt.crd;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-// Class representing the status of an Application custom resource
-// Include non-empty JSON properties in serialization
+/**
+ * Represents the status of an {@link Application} custom resource. This class can be extended to
+ * include status-related fields.
+ *
+ * <p>Non-empty JSON properties are included in serialization.
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ApplicationStatus {
-  // This class is currently empty, but it can be extended to include status fields
+  // This class is currently empty, but it can be extended to include status fields 
+  /**
+   * Creates an empty ApplicationStatus.
+   * Explicit constructor provided for clarity and documentation compliance.
+   */
+  public ApplicationStatus() {
+    super();
+  }
 }

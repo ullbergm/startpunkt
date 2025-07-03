@@ -1,0 +1,38 @@
+[
+  {
+    "name": "us.ullberg.startpunkt.crd.ApplicationSpec",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "us.ullberg.startpunkt.crd.BookmarkSpec",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "us.ullberg.startpunkt.objects.ApplicationGroup",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "us.ullberg.startpunkt.objects.ApplicationGroupList",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "us.ullberg.startpunkt.objects.BookmarkGroup",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "us.ullberg.startpunkt.objects.BookmarkGroupList",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  }
+]

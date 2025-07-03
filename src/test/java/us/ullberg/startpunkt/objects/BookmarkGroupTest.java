@@ -10,10 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 
 class BookmarkGroupTest {
@@ -32,8 +30,17 @@ class BookmarkGroupTest {
 
   @Test
   void testGetBookmarks() {
-    List<BookmarkSpec> applications = new LinkedList<>(Arrays.asList(new BookmarkSpec("Bookmark 1",
-        "Group 1", "mdi:bookmark", "https://example.com/bookmark1", "Description 1", true, 0)));
+    List<BookmarkSpec> applications =
+        new LinkedList<>(
+            Arrays.asList(
+                new BookmarkSpec(
+                    "Bookmark 1",
+                    "Group 1",
+                    "mdi:bookmark",
+                    "https://example.com/bookmark1",
+                    "Description 1",
+                    true,
+                    0)));
     applicationGroup.addBookmark(applications.get(0));
 
     assertEquals(applications, applicationGroup.getBookmarks());
@@ -41,8 +48,15 @@ class BookmarkGroupTest {
 
   @Test
   void testAddBookmark() {
-    BookmarkSpec newApp = new BookmarkSpec("Bookmark 1", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0);
+    BookmarkSpec newApp =
+        new BookmarkSpec(
+            "Bookmark 1",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0);
     applicationGroup.addBookmark(newApp);
     assertThat(applicationGroup.getBookmarks(), contains(newApp));
   }
@@ -57,20 +71,48 @@ class BookmarkGroupTest {
 
   @Test
   void testEquals() {
-    applicationGroup.addBookmark(new BookmarkSpec("Bookmark 3", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
+    applicationGroup.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 3",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
 
     BookmarkGroup sameGroup = new BookmarkGroup("Group 1");
-    sameGroup.addBookmark(new BookmarkSpec("Bookmark 3", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
+    sameGroup.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 3",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
 
     BookmarkGroup differentGroup = new BookmarkGroup("Group 2");
-    differentGroup.addBookmark(new BookmarkSpec("Bookmark 3", "Group 2", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
+    differentGroup.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 3",
+            "Group 2",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
 
     BookmarkGroup differentGroup2 = new BookmarkGroup("Group 1");
-    differentGroup2.addBookmark(new BookmarkSpec("Bookmark 1", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
+    differentGroup2.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 1",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
 
     assertEquals(applicationGroup, sameGroup);
     assertNotEquals(applicationGroup, differentGroup);
@@ -82,10 +124,24 @@ class BookmarkGroupTest {
     BookmarkGroup sameGroup = new BookmarkGroup("Group 1");
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
 
-    applicationGroup.addBookmark(new BookmarkSpec("Bookmark 1", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
-    sameGroup.addBookmark(new BookmarkSpec("Bookmark 1", "Group 1", "mdi:bookmark",
-        "https://example.com/bookmark1", "Description 1", true, 0));
+    applicationGroup.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 1",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
+    sameGroup.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 1",
+            "Group 1",
+            "mdi:bookmark",
+            "https://example.com/bookmark1",
+            "Description 1",
+            true,
+            0));
 
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
   }
