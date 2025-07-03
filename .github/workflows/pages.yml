@@ -4,6 +4,9 @@ on:
   push:
     branches: [cleanup]
 
+permissions:
+  contents: write  # Required for deploying to GitHub Pages
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
