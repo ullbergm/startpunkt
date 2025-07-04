@@ -1,10 +1,10 @@
 package us.ullberg.startpunkt.objects;
 
+import static org.hamcrest.MatcherAssert.assertThat; // Updated import
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;

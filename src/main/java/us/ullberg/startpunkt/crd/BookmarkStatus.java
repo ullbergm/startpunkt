@@ -10,5 +10,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class BookmarkStatus {
+  /** Default constructor. */
+  public BookmarkStatus() {
+    // No special initialization needed
+  }
+
   // Intentionally left empty for future status fields
+
 }

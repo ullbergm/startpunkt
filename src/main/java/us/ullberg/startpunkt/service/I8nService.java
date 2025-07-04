@@ -19,6 +19,11 @@ public class I8nService {
   @ConfigProperty(name = "startpunkt.defaultLanguage", defaultValue = "en-US")
   private String defaultLanguage;
 
+  /** Default constructor. */
+  public I8nService() {
+    // No special initialization needed
+  }
+
   /**
    * Retrieves the translation JSON content for the given language. Falls back to the default
    * language if the input format is invalid or the translation is missing.

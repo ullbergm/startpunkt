@@ -26,10 +26,10 @@ import us.ullberg.startpunkt.crd.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
+import us.ullberg.startpunkt.objects.kubernetes.GatewayApiHttpRouteWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.GatewayAPIHTTPRouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 
@@ -64,10 +64,10 @@ public class ApplicationResource {
   private boolean istioVirtualServiceOnlyAnnotated = true;
 
   @ConfigProperty(name = "startpunkt.gatewayapi.httproute.enabled", defaultValue = "false")
-  private boolean gatewayAPIEnabled = false;
+  private boolean gatewayApiEnabled = false;
 
   @ConfigProperty(name = "startpunkt.gatewayapi.httproute.onlyAnnotated", defaultValue = "true")
-  private boolean gatewayAPIHTTPRouteAnnotated = true;
+  private boolean gatewayApiHttpRouteOnlyAnnotated = true;
 
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
@@ -109,13 +109,10 @@ public class ApplicationResource {
               istioVirtualServiceOnlyAnnotated, defaultProtocol));
     }
 
-    if (gatewayAPIEnabled)
+    if (gatewayApiEnabled) {
       applicationWrappers.add(
-          new GatewayAPIHTTPRouteApplicationWrapper(gatewayAPIHTTPRouteAnnotated, defaultProtocol));
-
-    if (gatewayAPIEnabled)
-      applicationWrappers.add(
-          new GatewayAPIHTTPRouteApplicationWrapper(gatewayAPIHTTPRouteAnnotated, defaultProtocol));
+          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
+    }
 
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();

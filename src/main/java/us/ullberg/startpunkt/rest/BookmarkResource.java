@@ -39,28 +39,30 @@ public class BookmarkResource {
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
 
-  // Constructor
+  /**
+   * Constructs the BookmarkResource with the given BookmarkService.
+   *
+   * @param bookmarkService service to manage bookmark operations
+   */
   public BookmarkResource(BookmarkService bookmarkService) {
     this.bookmarkService = bookmarkService;
   }
 
-  // Method to retrieve the list of bookmarks
+  /**
+   * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
+   * alphabetically.
+   *
+   * @return sorted list of BookmarkSpec objects
+   */
   private ArrayList<BookmarkSpec> retrieveBookmarks() {
-    // Create a list to store bookmarks
     var bookmarks = new ArrayList<BookmarkSpec>();
-
-    // Add bookmarks retrieved from the BookmarkService
     bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
-    // If Hajimari bookmarks are enabled, add them to the list
     if (hajimariEnabled) {
       bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
     }
 
-    // Sort the list of bookmarks
     Collections.sort(bookmarks);
-
-    // Return the sorted list of bookmarks
     return bookmarks;
   }
 

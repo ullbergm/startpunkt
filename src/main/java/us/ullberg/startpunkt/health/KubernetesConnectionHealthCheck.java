@@ -50,8 +50,9 @@ public class KubernetesConnectionHealthCheck implements HealthCheck {
       responseBuilder.withData(
           "ForeCastle API group found", client.hasApiGroup("forecastle.stakater.com", true));
       responseBuilder.withData("Traefik API group found", client.hasApiGroup("traefik.io", true));
-      responseBuilder.withData("Gateway API group found", client.hasApiGroup("gateway.networking.k8s.io", true));
-      
+      responseBuilder.withData(
+          "Gateway API group found", client.hasApiGroup("gateway.networking.k8s.io", true));
+
       responseBuilder.up();
     } catch (Exception e) {
       LOGGER.severe("Kubernetes health check failed: " + e.getMessage());
