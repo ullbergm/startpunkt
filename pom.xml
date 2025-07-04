@@ -29,7 +29,7 @@
 
     <!-- Dependency Versions -->
     <commons.lang3.version>3.17.0</commons.lang3.version>
-    <junit.jupiter.version>5.13.2</junit.jupiter.version>
+    <junit.jupiter.version>5.13.3</junit.jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
   </properties>
 
