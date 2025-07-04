@@ -70,6 +70,7 @@
   - OpenShift Routes
   - Hajimari CRDs
   - Istio VirtualServices.
+  - GatewayAPI HTTPRoutes.
 - 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
 - 🌎 **Internationalized**. Supports multiple languages.
 - 🎨 **Themes**. Supports themes.
@@ -148,12 +149,12 @@ startpunkt:
   # Kubernetes integration, read ingress resources
   ingress:
     enabled: false  # If true, enable the reading of ingress resources
-    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
   # OpenShift integration, read OpenShift Routes
   openshift:
     enabled: false  # If true, enable the reading of OpenShift Route resources
-    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+    onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
   # Hajimari integration, read Hajimari Applications and Bookmarks
   hajimari:
@@ -163,7 +164,13 @@ startpunkt:
   istio:
     virtualservice:
       enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
-      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enabled: "true"'
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
+
+  # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
+  gatewayapi:
+    httproute:
+      enabled: false  # If true, enable the reading of Hajimari Applications and Bookmarks
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
   # Web ui configuration
   web:
@@ -212,7 +219,7 @@ The annotations can go on Ingresses or OpenShift Routes.
 
 | Annotation | Description                                                                                                             | Required |
 |-------------------------------------|------------------------------------------------------------------------------------------------|----------|
-| `startpunkt.ullberg.us/enabled`     | Add this with value true if you want the application to show up in Startpunk                   | No       |
+| `startpunkt.ullberg.us/enable`      | Add this with value true if you want the application to show up in Startpunk                   | No       |
 | `startpunkt.ullberg.us/icon`        | Icon/Image URL of the application. Icons can come from material design, etc.                   | No       |
 | `startpunkt.ullberg.us/iconColor`   | Color to display the icon in.                                                                  | No       |
 | `startpunkt.ullberg.us/name`        | A custom name for your application. Use if you don’t want to use the name of the ingress/route | No       |
