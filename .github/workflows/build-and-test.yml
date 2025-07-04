@@ -7,6 +7,12 @@ env:
   SONAR_PROJECTKEY: magnus-ullberg_startpunkt
   SONAR_HOST_URL: https://sonarcloud.io
 
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
 on:
   push:
     paths-ignore:
@@ -72,6 +78,7 @@ jobs:
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
+          check_name: "Test Results - JVM"
           files: '**/target/surefire-reports/*.xml'
 
   native-build-test:
@@ -116,4 +123,5 @@ jobs:
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
+          check_name: "Test Results - Native"
           files: '**/target/surefire-reports/*.xml'

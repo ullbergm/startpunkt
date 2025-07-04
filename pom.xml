@@ -183,6 +183,11 @@
       <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.smallrye.common</groupId>
       <artifactId>smallrye-common-annotation</artifactId>
     </dependency>
@@ -441,6 +446,7 @@
             <configuration>
               <failOnWarning>true</failOnWarning>
               <ignoredUnusedDeclaredDependencies>
+                <!-- Quarkus -->
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-arc</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest-jackson</ignoredUnusedDeclaredDependency>
@@ -451,12 +457,22 @@
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-config-yaml</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-kubernetes-client</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
+
+                <!-- Quarkiverse -->
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.helm:quarkus-helm</ignoredUnusedDeclaredDependency>
+
+                <!-- Fabric8 -->
                 <ignoredUnusedDeclaredDependency>io.fabric8:crd-generator-api</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.fabric8:crd-generator-api-v2</ignoredUnusedDeclaredDependency>
+
+                <!-- JUnit -->
                 <ignoredUnusedDeclaredDependency>org.junit.platform:junit-platform-launcher</ignoredUnusedDeclaredDependency>
+
+                <!-- Explicitly used but Maven misses it -->
+                <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
+
             </configuration>
           </execution>
         </executions>
@@ -476,7 +492,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence></dependencyConvergence>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -489,8 +505,8 @@
         <version>2.44.5</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat></googleJavaFormat>
+            <removeUnusedImports></removeUnusedImports>
           </java>
         </configuration>
         <executions>
