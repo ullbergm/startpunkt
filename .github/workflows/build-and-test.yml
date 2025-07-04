@@ -114,7 +114,7 @@ jobs:
       - name: 'build-test-native-java-${{ env.JAVA_VERSION }}'
         working-directory: .
         run: |
-          ./mvnw -B -fae clean verify -Dnative=true -Pnative \
+          ./mvnw -B -fae clean verify -Pnative \
             -Dquarkus.http.host=0.0.0.0 \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.native.container-build=false

@@ -166,7 +166,7 @@ jobs:
       - name: Build native image (${{ matrix.arch }})
         working-directory: .
         run: |
-          ./mvnw -B clean package -DskipTests -Dnative=true -Pnative \
+          ./mvnw -B clean package -DskipTests -Pnative \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
