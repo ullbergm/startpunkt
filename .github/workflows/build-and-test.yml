@@ -68,6 +68,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Publish JUnit test results to GitHub
+        if: always()
+        uses: EnricoMi/publish-unit-test-results@v2
+        with:
+          files: '**/target/surefire-reports/*.xml'
+
   native-build-test:
     runs-on: ubuntu-latest
     if: github.repository == 'ullbergm/startpunkt'
@@ -106,3 +112,8 @@ jobs:
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.native.container-build=false
 
+      - name: Publish JUnit test results to GitHub
+        if: always()
+        uses: EnricoMi/publish-unit-test-results@v2
+        with:
+          files: '**/target/surefire-reports/*.xml'
