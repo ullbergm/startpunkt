@@ -113,6 +113,10 @@ public class ApplicationResource {
       applicationWrappers.add(
           new GatewayAPIHTTPRouteApplicationWrapper(gatewayAPIHTTPRouteAnnotated, defaultProtocol));
 
+    if (gatewayAPIEnabled)
+      applicationWrappers.add(
+          new GatewayAPIHTTPRouteApplicationWrapper(gatewayAPIHTTPRouteAnnotated, defaultProtocol));
+
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
