@@ -1,11 +1,13 @@
 package us.ullberg.startpunkt.objects;
 
-import static org.hamcrest.MatcherAssert.assertThat; // Updated import
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -191,5 +193,95 @@ class ApplicationGroupTest {
 
     assertEquals("Group1", groupWithApps.getName());
     assertEquals(applications, groupWithApps.getApplications());
+  }
+
+  @Test
+  void testSetName() {
+    applicationGroup.setName("NewGroupName");
+    assertEquals("NewGroupName", applicationGroup.getName());
+  }
+
+  @Test
+  void testSetNameWithNullOrBlank() {
+    applicationGroup.setName(null);
+    assertEquals(null, applicationGroup.getName());
+
+    applicationGroup.setName("   ");
+    assertEquals("   ", applicationGroup.getName());
+  }
+
+  @Test
+  void testSetApplications() {
+    List<ApplicationSpec> apps =
+        List.of(
+            new ApplicationSpec(
+                "AppX",
+                "Group1",
+                "mdi:application",
+                "blue",
+                "https://example.com",
+                "App X description",
+                true,
+                1,
+                false));
+
+    applicationGroup.setApplications(apps);
+    assertEquals(apps, applicationGroup.getApplications());
+  }
+
+  @Test
+  void testSetApplicationsWithNull() {
+    applicationGroup.setApplications(null);
+    assertEquals(0, applicationGroup.getApplications().size());
+  }
+
+  @Test
+  void testApplicationsListIsUnmodifiable() {
+    applicationGroup.addApplication(
+        new ApplicationSpec(
+            "App1",
+            "Group1",
+            "mdi:application",
+            "green",
+            "https://example.com",
+            "App Desc",
+            true,
+            0,
+            true));
+
+    List<ApplicationSpec> apps = applicationGroup.getApplications();
+    assertThrows(
+        UnsupportedOperationException.class,
+        () ->
+            apps.add(
+                new ApplicationSpec(
+                    "App2",
+                    "Group1",
+                    "mdi:application",
+                    "blue",
+                    "https://example.com",
+                    "App Desc",
+                    true,
+                    1,
+                    false)));
+  }
+
+  @Test
+  void testToStringContainsGroupNameAndAppName() {
+    applicationGroup.addApplication(
+        new ApplicationSpec(
+            "AppZ",
+            "Group1",
+            "mdi:application",
+            "black",
+            "https://appz.com",
+            "Desc",
+            false,
+            3,
+            true));
+
+    String output = applicationGroup.toString();
+    assertTrue(output.contains("Group1"));
+    assertTrue(output.contains("AppZ"));
   }
 }
