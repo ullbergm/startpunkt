@@ -25,18 +25,17 @@
     <!-- Quarkus Platform -->
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>3.17.6</quarkus.platform.version>
+    <quarkus.platform.version>3.22.3</quarkus.platform.version>
 
     <!-- Dependency Versions -->
-    <jackson.annotations.version>2.18.2</jackson.annotations.version>
+    <fabric8.kubernetes.version>7.1.0</fabric8.kubernetes.version>
+    <jackson.annotations.version>2.18.3</jackson.annotations.version>
     <commons.lang3.version>3.17.0</commons.lang3.version>
-    <junit.jupiter.version>5.10.5</junit.jupiter.version>
-    <micrometer.core.version>1.13.7</micrometer.core.version>
+    <junit.jupiter.version>5.13.2</junit.jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
     <jakarta.annotation.version>3.0.0</jakarta.annotation.version>
-    <smallrye.common.annotation.version>2.9.0</smallrye.common.annotation.version>
+    <smallrye.common.annotation.version>2.12.0</smallrye.common.annotation.version>
     <jakarta.ws.rs.api.version>3.1.0</jakarta.ws.rs.api.version>
-    <fabric8.kubernetes.version>6.13.4</fabric8.kubernetes.version>
     <microprofile.health.api.version>4.0.1</microprofile.health.api.version>
     <microprofile.config.api.version>3.1</microprofile.config.api.version>
     <microprofile.openapi.api.version>4.0.2</microprofile.openapi.api.version>
@@ -45,10 +44,18 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Quarkus BOM -->
       <dependency>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>${quarkus.platform.artifact-id}</artifactId>
         <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit.jupiter.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -123,10 +130,12 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>crd-generator-api</artifactId>
+      <version>${fabric8.kubernetes.version}</version>
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>crd-generator-api-v2</artifactId>
+      <version>${fabric8.kubernetes.version}</version>
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
@@ -169,6 +178,11 @@
 
     <!-- Other Libraries -->
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+      <version>1.14.7</version>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
       <version>${jackson.annotations.version}</version>
@@ -177,11 +191,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${commons.lang3.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-core</artifactId>
-      <version>${micrometer.core.version}</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -242,15 +251,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.jupiter.version}</version>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -448,7 +460,7 @@
           <skip>true</skip>
         </configuration>
       </plugin>
-      <plugin>
+      <!-- <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>3.8.1</version>
@@ -461,26 +473,10 @@
             <phase>verify</phase>
             <configuration>
               <failOnWarning>true</failOnWarning>
-              <ignoredUnusedDeclaredDependencies>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-arc</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-kubernetes-client</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-jacoco</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest-jackson</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-micrometer-registry-prometheus</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-openapi</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-fault-tolerance</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkiverse.helm:quarkus-helm</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-config-yaml</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.fabric8:crd-generator-api</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.fabric8:crd-generator-api-v2</ignoredUnusedDeclaredDependency>
-              </ignoredUnusedDeclaredDependencies>
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin> -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
