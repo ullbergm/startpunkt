@@ -5,10 +5,11 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
+@DisabledIfSystemProperty(named = "quarkus.native.container-build", matches = "true")
 class I8nServiceTest {
 
   @Inject
