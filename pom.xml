@@ -28,7 +28,7 @@
     <quarkus.platform.version>3.17.6</quarkus.platform.version>
 
     <!-- Dependency Versions -->
-    <jackson.annotations.version>2.18.2</jackson.annotations.version>
+    <jackson.annotations.version>2.19.1</jackson.annotations.version>
     <commons.lang3.version>3.17.0</commons.lang3.version>
     <junit.jupiter.version>5.10.5</junit.jupiter.version>
     <micrometer.core.version>1.13.7</micrometer.core.version>
