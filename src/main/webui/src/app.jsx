@@ -5,6 +5,7 @@ import { useLocalStorage } from '@rehooks/local-storage';
 import { writeStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
+import SpotlightSearch from './SpotlightSearch';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -227,6 +228,7 @@ export function App() {
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
       <ThemeSwitcher />
+      <SpotlightSearch />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto">
