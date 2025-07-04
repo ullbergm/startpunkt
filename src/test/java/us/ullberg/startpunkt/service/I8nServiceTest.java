@@ -9,7 +9,7 @@ import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-@DisabledIfSystemProperty(named = "quarkus.native.container-build", matches = "true")
+@DisabledIfSystemProperty(named = "native", matches = "true")
 class I8nServiceTest {
 
   @Inject
