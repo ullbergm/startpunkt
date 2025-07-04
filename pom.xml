@@ -36,7 +36,7 @@
     <jakarta.annotation.version>3.0.0</jakarta.annotation.version>
     <smallrye.common.annotation.version>2.9.0</smallrye.common.annotation.version>
     <jakarta.ws.rs.api.version>3.1.0</jakarta.ws.rs.api.version>
-    <fabric8.kubernetes.version>6.13.4</fabric8.kubernetes.version>
+    <fabric8.kubernetes.version>7.3.1</fabric8.kubernetes.version>
     <microprofile.health.api.version>4.0.1</microprofile.health.api.version>
     <microprofile.config.api.version>3.1</microprofile.config.api.version>
     <microprofile.openapi.api.version>4.0.2</microprofile.openapi.api.version>
