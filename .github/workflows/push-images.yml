@@ -50,8 +50,6 @@ jobs:
               (github.repository == 'ullbergm/startpunkt' && (github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')) &&
               (github.event_name == 'push' || (github.event_name == 'workflow_run' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.conclusion == 'success'))
             }}" >>$GITHUB_OUTPUT
-            
-            echo "run=true" >>$GITHUB_OUTPUT
 
   build-jvm-images:
     needs: init
