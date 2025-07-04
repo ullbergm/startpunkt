@@ -22,6 +22,7 @@ export default defineConfig({
                     'color-functions',
                     'global-builtin',
                 ],
+                quietDeps: true,
             },
         },
     },

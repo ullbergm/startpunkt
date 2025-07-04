@@ -30,6 +30,11 @@ public class BookmarkService {
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
   private String[] matchNames;
 
+  /** Default constructor. */
+  public BookmarkService() {
+    // No special initialization needed
+  }
+
   /**
    * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces.
    *

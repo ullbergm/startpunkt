@@ -40,6 +40,11 @@ public class ConfigResource {
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   public String version;
 
+  /** Default constructor. */
+  public ConfigResource() {
+    // No special initialization needed
+  }
+
   /**
    * Retrieves the current application configuration.
    *

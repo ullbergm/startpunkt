@@ -10,12 +10,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ApplicationStatus {
-  // This class is currently empty, but it can be extended to include status fields 
   /**
-   * Creates an empty ApplicationStatus.
-   * Explicit constructor provided for clarity and documentation compliance.
+   * Creates an empty ApplicationStatus. Explicit constructor provided for clarity and documentation
+   * compliance.
    */
   public ApplicationStatus() {
     super();
   }
+  
+  // This class is currently empty, but it can be extended to include status fields
 }

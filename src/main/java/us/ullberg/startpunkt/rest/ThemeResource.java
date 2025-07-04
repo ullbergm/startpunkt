@@ -63,6 +63,11 @@ public class ThemeResource {
   @ConfigProperty(name = "startpunkt.web.theme.dark.textAccentColor", defaultValue = "#AA9A73")
   public String darkThemeTextAccent;
 
+  /** Default constructor. */
+  public ThemeResource() {
+    // No special initialization needed
+  }
+
   /**
    * Returns the complete theme configuration including light and dark themes.
    *
