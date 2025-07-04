@@ -23,6 +23,9 @@ dependencies:
   bootstrap:
     specifier: ^5.3.7
     version: 5.3.7(@popperjs/core@2.11.8)
+  flexsearch:
+    specifier: ^0.8.205
+    version: 0.8.205
   preact:
     specifier: ^10.22.0
     version: 10.26.9
@@ -1288,6 +1291,10 @@ packages:
       to-regex-range: 5.0.1
     dev: true
     optional: true
+
+  /flexsearch@0.8.205:
+    resolution: {integrity: sha512-REFjMqy86DKkCTJ4gIE42c9MVm9t1vUWfEub/8taixYuhvyu4jd4XmFALk5VuKW4GH4VLav8A4BJboTsslHF1w==}
+    dev: false
 
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
