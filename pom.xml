@@ -39,7 +39,7 @@
     <fabric8.kubernetes.version>6.13.4</fabric8.kubernetes.version>
     <microprofile.health.api.version>4.0.1</microprofile.health.api.version>
     <microprofile.config.api.version>3.1</microprofile.config.api.version>
-    <microprofile.openapi.api.version>4.0.2</microprofile.openapi.api.version>
+    <microprofile.openapi.api.version>4.1</microprofile.openapi.api.version>
     <jakarta.enterprise.cdi.api.version>4.1.0</jakarta.enterprise.cdi.api.version>
   </properties>
 
