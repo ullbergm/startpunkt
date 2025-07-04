@@ -14,7 +14,7 @@ public class BookmarkStatus {
   public BookmarkStatus() {
     // No special initialization needed
   }
-  
+
   // Intentionally left empty for future status fields
 
 }

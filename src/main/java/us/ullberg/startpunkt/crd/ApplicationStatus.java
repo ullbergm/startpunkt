@@ -17,6 +17,6 @@ public class ApplicationStatus {
   public ApplicationStatus() {
     super();
   }
-  
+
   // This class is currently empty, but it can be extended to include status fields
 }
