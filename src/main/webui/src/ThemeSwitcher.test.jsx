@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
-import { ThemeSwitcher } from './App';
+import { ThemeSwitcher } from './app';
 
 jest.mock('@rehooks/local-storage', () => ({
   useLocalStorage: (key, initial) => [global._mockTheme || initial, jest.fn()],

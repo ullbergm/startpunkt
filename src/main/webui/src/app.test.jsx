@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
-import { App } from './App';
+import { App } from './app';
 
 // ---- MOCKS ----
 jest.mock('@rehooks/local-storage', () => ({
