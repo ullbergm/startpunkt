@@ -79,6 +79,9 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: "Test Results - JVM"
+          files: |
+            '**/target/surefire-reports/*.xml'
+            '**/test-results/jest/*.xml
 
   native-build-test:
     runs-on: ubuntu-latest
@@ -123,3 +126,6 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: "Test Results - Native"
+          files: |
+            '**/target/surefire-reports/*.xml'
+            '**/test-results/jest/*.xml
