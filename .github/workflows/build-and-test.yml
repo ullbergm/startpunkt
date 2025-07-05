@@ -81,7 +81,7 @@ jobs:
           check_name: "Test Results - JVM"
           files: |
             '**/target/surefire-reports/*.xml'
-            'src/main/webui/test-results/**/*.xml
+            '**/src/main/webui/test-results/**/*.xml
 
   native-build-test:
     runs-on: ubuntu-latest
@@ -128,4 +128,4 @@ jobs:
           check_name: "Test Results - Native"
           files: |
             '**/target/surefire-reports/*.xml'
-            'src/main/webui/test-results/**/*.xml
+            '**/src/main/webui/test-results/**/*.xml
