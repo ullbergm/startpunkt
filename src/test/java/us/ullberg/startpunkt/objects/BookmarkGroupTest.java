@@ -1,13 +1,11 @@
 package us.ullberg.startpunkt.objects;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,5 +142,88 @@ class BookmarkGroupTest {
             0));
 
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
+  }
+
+  @Test
+  void testConstructorWithNullNameThrowsException() {
+    assertThrows(IllegalArgumentException.class, () -> new BookmarkGroup(null));
+  }
+
+  @Test
+  void testConstructorWithEmptyNameThrowsException() {
+    assertThrows(IllegalArgumentException.class, () -> new BookmarkGroup(""));
+    assertThrows(IllegalArgumentException.class, () -> new BookmarkGroup("   "));
+  }
+
+  @Test
+  void testConstructorWithNullBookmarksList() {
+    BookmarkGroup group = new BookmarkGroup("Group", null);
+    assertNotNull(group.getBookmarks());
+    assertEquals(0, group.getBookmarks().size());
+  }
+
+  @Test
+  void testAddNullBookmarkThrowsException() {
+    BookmarkGroup group = new BookmarkGroup("Test Group");
+    assertThrows(IllegalArgumentException.class, () -> group.addBookmark(null));
+  }
+
+  @Test
+  void testBookmarksListIsUnmodifiable() {
+    BookmarkGroup group = new BookmarkGroup("Immutable Group");
+    group.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 1",
+            "Immutable Group",
+            "mdi:bookmark",
+            "https://example.com",
+            "Desc",
+            true,
+            0));
+
+    List<BookmarkSpec> bookmarks = group.getBookmarks();
+    assertThrows(
+        UnsupportedOperationException.class,
+        () ->
+            bookmarks.add(
+                new BookmarkSpec(
+                    "New",
+                    "Immutable Group",
+                    "mdi:bookmark",
+                    "https://example.com",
+                    "Desc",
+                    true,
+                    0)));
+  }
+
+  @Test
+  void testEqualsWithNullAndDifferentClass() {
+    BookmarkGroup group = new BookmarkGroup("Group");
+    assertNotEquals(group, null);
+    assertNotEquals(group, "Not a BookmarkGroup");
+  }
+
+  @Test
+  void testToStringContainsNameAndBookmarks() {
+    BookmarkGroup group = new BookmarkGroup("Group");
+    group.addBookmark(
+        new BookmarkSpec(
+            "Bookmark 1", "Group", "mdi:bookmark", "https://example.com", "Desc", true, 0));
+
+    String output = group.toString();
+    assertTrue(output.contains("Group"));
+    assertTrue(output.contains("Bookmark 1"));
+  }
+
+  @Test
+  void testBookmarkGroupSorting() {
+    BookmarkGroup groupA = new BookmarkGroup("Alpha");
+    BookmarkGroup groupB = new BookmarkGroup("Beta");
+    BookmarkGroup groupC = new BookmarkGroup("Charlie");
+
+    List<BookmarkGroup> groups = Arrays.asList(groupC, groupA, groupB);
+    Collections.sort(groups);
+
+    assertThat(groups, contains(groupA, groupB, groupC));
   }
 }

@@ -11,21 +11,27 @@ import us.ullberg.startpunkt.service.BookmarkService;
 class PingBookmarkResourceHealthCheckTest {
 
   private PingBookmarkResourceHealthCheck healthCheck;
+  private BookmarkResource bookmarkResource;
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingBookmarkResourceHealthCheck(new BookmarkResource(new BookmarkService()));
+    bookmarkResource = new BookmarkResource(new BookmarkService());
+    healthCheck = new PingBookmarkResourceHealthCheck(bookmarkResource);
   }
 
   @Test
   void testPing() {
-    var response = new BookmarkResource(new BookmarkService()).ping();
+    var response = bookmarkResource.ping();
     var expectedResponse =
         HealthCheckResponse.named("Ping Bookmark REST Endpoint")
             .withData("Response", response)
             .up()
             .build();
 
-    assertEquals(healthCheck.call().getData(), expectedResponse.getData());
+    var actualResponse = healthCheck.call();
+
+    assertEquals(expectedResponse.getData(), actualResponse.getData());
+    assertEquals(expectedResponse.getName(), actualResponse.getName());
+    assertEquals(expectedResponse.getStatus(), actualResponse.getStatus());
   }
 }

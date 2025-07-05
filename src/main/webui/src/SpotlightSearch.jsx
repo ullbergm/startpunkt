@@ -32,8 +32,19 @@ function renderIcon(icon, iconColor, name) {
     );
 }
 
-export default function SpotlightSearch() {
-    const [visible, setVisible] = useState(false);
+// At the top, before export
+if (!window._navigate) {
+    window._navigate = (url, inNewTab) => {
+        if (inNewTab) {
+            window.open(url, '_blank');
+        } else {
+            window.location.assign(url);
+        }
+    };
+}
+
+export default function SpotlightSearch({ testVisible = false }) {
+    const [visible, setVisible] = useState(testVisible);
     const [query, setQuery] = useState('');
     const [apps, setApps] = useState([]);
     const [filtered, setFiltered] = useState([]);
@@ -43,34 +54,36 @@ export default function SpotlightSearch() {
     const indexRef = useRef(null);
 
     useEffect(() => {
+        if (typeof testVisible === 'boolean') setVisible(testVisible);
+    }, [testVisible]);
+
+    useEffect(() => {
         fetch('/api/apps')
             .then(res => res.json())
             .then(data => {
+                // Change this line to match your API structure:
                 const allApps = data.groups.flatMap(group =>
-                    group.applications.map(app => ({
+                    (group.apps || group.applications).map(app => ({
                         id: `${group.name}:${app.name}:${app.url}`,
                         name: app.name,
-                        group: app.group,
+                        group: group.name,
                         url: app.url,
                         icon: app.icon || null,
-                        targetBlank: app.targetBlank || false,
+                        openInNewTab: app.openInNewTab || app.targetBlank || false,
                         info: app.info || '',
                     }))
                 );
-
                 setApps(allApps);
                 setFiltered(allApps);
-
                 const index = new Document({
                     document: {
                         id: 'id',
                         index: ['name'],
-                        store: ['name', 'group', 'url', 'icon', 'targetBlank', 'info'],
+                        store: ['name', 'group', 'url', 'icon', 'openInNewTab', 'info'],
                     },
                     tokenize: 'forward',
-                    normalize: 'full', // makes search case-insensitive
+                    normalize: 'full',
                 });
-
                 allApps.forEach(app => index.add(app));
                 indexRef.current = index;
             });
@@ -81,17 +94,15 @@ export default function SpotlightSearch() {
             const results = [
                 ...indexRef.current.search(query, { field: 'name', enrich: true }),
             ];
-
             const seen = new Set();
             const matches = results
                 .flatMap(r => r.result)
-                .map(r => r.doc) // ← THIS is key!
+                .map(r => r.doc)
                 .filter(app => {
                     if (!app || !app.url || seen.has(app.url)) return false;
                     seen.add(app.url);
                     return true;
                 });
-
             setFiltered(matches);
         } else {
             setFiltered(apps);
@@ -124,6 +135,11 @@ export default function SpotlightSearch() {
 
     itemRefs.current = [];
 
+    function onSelect(app) {
+        window._navigate(app.url, app.openInNewTab);
+        setVisible(false);
+    }
+
     return (
         <div style={overlayStyle}>
             <input
@@ -151,11 +167,7 @@ export default function SpotlightSearch() {
                         const index = selectedIndex >= 0 ? selectedIndex : 0;
                         const app = filtered[index];
                         if (app?.url) {
-                            if (app.targetBlank) {
-                                window.open(app.url, '_blank');
-                            } else {
-                                window.location.href = app.url;
-                            }
+                            onSelect(app);
                             setVisible(false);
                         }
                     }
@@ -179,11 +191,7 @@ export default function SpotlightSearch() {
                             gap: '0.5rem',
                         }}
                         onClick={() => {
-                            if (app.targetBlank) {
-                                window.open(app.url, '_blank');
-                            } else {
-                                window.location.href = app.url;
-                            }
+                            window._navigate(app.url, app.openInNewTab);
                             setVisible(false);
                         }}
                     >
@@ -200,6 +208,7 @@ export default function SpotlightSearch() {
         </div>
     );
 }
+
 const overlayStyle = {
     position: 'fixed',
     top: '20%',

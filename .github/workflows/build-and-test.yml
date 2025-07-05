@@ -7,6 +7,12 @@ env:
   SONAR_PROJECTKEY: magnus-ullberg_startpunkt
   SONAR_HOST_URL: https://sonarcloud.io
 
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
 on:
   push:
     paths-ignore:
@@ -68,6 +74,15 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: Publish JUnit test results to GitHub
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          check_name: "Test Results - JVM"
+          files: |
+            **/target/surefire-reports/*.xml
+            **/test-results/jest/*.xml
+
   native-build-test:
     runs-on: ubuntu-latest
     if: github.repository == 'ullbergm/startpunkt'
@@ -106,3 +121,11 @@ jobs:
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.native.container-build=false
 
+      - name: Publish JUnit test results to GitHub
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          check_name: "Test Results - Native"
+          files: |
+            **/target/surefire-reports/*.xml
+            **/test-results/jest/*.xml

@@ -10,21 +10,27 @@ import us.ullberg.startpunkt.rest.ConfigResource;
 class PingConfigResourceHealthCheckTest {
 
   private PingConfigResourceHealthCheck healthCheck;
+  private ConfigResource configResource;
 
   @BeforeEach
   void setUp() {
-    healthCheck = new PingConfigResourceHealthCheck(new ConfigResource());
+    configResource = new ConfigResource();
+    healthCheck = new PingConfigResourceHealthCheck(configResource);
   }
 
   @Test
   void testPing() {
-    var response = new ConfigResource().ping();
+    var response = configResource.ping();
     var expectedResponse =
         HealthCheckResponse.named("Ping Config REST Endpoint")
             .withData("Response", response)
             .up()
             .build();
 
-    assertEquals(healthCheck.call().getData(), expectedResponse.getData());
+    var actualResponse = healthCheck.call();
+
+    assertEquals(expectedResponse.getData(), actualResponse.getData());
+    assertEquals(expectedResponse.getName(), actualResponse.getName());
+    assertEquals(expectedResponse.getStatus(), actualResponse.getStatus());
   }
 }
