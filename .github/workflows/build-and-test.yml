@@ -79,7 +79,9 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: "Test Results - JVM"
-          files: '**/target/surefire-reports/*.xml'
+          files: |
+            '**/target/surefire-reports/*.xml'
+            'src/main/webui/test-results/**/*.xml
 
   native-build-test:
     runs-on: ubuntu-latest
@@ -124,4 +126,6 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           check_name: "Test Results - Native"
-          files: '**/target/surefire-reports/*.xml'
+          files: |
+            '**/target/surefire-reports/*.xml'
+            'src/main/webui/test-results/**/*.xml

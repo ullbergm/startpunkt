@@ -3,7 +3,6 @@ package us.ullberg.startpunkt.crd;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 class ApplicationListTest {
@@ -17,8 +16,10 @@ class ApplicationListTest {
 
   @Test
   void testAddApplications() {
-    Application app1 = new Application("App1", "Group1", "icon", "color", "url", "info", true, 1, true);
-    Application app2 = new Application("App2", "Group2", "icon", "color", "url", "info", false, 2, false);
+    Application app1 =
+        new Application("App1", "Group1", "icon", "color", "url", "info", true, 1, true);
+    Application app2 =
+        new Application("App2", "Group2", "icon", "color", "url", "info", false, 2, false);
 
     ApplicationList appList = new ApplicationList();
     appList.setItems(List.of(app1, app2));

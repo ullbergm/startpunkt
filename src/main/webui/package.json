@@ -6,7 +6,12 @@
    "scripts": {
       "dev": "vite",
       "build": "vite build",
-      "preview": "vite preview"
+      "preview": "vite preview",
+      "test": "jest --ci --reporters=default --reporters=jest-junit"
+   },
+   "jest-junit": {
+      "outputDirectory": "test-results/jest",
+      "outputName": "js-junit.xml"
    },
    "dependencies": {
       "@popperjs/core": "^2.11.8",
@@ -21,8 +26,17 @@
       "react-responsive": "^10.0.0"
    },
    "devDependencies": {
+      "@babel/preset-env": "^7.28.0",
+      "@babel/preset-react": "^7.27.1",
       "@iconify/react": "^6.0.0",
       "@preact/preset-vite": "^2.8.3",
+      "@testing-library/jest-dom": "^6.6.3",
+      "@testing-library/preact": "^3.2.4",
+      "babel-jest": "^30.0.4",
+      "identity-obj-proxy": "^3.0.0",
+      "jest": "^30.0.4",
+      "jest-environment-jsdom": "^30.0.4",
+      "jest-junit": "^16.0.0",
       "sass": "^1.77.6",
       "vite": "^7.0.0"
    }

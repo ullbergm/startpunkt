@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.junit.jupiter.api.Test;
 
 class ApplicationSpecTest {
@@ -19,9 +18,9 @@ class ApplicationSpecTest {
 
   @Test
   void testParameterizedConstructor() {
-    ApplicationSpec spec = new ApplicationSpec(
-        "App", "Group", "mdi:icon", "blue",
-        "https://app.example.com", "Info", true, 42, true);
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App", "Group", "mdi:icon", "blue", "https://app.example.com", "Info", true, 42, true);
 
     assertEquals("App", spec.getName());
     assertEquals("Group", spec.getGroup());
@@ -38,7 +37,8 @@ class ApplicationSpecTest {
   void testEqualsAndHashCode() {
     ApplicationSpec a = new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
     ApplicationSpec b = new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
-    ApplicationSpec c = new ApplicationSpec("Other", "Group", null, null, "url", null, true, 0, true);
+    ApplicationSpec c =
+        new ApplicationSpec("Other", "Group", null, null, "url", null, true, 0, true);
 
     assertEquals(a, b);
     assertNotEquals(a, c);
@@ -48,10 +48,14 @@ class ApplicationSpecTest {
 
   @Test
   void testCompareTo_Sorting() {
-    ApplicationSpec app1 = new ApplicationSpec("Alpha", "GroupA", null, null, "url", null, true, 1, true);
-    ApplicationSpec app2 = new ApplicationSpec("Beta", "GroupA", null, null, "url", null, true, 1, true);
-    ApplicationSpec app3 = new ApplicationSpec("Zeta", "GroupA", null, null, "url", null, true, 0, true);
-    ApplicationSpec app4 = new ApplicationSpec("Gamma", "GroupB", null, null, "url", null, true, 1, true);
+    ApplicationSpec app1 =
+        new ApplicationSpec("Alpha", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app2 =
+        new ApplicationSpec("Beta", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app3 =
+        new ApplicationSpec("Zeta", "GroupA", null, null, "url", null, true, 0, true);
+    ApplicationSpec app4 =
+        new ApplicationSpec("Gamma", "GroupB", null, null, "url", null, true, 1, true);
 
     List<ApplicationSpec> sorted = List.of(app1, app2, app3, app4).stream().sorted().toList();
 
@@ -64,9 +68,11 @@ class ApplicationSpecTest {
 
   @Test
   void testCompareTo_ConsistentWithTreeSet() {
-    ApplicationSpec app1 = new ApplicationSpec("Alpha", "A", null, null, "url", null, true, 1, true);
+    ApplicationSpec app1 =
+        new ApplicationSpec("Alpha", "A", null, null, "url", null, true, 1, true);
     ApplicationSpec app2 = new ApplicationSpec("Beta", "A", null, null, "url", null, true, 2, true);
-    ApplicationSpec app3 = new ApplicationSpec("Gamma", "B", null, null, "url", null, true, 1, true);
+    ApplicationSpec app3 =
+        new ApplicationSpec("Gamma", "B", null, null, "url", null, true, 1, true);
 
     Set<ApplicationSpec> set = new TreeSet<>(Set.of(app3, app1, app2));
 
@@ -76,7 +82,9 @@ class ApplicationSpecTest {
 
   @Test
   void testToStringIncludesFields() {
-    ApplicationSpec spec = new ApplicationSpec("App", "Group", "mdi:test", "red", "https://url", "Info", false, 3, true);
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App", "Group", "mdi:test", "red", "https://url", "Info", false, 3, true);
     String output = spec.toString();
 
     assertTrue(output.contains("App"));

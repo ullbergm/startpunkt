@@ -36,12 +36,13 @@ export function ThemeSwitcher() {
   });
 
   useEffect(() => {
-    var config = fetch('/api/theme')
+    fetch('/api/theme')
       .then((res) => res.json())
       .then((res) => {
-        setThemes(res);
-      });
-  }, [])
+        if (res && res.light && res.dark) setThemes(res);
+        // If response is bad, keep the default
+      }).catch(() => {});
+  }, []);
 
   // Read the theme from local storage and set the theme
   const [theme] = useLocalStorage('theme', 'auto');

@@ -1,22 +1,22 @@
 package us.ullberg.startpunkt.crd;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class BookmarkSpecTest {
 
   @Test
   void testConstructorAndGetters() {
-    BookmarkSpec spec = new BookmarkSpec(
-        "Grafana",
-        "Monitoring",
-        "mdi:chart-box",
-        "https://grafana.example.com",
-        "Grafana dashboards",
-        true,
-        5
-    );
+    BookmarkSpec spec =
+        new BookmarkSpec(
+            "Grafana",
+            "Monitoring",
+            "mdi:chart-box",
+            "https://grafana.example.com",
+            "Grafana dashboards",
+            true,
+            5);
 
     assertEquals("Grafana", spec.getName());
     assertEquals("Monitoring", spec.getGroup());
@@ -64,9 +64,9 @@ class BookmarkSpecTest {
     BookmarkSpec b = new BookmarkSpec("B", "Dev", null, "url", null, false, 2);
     BookmarkSpec c = new BookmarkSpec("C", "Prod", null, "url", null, false, 1);
 
-    assertTrue(a.compareTo(b) < 0);  // lower location
+    assertTrue(a.compareTo(b) < 0); // lower location
     assertTrue(b.compareTo(a) > 0);
-    assertTrue(a.compareTo(c) < 0);  // "Dev" < "Prod"
+    assertTrue(a.compareTo(c) < 0); // "Dev" < "Prod"
   }
 
   @Test

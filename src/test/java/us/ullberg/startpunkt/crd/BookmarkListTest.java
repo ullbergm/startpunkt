@@ -1,9 +1,9 @@
 package us.ullberg.startpunkt.crd;
 
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class BookmarkListTest {
 
@@ -16,8 +16,8 @@ class BookmarkListTest {
 
   @Test
   void testAddAndRetrieveBookmarks() {
-    Bookmark bookmark = new Bookmark(
-        "Site", "Group1", "mdi:web", "https://example.com", "Info", false, 1);
+    Bookmark bookmark =
+        new Bookmark("Site", "Group1", "mdi:web", "https://example.com", "Info", false, 1);
 
     BookmarkList list = new BookmarkList();
     list.setItems(List.of(bookmark));

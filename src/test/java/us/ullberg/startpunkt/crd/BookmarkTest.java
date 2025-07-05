@@ -1,7 +1,8 @@
 package us.ullberg.startpunkt.crd;
 
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 class BookmarkTest {
 
@@ -9,13 +10,7 @@ class BookmarkTest {
   void testBookmarkConstructorAndGetters() {
     Bookmark bookmark =
         new Bookmark(
-            "Docs",
-            "Reference",
-            "mdi:book",
-            "https://example.com",
-            "Documentation link",
-            true,
-            10);
+            "Docs", "Reference", "mdi:book", "https://example.com", "Documentation link", true, 10);
 
     BookmarkSpec spec = bookmark.getSpec();
 
@@ -31,12 +26,8 @@ class BookmarkTest {
 
   @Test
   void testEqualsAndHashCode() {
-    Bookmark a =
-        new Bookmark(
-            "Docs", "Ref", "mdi:book", "https://docs", "link", true, 5);
-    Bookmark b =
-        new Bookmark(
-            "Docs", "Ref", "mdi:book", "https://docs", "link", true, 5);
+    Bookmark a = new Bookmark("Docs", "Ref", "mdi:book", "https://docs", "link", true, 5);
+    Bookmark b = new Bookmark("Docs", "Ref", "mdi:book", "https://docs", "link", true, 5);
 
     assertEquals(a, b);
     assertEquals(a.hashCode(), b.hashCode());
@@ -48,9 +39,7 @@ class BookmarkTest {
 
   @Test
   void testToStringContainsSpecFields() {
-    Bookmark bookmark =
-        new Bookmark(
-            "Name", "Group", "mdi:test", "https://url", "info", false, 0);
+    Bookmark bookmark = new Bookmark("Name", "Group", "mdi:test", "https://url", "info", false, 0);
 
     String str = bookmark.toString();
     assertTrue(str.contains("spec"));
