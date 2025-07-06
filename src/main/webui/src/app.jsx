@@ -198,7 +198,43 @@ export function App() {
       .then(setBookmarkGroups)
   }, [])
 
+  // Helper functions to check if there are any items to show
+  const hasApplications = () => {
+    return applicationGroups && applicationGroups.length > 0 && 
+           applicationGroups.some(group => group.applications && group.applications.length > 0);
+  };
+
+  const hasBookmarks = () => {
+    return bookmarkGroups && bookmarkGroups.length > 0 && 
+           bookmarkGroups.some(group => group.bookmarks && group.bookmarks.length > 0);
+  };
+
+  // Determine default page based on what's available
+  const getDefaultPage = () => {
+    if (hasApplications()) return "applications";
+    if (hasBookmarks()) return "bookmarks";
+    return "empty";
+  };
+
   const [currentPage, setCurrentPage] = useState("applications");
+  
+  // Update current page when data changes
+  useEffect(() => {
+    // Only update if we have actual data loaded
+    if (applicationGroups.length > 0 || bookmarkGroups.length > 0) {
+      const defaultPage = getDefaultPage();
+      if (currentPage === "empty" && defaultPage !== "empty") {
+        setCurrentPage(defaultPage);
+      } else if (currentPage !== "empty" && defaultPage === "empty") {
+        setCurrentPage("empty");
+      } else if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+        setCurrentPage("bookmarks");
+      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+        setCurrentPage("applications");
+      }
+    }
+  }, [applicationGroups, bookmarkGroups]);
+
   const bookmarksClass = currentPage === "bookmarks" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
   const applicationsClass = currentPage === "applications" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
 
@@ -236,15 +272,32 @@ export function App() {
           <div>
             <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}</h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
-              <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
-              <a class={bookmarksClass} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
+              {hasApplications() && (
+                <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
+              )}
+              {hasBookmarks() && (
+                <a class={bookmarksClass} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
+              )}
             </nav>
           </div>
         </header>
 
         <main class="px-3">
-          {currentPage === 'applications' && <ApplicationGroupList groups={applicationGroups} />}
-          {currentPage === 'bookmarks' && <BookmarkGroupList groups={bookmarkGroups} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} />}
+          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} />}
+          {!hasApplications() && !hasBookmarks() && applicationGroups.length === 0 && bookmarkGroups.length === 0 && (
+            <div class="text-center">
+              <h1 class="display-4">Loading...</h1>
+              <p class="lead">Please wait while we load your applications and bookmarks.</p>
+            </div>
+          )}
+          {!hasApplications() && !hasBookmarks() && (applicationGroups.length > 0 || bookmarkGroups.length > 0) && (
+            <div class="text-center">
+              <h1 class="display-4">No Items Available</h1>
+              <p class="lead">There are currently no applications or bookmarks configured.</p>
+              <p>Please add some applications or bookmarks to get started.</p>
+            </div>
+          )}
         </main>
 
         <footer class="mt-auto text-white-50">
