@@ -190,7 +190,6 @@ export function App() {
         setApplicationGroups(res.groups || []);
       })
       .catch(err => {
-        console.error("Apps API error", err);
         setApplicationGroups([]);
       });
     fetch('/api/bookmarks')
@@ -199,7 +198,6 @@ export function App() {
         setBookmarkGroups(res.groups || []);
       })
       .catch(err => {
-        console.error("Bookmarks API error", err);
         setBookmarkGroups([]);
       });
   }, []);

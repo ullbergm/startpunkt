@@ -135,12 +135,30 @@ export default function SpotlightSearch({ testVisible = false }) {
 
     useEffect(() => {
         async function fetchAll() {
+            // Helper to fetch, handle 404/500 gracefully
+            async function safeFetch(url) {
+                try {
+                    const res = await fetch(url);
+                    if (!res.ok) {
+                        if (res.status === 404) return null;
+                        // You could do better error handling here
+                        return null;
+                    }
+                    return await res.json();
+                } catch (err) {
+                    // Network error or bad JSON
+                    return null;
+                }
+            }
+
             // Fetch both apps and bookmarks in parallel
             const [appRes, bmRes] = await Promise.all([
-                fetch('/api/apps').then(res => res.json()),
-                fetch('/api/bookmarks').then(res => res.json())
+                safeFetch('/api/apps'),
+                safeFetch('/api/bookmarks')
             ]);
-            const allApps = normalizeApps(appRes.groups);
+
+            // Defensive against missing .groups
+            const allApps = appRes?.groups ? normalizeApps(appRes.groups) : [];
             const allBookmarks = normalizeBookmarks(bmRes);
             const allItems = [...allApps, ...allBookmarks];
 
