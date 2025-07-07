@@ -128,6 +128,7 @@ export default function SpotlightSearch({ testVisible = false }) {
     const inputRef = useRef(null);
     const itemRefs = useRef([]);
     const indexRef = useRef(null);
+    const containerRef = useRef(null);
 
     useEffect(() => {
         if (typeof testVisible === 'boolean') setVisible(testVisible);
@@ -201,6 +202,19 @@ export default function SpotlightSearch({ testVisible = false }) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [visible]);
 
+    useEffect(() => {
+        if (!visible) return;
+
+        const handleClickOutside = (event) => {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setVisible(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [visible]);
+
     const scrollItemIntoView = (index) => {
         const el = itemRefs.current[index];
         if (el) el.scrollIntoView({ block: 'nearest' });
@@ -216,7 +230,7 @@ export default function SpotlightSearch({ testVisible = false }) {
     }
 
     return (
-        <div style={overlayStyle}>
+        <div ref={containerRef} style={overlayStyle}>
             <input
                 ref={inputRef}
                 type="text"
