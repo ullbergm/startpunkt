@@ -235,8 +235,13 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * @param item Kubernetes resource
    * @return instance string or null if not set
    */
+  @Override
   protected String getAppInstance(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
+    
+    if (annotations == null) {
+      return null;
+    }
 
     String[] annotationKeys = {"startpunkt.ullberg.us/instance"};
     for (String key : annotationKeys) {

@@ -57,8 +57,15 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   @Override
   public List<ApplicationSpec> getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    return getApplicationSpecs(client, anyNamespace, matchNames, null);
+  }
+
+  // Override method to get a list of ApplicationSpec objects with instance filtering
+  @Override
+  public List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames, String instanceFilter) {
     // Get the application specs from the parent class
-    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
+    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames, instanceFilter);
 
     // If onlyAnnotated is true, filter the list to include only enabled
     // applications
