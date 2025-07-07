@@ -181,7 +181,7 @@ export function App() {
   }, [])
 
   // read the /api/apps endpoint to get the applications
-  const [applicationGroups, setApplicationGroups] = useState([]);
+  const [applicationGroups, setApplicationGroups] = useState(null);
   useEffect(() => {
     fetch('/api/apps')
       .then((res) => res.json())
@@ -190,7 +190,7 @@ export function App() {
   }, [])
 
   // read the /api/bookmarks endpoint to get the bookmarks
-  const [bookmarkGroups, setBookmarkGroups] = useState([]);
+  const [bookmarkGroups, setBookmarkGroups] = useState(null);
   useEffect(() => {
     fetch('/api/bookmarks')
       .then((res) => res.json())
@@ -216,21 +216,25 @@ export function App() {
     return "empty";
   };
 
-  const [currentPage, setCurrentPage] = useState("applications");
+  const [currentPage, setCurrentPage] = useState("loading");
   
   // Update current page when data changes
   useEffect(() => {
-    // Only update if we have actual data loaded
-    if (applicationGroups.length > 0 || bookmarkGroups.length > 0) {
+    // Only set the page once both API calls complete
+    if (applicationGroups !== null && bookmarkGroups !== null) {
       const defaultPage = getDefaultPage();
-      if (currentPage === "empty" && defaultPage !== "empty") {
+      if (currentPage === "loading") {
+        // First time setting the page - always choose consistently  
         setCurrentPage(defaultPage);
-      } else if (currentPage !== "empty" && defaultPage === "empty") {
-        setCurrentPage("empty");
-      } else if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
-        setCurrentPage("bookmarks");
-      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
-        setCurrentPage("applications");
+      } else {
+        // Data has changed, update page if current page is no longer valid
+        if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+          setCurrentPage("bookmarks");
+        } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+          setCurrentPage("applications");
+        } else if (currentPage !== "empty" && defaultPage === "empty") {
+          setCurrentPage("empty");
+        }
       }
     }
   }, [applicationGroups, bookmarkGroups]);
@@ -285,14 +289,14 @@ export function App() {
         <main class="px-3">
           {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} />}
-          {!hasApplications() && !hasBookmarks() && applicationGroups.length === 0 && bookmarkGroups.length === 0 && (
+          {currentPage === "loading" && (
             <div class="text-center">
               <h1 class="display-4">Loading...</h1>
               <p class="lead">Checking for configured applications and bookmarks...</p>
               <p>If none are found, you can add them to get started.</p>
             </div>
           )}
-          {!hasApplications() && !hasBookmarks() && (applicationGroups.length > 0 || bookmarkGroups.length > 0) && (
+          {currentPage === "empty" && (
             <div class="text-center">
               <h1 class="display-4">No Items Available</h1>
               <p class="lead">There are currently no applications or bookmarks configured.</p>

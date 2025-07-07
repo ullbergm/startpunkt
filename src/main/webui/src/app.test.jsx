@@ -289,6 +289,11 @@ describe('App', () => {
     expect(screen.getByText(/Loading\.\.\./i)).toBeInTheDocument();
     expect(screen.getByText(/Checking for configured applications and bookmarks\.\.\./i)).toBeInTheDocument();
     expect(screen.getByText(/If none are found, you can add them to get started\./i)).toBeInTheDocument();
+    
+    // Wait for data to load and show empty state
+    await waitFor(() => {
+      expect(screen.getByText(/No Items Available/i)).toBeInTheDocument();
+    });
   });
 
   it('shows empty state message when no items exist', async () => {
