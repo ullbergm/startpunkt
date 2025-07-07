@@ -11,10 +11,10 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group "startpunkt.ullberg.us", version
-   * "v1alpha1", and plural "applications".
+   * "v1alpha2", and plural "applications".
    */
   public StartpunktApplicationWrapper() {
-    super("startpunkt.ullberg.us", "v1alpha1", "applications");
+    super("startpunkt.ullberg.us", "v1alpha2", "applications");
   }
 
   /**
@@ -38,6 +38,18 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
     return getOptionalSpecString(item, "group", super.getAppGroup(item)).toLowerCase();
+  }
+
+  /**
+   * Retrieves the application rootPath from the resource spec. Returns base class rootPath if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return application rootPath
+   */
+  @Override
+  protected String getAppRootPath(GenericKubernetesResource item) {
+    return getOptionalSpecString(item, "rootPath", super.getAppRootPath(item));
   }
 
   /**

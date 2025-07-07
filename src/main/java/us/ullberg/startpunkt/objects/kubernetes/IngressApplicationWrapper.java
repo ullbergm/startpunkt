@@ -2,7 +2,7 @@ package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Wrapper class for Kubernetes Ingress resources. Allows retrieval of application specifications

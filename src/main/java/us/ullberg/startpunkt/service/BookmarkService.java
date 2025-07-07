@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpunkt.crd.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 
 /**
@@ -46,7 +46,7 @@ public class BookmarkService {
       ResourceDefinitionContext ctx =
           new ResourceDefinitionContext.Builder()
               .withGroup("startpunkt.ullberg.us")
-              .withVersion("v1alpha1")
+              .withVersion("v1alpha2")
               .withPlural("bookmarks")
               .withNamespaced(true)
               .build();
