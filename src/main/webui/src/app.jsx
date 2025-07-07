@@ -180,36 +180,40 @@ export function App() {
 
   }, [])
 
-  // read the /api/apps endpoint to get the applications
   const [applicationGroups, setApplicationGroups] = useState(null);
+  const [bookmarkGroups, setBookmarkGroups] = useState(null);
+
   useEffect(() => {
     fetch('/api/apps')
-      .then((res) => res.json())
-      .then((res) => res.groups)
-      .then(setApplicationGroups)
-  }, [])
-
-  // read the /api/bookmarks endpoint to get the bookmarks
-  const [bookmarkGroups, setBookmarkGroups] = useState(null);
-  useEffect(() => {
+      .then(res => res.json())
+      .then(res => {
+        setApplicationGroups(res.groups || []);
+      })
+      .catch(err => {
+        console.error("Apps API error", err);
+        setApplicationGroups([]);
+      });
     fetch('/api/bookmarks')
-      .then((res) => res.json())
-      .then((res) => res.groups)
-      .then(setBookmarkGroups)
-  }, [])
+      .then(res => res.json())
+      .then(res => {
+        setBookmarkGroups(res.groups || []);
+      })
+      .catch(err => {
+        console.error("Bookmarks API error", err);
+        setBookmarkGroups([]);
+      });
+  }, []);
 
-  // Helper functions to check if there are any items to show
   const hasApplications = () => {
-    return applicationGroups && applicationGroups.length > 0 && 
-           applicationGroups.some(group => group.applications && group.applications.length > 0);
+    return Array.isArray(applicationGroups) &&
+      applicationGroups.some(group => Array.isArray(group.applications) && group.applications.length > 0);
   };
 
   const hasBookmarks = () => {
-    return bookmarkGroups && bookmarkGroups.length > 0 && 
-           bookmarkGroups.some(group => group.bookmarks && group.bookmarks.length > 0);
+    return Array.isArray(bookmarkGroups) &&
+      bookmarkGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
   };
 
-  // Determine default page based on what's available
   const getDefaultPage = () => {
     if (hasApplications()) return "applications";
     if (hasBookmarks()) return "bookmarks";
@@ -217,24 +221,23 @@ export function App() {
   };
 
   const [currentPage, setCurrentPage] = useState("loading");
-  
-  // Update current page when data changes
+
   useEffect(() => {
-    // Only set the page once both API calls complete
-    if (applicationGroups !== null && bookmarkGroups !== null) {
-      const defaultPage = getDefaultPage();
-      if (currentPage === "loading") {
-        // First time setting the page - always choose consistently  
-        setCurrentPage(defaultPage);
-      } else {
-        // Data has changed, update page if current page is no longer valid
-        if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
-          setCurrentPage("bookmarks");
-        } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
-          setCurrentPage("applications");
-        } else if (currentPage !== "empty" && defaultPage === "empty") {
-          setCurrentPage("empty");
-        }
+    if (applicationGroups === null || bookmarkGroups === null) {
+      return; // Still loading
+    }
+
+    const defaultPage = getDefaultPage();
+
+    if (currentPage === "loading") {
+      setCurrentPage(defaultPage);
+    } else {
+      if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+        setCurrentPage("bookmarks");
+      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+        setCurrentPage("applications");
+      } else if (currentPage !== "empty" && defaultPage === "empty") {
+        setCurrentPage("empty");
       }
     }
   }, [applicationGroups, bookmarkGroups]);
