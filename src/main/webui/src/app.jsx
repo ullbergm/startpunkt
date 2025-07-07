@@ -288,7 +288,8 @@ export function App() {
           {!hasApplications() && !hasBookmarks() && applicationGroups.length === 0 && bookmarkGroups.length === 0 && (
             <div class="text-center">
               <h1 class="display-4">Loading...</h1>
-              <p class="lead">Please wait while we load your applications and bookmarks.</p>
+              <p class="lead">Checking for configured applications and bookmarks...</p>
+              <p>If none are found, you can add them to get started.</p>
             </div>
           )}
           {!hasApplications() && !hasBookmarks() && (applicationGroups.length > 0 || bookmarkGroups.length > 0) && (
