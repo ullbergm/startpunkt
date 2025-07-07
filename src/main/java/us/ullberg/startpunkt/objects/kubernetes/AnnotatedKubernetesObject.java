@@ -79,10 +79,10 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
     };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
-        return annotations.get(key).toLowerCase();
+        return appendRootPath(annotations.get(key).toLowerCase(), item);
       }
     }
-    return super.getAppUrl(item);
+    return appendRootPath(super.getAppUrl(item), item);
   }
 
   /**

@@ -39,7 +39,8 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
     String host = spec.containsKey("host") ? spec.get("host").toString() : "localhost";
     String path = spec.containsKey("path") ? spec.get("path").toString() : "";
 
-    return protocol + host + path;
+    String baseUrl = protocol + host + path;
+    return appendRootPath(baseUrl, item);
   }
 
   /**

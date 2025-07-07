@@ -224,11 +224,39 @@ The annotations can go on Ingresses or OpenShift Routes.
 | `startpunkt.ullberg.us/iconColor`   | Color to display the icon in.                                                                  | No       |
 | `startpunkt.ullberg.us/name`        | A custom name for your application. Use if you don’t want to use the name of the ingress/route | No       |
 | `startpunkt.ullberg.us/url`         | A URL for the application. This will override the ingress URL.                                 | No       |
+| `startpunkt.ullberg.us/rootPath`    | A path to append to the auto-detected or annotation-specified URL.                             | No       |
 | `startpunkt.ullberg.us/targetBlank` | Determines if links should open in new tabs/windows.                                           | No       |
 | `startpunkt.ullberg.us/info`        | A short description of the application.                                                        | No       |
 | `startpunkt.ullberg.us/protocol`    | Protocol to use for links if not known.                                                        | No       |
 
 > **_NOTE:_**  There is compatibility built in to process Hajimari and Forecastle annotations as well.
+
+#### rootPath Example
+
+The `rootPath` annotation allows you to append a path to URLs that are auto-detected from your Kubernetes resources or specified via the `url` annotation:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app
+  annotations:
+    startpunkt.ullberg.us/rootPath: "/web/index.html"
+spec:
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-app
+            port:
+              number: 80
+```
+
+This will transform the URL from `https://myapp.example.com` to `https://myapp.example.com/web/index.html`.
 
 ## 👌 Built With
 

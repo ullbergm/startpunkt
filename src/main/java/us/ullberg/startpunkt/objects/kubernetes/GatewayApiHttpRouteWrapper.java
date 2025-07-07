@@ -56,7 +56,8 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
       hosts.add("localhost");
     }
 
-    return protocol + "://" + hosts.get(0);
+    String baseUrl = protocol + "://" + hosts.get(0);
+    return appendRootPath(baseUrl, item);
   }
 
   /**

@@ -324,4 +324,40 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
         ? Integer.parseInt(spec.get(key).toString())
         : fallback;
   }
+
+  /**
+   * Retrieves the application root path from resource annotations.
+   *
+   * @param item Kubernetes resource
+   * @return root path string or null if not found
+   */
+  protected String getAppRootPath(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/rootPath")) {
+      return annotations.get("startpunkt.ullberg.us/rootPath");
+    }
+    return null;
+  }
+
+  /**
+   * Appends the root path to the URL if a rootPath annotation is present.
+   *
+   * @param url base URL
+   * @param item Kubernetes resource to get rootPath from
+   * @return URL with rootPath appended or original URL if no rootPath
+   */
+  protected String appendRootPath(String url, GenericKubernetesResource item) {
+    if (url == null) {
+      return null;
+    }
+
+    String rootPath = getAppRootPath(item);
+    if (rootPath != null && !rootPath.isEmpty()) {
+      // Ensure the URL doesn't end with a slash and rootPath starts with a slash
+      String normalizedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+      String normalizedRootPath = rootPath.startsWith("/") ? rootPath : "/" + rootPath;
+      return normalizedUrl + normalizedRootPath;
+    }
+    return url;
+  }
 }
