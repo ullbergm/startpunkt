@@ -307,7 +307,7 @@ export default function SpotlightSearch({ testVisible = false }) {
                         <div>
                             <strong>
                                 {app.name}
-                                <TypeBadge type={app.type} />
+                            <TypeBadge type={app.type} />
                             </strong>
                             <div style={{ fontSize: '0.8rem', color: '#666' }}>
                                 {app.group} {app.info ? `– ${app.info}` : ''}

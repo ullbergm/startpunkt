@@ -1,11 +1,12 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 class AnnotatedKubernetesObjectTest {
 
