@@ -11,10 +11,10 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group "startpunkt.ullberg.us", version
-   * "v1alpha1", and plural "applications".
+   * "v1alpha2", and plural "applications".
    */
   public StartpunktApplicationWrapper() {
-    super("startpunkt.ullberg.us", "v1alpha1", "applications");
+    super("startpunkt.ullberg.us", "v1alpha2", "applications");
   }
 
   /**
@@ -41,14 +41,34 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the application icon from the resource spec. Returns base class icon if not present.
+   * Retrieves the application rootPath from the resource spec. Returns base class rootPath if not
+   * present.
    *
    * @param item Kubernetes resource
-   * @return icon string or fallback value
+   * @return application rootPath
+   */
+  @Override
+  protected String getAppRootPath(GenericKubernetesResource item) {
+    return getOptionalSpecString(item, "rootPath", super.getAppRootPath(item));
+  }
+
+  /**
+   * Retrieves the application URL from the resource spec with rootPath appended if specified.
+   *
+   * @param item Kubernetes resource
+   * @return URL string with rootPath appended if specified
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-    return getSpec(item).get("url").toString();
+    String baseUrl = getSpec(item).get("url").toString();
+    String rootPath = getOptionalSpecString(item, "rootPath", null);
+    
+    if (rootPath != null && !rootPath.trim().isEmpty()) {
+      return appendRootPath(baseUrl, rootPath);
+    }
+    
+    // Fall back to annotation-based rootPath for backward compatibility
+    return appendRootPath(baseUrl, item);
   }
 
   /**

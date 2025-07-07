@@ -88,93 +88,202 @@ data:
             textPrimaryColor: "#FAB795"
             textAccentColor: "#E95678"
 ---
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
+apiVersion: "apiextensions.k8s.io/v1"
+kind: "CustomResourceDefinition"
 metadata:
-  name: applications.startpunkt.ullberg.us
+  name: "applications.startpunkt.ullberg.us"
 spec:
-  group: startpunkt.ullberg.us
+  group: "startpunkt.ullberg.us"
   names:
-    kind: Application
-    plural: applications
-    singular: application
-  scope: Namespaced
+    kind: "Application"
+    plural: "applications"
+    singular: "application"
+  scope: "Namespaced"
   versions:
-    - name: v1alpha1
-      schema:
-        openAPIV3Schema:
-          properties:
-            spec:
-              properties:
-                enabled:
-                  type: boolean
-                group:
-                  type: string
-                icon:
-                  type: string
-                iconColor:
-                  type: string
-                info:
-                  type: string
-                location:
-                  type: integer
-                name:
-                  type: string
-                targetBlank:
-                  type: boolean
-                url:
-                  type: string
-              required: [name, url]
-              type: object
-            status:
-              type: object
-          type: object
-      served: true
-      storage: true
-      subresources:
-        status: {}
+  - name: "v1alpha2"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              enabled:
+                description: "Enable the bookmark"
+                type: "boolean"
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              iconColor:
+                description: "Application icon color, e.g. 'red'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Application name"
+                type: "string"
+              rootPath:
+                description: "Root path to append to the URL"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Application URL"
+                type: "string"
+            required:
+            - "name"
+            - "url"
+            type: "object"
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - deprecated: true
+    name: "v1alpha1"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              enabled:
+                description: "Enable the bookmark"
+                type: "boolean"
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              iconColor:
+                description: "Application icon color, e.g. 'red'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Application name"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Application URL"
+                type: "string"
+            required:
+            - "name"
+            - "url"
+            type: "object"
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: false
+    subresources:
+      status: {}
 ---
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
+apiVersion: "apiextensions.k8s.io/v1"
+kind: "CustomResourceDefinition"
 metadata:
-  name: bookmarks.startpunkt.ullberg.us
+  name: "bookmarks.startpunkt.ullberg.us"
 spec:
-  group: startpunkt.ullberg.us
+  group: "startpunkt.ullberg.us"
   names:
-    kind: Bookmark
-    plural: bookmarks
-    singular: bookmark
-  scope: Namespaced
+    kind: "Bookmark"
+    plural: "bookmarks"
+    singular: "bookmark"
+  scope: "Namespaced"
   versions:
-    - name: v1alpha1
-      schema:
-        openAPIV3Schema:
-          properties:
-            spec:
-              properties:
-                group:
-                  type: string
-                icon:
-                  type: string
-                info:
-                  type: string
-                location:
-                  type: integer
-                name:
-                  type: string
-                targetBlank:
-                  type: boolean
-                url:
-                  type: string
-              required: [group, name, url]
-              type: object
-            status:
-              type: object
-          type: object
-      served: true
-      storage: true
-      subresources:
-        status: {}
+  - name: "v1alpha2"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Bookmark name"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Bookmark URL"
+                type: "string"
+            required:
+            - "group"
+            - "name"
+            - "url"
+            type: "object"
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - deprecated: true
+    name: "v1alpha1"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Bookmark name"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Bookmark URL"
+                type: "string"
+            required:
+            - "group"
+            - "name"
+            - "url"
+            type: "object"
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: false
+    subresources:
+      status: {}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

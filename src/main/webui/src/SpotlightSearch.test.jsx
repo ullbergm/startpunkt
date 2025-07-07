@@ -138,4 +138,24 @@ describe('SpotlightSearch component', () => {
         fireEvent.input(input, { target: { value: 'reddit' } });
         expect(await screen.findByText('Reddit', { selector: 'strong' })).toBeInTheDocument();
     });
+
+    test('closes when clicking outside the search box', async () => {
+        render(
+            <div>
+                <SpotlightSearch testVisible={true} />
+                <div data-testid="outside-element">Outside content</div>
+            </div>
+        );
+        
+        // Verify search is visible
+        const input = await screen.findByRole('textbox');
+        expect(input).toBeInTheDocument();
+        
+        // Click outside the search box
+        const outsideElement = screen.getByTestId('outside-element');
+        fireEvent.mouseDown(outsideElement);
+        
+        // Search should be closed (input should not be in the document)
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
 });

@@ -2,7 +2,7 @@ package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Abstract base class for Kubernetes objects that extract application properties from annotations.
@@ -79,10 +79,10 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
     };
     for (String key : annotationKeys) {
       if (annotations.containsKey(key)) {
-        return annotations.get(key).toLowerCase();
+        return appendRootPath(annotations.get(key).toLowerCase(), item);
       }
     }
-    return super.getAppUrl(item);
+    return appendRootPath(super.getAppUrl(item), item);
   }
 
   /**

@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Abstract base class representing a Kubernetes custom resource wrapper. Provides common
@@ -323,5 +323,59 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
     return spec != null && spec.containsKey(key)
         ? Integer.parseInt(spec.get(key).toString())
         : fallback;
+  }
+
+  /**
+   * Retrieves the application root path from resource annotations.
+   *
+   * @param item Kubernetes resource
+   * @return root path string or null if not found
+   */
+  protected String getAppRootPath(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/rootPath")) {
+      return annotations.get("startpunkt.ullberg.us/rootPath");
+    }
+    return null;
+  }
+
+  /**
+   * Appends the root path to the URL if a rootPath annotation is present.
+   *
+   * @param url base URL
+   * @param item Kubernetes resource to get rootPath from
+   * @return URL with rootPath appended or original URL if no rootPath
+   */
+  protected String appendRootPath(String url, GenericKubernetesResource item) {
+    if (url == null) {
+      return null;
+    }
+
+    String rootPath = getAppRootPath(item);
+    if (rootPath != null && !rootPath.isEmpty()) {
+      return appendRootPath(url, rootPath);
+    }
+    return url;
+  }
+
+  /**
+   * Appends the root path to the URL.
+   *
+   * @param url base URL
+   * @param rootPath root path to append
+   * @return URL with rootPath appended
+   */
+  protected String appendRootPath(String url, String rootPath) {
+    if (url == null) {
+      return null;
+    }
+
+    if (rootPath != null && !rootPath.isEmpty()) {
+      // Ensure the URL doesn't end with a slash and rootPath starts with a slash
+      String normalizedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+      String normalizedRootPath = rootPath.startsWith("/") ? rootPath : "/" + rootPath;
+      return normalizedUrl + normalizedRootPath;
+    }
+    return url;
   }
 }

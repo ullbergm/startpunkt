@@ -3,7 +3,7 @@ package us.ullberg.startpunkt.objects.kubernetes;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Wrapper for OpenShift Route custom resources to extract application information. Supports
@@ -39,7 +39,8 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
     String host = spec.containsKey("host") ? spec.get("host").toString() : "localhost";
     String path = spec.containsKey("path") ? spec.get("path").toString() : "";
 
-    return protocol + host + path;
+    String baseUrl = protocol + host + path;
+    return appendRootPath(baseUrl, item);
   }
 
   /**
