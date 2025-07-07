@@ -1,15 +1,14 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Integration test demonstrating the rootPath functionality with different wrapper classes.
- */
+/** Integration test demonstrating the rootPath functionality with different wrapper classes. */
 class RootPathIntegrationTest {
 
   @Test
@@ -26,7 +25,7 @@ class RootPathIntegrationTest {
     Map<String, Object> spec = new HashMap<>();
     spec.put("host", "myapp.example.com");
     spec.put("tls", Map.of("termination", "edge")); // This will make it https
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);
@@ -52,7 +51,7 @@ class RootPathIntegrationTest {
     java.util.ArrayList<String> hostnames = new java.util.ArrayList<>();
     hostnames.add("api.example.com");
     spec.put("hostnames", hostnames);
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);
@@ -100,7 +99,7 @@ class RootPathIntegrationTest {
     // Create spec for Hajimari Application
     Map<String, Object> spec = new HashMap<>();
     spec.put("url", "https://grafana.example.com");
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);
@@ -147,7 +146,7 @@ class RootPathIntegrationTest {
     spec.put("name", "Test Application");
     spec.put("url", "https://app.example.com");
     spec.put("rootPath", "/admin/dashboard");
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);
@@ -173,7 +172,7 @@ class RootPathIntegrationTest {
     Map<String, Object> spec = new HashMap<>();
     spec.put("name", "Test Application");
     spec.put("url", "https://app.example.com");
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);
@@ -200,7 +199,7 @@ class RootPathIntegrationTest {
     spec.put("name", "Test Application");
     spec.put("url", "https://app.example.com");
     spec.put("rootPath", "/spec/path");
-    
+
     Map<String, Object> additionalProperties = new HashMap<>();
     additionalProperties.put("spec", spec);
     resource.setAdditionalProperties(additionalProperties);

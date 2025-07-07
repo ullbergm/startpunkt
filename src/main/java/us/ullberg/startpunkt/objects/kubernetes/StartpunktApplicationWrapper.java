@@ -62,11 +62,11 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   protected String getAppUrl(GenericKubernetesResource item) {
     String baseUrl = getSpec(item).get("url").toString();
     String rootPath = getOptionalSpecString(item, "rootPath", null);
-    
+
     if (rootPath != null && !rootPath.trim().isEmpty()) {
       return appendRootPath(baseUrl, rootPath);
     }
-    
+
     // Fall back to annotation-based rootPath for backward compatibility
     return appendRootPath(baseUrl, item);
   }

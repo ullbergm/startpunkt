@@ -41,16 +41,25 @@ beforeAll(() => {
     global.fetch = jest.fn(url => {
         if (url.includes('/api/apps')) {
             return Promise.resolve({
+                ok: true,
+                status: 200,
                 json: () => Promise.resolve(appsApiResponse),
             });
         } else if (url.includes('/api/bookmarks')) {
             return Promise.resolve({
+                ok: true,
+                status: 200,
                 json: () => Promise.resolve(bookmarksApiResponse),
             });
         }
-        throw new Error('Unknown endpoint');
+        return Promise.resolve({
+            ok: false,
+            status: 404,
+            json: () => Promise.resolve({}),
+        });
     });
 });
+
 
 beforeEach(() => {
     window._navigate.mockClear();

@@ -180,25 +180,66 @@ export function App() {
 
   }, [])
 
-  // read the /api/apps endpoint to get the applications
-  const [applicationGroups, setApplicationGroups] = useState([]);
+  const [applicationGroups, setApplicationGroups] = useState(null);
+  const [bookmarkGroups, setBookmarkGroups] = useState(null);
+
   useEffect(() => {
     fetch('/api/apps')
-      .then((res) => res.json())
-      .then((res) => res.groups)
-      .then(setApplicationGroups)
-  }, [])
-
-  // read the /api/bookmarks endpoint to get the bookmarks
-  const [bookmarkGroups, setBookmarkGroups] = useState([]);
-  useEffect(() => {
+      .then(res => res.json())
+      .then(res => {
+        setApplicationGroups(res.groups || []);
+      })
+      .catch(err => {
+        setApplicationGroups([]);
+      });
     fetch('/api/bookmarks')
-      .then((res) => res.json())
-      .then((res) => res.groups)
-      .then(setBookmarkGroups)
-  }, [])
+      .then(res => res.json())
+      .then(res => {
+        setBookmarkGroups(res.groups || []);
+      })
+      .catch(err => {
+        setBookmarkGroups([]);
+      });
+  }, []);
 
-  const [currentPage, setCurrentPage] = useState("applications");
+  const hasApplications = () => {
+    return Array.isArray(applicationGroups) &&
+      applicationGroups.some(group => Array.isArray(group.applications) && group.applications.length > 0);
+  };
+
+  const hasBookmarks = () => {
+    return Array.isArray(bookmarkGroups) &&
+      bookmarkGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
+  };
+
+  const getDefaultPage = () => {
+    if (hasApplications()) return "applications";
+    if (hasBookmarks()) return "bookmarks";
+    return "empty";
+  };
+
+  const [currentPage, setCurrentPage] = useState("loading");
+
+  useEffect(() => {
+    if (applicationGroups === null || bookmarkGroups === null) {
+      return; // Still loading
+    }
+
+    const defaultPage = getDefaultPage();
+
+    if (currentPage === "loading") {
+      setCurrentPage(defaultPage);
+    } else {
+      if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+        setCurrentPage("bookmarks");
+      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+        setCurrentPage("applications");
+      } else if (currentPage !== "empty" && defaultPage === "empty") {
+        setCurrentPage("empty");
+      }
+    }
+  }, [applicationGroups, bookmarkGroups]);
+
   const bookmarksClass = currentPage === "bookmarks" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
   const applicationsClass = currentPage === "applications" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
 
@@ -236,15 +277,33 @@ export function App() {
           <div>
             <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}</h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
-              <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
-              <a class={bookmarksClass} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
+              {hasApplications() && (
+                <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
+              )}
+              {hasBookmarks() && (
+                <a class={bookmarksClass} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
+              )}
             </nav>
           </div>
         </header>
 
         <main class="px-3">
-          {currentPage === 'applications' && <ApplicationGroupList groups={applicationGroups} />}
-          {currentPage === 'bookmarks' && <BookmarkGroupList groups={bookmarkGroups} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} />}
+          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} />}
+          {currentPage === "loading" && (
+            <div class="text-center">
+              <h1 class="display-4">Loading...</h1>
+              <p class="lead">Checking for configured applications and bookmarks...</p>
+              <p>If none are found, you can add them to get started.</p>
+            </div>
+          )}
+          {currentPage === "empty" && (
+            <div class="text-center">
+              <h1 class="display-4">No Items Available</h1>
+              <p class="lead">There are currently no applications or bookmarks configured.</p>
+              <p>Please add some applications or bookmarks to get started.</p>
+            </div>
+          )}
         </main>
 
         <footer class="mt-auto text-white-50">

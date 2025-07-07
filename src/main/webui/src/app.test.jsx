@@ -49,12 +49,21 @@ beforeEach(() => {
     }
     if (url.includes('/api/apps')) {
       return Promise.resolve({
-        json: () => Promise.resolve({ groups: [{ name: 'G1' }, { name: 'G2' }] }),
+        json: () => Promise.resolve({ 
+          groups: [
+            { name: 'G1', applications: [{ name: 'App1', url: 'http://app1.com' }] }, 
+            { name: 'G2', applications: [{ name: 'App2', url: 'http://app2.com' }] }
+          ] 
+        }),
       });
     }
     if (url.includes('/api/bookmarks')) {
       return Promise.resolve({
-        json: () => Promise.resolve({ groups: [{ name: 'B1' }] }),
+        json: () => Promise.resolve({ 
+          groups: [
+            { name: 'B1', bookmarks: [{ name: 'Bookmark1', url: 'http://bookmark1.com' }] }
+          ] 
+        }),
       });
     }
     return Promise.resolve({ json: () => Promise.resolve({}) });
@@ -114,12 +123,20 @@ describe('App', () => {
       }
       if (url.includes('/api/apps')) {
         return Promise.resolve({
-          json: () => Promise.resolve({ groups: [{ name: 'G1' }] }),
+          json: () => Promise.resolve({ 
+            groups: [
+              { name: 'G1', applications: [{ name: 'App1', url: 'http://app1.com' }] }
+            ] 
+          }),
         });
       }
       if (url.includes('/api/bookmarks')) {
         return Promise.resolve({
-          json: () => Promise.resolve({ groups: [{ name: 'B1' }] }),
+          json: () => Promise.resolve({ 
+            groups: [
+              { name: 'B1', bookmarks: [{ name: 'Bookmark1', url: 'http://bookmark1.com' }] }
+            ] 
+          }),
         });
       }
       return Promise.resolve({ json: () => Promise.resolve({}) });
@@ -140,5 +157,183 @@ describe('App', () => {
   it('renders SpotlightSearch', async () => {
     render(<App />);
     expect(await screen.findByTestId('spotlight')).toBeInTheDocument();
+  });
+
+  it('hides applications link when no applications exist', async () => {
+    // Mock empty applications but with bookmarks
+    global.fetch.mockImplementation((url) => {
+      if (url.includes('/api/config')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({
+            config: {
+              web: { showGithubLink: false, title: 'Test', checkForUpdates: false },
+              version: '1.0.0',
+            },
+            version: '1.0.0',
+          }),
+        });
+      }
+      if (url.includes('/api/i8n')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ "home.theme.toggle": "Toggle theme" }),
+        });
+      }
+      if (url.includes('/api/apps')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [{ name: 'G1', applications: [] }] }),
+        });
+      }
+      if (url.includes('/api/bookmarks')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ 
+            groups: [
+              { name: 'B1', bookmarks: [{ name: 'Bookmark1', url: 'http://bookmark1.com' }] }
+            ] 
+          }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      // Check that Applications link is not present in navigation
+      const navLinks = screen.queryByRole('navigation').querySelectorAll('a');
+      const navTexts = Array.from(navLinks).map(link => link.textContent);
+      expect(navTexts).not.toContain('Applications');
+      expect(navTexts).toContain('Bookmarks');
+    });
+  });
+
+  it('hides bookmarks link when no bookmarks exist', async () => {
+    // Mock empty bookmarks but with applications
+    global.fetch.mockImplementation((url) => {
+      if (url.includes('/api/config')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({
+            config: {
+              web: { showGithubLink: false, title: 'Test', checkForUpdates: false },
+              version: '1.0.0',
+            },
+            version: '1.0.0',
+          }),
+        });
+      }
+      if (url.includes('/api/i8n')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ "home.theme.toggle": "Toggle theme" }),
+        });
+      }
+      if (url.includes('/api/apps')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ 
+            groups: [
+              { name: 'G1', applications: [{ name: 'App1', url: 'http://app1.com' }] }
+            ] 
+          }),
+        });
+      }
+      if (url.includes('/api/bookmarks')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [{ name: 'B1', bookmarks: [] }] }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      // Check that Bookmarks link is not present in navigation
+      const navLinks = screen.queryByRole('navigation').querySelectorAll('a');
+      const navTexts = Array.from(navLinks).map(link => link.textContent);
+      expect(navTexts).toContain('Applications');
+      expect(navTexts).not.toContain('Bookmarks');
+    });
+  });
+
+  it('shows improved loading message indicating items may not be configured', async () => {
+    // Mock slow or empty responses to test loading state
+    global.fetch.mockImplementation((url) => {
+      if (url.includes('/api/config')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({
+            config: {
+              web: { showGithubLink: false, title: 'Test', checkForUpdates: false },
+              version: '1.0.0',
+            },
+            version: '1.0.0',
+          }),
+        });
+      }
+      if (url.includes('/api/i8n')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ "home.theme.toggle": "Toggle theme" }),
+        });
+      }
+      if (url.includes('/api/apps')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [] }),
+        });
+      }
+      if (url.includes('/api/bookmarks')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [] }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+
+    render(<App />);
+    
+    // Initially should show loading state with improved message
+    expect(screen.getByText(/Loading\.\.\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Checking for configured applications and bookmarks\.\.\./i)).toBeInTheDocument();
+    expect(screen.getByText(/If none are found, you can add them to get started\./i)).toBeInTheDocument();
+    
+    // Wait for data to load and show empty state
+    await waitFor(() => {
+      expect(screen.getByText(/No Items Available/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows empty state message when no items exist', async () => {
+    // Mock empty applications and bookmarks
+    global.fetch.mockImplementation((url) => {
+      if (url.includes('/api/config')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({
+            config: {
+              web: { showGithubLink: false, title: 'Test', checkForUpdates: false },
+              version: '1.0.0',
+            },
+            version: '1.0.0',
+          }),
+        });
+      }
+      if (url.includes('/api/i8n')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ "home.theme.toggle": "Toggle theme" }),
+        });
+      }
+      if (url.includes('/api/apps')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [{ name: 'G1', applications: [] }] }),
+        });
+      }
+      if (url.includes('/api/bookmarks')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [{ name: 'B1', bookmarks: [] }] }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+
+    render(<App />);
+    await waitFor(() => {
+      expect(screen.getByText(/No Items Available/i)).toBeInTheDocument();
+      expect(screen.getByText(/There are currently no applications or bookmarks configured/i)).toBeInTheDocument();
+      // Check that nav links are not present
+      expect(screen.getByRole('navigation')).toBeEmptyDOMElement();
+    });
   });
 });
