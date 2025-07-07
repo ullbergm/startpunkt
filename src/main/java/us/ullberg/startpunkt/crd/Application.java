@@ -55,6 +55,38 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
             name, group, icon, iconColor, url, info, targetBlank, location, enabled);
   }
 
+  /**
+   * Constructs an Application with the specified specification fields.
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
+   * @param rootPath root path to append to the URL
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String rootPath) {
+    super();
+    // Initialize the spec of the custom resource with the provided values
+    this.spec =
+        new ApplicationSpec(
+            name, group, icon, iconColor, url, info, targetBlank, location, enabled, rootPath);
+  }
+
   // Override the hashCode method to generate a hash code based on the spec and status
   @Override
   public int hashCode() {

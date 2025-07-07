@@ -211,6 +211,29 @@ spec:
   info: Storage
 ```
 
+#### rootPath in Startpunkt CRDs
+
+For Startpunkt Application CRDs, you can use the `rootPath` property directly in the spec to append a path to the URL:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha1
+kind: Application
+metadata:
+  name: web-app
+  namespace: default
+spec:
+  name: Web Application
+  group: Applications
+  icon: web
+  url: https://app.example.com
+  rootPath: "/admin/dashboard"
+  info: Management Dashboard
+```
+
+This will create a link to `https://app.example.com/admin/dashboard`.
+
+> **_NOTE:_** For Startpunkt CRDs, the `rootPath` property in the spec takes precedence over the `startpunkt.ullberg.us/rootPath` annotation if both are present.
+
 ### 🗒️ Annotations
 
 You can use annotations to customize how the applications you have are displayed in Startpunkt.

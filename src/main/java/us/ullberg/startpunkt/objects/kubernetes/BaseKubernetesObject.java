@@ -353,6 +353,24 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
 
     String rootPath = getAppRootPath(item);
     if (rootPath != null && !rootPath.isEmpty()) {
+      return appendRootPath(url, rootPath);
+    }
+    return url;
+  }
+
+  /**
+   * Appends the root path to the URL.
+   *
+   * @param url base URL
+   * @param rootPath root path to append
+   * @return URL with rootPath appended
+   */
+  protected String appendRootPath(String url, String rootPath) {
+    if (url == null) {
+      return null;
+    }
+
+    if (rootPath != null && !rootPath.isEmpty()) {
       // Ensure the URL doesn't end with a slash and rootPath starts with a slash
       String normalizedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
       String normalizedRootPath = rootPath.startsWith("/") ? rootPath : "/" + rootPath;

@@ -41,14 +41,21 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the application icon from the resource spec. Returns base class icon if not present.
+   * Retrieves the application URL from the resource spec with rootPath appended if specified.
    *
    * @param item Kubernetes resource
-   * @return icon string or fallback value
+   * @return URL string with rootPath appended if specified
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
     String baseUrl = getSpec(item).get("url").toString();
+    String rootPath = getOptionalSpecString(item, "rootPath", null);
+    
+    if (rootPath != null && !rootPath.trim().isEmpty()) {
+      return appendRootPath(baseUrl, rootPath);
+    }
+    
+    // Fall back to annotation-based rootPath for backward compatibility
     return appendRootPath(baseUrl, item);
   }
 

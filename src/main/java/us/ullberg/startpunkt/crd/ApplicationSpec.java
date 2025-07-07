@@ -67,6 +67,11 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonPropertyDescription("Enable the bookmark")
   private Boolean enabled;
 
+  /** Root path to append to the URL. */
+  @JsonProperty("rootPath")
+  @JsonPropertyDescription("Root path to append to the URL")
+  private String rootPath;
+
   /** Default constructor. */
   public ApplicationSpec() {}
 
@@ -102,6 +107,44 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     this.targetBlank = targetBlank;
     this.location = location;
     this.enabled = enabled;
+    this.rootPath = null;
+  }
+
+  /**
+   * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   * @param rootPath root path to append to the URL
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String rootPath) {
+    this.name = name;
+    this.group = group;
+    this.icon = icon;
+    this.iconColor = iconColor;
+    this.url = url;
+    this.info = info;
+    this.targetBlank = targetBlank;
+    this.location = location;
+    this.enabled = enabled;
+    this.rootPath = rootPath;
   }
 
   /**
@@ -267,6 +310,24 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   /**
+   * Gets the root path to append to the URL.
+   *
+   * @return root path string
+   */
+  public String getRootPath() {
+    return rootPath;
+  }
+
+  /**
+   * Sets the root path to append to the URL.
+   *
+   * @param rootPath root path string
+   */
+  public void setRootPath(String rootPath) {
+    this.rootPath = rootPath;
+  }
+
+  /**
    * Compares this ApplicationSpec with another for sorting by group, location, and name.
    *
    * @param other the other ApplicationSpec
@@ -331,6 +392,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {
       return false;
     }
+    if (rootPath != null ? !rootPath.equals(that.rootPath) : that.rootPath != null) {
+      return false;
+    }
 
     return true;
   }
@@ -351,6 +415,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
     result = 31 * result + location;
     result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
+    result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);
     return result;
   }
 
@@ -386,6 +451,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
         + location
         + ", enabled="
         + enabled
+        + ", rootPath='"
+        + rootPath
+        + '\''
         + '}';
   }
 }

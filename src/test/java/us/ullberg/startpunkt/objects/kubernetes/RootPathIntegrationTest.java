@@ -133,4 +133,81 @@ class RootPathIntegrationTest {
 
     assertEquals("https://example.com/app/dashboard/", result);
   }
+
+  @Test
+  void testStartpunktApplicationWrapperWithSpecRootPath() {
+    // Test that StartpunktApplicationWrapper uses spec.rootPath property
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setName("test-app");
+    resource.setMetadata(metadata);
+
+    // Create spec for Startpunkt Application with rootPath in spec
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("name", "Test Application");
+    spec.put("url", "https://app.example.com");
+    spec.put("rootPath", "/admin/dashboard");
+    
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    resource.setAdditionalProperties(additionalProperties);
+
+    StartpunktApplicationWrapper wrapper = new StartpunktApplicationWrapper();
+    String result = wrapper.getAppUrl(resource);
+
+    assertEquals("https://app.example.com/admin/dashboard", result);
+  }
+
+  @Test
+  void testStartpunktApplicationWrapperWithAnnotationFallback() {
+    // Test that StartpunktApplicationWrapper falls back to annotation when spec.rootPath is not set
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setName("test-app");
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/rootPath", "/fallback/path");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    // Create spec for Startpunkt Application WITHOUT rootPath in spec
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("name", "Test Application");
+    spec.put("url", "https://app.example.com");
+    
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    resource.setAdditionalProperties(additionalProperties);
+
+    StartpunktApplicationWrapper wrapper = new StartpunktApplicationWrapper();
+    String result = wrapper.getAppUrl(resource);
+
+    assertEquals("https://app.example.com/fallback/path", result);
+  }
+
+  @Test
+  void testStartpunktApplicationWrapperSpecTakesPrecedence() {
+    // Test that spec.rootPath takes precedence over annotation when both are present
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setName("test-app");
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/rootPath", "/annotation/path");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    // Create spec for Startpunkt Application with rootPath in spec
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("name", "Test Application");
+    spec.put("url", "https://app.example.com");
+    spec.put("rootPath", "/spec/path");
+    
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    resource.setAdditionalProperties(additionalProperties);
+
+    StartpunktApplicationWrapper wrapper = new StartpunktApplicationWrapper();
+    String result = wrapper.getAppUrl(resource);
+
+    assertEquals("https://app.example.com/spec/path", result);
+  }
 }
