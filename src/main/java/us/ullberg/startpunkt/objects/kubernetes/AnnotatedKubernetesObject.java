@@ -230,6 +230,24 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
+   * Retrieves the application instance from annotations.
+   *
+   * @param item Kubernetes resource
+   * @return instance string or null if not set
+   */
+  protected String getAppInstance(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+
+    String[] annotationKeys = {"startpunkt.ullberg.us/instance"};
+    for (String key : annotationKeys) {
+      if (annotations.containsKey(key)) {
+        return annotations.get(key);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Filters a list of ApplicationSpec to include only those that are enabled.
    *
    * @param specs list of ApplicationSpec objects

@@ -118,9 +118,54 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   public List<ApplicationSpec> getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    return getApplicationSpecs(client, anyNamespace, matchNames, null);
+  }
+
+  /**
+   * Retrieves application specifications by mapping Kubernetes generic resources.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @param instanceFilter instance filter value, or null for no filtering
+   * @return list of ApplicationSpec instances
+   */
+  public List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client,
+      boolean anyNamespace,
+      List<String> matchNames,
+      String instanceFilter) {
     return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()
+        .filter(item -> shouldIncludeByInstance(item, instanceFilter))
         .map(this::mapToApplicationSpec)
         .toList();
+  }
+
+  /**
+   * Determines whether to include an item based on instance filtering.
+   *
+   * @param item the Kubernetes resource
+   * @param instanceFilter the instance filter value, or null for no filtering
+   * @return true if the item should be included
+   */
+  protected boolean shouldIncludeByInstance(GenericKubernetesResource item, String instanceFilter) {
+    if (instanceFilter == null || instanceFilter.isEmpty()) {
+      return true; // No filtering
+    }
+    
+    String itemInstance = getAppInstance(item);
+    return itemInstance == null || itemInstance.equals(instanceFilter);
+  }
+
+  /**
+   * Gets the instance annotation value from the resource. Default implementation returns null.
+   * Subclasses can override this to provide instance extraction logic.
+   *
+   * @param item the Kubernetes resource
+   * @return instance value or null
+   */
+  protected String getAppInstance(GenericKubernetesResource item) {
+    return null;
   }
 
   /**

@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -78,6 +79,9 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";
 
+  @ConfigProperty(name = "startpunkt.instance")
+  private Optional<String> instance;
+
   /**
    * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
    */
@@ -119,8 +123,10 @@ public class ApplicationResource {
 
     // Retrieve the applications from the application wrappers
     final KubernetesClient client = new KubernetesClientBuilder().build();
+    String instanceFilter = instance.filter(s -> !s.isEmpty()).orElse(null);
     for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
+      apps.addAll(
+          applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames, instanceFilter));
     }
 
     // Sort the list of applications
