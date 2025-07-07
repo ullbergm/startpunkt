@@ -198,7 +198,7 @@ startpunkt:
 To add applications, that are either outside of the cluster or are using an ingress method that is not supported (yet), you can use the CRDs:
 
 ```yaml
-apiVersion: startpunkt.ullberg.us/v1alpha1
+apiVersion: startpunkt.ullberg.us/v1alpha2
 kind: Application
 metadata:
   name: nas
@@ -216,7 +216,7 @@ spec:
 For Startpunkt Application CRDs, you can use the `rootPath` property directly in the spec to append a path to the URL:
 
 ```yaml
-apiVersion: startpunkt.ullberg.us/v1alpha1
+apiVersion: startpunkt.ullberg.us/v1alpha2
 kind: Application
 metadata:
   name: web-app
