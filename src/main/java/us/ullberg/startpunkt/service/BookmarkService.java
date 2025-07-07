@@ -12,9 +12,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
+import us.ullberg.startpunkt.objects.kubernetes.HajimariBookmarkWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.StartpunktBookmarkWrapper;
 
 /**
  * Service class for managing bookmarks retrieved from Kubernetes Custom Resources. Supports
@@ -30,6 +33,9 @@ public class BookmarkService {
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
   private String[] matchNames;
 
+  @ConfigProperty(name = "startpunkt.instance")
+  private Optional<String> instance;
+
   /** Default constructor. */
   public BookmarkService() {
     // No special initialization needed
@@ -42,6 +48,49 @@ public class BookmarkService {
    */
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkSpec> retrieveBookmarks() {
+    String instanceFilter = instance.filter(s -> !s.isEmpty()).orElse(null);
+    return retrieveBookmarks(instanceFilter);
+  }
+
+  /**
+   * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces
+   * and instance filtering.
+   *
+   * @param instanceFilter instance filter value, or null for no filtering
+   * @return list of {@link BookmarkSpec} representing the bookmarks
+   */
+  @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
+  public List<BookmarkSpec> retrieveBookmarks(String instanceFilter) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+      var wrapper = new StartpunktBookmarkWrapper();
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("startpunkt.ullberg.us")
+              .withVersion("v1alpha1")
+              .withPlural("bookmarks")
+              .withNamespaced(true)
+              .build();
+
+      GenericKubernetesResourceList list = getResourceList(client, ctx);
+      return list.getItems().stream()
+          .filter(item -> wrapper.shouldIncludeByInstance(item, instanceFilter))
+          .map(wrapper::mapToBookmarkSpec)
+          .toList();
+    } catch (Exception e) {
+      Log.error("Error retrieving bookmarks", e);
+      return List.of();
+    }
+  }
+
+  /**
+   * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces
+   * (legacy method for backward compatibility).
+   *
+   * @return list of {@link BookmarkSpec} representing the bookmarks
+   */
+  @Deprecated
+  @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
+  public List<BookmarkSpec> retrieveBookmarksLegacy() {
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext ctx =
           new ResourceDefinitionContext.Builder()
@@ -124,6 +173,46 @@ public class BookmarkService {
    * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
    */
   public List<BookmarkSpec> retrieveHajimariBookmarks() {
+    String instanceFilter = instance.filter(s -> !s.isEmpty()).orElse(null);
+    return retrieveHajimariBookmarks(instanceFilter);
+  }
+
+  /**
+   * Retrieves bookmarks from the "hajimari.io" group namespace with instance filtering.
+   *
+   * @param instanceFilter instance filter value, or null for no filtering
+   * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
+   */
+  public List<BookmarkSpec> retrieveHajimariBookmarks(String instanceFilter) {
+    Log.info("Retrieve Hajimari Bookmarks");
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+      var wrapper = new HajimariBookmarkWrapper();
+      ResourceDefinitionContext resourceDefinitionContext =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("hajimari.io")
+              .withVersion("v1alpha1")
+              .withPlural("bookmarks")
+              .withNamespaced(true)
+              .build();
+
+      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
+      return list.getItems().stream()
+          .filter(item -> wrapper.shouldIncludeByInstance(item, instanceFilter))
+          .map(wrapper::mapToBookmarkSpec)
+          .toList();
+    } catch (Exception e) {
+      Log.error("Error retrieving hajimari bookmarks", e);
+      return List.of();
+    }
+  }
+
+  /**
+   * Retrieves bookmarks from the "hajimari.io" group namespace (legacy method for backward compatibility).
+   *
+   * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
+   */
+  @Deprecated
+  public List<BookmarkSpec> retrieveHajimariBookmarksLegacy() {
     Log.info("Retrieve Hajimari Bookmarks");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext resourceDefinitionContext =

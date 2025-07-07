@@ -109,4 +109,21 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
     int location = getOptionalSpecInteger(item, "location", super.getAppLocation(item));
     return location == 0 ? 1000 : location;
   }
+
+  /**
+   * Retrieves the instance tag from resource annotations.
+   *
+   * @param item Kubernetes resource
+   * @return instance tag for filtering or null if not set
+   */
+  @Override
+  protected String getAppInstance(GenericKubernetesResource item) {
+    // Hajimari doesn't have instance in spec, only check annotations
+    var annotations = getAnnotations(item);
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/instance")) {
+      return annotations.get("startpunkt.ullberg.us/instance");
+    }
+    
+    return null;
+  }
 }

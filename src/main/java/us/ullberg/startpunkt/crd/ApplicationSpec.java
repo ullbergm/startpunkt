@@ -67,11 +67,53 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonPropertyDescription("Enable the bookmark")
   private Boolean enabled;
 
+  /** Instance tag for filtering applications in multi-instance deployments. */
+  @JsonProperty("instance")
+  @JsonPropertyDescription("Instance tag for filtering applications in multi-instance deployments")
+  private String instance;
+
   /** Default constructor. */
   public ApplicationSpec() {}
 
   /**
    * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   * @param instance instance tag for filtering applications in multi-instance deployments
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String instance) {
+    this.name = name;
+    this.group = group;
+    this.icon = icon;
+    this.iconColor = iconColor;
+    this.url = url;
+    this.info = info;
+    this.targetBlank = targetBlank;
+    this.location = location;
+    this.enabled = enabled;
+    this.instance = instance;
+  }
+
+  /**
+   * Parameterized constructor to initialize all fields except instance (for backward compatibility).
    *
    * @param name the application name (required)
    * @param group the group the bookmark belongs to
@@ -93,15 +135,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
       Boolean targetBlank,
       int location,
       Boolean enabled) {
-    this.name = name;
-    this.group = group;
-    this.icon = icon;
-    this.iconColor = iconColor;
-    this.url = url;
-    this.info = info;
-    this.targetBlank = targetBlank;
-    this.location = location;
-    this.enabled = enabled;
+    this(name, group, icon, iconColor, url, info, targetBlank, location, enabled, null);
   }
 
   /**
@@ -267,6 +301,24 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   /**
+   * Gets the instance tag for filtering applications in multi-instance deployments.
+   *
+   * @return instance tag
+   */
+  public String getInstance() {
+    return instance;
+  }
+
+  /**
+   * Sets the instance tag for filtering applications in multi-instance deployments.
+   *
+   * @param instance instance tag
+   */
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
+
+  /**
    * Compares this ApplicationSpec with another for sorting by group, location, and name.
    *
    * @param other the other ApplicationSpec
@@ -331,6 +383,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {
       return false;
     }
+    if (instance != null ? !instance.equals(that.instance) : that.instance != null) {
+      return false;
+    }
 
     return true;
   }
@@ -351,6 +406,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
     result = 31 * result + location;
     result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
+    result = 31 * result + (instance != null ? instance.hashCode() : 0);
     return result;
   }
 
@@ -386,6 +442,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
         + location
         + ", enabled="
         + enabled
+        + ", instance='"
+        + instance
+        + '\''
         + '}';
   }
 }

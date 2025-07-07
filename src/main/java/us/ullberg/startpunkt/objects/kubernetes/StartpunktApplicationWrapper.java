@@ -117,4 +117,27 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
   }
+
+  /**
+   * Retrieves the instance tag from either the resource spec or annotations.
+   *
+   * @param item Kubernetes resource
+   * @return instance tag for filtering or null if not set
+   */
+  @Override
+  protected String getAppInstance(GenericKubernetesResource item) {
+    // First check the spec for instance field
+    String specInstance = getOptionalSpecString(item, "instance", null);
+    if (specInstance != null) {
+      return specInstance;
+    }
+    
+    // Fall back to checking annotations
+    var annotations = getAnnotations(item);
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/instance")) {
+      return annotations.get("startpunkt.ullberg.us/instance");
+    }
+    
+    return null;
+  }
 }

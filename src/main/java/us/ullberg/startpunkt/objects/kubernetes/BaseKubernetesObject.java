@@ -184,7 +184,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
         getAppInfo(item),
         getAppTargetBlank(item),
         getAppLocation(item),
-        getAppEnabled(item));
+        getAppEnabled(item),
+        getAppInstance(item));
   }
 
   /**
