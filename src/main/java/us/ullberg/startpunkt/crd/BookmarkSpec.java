@@ -52,11 +52,47 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   @JsonPropertyDescription("Sorting order of the bookmark")
   private int location;
 
+  /** Instance tag for filtering bookmarks in multi-instance deployments. */
+  @JsonProperty("instance")
+  @JsonPropertyDescription("Instance tag for filtering bookmarks in multi-instance deployments")
+  private String instance;
+
   /** Default no-argument constructor. */
   public BookmarkSpec() {}
 
   /**
    * Constructs a BookmarkSpec with all properties.
+   *
+   * @param name bookmark name
+   * @param group bookmark group
+   * @param icon bookmark icon (optional)
+   * @param url bookmark URL
+   * @param info description or info (optional)
+   * @param targetBlank whether to open in new tab (optional)
+   * @param location sorting order
+   * @param instance instance tag for filtering bookmarks in multi-instance deployments
+   */
+  public BookmarkSpec(
+      String name,
+      String group,
+      String icon,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      String instance) {
+    this.name = name;
+    this.group = group;
+    this.icon = icon;
+    this.url = url;
+    this.info = info;
+    this.targetBlank = targetBlank;
+    this.location = location;
+    this.instance = instance;
+  }
+
+  /**
+   * Constructs a BookmarkSpec with all properties except instance (for backward compatibility).
    *
    * @param name bookmark name
    * @param group bookmark group
@@ -74,13 +110,7 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
       String info,
       Boolean targetBlank,
       int location) {
-    this.name = name;
-    this.group = group;
-    this.icon = icon;
-    this.url = url;
-    this.info = info;
-    this.targetBlank = targetBlank;
-    this.location = location;
+    this(name, group, icon, url, info, targetBlank, location, null);
   }
 
   /**
@@ -210,6 +240,24 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   }
 
   /**
+   * Get the instance tag for filtering bookmarks in multi-instance deployments.
+   *
+   * @return the instance tag
+   */
+  public String getInstance() {
+    return instance;
+  }
+
+  /**
+   * Set the instance tag for filtering bookmarks in multi-instance deployments.
+   *
+   * @param instance the instance tag to set
+   */
+  public void setInstance(String instance) {
+    this.instance = instance;
+  }
+
+  /**
    * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
    * then name.
    *
@@ -258,6 +306,9 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {
       return false;
     }
+    if (instance != null ? !instance.equals(otherSpec.instance) : otherSpec.instance != null) {
+      return false;
+    }
     return targetBlank != null
         ? targetBlank.equals(otherSpec.targetBlank)
         : otherSpec.targetBlank == null;
@@ -272,6 +323,7 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
     result = 31 * result + (info != null ? info.hashCode() : 0);
     result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
     result = 31 * result + location;
+    result = 31 * result + (instance != null ? instance.hashCode() : 0);
     return result;
   }
 
@@ -297,6 +349,9 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
         + targetBlank
         + ", location="
         + location
+        + ", instance='"
+        + instance
+        + '\''
         + '}';
   }
 }

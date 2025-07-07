@@ -38,4 +38,16 @@ public interface KubernetesObject {
    */
   List<ApplicationSpec> getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames);
+
+  /**
+   * Retrieves the list of {@link ApplicationSpec} from the Kubernetes cluster with instance filtering.
+   *
+   * @param client Kubernetes client instance
+   * @param anyNamespace if true, search across all namespaces; otherwise use matchNames
+   * @param matchNames list of namespaces to filter on, used only if anyNamespace is false
+   * @param instanceFilter instance filter value, or null for no filtering
+   * @return list of ApplicationSpec found
+   */
+  List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames, String instanceFilter);
 }

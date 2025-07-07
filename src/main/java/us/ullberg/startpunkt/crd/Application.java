@@ -37,6 +37,38 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
    * @param targetBlank whether to open URL in new tab
    * @param location sorting order location
    * @param enabled whether the application is enabled
+   * @param instance instance tag for filtering applications in multi-instance deployments
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String instance) {
+    super();
+    // Initialize the spec of the custom resource with the provided values
+    this.spec =
+        new ApplicationSpec(
+            name, group, icon, iconColor, url, info, targetBlank, location, enabled, instance);
+  }
+
+  /**
+   * Constructs an Application with the specified specification fields (for backward compatibility).
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
    */
   public Application(
       String name,
@@ -48,11 +80,7 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
       Boolean targetBlank,
       int location,
       Boolean enabled) {
-    super();
-    // Initialize the spec of the custom resource with the provided values
-    this.spec =
-        new ApplicationSpec(
-            name, group, icon, iconColor, url, info, targetBlank, location, enabled);
+    this(name, group, icon, iconColor, url, info, targetBlank, location, enabled, null);
   }
 
   // Override the hashCode method to generate a hash code based on the spec and status

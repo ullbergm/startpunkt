@@ -31,6 +31,32 @@ public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus> imple
    * @param info additional info about the bookmark
    * @param targetBlank whether to open URL in a new tab
    * @param location sort order or location of the bookmark
+   * @param instance instance tag for filtering bookmarks in multi-instance deployments
+   */
+  public Bookmark(
+      String name,
+      String group,
+      String icon,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      String instance) {
+    super();
+    // Initialize the spec of the custom resource with the provided values
+    this.spec = new BookmarkSpec(name, group, icon, url, info, targetBlank, location, instance);
+  }
+
+  /**
+   * Constructs a Bookmark resource with the given properties (for backward compatibility).
+   *
+   * @param name the bookmark name
+   * @param group the group the bookmark belongs to
+   * @param icon icon identifier or URL
+   * @param url the bookmark URL
+   * @param info additional info about the bookmark
+   * @param targetBlank whether to open URL in a new tab
+   * @param location sort order or location of the bookmark
    */
   public Bookmark(
       String name,
@@ -40,9 +66,7 @@ public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus> imple
       String info,
       Boolean targetBlank,
       int location) {
-    super();
-    // Initialize the spec of the custom resource with the provided values
-    this.spec = new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
+    this(name, group, icon, url, info, targetBlank, location, null);
   }
 
   // Override the hashCode method to generate a hash code based on the spec and status

@@ -71,7 +71,23 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   @Override
   public List<ApplicationSpec> getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
-    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
+    return getApplicationSpecs(client, anyNamespace, matchNames, null);
+  }
+
+  /**
+   * Retrieves a list of ApplicationSpec objects for matching HTTPRoute resources with instance filtering.
+   * If the wrapper is configured to only include annotated resources, filters the result accordingly.
+   *
+   * @param client Kubernetes client to query resources
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of resource names to match
+   * @param instanceFilter instance filter value, or null for no filtering
+   * @return filtered or unfiltered list of ApplicationSpec instances
+   */
+  @Override
+  public List<ApplicationSpec> getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames, String instanceFilter) {
+    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames, instanceFilter);
 
     return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
