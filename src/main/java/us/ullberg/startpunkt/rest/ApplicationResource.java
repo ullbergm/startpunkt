@@ -22,7 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;

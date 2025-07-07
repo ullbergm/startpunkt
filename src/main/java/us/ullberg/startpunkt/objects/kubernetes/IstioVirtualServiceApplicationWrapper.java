@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Wrapper for Istio VirtualService custom resources to extract application info. Supports filtering
@@ -49,8 +49,9 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
       hosts.add("localhost");
     }
 
-    // Construct and return the full URL
-    return protocol + "://" + hosts.get(0);
+    // Construct the base URL and append rootPath if present
+    String baseUrl = protocol + "://" + hosts.get(0);
+    return appendRootPath(baseUrl, item);
   }
 
   // Override method to get a list of ApplicationSpec objects

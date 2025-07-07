@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
 
 /**
  * Wrapper class for Kubernetes Gateway API HTTPRoute resources. Provides methods to extract
@@ -56,7 +56,8 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
       hosts.add("localhost");
     }
 
-    return protocol + "://" + hosts.get(0);
+    String baseUrl = protocol + "://" + hosts.get(0);
+    return appendRootPath(baseUrl, item);
   }
 
   /**

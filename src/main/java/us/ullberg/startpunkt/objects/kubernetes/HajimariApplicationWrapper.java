@@ -46,7 +46,8 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-    return getSpec(item).get("url").toString();
+    String baseUrl = getSpec(item).get("url").toString();
+    return appendRootPath(baseUrl, item);
   }
 
   /**
