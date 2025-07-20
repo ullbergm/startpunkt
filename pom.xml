@@ -4,7 +4,7 @@
 
   <groupId>us.ullberg</groupId>
   <artifactId>startpunkt</artifactId>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.3.0</version>
 
   <name>Startpunkt</name>
   <description>Startpunkt is a clean start page to display links to your self-hosted resources in your Kubernetes cluster.</description>
@@ -47,7 +47,7 @@
   <scm>
     <connection>scm:git:https://github.com/ullbergm/startpunkt.git</connection>
     <developerConnection>scm:git:https://github.com/ullbergm/startpunkt.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>v1.3.0</tag>
     <url>https://github.com/ullbergm/startpunkt</url>
   </scm>
   <issueManagement>
