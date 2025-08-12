@@ -62,7 +62,7 @@ jobs:
           - arm64
     name: "Build JVM images (${{ matrix.arch}})"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -131,7 +131,7 @@ jobs:
           # - arm64
     name: "Build Native images (${{ matrix.arch }})"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -213,7 +213,7 @@ jobs:
           - "-jvm"
     name: "Push app images (${{ matrix.arch }}${{ matrix.kind }})"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
 
       - name: 📝 Extract Docker metadata
@@ -256,7 +256,7 @@ jobs:
       tags: ${{ steps.json.outputs.tags }}
     name: Create multiarch JVM manifests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -283,7 +283,7 @@ jobs:
       tags: ${{ steps.json.outputs.tags }}
     name: Create multiarch manifests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -310,7 +310,7 @@ jobs:
         tag: ${{ fromJson(fromJson(needs.create-multiarch-jvm-tags.outputs.tags)) }}          
     name: Create multiarch JVM manifests (${{ matrix.tag }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -348,7 +348,7 @@ jobs:
         tag: ${{ fromJson(fromJson(needs.create-multiarch-native-tags.outputs.tags)) }}
     name: Create multiarch native manifests (${{ matrix.tag }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 📝 Extract Docker metadata
         id: meta
