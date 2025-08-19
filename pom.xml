@@ -153,7 +153,7 @@
     <dependency>
       <groupId>io.quarkiverse.quinoa</groupId>
       <artifactId>quarkus-quinoa</artifactId>
-      <version>2.6.0</version>
+      <version>2.6.2</version>
     </dependency>
     <dependency>
       <groupId>io.quarkiverse.helm</groupId>
