@@ -7,7 +7,6 @@
       "npm:unpublishSafe",
       ":maintainLockFilesWeekly"
    ],
-   "baseBranch": "dev",
    "automerge": true,
    "automergeType": "pr",
    "prHourlyLimit": 5,
