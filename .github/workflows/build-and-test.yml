@@ -23,6 +23,7 @@ on:
       - renovate.json
     branches:
       - main
+      - dev
   pull_request:
     types:
       - opened
