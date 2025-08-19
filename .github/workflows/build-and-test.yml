@@ -32,6 +32,7 @@ on:
       - ready_for_review
     branches:
       - main
+      - dev
     paths-ignore:
       - deploy/**
       - docs/**
