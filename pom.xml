@@ -72,7 +72,7 @@
     <quarkus.platform.version>3.22.3</quarkus.platform.version>
 
     <!-- Dependency Versions -->
-    <commons.lang3.version>3.17.0</commons.lang3.version>
+    <commons.lang3.version>3.18.0</commons.lang3.version>
     <junit.jupiter.version>5.13.4</junit.jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
   </properties>
