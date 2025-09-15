@@ -442,7 +442,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.11.2</version>
+        <version>3.11.3</version>
         <configuration>
           <encoding>${project.build.sourceEncoding}</encoding>
           <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
@@ -607,7 +607,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.11.2</version>
+        <version>3.11.3</version>
         <configuration>
           <additionalJOptions>
             <additionalJOption>-Xdoclint:none</additionalJOption>
