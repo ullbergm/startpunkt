@@ -44,8 +44,8 @@ devDependencies:
     specifier: ^7.27.1
     version: 7.27.1(@babel/core@7.28.4)
   '@iconify/react':
-    specifier: ^6.0.0
-    version: 6.0.1(react@19.1.1)
+    specifier: ^6.0.2
+    version: 6.0.2(react@19.1.1)
   '@preact/preset-vite':
     specifier: ^2.8.3
     version: 2.10.2(@babel/core@7.28.4)(preact@10.27.2)(vite@7.1.5)
@@ -1673,8 +1673,8 @@ packages:
     dev: true
     optional: true
 
-  /@iconify/react@6.0.1(react@19.1.1):
-    resolution: {integrity: sha512-fCocnAfiGXjrA0u7KkS3W/OQHNp9LRFICudvOtxmS3Mf7U92aDhP50wyzRbobZli51zYt9ksZ9g0J7H586XvOQ==}
+  /@iconify/react@6.0.2(react@19.1.1):
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
     peerDependencies:
       react: '>=16'
     dependencies:
