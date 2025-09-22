@@ -168,4 +168,97 @@ class AnnotatedKubernetesObjectTest {
 
     assertEquals("https://custom.example.com/web/index.html", result);
   }
+
+  // ---- Tag Tests ----
+
+  @Test
+  void testGetAppTagsWithValidTags() {
+    // Create a mock resource with tags annotation
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/tags", "admin,dev,test");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertEquals("admin,dev,test", result);
+  }
+
+  @Test
+  void testGetAppTagsWithSingleTag() {
+    // Create a mock resource with single tag annotation
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/tags", "production");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertEquals("production", result);
+  }
+
+  @Test
+  void testGetAppTagsWithNoAnnotation() {
+    // Create a mock resource without tags annotation
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    Map<String, String> annotations = new HashMap<>();
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertNull(result);
+  }
+
+  @Test
+  void testGetAppTagsWithEmptyTags() {
+    // Create a mock resource with empty tags annotation
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/tags", "");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertEquals("", result);
+  }
+
+  @Test
+  void testGetAppTagsWithWhitespaceInTags() {
+    // Create a mock resource with tags containing whitespace
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/tags", " admin , dev , test ");
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertEquals(" admin , dev , test ", result);
+  }
+
+  @Test
+  void testGetAppTagsWithNoMetadata() {
+    // Create a mock resource without metadata
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    resource.setMetadata(null);
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+    String result = testObj.getAppTags(resource);
+
+    assertNull(result);
+  }
 }

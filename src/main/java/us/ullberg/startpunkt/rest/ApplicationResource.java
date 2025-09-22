@@ -22,7 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
@@ -163,6 +163,29 @@ public class ApplicationResource {
   }
 
   /**
+   * GET endpoint to retrieve applications filtered by tags grouped by their group property.
+   *
+   * @param tags comma-separated list of tags to filter by
+   * @return HTTP 200 with grouped applications or 404 if none found
+   */
+  @GET
+  @Path("{tags}")
+  @Operation(summary = "Returns applications filtered by tags")
+  @APIResponse(
+      responseCode = "200",
+      description = "Gets applications filtered by tags",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
+  @APIResponse(responseCode = "404", description = "No applications found")
+  @Timed(value = "startpunkt.api.getapps.filtered", description = "Get the list of applications filtered by tags")
+  @CacheResult(cacheName = "getAppsFiltered")
+  public Response getAppsFiltered(@PathParam("tags") String tags) {
+    return getAppsWithTags(tags);
+  }
+
+  /**
    * GET endpoint to retrieve all applications grouped by their group property.
    *
    * @return HTTP 200 with grouped applications or 404 if none found
@@ -180,8 +203,27 @@ public class ApplicationResource {
   @Timed(value = "startpunkt.api.getapps", description = "Get the list of applications")
   @CacheResult(cacheName = "getApps")
   public Response getApps() {
+    return getAppsWithTags(null);
+  }
+
+  /**
+   * Retrieves applications with optional tag filtering.
+   *
+   * @param tags comma-separated list of tags to filter by, or null for no filtering
+   * @return HTTP 200 with grouped applications or 404 if none found
+   */
+  private Response getAppsWithTags(String tags) {
     // Retrieve the list of applications
     ArrayList<ApplicationSpec> applist = retrieveApps();
+
+    // Apply tag filtering
+    if (tags != null && !tags.trim().isEmpty()) {
+      // If tags are specified, show applications with matching tags AND untagged applications
+      applist = filterApplicationsByTags(applist, tags);
+    } else {
+      // If no tags are specified, show only untagged applications
+      applist = filterApplicationsWithoutTags(applist);
+    }
 
     // Create a list to store application groups
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
@@ -213,6 +255,77 @@ public class ApplicationResource {
 
     // Return the list of application groups
     return Response.ok(new ApplicationGroupList(groups)).build();
+  }
+
+  /**
+   * Filters applications based on matching tags. Applications with no tags are always included.
+   * Applications with matching tags are included.
+   *
+   * @param applications list of applications to filter
+   * @param filterTags comma-separated list of tags to filter by
+   * @return filtered list of applications
+   */
+  ArrayList<ApplicationSpec> filterApplicationsByTags(
+      ArrayList<ApplicationSpec> applications, String filterTags) {
+    if (filterTags == null || filterTags.trim().isEmpty()) {
+      return applications;
+    }
+
+    // Parse filter tags
+    var filterTagSet = java.util.Arrays.stream(filterTags.split(","))
+        .map(String::trim)
+        .map(String::toLowerCase)
+        .filter(tag -> !tag.isEmpty())
+        .collect(java.util.stream.Collectors.toSet());
+
+    if (filterTagSet.isEmpty()) {
+      return applications;
+    }
+
+    ArrayList<ApplicationSpec> filteredApps = new ArrayList<>();
+
+    for (ApplicationSpec app : applications) {
+      // Always include applications with no tags
+      if (app.getTags() == null || app.getTags().trim().isEmpty()) {
+        filteredApps.add(app);
+        continue;
+      }
+
+      // Parse application tags
+      var appTagSet = java.util.Arrays.stream(app.getTags().split(","))
+          .map(String::trim)
+          .map(String::toLowerCase)
+          .filter(tag -> !tag.isEmpty())
+          .collect(java.util.stream.Collectors.toSet());
+
+      // Include if any tag matches
+      boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);
+      if (hasMatchingTag) {
+        filteredApps.add(app);
+      }
+    }
+
+    return filteredApps;
+  }
+
+  /**
+   * Filters applications to include only those without tags.
+   *
+   * @param applications list of applications to filter
+   * @return filtered list containing only applications without tags
+   */
+  ArrayList<ApplicationSpec> filterApplicationsWithoutTags(
+      ArrayList<ApplicationSpec> applications) {
+    ArrayList<ApplicationSpec> filteredApps = new ArrayList<>();
+
+    for (ApplicationSpec app : applications) {
+      // Include only applications with no tags
+      if (app.getTags() == null || app.getTags().trim().isEmpty()) {
+        filteredApps.add(app);
+      }
+    }
+
+    return filteredApps;
   }
 
   /**

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.LinkedList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
  * Represents a group of applications, each group identified by a name and containing a list of

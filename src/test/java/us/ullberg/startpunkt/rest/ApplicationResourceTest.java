@@ -15,8 +15,8 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import java.net.HttpURLConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha2.Application;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.Application;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 @QuarkusTest
 @WithKubernetesTestServer
@@ -59,10 +59,13 @@ class ApplicationResourceTest {
     homeAssistantSpec.setInfo("Smart Home Manager");
     homeAssistantSpec.setTargetBlank(true);
     homeAssistantSpec.setEnabled(true);
+    homeAssistantSpec.setTags("admin,home");
 
     // Create a new Application resource using the ApplicationSpec
     Application homeAssistant = new Application();
-    homeAssistant.setMetadata(new ObjectMetaBuilder().withName("homeassistant").build());
+    homeAssistant.setMetadata(new ObjectMetaBuilder().withName("homeassistant")
+        .addToAnnotations("startpunkt.ullberg.us/tags", "admin,home")
+        .build());
     homeAssistant.setSpec(homeAssistantSpec);
 
     // Create or replace the HomeAssistant application resource in the default
@@ -80,16 +83,19 @@ class ApplicationResourceTest {
     nodeRedSpec.setTargetBlank(true);
     nodeRedSpec.setLocation(1);
     nodeRedSpec.setEnabled(true);
+    nodeRedSpec.setTags("dev,home");
 
     // Create a new Application resource using the ApplicationSpec
     Application nodeRed = new Application();
-    nodeRed.setMetadata(new ObjectMetaBuilder().withName("nodered").build());
+    nodeRed.setMetadata(new ObjectMetaBuilder().withName("nodered")
+        .addToAnnotations("startpunkt.ullberg.us/tags", "dev,home")
+        .build());
     nodeRed.setSpec(nodeRedSpec);
 
     // Create or replace the Node-Red application resource in the default namespace
     createOrReplace("default", nodeRed);
 
-    // Create new ApplicationSpec for the CyberChef application
+    // Create new ApplicationSpec for the CyberChef application (no tags - untagged app)
     ApplicationSpec cyberChefSpec = new ApplicationSpec();
     cyberChefSpec.setName("CyberChef");
     cyberChefSpec.setGroup("Utilities");
@@ -132,13 +138,13 @@ class ApplicationResourceTest {
     given().when().get("/api/apps").then().log().all().statusCode(200);
   }
 
-  // Test to verify that the list contains exactly two groups
+  // Test to verify that the list contains only one group (utilities with untagged app)
   @Test
   void testApplicationsGroupCount() {
-    given().when().get("/api/apps").then().statusCode(200).body("groups.size()", equalTo(2));
+    given().when().get("/api/apps").then().statusCode(200).body("groups.size()", equalTo(1));
   }
 
-  // Test to verify that the groups are in the right order
+  // Test to verify that only utilities group is returned (with untagged app)
   @Test
   void testApplicationsGroupOrder() {
     given()
@@ -146,11 +152,10 @@ class ApplicationResourceTest {
         .get("/api/apps")
         .then()
         .statusCode(200)
-        .body("groups[0].name", equalTo("home automation"))
-        .body("groups[1].name", equalTo("utilities"));
+        .body("groups[0].name", equalTo("utilities"));
   }
 
-  // Test to verify that the number of applications are correct in each group
+  // Test to verify that only one application (untagged) is returned
   @Test
   void testApplicationsCount() {
     given()
@@ -158,12 +163,10 @@ class ApplicationResourceTest {
         .get("/api/apps")
         .then()
         .statusCode(200)
-        .body("groups[0].applications.size()", equalTo(2))
-        .body("groups[1].applications.size()", equalTo(1));
+        .body("groups[0].applications.size()", equalTo(1));
   }
 
-  // Test to verify that all the applications are present and the values are
-  // correct
+  // Test to verify that only the untagged application (cyberchef) is returned
   @Test
   void testApplicationsValues() {
     given()
@@ -171,30 +174,13 @@ class ApplicationResourceTest {
         .get("/api/apps")
         .then()
         .statusCode(200)
-        .body("groups[0].applications[0].name", equalTo("node-red"))
-        .body("groups[0].applications[0].group", equalTo("home automation"))
-        .body("groups[0].applications[0].icon", equalTo("mdi:node-red"))
-        .body("groups[0].applications[0].iconColor", equalTo("red"))
-        .body("groups[0].applications[0].url", equalTo("https://nodered.ullberg.us"))
-        .body("groups[0].applications[0].info", equalTo("Flow-based development tool"))
+        .body("groups[0].applications[0].name", equalTo("cyberchef"))
+        .body("groups[0].applications[0].group", equalTo("utilities"))
+        .body("groups[0].applications[0].icon", equalTo("mdi:chef-hat"))
+        .body("groups[0].applications[0].url", equalTo("https://cyberchef.ullberg.us"))
+        .body("groups[0].applications[0].info", equalTo("Cyber Swiss Army Knife"))
         .body("groups[0].applications[0].targetBlank", equalTo(true))
-        .body("groups[0].applications[0].location", equalTo(1))
-        .body("groups[0].applications[0].enabled", equalTo(true))
-        .body("groups[0].applications[1].name", equalTo("home assistant"))
-        .body("groups[0].applications[1].group", equalTo("home automation"))
-        .body("groups[0].applications[1].icon", equalTo("mdi:home-automation"))
-        .body("groups[0].applications[1].url", equalTo("https://homeassistant.ullberg.us"))
-        .body("groups[0].applications[1].info", equalTo("Smart Home Manager"))
-        .body("groups[0].applications[1].targetBlank", equalTo(true))
-        .body("groups[0].applications[1].location", equalTo(1000))
-        .body("groups[0].applications[1].enabled", equalTo(true))
-        .body("groups[1].applications[0].name", equalTo("cyberchef"))
-        .body("groups[1].applications[0].group", equalTo("utilities"))
-        .body("groups[1].applications[0].icon", equalTo("mdi:chef-hat"))
-        .body("groups[1].applications[0].url", equalTo("https://cyberchef.ullberg.us"))
-        .body("groups[1].applications[0].info", equalTo("Cyber Swiss Army Knife"))
-        .body("groups[1].applications[0].targetBlank", equalTo(true))
-        .body("groups[1].applications[0].enabled", equalTo(true));
+        .body("groups[0].applications[0].enabled", equalTo(true));
   }
 
   // Test reading the information of a single application
@@ -230,5 +216,91 @@ class ApplicationResourceTest {
         .then()
         .statusCode(200)
         .body(equalTo(new ApplicationResource().ping()));
+  }
+
+  // ---- Tag Filtering Tests ----
+
+  // Test filtering by single tag 'admin' - should return Home Assistant and untagged CyberChef
+  @Test
+  void testFilterBySingleTagAdmin() {
+    given()
+        .when()
+        .get("/api/apps/admin")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(2)) // Home Automation + Utilities
+        .body("groups[0].applications.size()", equalTo(1)) // Only Home Assistant
+        .body("groups[0].applications[0].name", equalTo("home assistant"))
+        .body("groups[1].applications.size()", equalTo(1)) // Untagged CyberChef
+        .body("groups[1].applications[0].name", equalTo("cyberchef"));
+  }
+
+  // Test filtering by single tag 'dev' - should return Node-RED and untagged CyberChef
+  @Test
+  void testFilterBySingleTagDev() {
+    given()
+        .when()
+        .get("/api/apps/dev")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(2)) // Home Automation + Utilities
+        .body("groups[0].applications.size()", equalTo(1)) // Only Node-RED
+        .body("groups[0].applications[0].name", equalTo("node-red"))
+        .body("groups[1].applications.size()", equalTo(1)) // Untagged CyberChef
+        .body("groups[1].applications[0].name", equalTo("cyberchef"));
+  }
+
+  // Test filtering by single tag 'home' - should return both Home Automation apps and untagged CyberChef
+  @Test
+  void testFilterBySingleTagHome() {
+    given()
+        .when()
+        .get("/api/apps/home")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(2)) // Home Automation + Utilities
+        .body("groups[0].applications.size()", equalTo(2)) // Both Home Automation apps
+        .body("groups[1].applications.size()", equalTo(1)) // Untagged CyberChef
+        .body("groups[1].applications[0].name", equalTo("cyberchef"));
+  }
+
+  // Test filtering by multiple tags 'admin,dev' - should return all apps (both tagged + untagged)
+  @Test
+  void testFilterByMultipleTags() {
+    given()
+        .when()
+        .get("/api/apps/admin,dev")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(2)) // Home Automation + Utilities
+        .body("groups[0].applications.size()", equalTo(2)) // Both Home Automation apps
+        .body("groups[1].applications.size()", equalTo(1)) // Untagged CyberChef
+        .body("groups[1].applications[0].name", equalTo("cyberchef"));
+  }
+
+  // Test filtering by non-existent tag - should only return untagged apps
+  @Test
+  void testFilterByNonExistentTag() {
+    given()
+        .when()
+        .get("/api/apps/nonexistent")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(1)) // Only Utilities group
+        .body("groups[0].applications.size()", equalTo(1)) // Only untagged CyberChef
+        .body("groups[0].applications[0].name", equalTo("cyberchef"));
+  }
+
+  // Test filtering with empty tags - should show only untagged applications
+  @Test
+  void testFilterWithEmptyTags() {
+    given()
+        .when()  
+        .get("/api/apps/")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", equalTo(1)) // Only utilities group (has untagged app)
+        .body("groups[0].applications.size()", equalTo(1)) // Only untagged CyberChef
+        .body("groups[0].applications[0].name", equalTo("cyberchef"));
   }
 }

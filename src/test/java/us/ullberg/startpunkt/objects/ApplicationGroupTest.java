@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 class ApplicationGroupTest {
 

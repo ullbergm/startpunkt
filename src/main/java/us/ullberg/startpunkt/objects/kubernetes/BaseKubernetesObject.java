@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
  * Abstract base class representing a Kubernetes custom resource wrapper. Provides common
@@ -139,7 +139,9 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
         getAppInfo(item),
         getAppTargetBlank(item),
         getAppLocation(item),
-        getAppEnabled(item));
+        getAppEnabled(item),
+        getAppRootPath(item),
+        getAppTags(item));
   }
 
   /**
@@ -149,6 +151,9 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return map of annotations or null if none present
    */
   protected Map<String, String> getAnnotations(GenericKubernetesResource item) {
+    if (item.getMetadata() == null) {
+      return null;
+    }
     return item.getMetadata().getAnnotations();
   }
 
@@ -276,6 +281,21 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return protocol string or null if not specified
    */
   protected String getAppProtocol(GenericKubernetesResource item) {
+    return null;
+  }
+
+  /**
+   * Returns the tags of the application. By default, reads from the
+   * "startpunkt.ullberg.us/tags" annotation.
+   *
+   * @param item the Kubernetes generic resource
+   * @return comma-separated tags string or null if not set
+   */
+  protected String getAppTags(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/tags")) {
+      return annotations.get("startpunkt.ullberg.us/tags");
+    }
     return null;
   }
 

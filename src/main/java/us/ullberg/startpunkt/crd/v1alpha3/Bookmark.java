@@ -1,4 +1,4 @@
-package us.ullberg.startpunkt.crd.v1alpha2;
+package us.ullberg.startpunkt.crd.v1alpha3;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -13,7 +13,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * Represents a Kubernetes custom resource for a Bookmark. This resource is namespaced and includes
  * specifications and status.
  */
-@Version(value = "v1alpha2", storage = false, served = true, deprecated = true)
+@Version(value = "v1alpha3", storage = true, served = true, deprecated = false)
 @Group("startpunkt.ullberg.us")
 @Plural("bookmarks")
 public class Bookmark extends CustomResource<BookmarkSpec, BookmarkStatus> implements Namespaced {
