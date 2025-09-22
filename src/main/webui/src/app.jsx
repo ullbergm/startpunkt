@@ -183,8 +183,19 @@ export function App() {
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
 
+  // Extract tags from URL path for filtering
+  const getTagsFromUrl = () => {
+    const pathname = window.location.pathname;
+    // Remove leading slash and return tags if present
+    const path = pathname.replace(/^\//, '');
+    return path && path !== '' ? path : null;
+  };
+
   useEffect(() => {
-    fetch('/api/apps')
+    const tags = getTagsFromUrl();
+    const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
+    
+    fetch(appsEndpoint)
       .then(res => res.json())
       .then(res => {
         setApplicationGroups(res.groups || []);

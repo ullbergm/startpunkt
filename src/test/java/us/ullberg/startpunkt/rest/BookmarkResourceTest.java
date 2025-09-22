@@ -15,8 +15,8 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import java.net.HttpURLConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha2.Bookmark;
-import us.ullberg.startpunkt.crd.v1alpha2.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.Bookmark;
+import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 import us.ullberg.startpunkt.service.BookmarkService;
 
 // Mark this class as a Quarkus test

@@ -11,10 +11,10 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group "startpunkt.ullberg.us", version
-   * "v1alpha2", and plural "applications".
+   * "v1alpha3", and plural "applications".
    */
   public StartpunktApplicationWrapper() {
-    super("startpunkt.ullberg.us", "v1alpha2", "applications");
+    super("startpunkt.ullberg.us", "v1alpha3", "applications");
   }
 
   /**
@@ -136,5 +136,16 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
+  }
+
+  /**
+   * Retrieves the tags from the resource spec. Returns base class tags if not present.
+   *
+   * @param item Kubernetes resource
+   * @return comma-separated tags string
+   */
+  @Override
+  protected String getAppTags(GenericKubernetesResource item) {
+    return getOptionalSpecString(item, "tags", super.getAppTags(item));
   }
 }

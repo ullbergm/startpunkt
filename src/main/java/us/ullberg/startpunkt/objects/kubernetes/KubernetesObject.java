@@ -2,7 +2,7 @@ package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
-import us.ullberg.startpunkt.crd.v1alpha2.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /** Defines methods for Kubernetes resource wrappers that retrieve application specifications. */
 public interface KubernetesObject {

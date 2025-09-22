@@ -1,4 +1,4 @@
-package us.ullberg.startpunkt.crd.v1alpha2;
+package us.ullberg.startpunkt.crd.v1alpha3;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 
