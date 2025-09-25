@@ -6,9 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -29,6 +30,7 @@ class BookmarkResourceTest {
 
   // Inject the Kubernetes mock server
   @KubernetesTestServer KubernetesServer server;
+  private NamespacedKubernetesClient client;
 
   // Setup method to initialize the test environment before each test
   @BeforeEach
@@ -47,7 +49,7 @@ class BookmarkResourceTest {
         .once();
 
     // Get the Kubernetes client from the mock server
-    var client = server.getClient();
+    client = server.getClient();
 
     // Create the CRD in the mock Kubernetes cluster
     CustomResourceDefinition createdBookmarkCrd =
@@ -104,8 +106,6 @@ class BookmarkResourceTest {
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Bookmark object) {
     // Get the Kubernetes client from the mock server
-    var client = server.getClient();
-
     Resource<Bookmark> resource =
         client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 

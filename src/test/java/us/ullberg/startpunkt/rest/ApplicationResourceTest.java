@@ -6,9 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -25,6 +26,7 @@ class ApplicationResourceTest {
   private static final Class<Application> RESOURCE_TYPE = Application.class;
 
   @KubernetesTestServer KubernetesServer server; // Mock Kubernetes server for testing
+  private NamespacedKubernetesClient client;
 
   @BeforeEach
   public void before() {
@@ -42,7 +44,7 @@ class ApplicationResourceTest {
         .once();
 
     // Get the Kubernetes client from the mock server
-    var client = server.getClient();
+    client = server.getClient();
 
     // Create the CRD in the mock Kubernetes cluster
     CustomResourceDefinition createdApplicationCrd =
@@ -117,8 +119,6 @@ class ApplicationResourceTest {
   // Method to create or replace a custom resource in the specified namespace
   private void createOrReplace(String namespace, Application object) {
     // Get the Kubernetes client from the mock server
-    var client = server.getClient();
-
     Resource<Application> resource =
         client.resources(RESOURCE_TYPE).inNamespace(namespace).resource(object);
 
