@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationSpec.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.crd.v1alpha2</a> &gt; <span class="el_source">ApplicationSpec.java</span></div><h1>ApplicationSpec.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.crd.v1alpha2;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.generator.annotation.Required;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+/**
+ * Represents a single application bookmark specification in the Startpunkt UI.
+ *
+ * &lt;p&gt;This object defines all metadata related to a user-facing bookmark or link, such as its name,
+ * group, URL, icon, sorting order, visibility, and display behavior. It is typically used as the
+ * spec section in a Kubernetes custom resource representing application shortcuts.
+ *
+ * &lt;p&gt;The {@code name} and {@code url} fields are required. Other fields are optional and enhance
+ * the UI experience.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
+public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
+
+  /** Application name (required). */
+  @JsonProperty(&quot;name&quot;)
+  @JsonPropertyDescription(&quot;Application name&quot;)
+  @Required
+  public String name;
+
+  /** Group the bookmark belongs to. */
+  @JsonProperty(&quot;group&quot;)
+  @JsonPropertyDescription(&quot;Group the bookmark belongs to&quot;)
+  private String group;
+
+  /** Application icon, either as a name (e.g. mdi:home) or URL. */
+  @JsonProperty(&quot;icon&quot;)
+  @JsonPropertyDescription(&quot;Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'&quot;)
+  private String icon;
+
+  /** Color for the application icon. */
+  @JsonProperty(&quot;iconColor&quot;)
+  @JsonPropertyDescription(&quot;Application icon color, e.g. 'red'&quot;)
+  private String iconColor;
+
+  /** Application URL (required). */
+  @JsonProperty(&quot;url&quot;)
+  @JsonPropertyDescription(&quot;Application URL&quot;)
+  @Required
+  private String url;
+
+  /** Description or additional info about the bookmark. */
+  @JsonProperty(&quot;info&quot;)
+  @JsonPropertyDescription(&quot;Description of the bookmark&quot;)
+  private String info;
+
+  /** Whether the link should open in a new browser tab. */
+  @JsonProperty(&quot;targetBlank&quot;)
+  @JsonPropertyDescription(&quot;Open the URL in a new tab&quot;)
+  private Boolean targetBlank;
+
+  /** Sorting order for the bookmark in the UI. */
+  @JsonProperty(&quot;location&quot;)
+  @JsonPropertyDescription(&quot;Sorting order of the bookmark&quot;)
+  private int location;
+
+  /** Whether the bookmark is enabled and should be shown. */
+  @JsonProperty(&quot;enabled&quot;)
+  @JsonPropertyDescription(&quot;Enable the bookmark&quot;)
+  private Boolean enabled;
+
+  /** Root path to append to the URL. */
+  @JsonProperty(&quot;rootPath&quot;)
+  @JsonPropertyDescription(&quot;Root path to append to the URL&quot;)
+  private String rootPath;
+
+  /** Default constructor. */
+<span class="nc" id="L76">  public ApplicationSpec() {}</span>
+
+  /**
+   * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+<span class="nc" id="L100">      Boolean enabled) {</span>
+<span class="nc" id="L101">    this.name = name;</span>
+<span class="nc" id="L102">    this.group = group;</span>
+<span class="nc" id="L103">    this.icon = icon;</span>
+<span class="nc" id="L104">    this.iconColor = iconColor;</span>
+<span class="nc" id="L105">    this.url = url;</span>
+<span class="nc" id="L106">    this.info = info;</span>
+<span class="nc" id="L107">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L108">    this.location = location;</span>
+<span class="nc" id="L109">    this.enabled = enabled;</span>
+<span class="nc" id="L110">    this.rootPath = null;</span>
+<span class="nc" id="L111">  }</span>
+
+  /**
+   * Parameterized constructor to initialize all fields.
+   *
+   * @param name the application name (required)
+   * @param group the group the bookmark belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL (required)
+   * @param info description of the bookmark
+   * @param targetBlank whether to open the URL in a new tab
+   * @param location sorting order of the bookmark
+   * @param enabled whether the bookmark is enabled
+   * @param rootPath root path to append to the URL
+   */
+  public ApplicationSpec(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+<span class="nc" id="L137">      String rootPath) {</span>
+<span class="nc" id="L138">    this.name = name;</span>
+<span class="nc" id="L139">    this.group = group;</span>
+<span class="nc" id="L140">    this.icon = icon;</span>
+<span class="nc" id="L141">    this.iconColor = iconColor;</span>
+<span class="nc" id="L142">    this.url = url;</span>
+<span class="nc" id="L143">    this.info = info;</span>
+<span class="nc" id="L144">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L145">    this.location = location;</span>
+<span class="nc" id="L146">    this.enabled = enabled;</span>
+<span class="nc" id="L147">    this.rootPath = rootPath;</span>
+<span class="nc" id="L148">  }</span>
+
+  /**
+   * Gets the name of the application bookmark.
+   *
+   * @return application name
+   */
+  public String getName() {
+<span class="nc" id="L156">    return name;</span>
+  }
+
+  /**
+   * Sets the name of the application bookmark.
+   *
+   * @param name application name
+   */
+  public void setName(String name) {
+<span class="nc" id="L165">    this.name = name;</span>
+<span class="nc" id="L166">  }</span>
+
+  /**
+   * Gets the group this bookmark belongs to.
+   *
+   * @return group the bookmark belongs to
+   */
+  public String getGroup() {
+<span class="nc" id="L174">    return group;</span>
+  }
+
+  /**
+   * Sets the group this bookmark belongs to.
+   *
+   * @param group the group name
+   */
+  public void setGroup(String group) {
+<span class="nc" id="L183">    this.group = group;</span>
+<span class="nc" id="L184">  }</span>
+
+  /**
+   * Gets the icon for this bookmark.
+   *
+   * @return application icon
+   */
+  public String getIcon() {
+<span class="nc" id="L192">    return icon;</span>
+  }
+
+  /**
+   * Sets the icon for this bookmark.
+   *
+   * @param icon icon name or URL
+   */
+  public void setIcon(String icon) {
+<span class="nc" id="L201">    this.icon = icon;</span>
+<span class="nc" id="L202">  }</span>
+
+  /**
+   * Gets the color of the bookmark icon.
+   *
+   * @return icon color
+   */
+  public String getIconColor() {
+<span class="nc" id="L210">    return iconColor;</span>
+  }
+
+  /**
+   * Sets the color of the bookmark icon.
+   *
+   * @param iconColor icon color name
+   */
+  public void setIconColor(String iconColor) {
+<span class="nc" id="L219">    this.iconColor = iconColor;</span>
+<span class="nc" id="L220">  }</span>
+
+  /**
+   * Gets the URL the bookmark points to.
+   *
+   * @return application URL
+   */
+  public String getUrl() {
+<span class="nc" id="L228">    return url;</span>
+  }
+
+  /**
+   * Sets the URL the bookmark points to.
+   *
+   * @param url application URL
+   */
+  public void setUrl(String url) {
+<span class="nc" id="L237">    this.url = url;</span>
+<span class="nc" id="L238">  }</span>
+
+  /**
+   * Gets the optional info or description of the bookmark.
+   *
+   * @return additional info or description
+   */
+  public String getInfo() {
+<span class="nc" id="L246">    return info;</span>
+  }
+
+  /**
+   * Sets the optional info or description of the bookmark.
+   *
+   * @param info additional bookmark info
+   */
+  public void setInfo(String info) {
+<span class="nc" id="L255">    this.info = info;</span>
+<span class="nc" id="L256">  }</span>
+
+  /**
+   * Gets whether the URL should open in a new browser tab.
+   *
+   * @return true if the link should open in a new tab
+   */
+  public Boolean getTargetBlank() {
+<span class="nc" id="L264">    return targetBlank;</span>
+  }
+
+  /**
+   * Sets whether the URL should open in a new browser tab.
+   *
+   * @param targetBlank whether to open the URL in a new tab
+   */
+  public void setTargetBlank(Boolean targetBlank) {
+<span class="nc" id="L273">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L274">  }</span>
+
+  /**
+   * Gets the sorting order of the bookmark.
+   *
+   * @return sorting order
+   */
+  public int getLocation() {
+<span class="nc" id="L282">    return location;</span>
+  }
+
+  /**
+   * Sets the sorting order of the bookmark.
+   *
+   * @param location sorting order
+   */
+  public void setLocation(int location) {
+<span class="nc" id="L291">    this.location = location;</span>
+<span class="nc" id="L292">  }</span>
+
+  /**
+   * Gets whether the bookmark is enabled.
+   *
+   * @return true if the bookmark is enabled
+   */
+  public Boolean getEnabled() {
+<span class="nc" id="L300">    return enabled;</span>
+  }
+
+  /**
+   * Sets whether the bookmark is enabled.
+   *
+   * @param enabled whether the bookmark is enabled
+   */
+  public void setEnabled(Boolean enabled) {
+<span class="nc" id="L309">    this.enabled = enabled;</span>
+<span class="nc" id="L310">  }</span>
+
+  /**
+   * Gets the root path to append to the URL.
+   *
+   * @return root path string
+   */
+  public String getRootPath() {
+<span class="nc" id="L318">    return rootPath;</span>
+  }
+
+  /**
+   * Sets the root path to append to the URL.
+   *
+   * @param rootPath root path string
+   */
+  public void setRootPath(String rootPath) {
+<span class="nc" id="L327">    this.rootPath = rootPath;</span>
+<span class="nc" id="L328">  }</span>
+
+  /**
+   * Compares this ApplicationSpec with another for sorting by group, location, and name.
+   *
+   * @param other the other ApplicationSpec
+   * @return negative, zero, or positive integer
+   */
+  @Override
+  public int compareTo(ApplicationSpec other) {
+<span class="nc" id="L338">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="nc" id="L340">      return groupCompare;</span>
+    }
+
+<span class="nc" id="L343">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L345">      return locationCompare;</span>
+    }
+
+<span class="nc" id="L348">    return this.getName().compareTo(other.getName());</span>
+  }
+
+  /**
+   * Checks if this ApplicationSpec is equal to another object.
+   *
+   * @param o other object
+   * @return true if equal
+   */
+  @Override
+  public boolean equals(Object o) {
+<span class="nc bnc" id="L359" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L360">      return true;</span>
+    }
+<span class="nc bnc" id="L362" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L363">      return false;</span>
+    }
+
+<span class="nc" id="L366">    ApplicationSpec that = (ApplicationSpec) o;</span>
+
+<span class="nc bnc" id="L368" title="All 2 branches missed.">    if (location != that.location) {</span>
+<span class="nc" id="L369">      return false;</span>
+    }
+<span class="nc bnc" id="L371" title="All 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
+<span class="nc" id="L372">      return false;</span>
+    }
+<span class="nc bnc" id="L374" title="All 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
+<span class="nc" id="L375">      return false;</span>
+    }
+<span class="nc bnc" id="L377" title="All 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
+<span class="nc" id="L378">      return false;</span>
+    }
+<span class="nc bnc" id="L380" title="All 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
+<span class="nc" id="L381">      return false;</span>
+    }
+<span class="nc bnc" id="L383" title="All 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
+<span class="nc" id="L384">      return false;</span>
+    }
+<span class="nc bnc" id="L386" title="All 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
+<span class="nc" id="L387">      return false;</span>
+    }
+<span class="nc bnc" id="L389" title="All 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
+<span class="nc" id="L390">      return false;</span>
+    }
+<span class="nc bnc" id="L392" title="All 6 branches missed.">    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {</span>
+<span class="nc" id="L393">      return false;</span>
+    }
+<span class="nc bnc" id="L395" title="All 6 branches missed.">    if (rootPath != null ? !rootPath.equals(that.rootPath) : that.rootPath != null) {</span>
+<span class="nc" id="L396">      return false;</span>
+    }
+
+<span class="nc" id="L399">    return true;</span>
+  }
+
+  /**
+   * Computes a hash code for this ApplicationSpec.
+   *
+   * @return hash code
+   */
+  @Override
+  public int hashCode() {
+<span class="nc bnc" id="L409" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="nc" id="L416">    result = 31 * result + location;</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">    result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);</span>
+<span class="nc" id="L419">    return result;</span>
+  }
+
+  /**
+   * Returns a string representation of this ApplicationSpec.
+   *
+   * @return string with field values
+   */
+  @Override
+  public String toString() {
+<span class="nc" id="L429">    return &quot;ApplicationSpec{&quot;</span>
+        + &quot;name='&quot;
+        + name
+        + '\''
+        + &quot;, group='&quot;
+        + group
+        + '\''
+        + &quot;, icon='&quot;
+        + icon
+        + '\''
+        + &quot;, iconColor='&quot;
+        + iconColor
+        + '\''
+        + &quot;, url='&quot;
+        + url
+        + '\''
+        + &quot;, info='&quot;
+        + info
+        + '\''
+        + &quot;, targetBlank=&quot;
+        + targetBlank
+        + &quot;, location=&quot;
+        + location
+        + &quot;, enabled=&quot;
+        + enabled
+        + &quot;, rootPath='&quot;
+        + rootPath
+        + '\''
+        + '}';
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

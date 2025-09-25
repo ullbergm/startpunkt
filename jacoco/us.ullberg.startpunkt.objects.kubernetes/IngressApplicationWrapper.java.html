@@ -2,7 +2,7 @@
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
  * Wrapper class for Kubernetes Ingress resources. Allows retrieval of application specifications
@@ -40,11 +40,11 @@ public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
 
     // If onlyAnnotated is true, filter the list to include only enabled applications
 <span class="pc bpc" id="L42" title="1 of 2 branches missed.">    if (onlyAnnotated) {</span>
-<span class="nc" id="L43">      return filterEnabled(applicationSpecs);</span>
+<span class="fc" id="L43">      return filterEnabled(applicationSpecs);</span>
     }
 
     // If onlyAnnotated is false, return the full list of application specs
-<span class="fc" id="L47">    return applicationSpecs;</span>
+<span class="nc" id="L47">    return applicationSpecs;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

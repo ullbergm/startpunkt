@@ -19,7 +19,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
 import us.ullberg.startpunkt.service.BookmarkService;
@@ -39,29 +39,31 @@ public class BookmarkResource {
 <span class="fc" id="L39">  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;)</span>
   private boolean hajimariEnabled = true;
 
-  // Constructor
-<span class="fc" id="L43">  public BookmarkResource(BookmarkService bookmarkService) {</span>
-<span class="fc" id="L44">    this.bookmarkService = bookmarkService;</span>
-<span class="fc" id="L45">  }</span>
+  /**
+   * Constructs the BookmarkResource with the given BookmarkService.
+   *
+   * @param bookmarkService service to manage bookmark operations
+   */
+<span class="fc" id="L47">  public BookmarkResource(BookmarkService bookmarkService) {</span>
+<span class="fc" id="L48">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L49">  }</span>
 
-  // Method to retrieve the list of bookmarks
+  /**
+   * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
+   * alphabetically.
+   *
+   * @return sorted list of BookmarkSpec objects
+   */
   private ArrayList&lt;BookmarkSpec&gt; retrieveBookmarks() {
-    // Create a list to store bookmarks
-<span class="fc" id="L50">    var bookmarks = new ArrayList&lt;BookmarkSpec&gt;();</span>
+<span class="fc" id="L58">    var bookmarks = new ArrayList&lt;BookmarkSpec&gt;();</span>
+<span class="fc" id="L59">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
 
-    // Add bookmarks retrieved from the BookmarkService
-<span class="fc" id="L53">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
-
-    // If Hajimari bookmarks are enabled, add them to the list
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="fc" id="L57">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L62">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
     }
 
-    // Sort the list of bookmarks
-<span class="fc" id="L61">    Collections.sort(bookmarks);</span>
-
-    // Return the sorted list of bookmarks
-<span class="fc" id="L64">    return bookmarks;</span>
+<span class="fc" id="L65">    Collections.sort(bookmarks);</span>
+<span class="fc" id="L66">    return bookmarks;</span>
   }
 
   /**
@@ -83,17 +85,17 @@ public class BookmarkResource {
   @CacheResult(cacheName = &quot;getBookmarks&quot;)
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-<span class="fc" id="L86">    List&lt;BookmarkSpec&gt; bookmarklist = retrieveBookmarks();</span>
+<span class="fc" id="L88">    List&lt;BookmarkSpec&gt; bookmarklist = retrieveBookmarks();</span>
 
     // Create a list to store bookmark groups
-<span class="fc" id="L89">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarklist);</span>
+<span class="fc" id="L91">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarklist);</span>
 
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
-<span class="nc" id="L92">      return Response.status(404, &quot;No bookmarks found&quot;).build();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
+<span class="nc" id="L94">      return Response.status(404, &quot;No bookmarks found&quot;).build();</span>
     }
 
     // Return the list of bookmark groups
-<span class="fc" id="L96">    return Response.ok(new BookmarkGroupList(groups)).build();</span>
+<span class="fc" id="L98">    return Response.ok(new BookmarkGroupList(groups)).build();</span>
   }
 
   /**
@@ -109,8 +111,8 @@ public class BookmarkResource {
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L112">    Log.debug(&quot;Ping Bookmark Resource&quot;);</span>
-<span class="fc" id="L113">    return &quot;Pong from Bookmark Resource&quot;;</span>
+<span class="fc" id="L114">    Log.debug(&quot;Ping Bookmark Resource&quot;);</span>
+<span class="fc" id="L115">    return &quot;Pong from Bookmark Resource&quot;;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

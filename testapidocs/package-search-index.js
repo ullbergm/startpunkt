@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"us.ullberg.startpunkt.health"},{"l":"us.ullberg.startpunkt.objects"},{"l":"us.ullberg.startpunkt.rest"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"us.ullberg.startpunkt.crd"},{"l":"us.ullberg.startpunkt.health"},{"l":"us.ullberg.startpunkt.objects"},{"l":"us.ullberg.startpunkt.objects.kubernetes"},{"l":"us.ullberg.startpunkt.rest"}];updateSearchResults();

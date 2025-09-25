@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Application.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.crd.v1alpha3</a> &gt; <span class="el_source">Application.java</span></div><h1>Application.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.crd.v1alpha3;
+
+import io.fabric8.kubernetes.api.model.Namespaced;
+import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.model.annotation.Group;
+import io.fabric8.kubernetes.model.annotation.Plural;
+import io.fabric8.kubernetes.model.annotation.Version;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+/**
+ * Represents the CustomResource for an Application. Maps to the Kubernetes resource
+ * &quot;applications.startpunkt.ullberg.us&quot; version &quot;v1alpha3&quot;. Contains the spec and status for the
+ * Application.
+ */
+@Version(value = &quot;v1alpha3&quot;, storage = true, served = true, deprecated = false)
+@Group(&quot;startpunkt.ullberg.us&quot;)
+@Plural(&quot;applications&quot;)
+public class Application extends CustomResource&lt;ApplicationSpec, ApplicationStatus&gt;
+    implements Namespaced {
+
+  /** Creates a new Application instance with default values. */
+  public Application() {
+<span class="fc" id="L25">    super();</span>
+<span class="fc" id="L26">  }</span>
+
+  /**
+   * Constructs an Application with the specified specification fields.
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled) {
+<span class="nc" id="L51">    super();</span>
+    // Initialize the spec of the custom resource with the provided values
+<span class="nc" id="L53">    this.spec =</span>
+        new ApplicationSpec(
+            name, group, icon, iconColor, url, info, targetBlank, location, enabled);
+<span class="nc" id="L56">  }</span>
+
+  /**
+   * Constructs an Application with the specified specification fields.
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
+   * @param rootPath root path to append to the URL
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String rootPath) {
+<span class="nc" id="L83">    super();</span>
+    // Initialize the spec of the custom resource with the provided values
+<span class="nc" id="L85">    this.spec =</span>
+        new ApplicationSpec(
+            name, group, icon, iconColor, url, info, targetBlank, location, enabled, rootPath);
+<span class="nc" id="L88">  }</span>
+
+  /**
+   * Constructs an Application with the specified specification fields including tags.
+   *
+   * @param name the application name
+   * @param group the group the application belongs to
+   * @param icon the application icon
+   * @param iconColor the icon color
+   * @param url the application URL
+   * @param info additional information
+   * @param targetBlank whether to open URL in new tab
+   * @param location sorting order location
+   * @param enabled whether the application is enabled
+   * @param rootPath root path to append to the URL
+   * @param tags comma-separated tags for filtering
+   */
+  public Application(
+      String name,
+      String group,
+      String icon,
+      String iconColor,
+      String url,
+      String info,
+      Boolean targetBlank,
+      int location,
+      Boolean enabled,
+      String rootPath,
+      String tags) {
+<span class="nc" id="L117">    super();</span>
+    // Initialize the spec of the custom resource with the provided values
+<span class="nc" id="L119">    this.spec =</span>
+        new ApplicationSpec(
+            name,
+            group,
+            icon,
+            iconColor,
+            url,
+            info,
+            targetBlank,
+            location,
+            enabled,
+            rootPath,
+            tags);
+<span class="nc" id="L132">  }</span>
+
+  // Override the hashCode method to generate a hash code based on the spec and status
+  @Override
+  public int hashCode() {
+<span class="nc" id="L137">    return new HashCodeBuilder().append(getSpec()).append(getStatus()).toHashCode();</span>
+  }
+
+  // Override the equals method to compare Application objects based on their spec and status
+  @Override
+  public boolean equals(Object other) {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (other == this) {</span>
+<span class="nc" id="L144">      return true;</span>
+    }
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (!(other instanceof Application)) {</span>
+<span class="nc" id="L147">      return false;</span>
+    }
+<span class="nc" id="L149">    Application rhs = ((Application) other);</span>
+<span class="nc" id="L150">    return new EqualsBuilder()</span>
+<span class="nc" id="L151">        .append(getSpec(), rhs.getSpec())</span>
+<span class="nc" id="L152">        .append(getStatus(), rhs.getStatus())</span>
+<span class="nc" id="L153">        .isEquals();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L158">    return new ToStringBuilder(this)</span>
+<span class="nc" id="L159">        .append(&quot;spec&quot;, getSpec())</span>
+<span class="nc" id="L160">        .append(&quot;status&quot;, getStatus())</span>
+<span class="nc" id="L161">        .toString();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

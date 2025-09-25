@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkSpec.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.crd.v1alpha2</a> &gt; <span class="el_source">BookmarkSpec.java</span></div><h1>BookmarkSpec.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.crd.v1alpha2;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.generator.annotation.Required;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+/**
+ * Represents the specification of a Bookmark custom resource. Includes properties such as name,
+ * group, icon, URL, info, target behavior, and sorting location.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
+public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
+
+  /** Bookmark name (required). */
+  @JsonProperty(&quot;name&quot;)
+  @JsonPropertyDescription(&quot;Bookmark name&quot;)
+  @Required
+  public String name;
+
+  /** Group the bookmark belongs to (required). */
+  @JsonProperty(&quot;group&quot;)
+  @JsonPropertyDescription(&quot;Group the bookmark belongs to&quot;)
+  @Required
+  private String group;
+
+  /** Bookmark icon (optional), e.g. icon name or URL. */
+  @JsonProperty(&quot;icon&quot;)
+  @JsonPropertyDescription(&quot;Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'&quot;)
+  private String icon;
+
+  /** Bookmark URL (required). */
+  @JsonProperty(&quot;url&quot;)
+  @JsonPropertyDescription(&quot;Bookmark URL&quot;)
+  @Required
+  private String url;
+
+  /** Description or additional info about the bookmark (optional). */
+  @JsonProperty(&quot;info&quot;)
+  @JsonPropertyDescription(&quot;Description of the bookmark&quot;)
+  private String info;
+
+  /** Whether the URL should open in a new tab (optional). */
+  @JsonProperty(&quot;targetBlank&quot;)
+  @JsonPropertyDescription(&quot;Open the URL in a new tab&quot;)
+  private Boolean targetBlank;
+
+  /** Sorting order for bookmarks (optional). Lower numbers sort first. */
+  @JsonProperty(&quot;location&quot;)
+  @JsonPropertyDescription(&quot;Sorting order of the bookmark&quot;)
+  private int location;
+
+  /** Default no-argument constructor. */
+<span class="nc" id="L56">  public BookmarkSpec() {}</span>
+
+  /**
+   * Constructs a BookmarkSpec with all properties.
+   *
+   * @param name bookmark name
+   * @param group bookmark group
+   * @param icon bookmark icon (optional)
+   * @param url bookmark URL
+   * @param info description or info (optional)
+   * @param targetBlank whether to open in new tab (optional)
+   * @param location sorting order
+   */
+  public BookmarkSpec(
+      String name,
+      String group,
+      String icon,
+      String url,
+      String info,
+      Boolean targetBlank,
+<span class="nc" id="L76">      int location) {</span>
+<span class="nc" id="L77">    this.name = name;</span>
+<span class="nc" id="L78">    this.group = group;</span>
+<span class="nc" id="L79">    this.icon = icon;</span>
+<span class="nc" id="L80">    this.url = url;</span>
+<span class="nc" id="L81">    this.info = info;</span>
+<span class="nc" id="L82">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L83">    this.location = location;</span>
+<span class="nc" id="L84">  }</span>
+
+  /**
+   * Get the bookmark name.
+   *
+   * @return the bookmark name
+   */
+  public String getName() {
+<span class="nc" id="L92">    return name;</span>
+  }
+
+  /**
+   * Set the bookmark name.
+   *
+   * @param name the bookmark name to set
+   */
+  public void setName(String name) {
+<span class="nc" id="L101">    this.name = name;</span>
+<span class="nc" id="L102">  }</span>
+
+  /**
+   * Get the bookmark group.
+   *
+   * @return the bookmark group
+   */
+  public String getGroup() {
+<span class="nc" id="L110">    return group;</span>
+  }
+
+  /**
+   * Set the bookmark group.
+   *
+   * @param group the bookmark group to set
+   */
+  public void setGroup(String group) {
+<span class="nc" id="L119">    this.group = group;</span>
+<span class="nc" id="L120">  }</span>
+
+  /**
+   * Get the bookmark icon.
+   *
+   * @return the bookmark icon
+   */
+  public String getIcon() {
+<span class="nc" id="L128">    return icon;</span>
+  }
+
+  /**
+   * Set the bookmark icon.
+   *
+   * @param icon the bookmark icon to set
+   */
+  public void setIcon(String icon) {
+<span class="nc" id="L137">    this.icon = icon;</span>
+<span class="nc" id="L138">  }</span>
+
+  /**
+   * Get the bookmark url.
+   *
+   * @return the bookmark URL
+   */
+  public String getUrl() {
+<span class="nc" id="L146">    return url;</span>
+  }
+
+  /**
+   * Set the bookmark url.
+   *
+   * @param url the bookmark URL to set
+   */
+  public void setUrl(String url) {
+<span class="nc" id="L155">    this.url = url;</span>
+<span class="nc" id="L156">  }</span>
+
+  /**
+   * Get the bookmark info.
+   *
+   * @return the bookmark info/description
+   */
+  public String getInfo() {
+<span class="nc" id="L164">    return info;</span>
+  }
+
+  /**
+   * Set the bookmark info.
+   *
+   * @param info the bookmark info to set
+   */
+  public void setInfo(String info) {
+<span class="nc" id="L173">    this.info = info;</span>
+<span class="nc" id="L174">  }</span>
+
+  /**
+   * Get whether the url should open in a new tab.
+   *
+   * @return whether the URL should open in a new tab
+   */
+  public Boolean getTargetBlank() {
+<span class="nc" id="L182">    return targetBlank;</span>
+  }
+
+  /**
+   * Set whether the url should open in a new tab.
+   *
+   * @param targetBlank the targetBlank flag to set
+   */
+  public void setTargetBlank(Boolean targetBlank) {
+<span class="nc" id="L191">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L192">  }</span>
+
+  /**
+   * Get the sorting location.
+   *
+   * @return the sorting location of the bookmark
+   */
+  public int getLocation() {
+<span class="nc" id="L200">    return location;</span>
+  }
+
+  /**
+   * Set the sorting location.
+   *
+   * @param location the sorting location to set
+   */
+  public void setLocation(int location) {
+<span class="nc" id="L209">    this.location = location;</span>
+<span class="nc" id="L210">  }</span>
+
+  /**
+   * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
+   * then name.
+   *
+   * @param other another BookmarkSpec to compare against
+   * @return negative if this precedes other, positive if after, zero if equal
+   */
+  @Override
+  public int compareTo(BookmarkSpec other) {
+<span class="nc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="nc" id="L223">      return groupCompare;</span>
+    }
+
+<span class="nc" id="L226">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L228">      return locationCompare;</span>
+    }
+
+<span class="nc" id="L231">    return this.getName().compareTo(other.getName());</span>
+  }
+
+  @Override
+  public boolean equals(Object other) {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (this == other) {</span>
+<span class="nc" id="L237">      return true;</span>
+    }
+<span class="nc bnc" id="L239" title="All 4 branches missed.">    if (other == null || getClass() != other.getClass()) {</span>
+<span class="nc" id="L240">      return false;</span>
+    }
+<span class="nc" id="L242">    BookmarkSpec otherSpec = (BookmarkSpec) other;</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">    if (location != otherSpec.location) {</span>
+<span class="nc" id="L244">      return false;</span>
+    }
+<span class="nc bnc" id="L246" title="All 6 branches missed.">    if (name != null ? !name.equals(otherSpec.name) : otherSpec.name != null) {</span>
+<span class="nc" id="L247">      return false;</span>
+    }
+<span class="nc bnc" id="L249" title="All 6 branches missed.">    if (group != null ? !group.equals(otherSpec.group) : otherSpec.group != null) {</span>
+<span class="nc" id="L250">      return false;</span>
+    }
+<span class="nc bnc" id="L252" title="All 6 branches missed.">    if (icon != null ? !icon.equals(otherSpec.icon) : otherSpec.icon != null) {</span>
+<span class="nc" id="L253">      return false;</span>
+    }
+<span class="nc bnc" id="L255" title="All 6 branches missed.">    if (url != null ? !url.equals(otherSpec.url) : otherSpec.url != null) {</span>
+<span class="nc" id="L256">      return false;</span>
+    }
+<span class="nc bnc" id="L258" title="All 6 branches missed.">    if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {</span>
+<span class="nc" id="L259">      return false;</span>
+    }
+<span class="nc bnc" id="L261" title="All 2 branches missed.">    return targetBlank != null</span>
+<span class="nc" id="L262">        ? targetBlank.equals(otherSpec.targetBlank)</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        : otherSpec.targetBlank == null;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc bnc" id="L268" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="nc" id="L274">    result = 31 * result + location;</span>
+<span class="nc" id="L275">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L280">    return &quot;BookmarkSpec{&quot;</span>
+        + &quot;name='&quot;
+        + name
+        + '\''
+        + &quot;, group='&quot;
+        + group
+        + '\''
+        + &quot;, icon='&quot;
+        + icon
+        + '\''
+        + &quot;, url='&quot;
+        + url
+        + '\''
+        + &quot;, info='&quot;
+        + info
+        + '\''
+        + &quot;, targetBlank=&quot;
+        + targetBlank
+        + &quot;, location=&quot;
+        + location
+        + '}';
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -11,10 +11,10 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group &quot;startpunkt.ullberg.us&quot;, version
-   * &quot;v1alpha1&quot;, and plural &quot;applications&quot;.
+   * &quot;v1alpha3&quot;, and plural &quot;applications&quot;.
    */
   public StartpunktApplicationWrapper() {
-<span class="fc" id="L17">    super(&quot;startpunkt.ullberg.us&quot;, &quot;v1alpha1&quot;, &quot;applications&quot;);</span>
+<span class="fc" id="L17">    super(&quot;startpunkt.ullberg.us&quot;, &quot;v1alpha3&quot;, &quot;applications&quot;);</span>
 <span class="fc" id="L18">  }</span>
 
   /**
@@ -41,14 +41,34 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the application icon from the resource spec. Returns base class icon if not present.
+   * Retrieves the application rootPath from the resource spec. Returns base class rootPath if not
+   * present.
    *
    * @param item Kubernetes resource
-   * @return icon string or fallback value
+   * @return application rootPath
+   */
+  @Override
+  protected String getAppRootPath(GenericKubernetesResource item) {
+<span class="fc" id="L52">    return getOptionalSpecString(item, &quot;rootPath&quot;, super.getAppRootPath(item));</span>
+  }
+
+  /**
+   * Retrieves the application URL from the resource spec with rootPath appended if specified.
+   *
+   * @param item Kubernetes resource
+   * @return URL string with rootPath appended if specified
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L51">    return getSpec(item).get(&quot;url&quot;).toString();</span>
+<span class="fc" id="L63">    String baseUrl = getSpec(item).get(&quot;url&quot;).toString();</span>
+<span class="fc" id="L64">    String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>
+
+<span class="pc bpc" id="L66" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.trim().isEmpty()) {</span>
+<span class="nc" id="L67">      return appendRootPath(baseUrl, rootPath);</span>
+    }
+
+    // Fall back to annotation-based rootPath for backward compatibility
+<span class="fc" id="L71">    return appendRootPath(baseUrl, item);</span>
   }
 
   /**
@@ -60,14 +80,14 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="fc" id="L63">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+<span class="fc" id="L83">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
   }
 
   // Override getAppIconColor since the spec has an optional property called iconColor
   // If the iconColor is not set, return the super.getAppIconColor response
   @Override
   protected String getAppIconColor(GenericKubernetesResource item) {
-<span class="fc" id="L70">    return getOptionalSpecString(item, &quot;iconColor&quot;, super.getAppIconColor(item));</span>
+<span class="fc" id="L90">    return getOptionalSpecString(item, &quot;iconColor&quot;, super.getAppIconColor(item));</span>
   }
 
   /**
@@ -79,7 +99,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="fc" id="L82">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+<span class="fc" id="L102">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
   }
 
   /**
@@ -91,7 +111,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="fc" id="L94">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+<span class="fc" id="L114">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
   }
 
   /**
@@ -103,8 +123,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="fc" id="L106">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
+<span class="fc" id="L126">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
   }
 
   /**
@@ -115,7 +135,18 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="fc" id="L118">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+<span class="fc" id="L138">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+  }
+
+  /**
+   * Retrieves the tags from the resource spec. Returns base class tags if not present.
+   *
+   * @param item Kubernetes resource
+   * @return comma-separated tags string
+   */
+  @Override
+  protected String getAppTags(GenericKubernetesResource item) {
+<span class="fc" id="L149">    return getOptionalSpecString(item, &quot;tags&quot;, super.getAppTags(item));</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

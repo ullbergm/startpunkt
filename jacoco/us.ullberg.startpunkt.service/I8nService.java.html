@@ -13,11 +13,16 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  * languages.
  */
 @ApplicationScoped
-<span class="fc" id="L16">public class I8nService {</span>
+public class I8nService {
 
   /** Default language to use when no valid or matching translation is found. */
   @ConfigProperty(name = &quot;startpunkt.defaultLanguage&quot;, defaultValue = &quot;en-US&quot;)
   private String defaultLanguage;
+
+  /** Default constructor. */
+<span class="fc" id="L23">  public I8nService() {</span>
+    // No special initialization needed
+<span class="fc" id="L25">  }</span>
 
   /**
    * Retrieves the translation JSON content for the given language. Falls back to the default
@@ -32,24 +37,24 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
     InputStream translation;
 
     // Check language format
-<span class="fc bfc" id="L35" title="All 2 branches covered.">    if (language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) {</span>
-<span class="fc" id="L36">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + language + &quot;.json&quot;);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">    if (language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) {</span>
+<span class="fc" id="L41">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + language + &quot;.json&quot;);</span>
     } else {
-<span class="fc" id="L38">      Log.warn(&quot;Invalid language format, falling back to US English&quot;);</span>
-<span class="fc" id="L39">      translation = getClass().getResourceAsStream(&quot;/i8n/en-US.json&quot;);</span>
+<span class="fc" id="L43">      Log.warn(&quot;Invalid language format, falling back to US English&quot;);</span>
+<span class="fc" id="L44">      translation = getClass().getResourceAsStream(&quot;/i8n/en-US.json&quot;);</span>
     }
 
     // Fallback to configured default language if translation is not found
-<span class="fc bfc" id="L43" title="All 2 branches covered.">    if (translation == null) {</span>
-<span class="fc" id="L44">      Log.info(</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">    if (translation == null) {</span>
+<span class="fc" id="L49">      Log.info(</span>
           &quot;No translation found for language: &quot;
               + language
               + &quot;, falling back to default language: &quot;
               + defaultLanguage);
-<span class="fc" id="L49">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + defaultLanguage + &quot;.json&quot;);</span>
+<span class="fc" id="L54">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + defaultLanguage + &quot;.json&quot;);</span>
     }
 
-<span class="fc" id="L52">    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
+<span class="fc" id="L57">    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

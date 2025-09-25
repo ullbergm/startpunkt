@@ -21,7 +21,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path(&quot;/api/theme&quot;)
 @Tag(name = &quot;theme&quot;)
 @Produces(MediaType.APPLICATION_JSON)
-<span class="fc" id="L24">public class ThemeResource {</span>
+public class ThemeResource {
 
   /** Background color for light theme body. */
   @ConfigProperty(name = &quot;startpunkt.web.theme.light.bodyBgColor&quot;, defaultValue = &quot;#F8F6F1&quot;)
@@ -63,6 +63,11 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
   @ConfigProperty(name = &quot;startpunkt.web.theme.dark.textAccentColor&quot;, defaultValue = &quot;#AA9A73&quot;)
   public String darkThemeTextAccent;
 
+  /** Default constructor. */
+<span class="fc" id="L67">  public ThemeResource() {</span>
+    // No special initialization needed
+<span class="fc" id="L69">  }</span>
+
   /**
    * Returns the complete theme configuration including light and dark themes.
    *
@@ -78,7 +83,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
               mediaType = MediaType.APPLICATION_JSON,
               schema = @Schema(implementation = Theme.class, required = true)))
   public Response getTheme() {
-<span class="fc" id="L81">    return Response.ok(generateTheme()).build();</span>
+<span class="fc" id="L86">    return Response.ok(generateTheme()).build();</span>
   }
 
   /**
@@ -87,7 +92,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
    * @return a Theme object representing light and dark mode configurations
    */
   private Theme generateTheme() {
-<span class="fc" id="L90">    ThemeColors light =</span>
+<span class="fc" id="L95">    ThemeColors light =</span>
         new ThemeColors(
             lightThemeBodyBg,
             lightThemeBodyColor,
@@ -95,7 +100,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
             lightThemeTextPrimary,
             lightThemeTextAccent);
 
-<span class="fc" id="L98">    ThemeColors dark =</span>
+<span class="fc" id="L103">    ThemeColors dark =</span>
         new ThemeColors(
             darkThemeBodyBg,
             darkThemeBodyColor,
@@ -103,7 +108,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
             darkThemeTextPrimary,
             darkThemeTextAccent);
 
-<span class="fc" id="L106">    return new Theme(light, dark);</span>
+<span class="fc" id="L111">    return new Theme(light, dark);</span>
   }
 
   /**
@@ -119,8 +124,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L122">    Log.debug(&quot;Ping Theme Resource&quot;);</span>
-<span class="fc" id="L123">    return &quot;Pong from Theme Resource&quot;;</span>
+<span class="fc" id="L127">    Log.debug(&quot;Ping Theme Resource&quot;);</span>
+<span class="fc" id="L128">    return &quot;Pong from Theme Resource&quot;;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

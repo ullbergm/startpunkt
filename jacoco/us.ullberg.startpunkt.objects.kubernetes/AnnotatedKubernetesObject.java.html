@@ -2,7 +2,7 @@
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
  * Abstract base class for Kubernetes objects that extract application properties from annotations.
@@ -79,10 +79,10 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
     };
 <span class="nc bnc" id="L80" title="All 2 branches missed.">    for (String key : annotationKeys) {</span>
 <span class="nc bnc" id="L81" title="All 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L82">        return annotations.get(key).toLowerCase();</span>
+<span class="nc" id="L82">        return appendRootPath(annotations.get(key).toLowerCase(), item);</span>
       }
     }
-<span class="nc" id="L85">    return super.getAppUrl(item);</span>
+<span class="nc" id="L85">    return appendRootPath(super.getAppUrl(item), item);</span>
   }
 
   /**
@@ -230,13 +230,28 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
+   * Retrieves the application tags from resource annotations.
+   *
+   * @param item Kubernetes resource
+   * @return comma-separated tags string or null if not set
+   */
+  protected String getAppTags(GenericKubernetesResource item) {
+<span class="nc" id="L239">    var annotations = getAnnotations(item);</span>
+
+<span class="nc bnc" id="L241" title="All 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="nc" id="L242">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+    }
+<span class="nc" id="L244">    return null;</span>
+  }
+
+  /**
    * Filters a list of ApplicationSpec to include only those that are enabled.
    *
    * @param specs list of ApplicationSpec objects
    * @return filtered list containing only enabled applications
    */
   protected List&lt;ApplicationSpec&gt; filterEnabled(List&lt;ApplicationSpec&gt; specs) {
-<span class="nc" id="L239">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="pc" id="L254">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

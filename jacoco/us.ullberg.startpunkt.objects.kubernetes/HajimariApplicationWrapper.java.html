@@ -46,7 +46,8 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="nc" id="L49">    return getSpec(item).get(&quot;url&quot;).toString();</span>
+<span class="nc" id="L49">    String baseUrl = getSpec(item).get(&quot;url&quot;).toString();</span>
+<span class="nc" id="L50">    return appendRootPath(baseUrl, item);</span>
   }
 
   /**
@@ -58,7 +59,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="nc" id="L61">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+<span class="nc" id="L62">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
   }
 
   /**
@@ -70,7 +71,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="nc" id="L73">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+<span class="nc" id="L74">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
   }
 
   /**
@@ -82,7 +83,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="nc" id="L85">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+<span class="nc" id="L86">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
   }
 
   /**
@@ -94,7 +95,7 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="nc" id="L97">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+<span class="nc" id="L98">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
   }
 
   /**
@@ -106,8 +107,8 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="nc" id="L109">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">    return location == 0 ? 1000 : location;</span>
+<span class="nc" id="L110">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    return location == 0 ? 1000 : location;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

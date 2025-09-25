@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
  * Wrapper for Istio VirtualService custom resources to extract application info. Supports filtering
@@ -49,8 +49,9 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
 <span class="nc" id="L49">      hosts.add(&quot;localhost&quot;);</span>
     }
 
-    // Construct and return the full URL
-<span class="nc" id="L53">    return protocol + &quot;://&quot; + hosts.get(0);</span>
+    // Construct the base URL and append rootPath if present
+<span class="nc" id="L53">    String baseUrl = protocol + &quot;://&quot; + hosts.get(0);</span>
+<span class="nc" id="L54">    return appendRootPath(baseUrl, item);</span>
   }
 
   // Override method to get a list of ApplicationSpec objects
@@ -58,11 +59,11 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   public List&lt;ApplicationSpec&gt; getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
     // Get the application specs from the parent class
-<span class="fc" id="L61">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+<span class="fc" id="L62">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
 
     // If onlyAnnotated is true, filter the list to include only enabled
     // applications
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
