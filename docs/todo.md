@@ -20,8 +20,7 @@
 
 ## Frontend & Tooling TODOs
 
-- [ ] **Choose one package manager + lockfile** (High)  
-  webui ships both package-lock.json and `pnpm-lock.yaml`, while Quarkus Quinoa is forced to `npm`. Delete the unused lockfile, align scripts, and document the canonical choice.
+- [x] **Choose one package manager + lockfile** (High)  
 
 - [ ] **Resolve Node/NPM version drift** (High)  
   Quinoa pins Node 20.11.1 (application.properties) but the `frontend-maven-plugin` installs Node 24.2.0 directly into node. Use a single version across both tools and relocate the install directory to `target/frontend` (or rely solely on Quinoa) so binaries don’t clutter the source tree.

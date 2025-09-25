@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.LinkedList;
 import java.util.List;
