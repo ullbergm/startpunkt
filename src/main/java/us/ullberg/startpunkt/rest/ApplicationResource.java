@@ -1,7 +1,6 @@
 package us.ullberg.startpunkt.rest;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
@@ -78,11 +77,24 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";
 
+  // Inject the managed Kubernetes client
+  private final KubernetesClient kubernetesClient;
+
   /**
    * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
    */
   public ApplicationResource() {
     super();
+    this.kubernetesClient = null;
+  }
+
+  /**
+   * Creates an ApplicationResource with the injected Kubernetes client.
+   *
+   * @param kubernetesClient the managed Kubernetes client
+   */
+  public ApplicationResource(KubernetesClient kubernetesClient) {
+    this.kubernetesClient = kubernetesClient;
   }
 
   // Method to retrieve the list of applications
@@ -117,10 +129,9 @@ public class ApplicationResource {
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
-    // Retrieve the applications from the application wrappers
-    final KubernetesClient client = new KubernetesClientBuilder().build();
+    // Retrieve the applications from the application wrappers using the injected client
     for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
+      apps.addAll(applicationWrapper.getApplicationSpecs(kubernetesClient, anyNamespace, matchNames));
     }
 
     // Sort the list of applications

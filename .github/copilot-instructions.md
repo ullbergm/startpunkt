@@ -1,0 +1,22 @@
+# Copilot Guide for Startpunkt
+- Startpunkt is a Quarkus 3 service that aggregates Kubernetes resources into a Preact SPA; backend sources live in `src/main/java/us/ullberg/startpunkt`.
+- REST resources in `rest/` expose grouped data (`ApplicationResource`, `BookmarkResource`, `ConfigResource`, `I8nResource`, `ThemeResource`) and always return wrappers from `objects/`.
+- `ApplicationResource` builds a sorted `ApplicationSpec` list through wrapper classes in `objects/kubernetes`; respect the feature toggles from `application.yaml` and keep `Collections.sort(apps)` before grouping so UI ordering stays deterministic.
+- Wrappers extend `BaseKubernetesObject`, read Fabric8 generic resources, and enrich URLs with annotations like `startpunkt.ullberg.us/rootPath` and `startpunkt.ullberg.us/tags`; preserve the tag filtering rules implemented in `filterApplicationsByTags` and `filterApplicationsWithoutTags`.
+- Bookmarks flow through `BookmarkService` and `BookmarkGroupList`; group names are lowercased and location `0` is normalized to `1000` for Hajimari compatibility.
+- CRD Java models under `crd/v1alpha3` are consumed by both the API and Fabric8 mocks; add new fields with generator annotations rather than editing generated YAML, and keep older versions intact for compatibility.
+- Translations reside in `src/main/resources/i8n/*.json`; `I8nService` validates language format and falls back to `startpunkt.defaultLanguage`.
+- Theme endpoints build responses from `Theme`/`ThemeColors`; always provide both `light` and `dark` palettes because the SPA expects them.
+- Front-end code is in `src/main/webui`; `main.jsx` bootstraps Preact components that consume the REST JSON (`groups[].applications[]`, `bookmarks[].links[]`). Component tests live alongside sources with `.test.jsx` using Testing Library + Jest.
+- Vite configuration (`vite.config.js`) is tuned for Quarkus Quinoa; let Quarkus own the build output in `target/quinoa` and avoid custom dist paths.
+- Quinoa install settings are managed via `application.properties`; keep node/npm versions aligned with `frontend-maven-plugin` if you update tooling.
+- Metrics and caching rely on `@Timed` and `@CacheResult`; additions that mutate data must add explicit cache invalidation annotations to avoid stale responses.
+- Full backend + frontend verification runs with `./mvnw verify`, which triggers Jest through the `frontend-maven-plugin`; expect Checkstyle, Spotless, Enforcer, dependency analysis, and Quarkus tests in that command.
+- Use `./mvnw quarkus:dev` for hot reload across Java and the SPA (Quinoa proxies Vite); front-end only tasks can use `npm run dev` inside `src/main/webui`.
+- Kubernetes-facing tests rely on `@WithKubernetesTestServer`; always register CRDs before seeding resources (see `ApplicationResourceTest#before`) and interact through Fabric8 `resource()` helpers instead of raw HTTP.
+- REST tests use RestAssured; keep response shapes stable and update the accompanying `.test.jsx` files if the JSON contract changes.
+- Tag filtering behaviour is documented in `docs/object-tag-filtering.md`; untagged apps must remain visible by default and whenever tags are supplied.
+- Configuration defaults live in `application.yaml`; any new `@ConfigProperty` entry must be mirrored there and, if exposed to the UI, surfaced via `ConfigResource`.
+- Generated artefacts under `target/`, `src/main/webui/node/`, and `src/main/webui/node_modules/` should never be committed.
+- Renovate manages dependency bumps; when adding libraries, pin versions explicitly in `pom.xml` or the web UI `package.json` and run the full verify task.
+- Tests are split between fast unit tests (`*Test.java`, `.test.jsx`) and Quarkus native/IT (`*IT.java`); keep new coverage consistent with this naming so Surefire/Failsafe execute them correctly.

@@ -14,7 +14,9 @@ class PingApplicationResourceHealthCheckTest {
 
   @BeforeEach
   void setUp() {
-    applicationResource = new ApplicationResource();
+    // For ping test, we don't need a real client, so we can pass null
+    // The ping method doesn't use the KubernetesClient
+    applicationResource = new ApplicationResource(null);
     healthCheck = new PingApplicationResourceHealthCheck(applicationResource);
   }
 

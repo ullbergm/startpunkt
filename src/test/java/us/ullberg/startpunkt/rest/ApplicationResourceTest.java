@@ -215,7 +215,7 @@ class ApplicationResourceTest {
         .get("/api/apps/ping")
         .then()
         .statusCode(200)
-        .body(equalTo(new ApplicationResource().ping()));
+        .body(equalTo(new ApplicationResource(null).ping()));
   }
 
   // ---- Tag Filtering Tests ----
