@@ -81,14 +81,6 @@ public class ApplicationResource {
   private final KubernetesClient kubernetesClient;
 
   /**
-   * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
-   */
-  public ApplicationResource() {
-    super();
-    this.kubernetesClient = null;
-  }
-
-  /**
    * Creates an ApplicationResource with the injected Kubernetes client.
    *
    * @param kubernetesClient the managed Kubernetes client
@@ -99,6 +91,12 @@ public class ApplicationResource {
 
   // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
+    // Check if the client is available
+    if (kubernetesClient == null) {
+      Log.warn("KubernetesClient is null, returning empty application list");
+      return new ArrayList<>();
+    }
+
     // Create a list of application wrappers to retrieve applications from
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
     applicationWrappers.add(new StartpunktApplicationWrapper());
@@ -129,9 +127,16 @@ public class ApplicationResource {
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
-    // Retrieve the applications from the application wrappers using the injected client
-    for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-      apps.addAll(applicationWrapper.getApplicationSpecs(kubernetesClient, anyNamespace, matchNames));
+    try {
+      // Retrieve the applications from the application wrappers using the injected client
+      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+        apps.addAll(
+            applicationWrapper.getApplicationSpecs(kubernetesClient, anyNamespace, matchNames));
+      }
+    } catch (Exception e) {
+      Log.error("Error retrieving applications from Kubernetes", e);
+      // Return empty list on error to avoid 500s
+      return new ArrayList<>();
     }
 
     // Sort the list of applications
@@ -190,7 +195,9 @@ public class ApplicationResource {
               mediaType = MediaType.APPLICATION_JSON,
               schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
   @APIResponse(responseCode = "404", description = "No applications found")
-  @Timed(value = "startpunkt.api.getapps.filtered", description = "Get the list of applications filtered by tags")
+  @Timed(
+      value = "startpunkt.api.getapps.filtered",
+      description = "Get the list of applications filtered by tags")
   @CacheResult(cacheName = "getAppsFiltered")
   public Response getAppsFiltered(@PathParam("tags") String tags) {
     return getAppsWithTags(tags);
