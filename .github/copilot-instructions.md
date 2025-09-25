@@ -17,6 +17,6 @@
 - REST tests use RestAssured; keep response shapes stable and update the accompanying `.test.jsx` files if the JSON contract changes.
 - Tag filtering behaviour is documented in `docs/object-tag-filtering.md`; untagged apps must remain visible by default and whenever tags are supplied.
 - Configuration defaults live in `application.yaml`; any new `@ConfigProperty` entry must be mirrored there and, if exposed to the UI, surfaced via `ConfigResource`.
-- Generated artefacts under `target/`, `src/main/webui/node/`, and `src/main/webui/node_modules/` should never be committed.
+- Generated artefacts under `target/` and `src/main/webui/node_modules/` should never be committed.
 - Renovate manages dependency bumps; when adding libraries, pin versions explicitly in `pom.xml` or the web UI `package.json` and run the full verify task.
 - Tests are split between fast unit tests (`*Test.java`, `.test.jsx`) and Quarkus native/IT (`*IT.java`); keep new coverage consistent with this naming so Surefire/Failsafe execute them correctly.

@@ -1,6 +1,7 @@
 # TODO
 
-## Backend TODOs
+## Backend TOD- [x] **Resolve Node/NPM version drift** (High)  
+  Quinoa pins Node 20.11.1 (application.properties) but the `frontend-maven-plugin` installs Node 24.2.0 directly into node. Use a single version across both tools and relocate the install directory to `target/frontend` (or rely solely on Quinoa) so binaries don't clutter the source tree.
 
 - [x] **Inject and reuse the `KubernetesClient` instead of instantiating per request** (High)
 
@@ -22,8 +23,7 @@
 
 - [x] **Choose one package manager + lockfile** (High)  
 
-- [ ] **Resolve Node/NPM version drift** (High)  
-  Quinoa pins Node 20.11.1 (application.properties) but the `frontend-maven-plugin` installs Node 24.2.0 directly into node. Use a single version across both tools and relocate the install directory to `target/frontend` (or rely solely on Quinoa) so binaries don’t clutter the source tree.
+- [x] **Resolve Node/NPM version drift** (High)
 
 - [ ] **Add lint/type-check coverage for the webui** (Medium)  
   The package.json only runs Jest. Introduce `eslint` (or `biome`) and optionally `tsc --noEmit` if you add TypeScript, wiring them into CI to catch regressions early.
