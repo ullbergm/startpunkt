@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -71,8 +72,8 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
 
-  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
-  private List<String> matchNames;
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
+  private Optional<List<String>> matchNames;
 
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";
@@ -131,7 +132,8 @@ public class ApplicationResource {
       // Retrieve the applications from the application wrappers using the injected client
       for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
         apps.addAll(
-            applicationWrapper.getApplicationSpecs(kubernetesClient, anyNamespace, matchNames));
+            applicationWrapper.getApplicationSpecs(
+                kubernetesClient, anyNamespace, matchNames.orElse(List.of())));
       }
     } catch (Exception e) {
       Log.error("Error retrieving applications from Kubernetes", e);

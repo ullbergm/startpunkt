@@ -2,11 +2,9 @@
 
 ## Backend TODOs
 
-- [x] **Inject and reuse the `KubernetesClient` instead of instantiating per request** (High)  
-  **COMPLETED**: Updated `ApplicationResource` to inject the managed `KubernetesClient` via constructor injection instead of creating a new instance on each request, eliminating potential resource leaks.
+- [x] **Inject and reuse the `KubernetesClient` instead of instantiating per request** (High)
 
-- [ ] **Handle namespace selector config safely** (High)  
-  `@ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")` injects into `List<String>` / `String[]`. With Quarkus this becomes a single literal `"[]"`, so calling `.list()` sends `["[]"]` downstream. Switch to `Optional<List<String>>`, use an empty list as default, and guard consumers against `null`.
+- [x] **Handle namespace selector config safely** (High)
 
 - [ ] **Improve error handling around Kubernetes lookups** (Medium)  
   `ApplicationResource.retrieveApps()` and `BookmarkService.retrieveBookmarks()` surface raw exceptions, returning 500s without context. Catch `KubernetesClientException`, log with namespace/scope details, and downgrade to empty results where it makes sense.
