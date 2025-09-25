@@ -3,3 +3,4 @@ us.ullberg.startpunkt.health
 us.ullberg.startpunkt.objects
 us.ullberg.startpunkt.objects.kubernetes
 us.ullberg.startpunkt.rest
+us.ullberg.startpunkt.service
