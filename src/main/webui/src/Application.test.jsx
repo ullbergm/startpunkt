@@ -76,4 +76,95 @@ describe('Application component', () => {
     expect(container.querySelector('span[data-testid="iconify-icon"]')).not.toBeInTheDocument();
     expect(container.querySelector('img')).not.toBeInTheDocument();
   });
+
+  test('handles missing required props gracefully', () => {
+    const minimalApp = {
+      name: 'Minimal App',
+      url: 'https://minimal.com',
+    };
+    render(<Application app={minimalApp} />);
+    expect(screen.getByText(minimalApp.name)).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: minimalApp.name });
+    expect(link).toHaveAttribute('href', minimalApp.url);
+  });
+
+  test('handles undefined app prop', () => {
+    expect(() => {
+      render(<Application app={undefined} />);
+    }).toThrow();
+  });
+
+  test('handles null app prop', () => {
+    expect(() => {
+      render(<Application app={null} />);
+    }).toThrow();
+  });
+
+  test('applies icon color when provided', async () => {
+    render(<Application app={defaultApp} />);
+    const icon = await screen.findByTestId('iconify-icon');
+    expect(icon.style.color).toBe(defaultApp.iconColor);
+  });
+
+  test('renders without info text when not provided', () => {
+    const appNoInfo = {
+      ...defaultApp,
+      info: undefined,
+    };
+    render(<Application app={appNoInfo} />);
+    expect(screen.getByText(appNoInfo.name)).toBeInTheDocument();
+    expect(screen.queryByText('Some info text')).not.toBeInTheDocument();
+  });
+
+  test('handles special characters in app name', () => {
+    const appSpecialChars = {
+      ...defaultApp,
+      name: 'App with "quotes" & <tags>',
+    };
+    render(<Application app={appSpecialChars} />);
+    expect(screen.getByText(appSpecialChars.name)).toBeInTheDocument();
+  });
+
+  test('handles empty string values', () => {
+    const appEmptyStrings = {
+      ...defaultApp,
+      name: '',
+      info: '',
+      url: 'https://empty.com',
+    };
+    render(<Application app={appEmptyStrings} />);
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', appEmptyStrings.url);
+  });
+
+  test('handles very long app names', () => {
+    const longName = 'A'.repeat(100);
+    const appLongName = {
+      ...defaultApp,
+      name: longName,
+    };
+    render(<Application app={appLongName} />);
+    expect(screen.getByText(longName)).toBeInTheDocument();
+  });
+
+  test('handles invalid URL icons gracefully', () => {
+    const appInvalidIcon = {
+      ...defaultApp,
+      icon: 'not-a-valid-url-or-icon',
+    };
+    render(<Application app={appInvalidIcon} />);
+    // Should still render the app name
+    expect(screen.getByText(appInvalidIcon.name)).toBeInTheDocument();
+  });
+
+  test('renders with data URL icon', () => {
+    const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    const appDataIcon = {
+      ...defaultApp,
+      icon: dataUrl,
+    };
+    render(<Application app={appDataIcon} />);
+    // Just verify the component renders without crashing
+    expect(screen.getByText(appDataIcon.name)).toBeInTheDocument();
+  });
 });

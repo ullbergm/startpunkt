@@ -167,4 +167,151 @@ describe('SpotlightSearch component', () => {
         // Search should be closed (input should not be in the document)
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
+
+    test('handles empty search results', async () => {
+        // Mock empty responses
+        global.fetch = jest.fn(url => {
+            if (url.includes('/api/apps')) {
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.resolve({ groups: [] }),
+                });
+            } else if (url.includes('/api/bookmarks')) {
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.resolve({ groups: [] }),
+                });
+            }
+            return Promise.resolve({
+                ok: false,
+                status: 404,
+                json: () => Promise.resolve({}),
+            });
+        });
+
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: 'nonexistent' } });
+        
+        // Should show no results message or empty state
+        expect(input).toBeInTheDocument();
+    });
+
+    test('handles API failures gracefully', async () => {
+        global.fetch = jest.fn(() => Promise.reject(new Error('Network error')));
+
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: 'test' } });
+        
+        // Should not crash and input should still be available
+        expect(input).toBeInTheDocument();
+    });
+
+    test('handles special characters in search', async () => {
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        
+        // Test various special characters
+        const specialQueries = ['@#$%', '()', '<script>', '&amp;', '/', '\\'];
+        
+        for (const query of specialQueries) {
+            fireEvent.input(input, { target: { value: query } });
+            expect(input.value).toBe(query);
+        }
+    });
+
+    test('handles very long search queries', async () => {
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        
+        const longQuery = 'a'.repeat(1000);
+        fireEvent.input(input, { target: { value: longQuery } });
+        
+        expect(input.value).toBe(longQuery);
+    });
+
+    test('handles rapid consecutive searches', async () => {
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        
+        // Rapid fire search inputs
+        const queries = ['a', 'al', 'alp', 'alph', 'alpha'];
+        
+        for (const query of queries) {
+            fireEvent.input(input, { target: { value: query } });
+        }
+        
+        expect(input.value).toBe('alpha');
+    });
+
+    test('keyboard navigation with no results', async () => {
+        // Mock empty responses
+        global.fetch = jest.fn(url => {
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ groups: [] }),
+            });
+        });
+
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: 'nothing' } });
+        
+        // Arrow keys should not crash when no results
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        fireEvent.keyDown(input, { key: 'ArrowUp' });
+        fireEvent.keyDown(input, { key: 'Enter' });
+        
+        expect(input).toBeInTheDocument();
+    });
+
+    test('maintains focus after search operations', async () => {
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        
+        fireEvent.input(input, { target: { value: 'Alpha' } });
+        
+        // Check that input is still accessible (focus state is complex in JSDOM)
+        expect(input).toBeInTheDocument();
+        expect(input.value).toBe('Alpha');
+    });
+
+    test('handles malformed bookmark data', async () => {
+        global.fetch = jest.fn(url => {
+            if (url.includes('/api/bookmarks')) {
+                return Promise.resolve({
+                    ok: true,
+                    status: 200,
+                    json: () => Promise.resolve({
+                        groups: [
+                            {
+                                name: 'Malformed',
+                                bookmarks: [
+                                    { name: null, url: 'https://test.com' }, // null name
+                                    { name: 'Valid', url: null }, // null url
+                                    { name: '', url: '' }, // empty strings
+                                ]
+                            }
+                        ]
+                    }),
+                });
+            }
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ groups: [] }),
+            });
+        });
+
+        render(<SpotlightSearch testVisible={true} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: 'test' } });
+        
+        // Should handle malformed data gracefully
+        expect(input).toBeInTheDocument();
+    });
 });

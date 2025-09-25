@@ -1,7 +1,8 @@
 # TODO
 
-## Backend TOD- [x] **Resolve Node/NPM version drift** (High)  
-  Quinoa pins Node 20.11.1 (application.properties) but the `frontend-maven-plugin` installs Node 24.2.0 directly into node. Use a single version across both tools and relocate the install directory to `target/frontend` (or rely solely on Quinoa) so binaries don't clutter the source tree.
+## Backend TODO
+
+- [x] **Resolve Node/NPM version drift** (High)  
 
 - [x] **Inject and reuse the `KubernetesClient` instead of instantiating per request** (High)
 
@@ -12,9 +13,6 @@
 
 - [ ] **Close/i18n InputStreams and harden fallbacks** (Medium)  
   `I8nService.getTranslation()` reads from `translation.readAllBytes()` without closing the stream and can still dereference `null` if neither the requested nor default bundle exists. Use try-with-resources and convert the “last resort” into a clear `IOException`.
-
-- [ ] **Trim dead helper methods in `BookmarkService` and consolidate mapping logic** (Low)  
-  Methods like `getUrl`, `getIcon`, etc., are unused; folding the repeated spec-extraction logic into small reusable helpers keeps the class focused and appeases static analysis.
 
 - [ ] **Tighten field visibility on REST resources** (Low)  
   `ConfigResource` and `ThemeResource` expose `public` fields for injected config. Make them `private` and add getters or constructor injection to reduce accidental mutation in tests.

@@ -48,8 +48,57 @@ describe('URL Tag Parsing', () => {
     expect(testGetTagsFromUrl('/v1,v2,beta')).toBe('v1,v2,beta');
   });
 
-  it('returns just the tag without slash prefix', () => {
-    expect(testGetTagsFromUrl('/test-tag')).toBe('test-tag');
+  it('handles tags with hyphens', () => {
+    expect(testGetTagsFromUrl('/front-end,back-end,full-stack')).toBe('front-end,back-end,full-stack');
+  });
+
+  it('handles tags with underscores', () => {
+    expect(testGetTagsFromUrl('/web_app,mobile_app')).toBe('web_app,mobile_app');
+  });
+
+  it('handles mixed case tags', () => {
+    expect(testGetTagsFromUrl('/Admin,DEV,Prod')).toBe('Admin,DEV,Prod');
+  });
+
+  it('handles special characters in tags', () => {
+    expect(testGetTagsFromUrl('/tag@1,tag#2')).toBe('tag@1,tag#2');
+  });
+
+  it('handles URL encoded characters', () => {
+    expect(testGetTagsFromUrl('/tag%20with%20space,another')).toBe('tag%20with%20space,another');
+  });
+
+  it('handles very long tag strings', () => {
+    const longTag = 'a'.repeat(100);
+    expect(testGetTagsFromUrl(`/${longTag}`)).toBe(longTag);
+  });
+
+  it('handles empty tags in comma list', () => {
+    expect(testGetTagsFromUrl('/admin,,prod')).toBe('admin,,prod');
+  });
+
+  it('handles spaces around commas', () => {
+    expect(testGetTagsFromUrl('/admin, dev , prod')).toBe('admin, dev , prod');
+  });
+
+  it('handles multiple consecutive slashes', () => {
+    expect(testGetTagsFromUrl('//admin//dev//')).toBe('/admin//dev/');
+  });
+
+  it('handles paths without leading slash', () => {
+    expect(testGetTagsFromUrl('admin,dev')).toBe('admin,dev');
+  });
+
+  it('handles only slashes', () => {
+    expect(testGetTagsFromUrl('///')).toBe('/');
+  });
+
+  it('handles unicode characters', () => {
+    expect(testGetTagsFromUrl('/タグ,tag')).toBe('タグ,tag');
+  });
+
+  it('handles emoji in tags', () => {
+    expect(testGetTagsFromUrl('/🏠,🔧,🎨')).toBe('🏠,🔧,🎨');
   });
 });
 
