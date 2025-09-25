@@ -82,4 +82,33 @@ describe('Bookmark component', () => {
         expect(screen.getByText(baseBookmark.name)).toBeInTheDocument();
         expect(screen.getByText(baseBookmark.info)).toBeInTheDocument();
     });
+
+    test('handles special characters in name and info', () => {
+        const specialBookmark = {
+            ...baseBookmark,
+            name: 'Special <>&" Chars',
+            info: 'Info with émojis 🚀 and symbols!',
+        };
+        render(<Bookmark bookmark={specialBookmark} />);
+        expect(screen.getByText(specialBookmark.name)).toBeInTheDocument();
+        expect(screen.getByText(specialBookmark.info)).toBeInTheDocument();
+    });
+
+    test('handles empty info text', () => {
+        const bookmarkNoInfo = {
+            ...baseBookmark,
+            info: '',
+        };
+        render(<Bookmark bookmark={bookmarkNoInfo} />);
+        expect(screen.getByText(baseBookmark.name)).toBeInTheDocument();
+        // Empty info should still create the element but with empty content
+        const infoElements = screen.getAllByText('', { selector: 'p.accent' });
+        expect(infoElements[0]).toBeInTheDocument();
+    });
+
+    test('applies correct CSS classes', () => {
+        render(<Bookmark bookmark={baseBookmark} />);
+        const container = screen.getByText(baseBookmark.name).closest('.col');
+        expect(container).toHaveClass('col', 'd-flex', 'align-items-start');
+    });
 });

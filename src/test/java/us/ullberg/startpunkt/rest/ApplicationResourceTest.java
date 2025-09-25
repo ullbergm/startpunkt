@@ -215,7 +215,7 @@ class ApplicationResourceTest {
         .get("/api/apps/ping")
         .then()
         .statusCode(200)
-        .body(equalTo(new ApplicationResource().ping()));
+        .body(equalTo(new ApplicationResource(null).ping()));
   }
 
   // ---- Tag Filtering Tests ----
@@ -302,5 +302,180 @@ class ApplicationResourceTest {
         .body("groups.size()", equalTo(1)) // Only utilities group (has untagged app)
         .body("groups[0].applications.size()", equalTo(1)) // Only untagged CyberChef
         .body("groups[0].applications[0].name", equalTo("cyberchef"));
+  }
+
+  /**
+   * Test class with specific namespace configuration - any = false, specific namespaces
+   */
+  @QuarkusTest
+  @WithKubernetesTestServer
+  @io.quarkus.test.junit.TestProfile(SpecificNamespacesApplicationProfile.class)
+  static class SpecificNamespacesApplicationTest {
+    
+    @KubernetesTestServer KubernetesServer server;
+    private NamespacedKubernetesClient client;
+
+    @BeforeEach
+    public void before() {
+      // Create a CustomResourceDefinition (CRD) for the Application resource
+      CustomResourceDefinition crd =
+          CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+
+      // Set up the mock server to expect a POST request for creating the CRD
+      server
+          .expect()
+          .post()
+          .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+          .andReturn(HttpURLConnection.HTTP_OK, crd)
+          .once();
+
+      // Get the Kubernetes client from the mock server
+      client = server.getClient();
+
+      // Create the CRD in the mock Kubernetes cluster
+      CustomResourceDefinition createdApplicationCrd =
+          client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
+
+      // Verify that the CRD was created
+      assertNotNull(createdApplicationCrd);
+
+      // Create applications in multiple namespaces to test namespace filtering
+      createApplicationInNamespace("default", "default-app", "Default App", "Default");
+      createApplicationInNamespace("startpunkt", "startpunkt-app", "Startpunkt App", "Startpunkt");  
+      createApplicationInNamespace("kube-system", "system-app", "System App", "System");
+      createApplicationInNamespace("other", "other-app", "Other App", "Other");
+    }
+
+    /**
+     * Helper method to create an application in a specific namespace.
+     */
+    private void createApplicationInNamespace(String namespace, String name, String displayName, String group) {
+      ApplicationSpec spec = new ApplicationSpec();
+      spec.setName(displayName);
+      spec.setGroup(group);
+      spec.setUrl("https://" + name + ".example.com");
+      spec.setEnabled(true);
+      spec.setLocation(1000);
+      spec.setTargetBlank(true);
+
+      Application application = new Application();
+      application.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+      application.setSpec(spec);
+
+      client.resources(Application.class).inNamespace(namespace).resource(application).create();
+    }
+
+    @Test
+    void testRetrieveApplications_SpecificNamespaces() {
+      // With matchNames = ["default", "startpunkt"], should only retrieve from those namespaces
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.size()", equalTo(2)) // Default and Startpunkt groups only
+          .body("groups.find { it.name == 'Default' }.applications.size()", equalTo(1))
+          .body("groups.find { it.name == 'Startpunkt' }.applications.size()", equalTo(1))
+          .body("groups.find { it.name == 'Default' }.applications[0].name", equalTo("Default App"))
+          .body("groups.find { it.name == 'Startpunkt' }.applications[0].name", equalTo("Startpunkt App"));
+    }
+  }
+
+  /**
+   * Test profile for specific namespace configuration in ApplicationResource tests.
+   */
+  public static class SpecificNamespacesApplicationProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+    @Override
+    public java.util.Map<String, String> getConfigOverrides() {
+      return java.util.Map.of(
+          "startpunkt.namespaceSelector.any", "false",
+          "startpunkt.namespaceSelector.matchNames[0]", "default",
+          "startpunkt.namespaceSelector.matchNames[1]", "startpunkt"
+      );
+    }
+  }
+
+  /**
+   * Test class with empty namespace configuration
+   */
+  @QuarkusTest
+  @WithKubernetesTestServer
+  @io.quarkus.test.junit.TestProfile(EmptyNamespacesApplicationProfile.class)
+  static class EmptyNamespacesApplicationTest {
+    
+    @KubernetesTestServer KubernetesServer server;
+    private NamespacedKubernetesClient client;
+
+    @BeforeEach
+    public void before() {
+      // Create a CustomResourceDefinition (CRD) for the Application resource
+      CustomResourceDefinition crd =
+          CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+
+      // Set up the mock server to expect a POST request for creating the CRD
+      server
+          .expect()
+          .post()
+          .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+          .andReturn(HttpURLConnection.HTTP_OK, crd)
+          .once();
+
+      // Get the Kubernetes client from the mock server
+      client = server.getClient();
+
+      // Create the CRD in the mock Kubernetes cluster
+      CustomResourceDefinition createdApplicationCrd =
+          client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
+
+      // Verify that the CRD was created
+      assertNotNull(createdApplicationCrd);
+
+      // Create applications in multiple namespaces
+      createApplicationInNamespace("default", "default-app", "Default App", "Default");
+      createApplicationInNamespace("startpunkt", "startpunkt-app", "Startpunkt App", "Startpunkt");
+    }
+
+    /**
+     * Helper method to create an application in a specific namespace.
+     */
+    private void createApplicationInNamespace(String namespace, String name, String displayName, String group) {
+      ApplicationSpec spec = new ApplicationSpec();
+      spec.setName(displayName);
+      spec.setGroup(group);
+      spec.setUrl("https://" + name + ".example.com");
+      spec.setEnabled(true);
+      spec.setLocation(1000);
+      spec.setTargetBlank(true);
+
+      Application application = new Application();
+      application.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+      application.setSpec(spec);
+
+      client.resources(Application.class).inNamespace(namespace).resource(application).create();
+    }
+
+    @Test
+    void testRetrieveApplications_EmptyMatchNamesWithAnyFalse() {
+      // With anyNamespace = false and no matchNames configured, should retrieve no applications
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.size()", equalTo(0)); // No applications should be returned
+    }
+  }
+
+  /**
+   * Test profile for empty namespace configuration in ApplicationResource tests.
+   */
+  public static class EmptyNamespacesApplicationProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+    @Override
+    public java.util.Map<String, String> getConfigOverrides() {
+      return java.util.Map.of(
+          "startpunkt.namespaceSelector.any", "false"
+          // No matchNames configured - this tests the Optional.empty() case
+      );
+    }
   }
 }

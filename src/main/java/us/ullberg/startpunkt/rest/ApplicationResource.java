@@ -1,7 +1,6 @@
 package us.ullberg.startpunkt.rest;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
@@ -15,6 +14,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -72,21 +72,32 @@ public class ApplicationResource {
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
 
-  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
-  private List<String> matchNames;
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
+  private Optional<List<String>> matchNames;
 
   @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
   private String defaultProtocol = "http";
 
+  // Inject the managed Kubernetes client
+  private final KubernetesClient kubernetesClient;
+
   /**
-   * Creates an empty ApplicationResource. Required to explicitly document the default constructor.
+   * Creates an ApplicationResource with the injected Kubernetes client.
+   *
+   * @param kubernetesClient the managed Kubernetes client
    */
-  public ApplicationResource() {
-    super();
+  public ApplicationResource(KubernetesClient kubernetesClient) {
+    this.kubernetesClient = kubernetesClient;
   }
 
   // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
+    // Check if the client is available
+    if (kubernetesClient == null) {
+      Log.warn("KubernetesClient is null, returning empty application list");
+      return new ArrayList<>();
+    }
+
     // Create a list of application wrappers to retrieve applications from
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
     applicationWrappers.add(new StartpunktApplicationWrapper());
@@ -117,10 +128,17 @@ public class ApplicationResource {
     // Create a list of applications
     var apps = new ArrayList<ApplicationSpec>();
 
-    // Retrieve the applications from the application wrappers
-    final KubernetesClient client = new KubernetesClientBuilder().build();
-    for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-      apps.addAll(applicationWrapper.getApplicationSpecs(client, anyNamespace, matchNames));
+    try {
+      // Retrieve the applications from the application wrappers using the injected client
+      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+        apps.addAll(
+            applicationWrapper.getApplicationSpecs(
+                kubernetesClient, anyNamespace, matchNames.orElse(List.of())));
+      }
+    } catch (Exception e) {
+      Log.error("Error retrieving applications from Kubernetes", e);
+      // Return empty list on error to avoid 500s
+      return new ArrayList<>();
     }
 
     // Sort the list of applications
@@ -179,7 +197,9 @@ public class ApplicationResource {
               mediaType = MediaType.APPLICATION_JSON,
               schema = @Schema(implementation = ApplicationGroup.class, type = SchemaType.ARRAY)))
   @APIResponse(responseCode = "404", description = "No applications found")
-  @Timed(value = "startpunkt.api.getapps.filtered", description = "Get the list of applications filtered by tags")
+  @Timed(
+      value = "startpunkt.api.getapps.filtered",
+      description = "Get the list of applications filtered by tags")
   @CacheResult(cacheName = "getAppsFiltered")
   public Response getAppsFiltered(@PathParam("tags") String tags) {
     return getAppsWithTags(tags);

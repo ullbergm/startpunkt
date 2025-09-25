@@ -20,6 +20,41 @@ To set up a development environment, please follow these steps:
 
 2. TODO
 -->
+
+## Development environment setup
+
+To set up a development environment, please follow these steps:
+
+1. Clone the repo
+
+   ```sh
+   git clone https://github.com/ullbergm/startpunkt
+   ```
+
+2. Build and run the project
+
+   For combined backend + frontend development:
+
+   ```sh
+   ./mvnw quarkus:dev
+   ```
+
+   For frontend-only development:
+
+   ```sh
+   cd src/main/webui
+   npm install
+   npm run dev
+   ```
+
+   For full verification (including tests):
+
+   ```sh
+   ./mvnw verify
+   ```
+
+**Note on Package Manager:** This project uses **npm** as the canonical package manager. Quarkus Quinoa and the frontend-maven-plugin are both configured to use npm. The project maintains only `package-lock.json` (not pnpm or yarn lockfiles).
+
 ## Issues and feature requests
 
 You've found a bug in the source code, a mistake in the documentation or maybe you'd like a new feature?Take a look at [GitHub Discussions](https://github.com/ullbergm/startpunkt/discussions) to see if it's already being discussed.  You can help us by [submitting an issue on GitHub](https://github.com/ullbergm/startpunkt/issues). Before you create an issue, make sure to search the issue archive -- your issue may have already been addressed!

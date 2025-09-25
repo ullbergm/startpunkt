@@ -12,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
@@ -27,8 +28,8 @@ public class BookmarkService {
   @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
   private boolean anyNamespace;
 
-  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames", defaultValue = "[]")
-  private String[] matchNames;
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
+  private Optional<List<String>> matchNames;
 
   /** Default constructor. */
   public BookmarkService() {
@@ -68,7 +69,7 @@ public class BookmarkService {
 
     // For each specified namespace, get the resource
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
-    for (String ns : matchNames) {
+    for (String ns : matchNames.orElse(List.of())) {
       list.getItems()
           .addAll(
               client

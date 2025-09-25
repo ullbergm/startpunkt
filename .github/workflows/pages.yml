@@ -2,7 +2,7 @@ name: Build and Deploy Maven Site
 
 on:
   push:
-    branches: [cleanup]
+    branches: [main]
 
 permissions:
   contents: write  # Required for deploying to GitHub Pages

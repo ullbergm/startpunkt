@@ -118,7 +118,17 @@ public class Application extends CustomResource<ApplicationSpec, ApplicationStat
     // Initialize the spec of the custom resource with the provided values
     this.spec =
         new ApplicationSpec(
-            name, group, icon, iconColor, url, info, targetBlank, location, enabled, rootPath, tags);
+            name,
+            group,
+            icon,
+            iconColor,
+            url,
+            info,
+            targetBlank,
+            location,
+            enabled,
+            rootPath,
+            tags);
   }
 
   // Override the hashCode method to generate a hash code based on the spec and status
