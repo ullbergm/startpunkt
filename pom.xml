@@ -73,7 +73,7 @@
 
     <!-- Dependency Versions -->
     <commons.lang3.version>3.19.0</commons.lang3.version>
-    <junit.jupiter.version>5.14.0</junit.jupiter.version>
+    <junit.jupiter.version>6.0.0</junit.jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
   </properties>
 
