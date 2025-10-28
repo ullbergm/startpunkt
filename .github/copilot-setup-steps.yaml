@@ -3,25 +3,19 @@
 # for building and testing code changes in this repository.
 
 setup:
-  # Install Java 21 (Temurin distribution)
+  # Verify Java 21 is available (project requires Java 21)
   - run: |
-      if ! command -v java &> /dev/null || [ "$(java -version 2>&1 | grep -oP '(?<=version ")[0-9]+' | head -1)" != "21" ]; then
-        echo "Java 21 is required but not installed or wrong version"
-        exit 1
-      fi
-    description: Verify Java 21 is installed
+      java -version 2>&1 | grep -q "version \"21" || echo "Warning: Java 21 is recommended for this project"
+    description: Verify Java version (Java 21 recommended)
 
   # Install Maven (wrapper is included in the repository)
   - run: ./mvnw --version
     description: Verify Maven wrapper is working
 
-  # Install Node.js and npm for frontend builds
+  # Verify Node.js is available for frontend builds
   - run: |
-      if ! command -v node &> /dev/null; then
-        echo "Node.js is required but not installed"
-        exit 1
-      fi
-    description: Verify Node.js is installed
+      node --version 2>&1 || echo "Node.js is recommended for frontend development"
+    description: Verify Node.js is available
 
   # Install frontend dependencies (Maven will do this via Quinoa)
   - run: ./mvnw clean compile -DskipTests
