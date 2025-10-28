@@ -125,7 +125,7 @@ public class BookmarkService {
    * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
    */
   public List&lt;BookmarkSpec&gt; retrieveHajimariBookmarks() {
-<span class="fc" id="L128">    Log.info(&quot;Retrieve Hajimari Bookmarks&quot;);</span>
+<span class="fc" id="L128">    Log.debug(&quot;Retrieve Hajimari Bookmarks&quot;);</span>
 <span class="fc" id="L129">    try (KubernetesClient client = new KubernetesClientBuilder().build()) {</span>
 <span class="fc" id="L130">      ResourceDefinitionContext resourceDefinitionContext =</span>
           new ResourceDefinitionContext.Builder()

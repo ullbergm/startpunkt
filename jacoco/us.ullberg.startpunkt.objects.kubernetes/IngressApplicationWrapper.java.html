@@ -5,7 +5,8 @@ import java.util.List;
 import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 
 /**
- * Wrapper class for Kubernetes Ingress resources. Allows retrieval of application specifications
+ * Wrapper class for Kubernetes Ingress resources. Allows retrieval of
+ * application specifications
  * from Ingresses, optionally filtering only annotated resources.
  */
 public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
@@ -16,35 +17,38 @@ public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
   /**
    * Constructs an IngressApplicationWrapper.
    *
-   * @param onlyAnnotated if true, only annotated Ingress resources will be processed
+   * @param onlyAnnotated if true, only annotated Ingress resources will be
+   *                      processed
    */
   public IngressApplicationWrapper(boolean onlyAnnotated) {
-<span class="fc" id="L22">    super(&quot;networking.k8s.io&quot;, &quot;v1&quot;, &quot;ingresses&quot;);</span>
-<span class="fc" id="L23">    this.onlyAnnotated = onlyAnnotated;</span>
-<span class="fc" id="L24">  }</span>
+<span class="fc" id="L24">    super(&quot;networking.k8s.io&quot;, &quot;v1&quot;, &quot;ingresses&quot;);</span>
+<span class="fc" id="L25">    this.onlyAnnotated = onlyAnnotated;</span>
+<span class="fc" id="L26">  }</span>
 
   /**
-   * Retrieves application specs from Kubernetes Ingress resources, filtering them based on the
+   * Retrieves application specs from Kubernetes Ingress resources, filtering them
+   * based on the
    * onlyAnnotated flag.
    *
-   * @param client Kubernetes client instance
+   * @param client       Kubernetes client instance
    * @param anyNamespace whether to search across all namespaces
-   * @param matchNames specific namespaces to include in the search
+   * @param matchNames   specific namespaces to include in the search
    * @return list of {@link ApplicationSpec} extracted from Ingress resources
    */
   @Override
   public List&lt;ApplicationSpec&gt; getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
     // Get the application specs from the parent class
-<span class="fc" id="L39">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+<span class="fc" id="L42">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
 
-    // If onlyAnnotated is true, filter the list to include only enabled applications
-<span class="pc bpc" id="L42" title="1 of 2 branches missed.">    if (onlyAnnotated) {</span>
-<span class="fc" id="L43">      return filterEnabled(applicationSpecs);</span>
+    // If onlyAnnotated is true, filter the list to include only enabled
+    // applications
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    if (onlyAnnotated) {</span>
+<span class="fc" id="L47">      return filterEnabled(applicationSpecs);</span>
     }
 
     // If onlyAnnotated is false, return the full list of application specs
-<span class="nc" id="L47">    return applicationSpecs;</span>
+<span class="nc" id="L51">    return applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
