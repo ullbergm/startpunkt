@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -56,7 +57,7 @@ public class AvailabilityCheckService {
 
     if (ignoreCertificates) {
       Log.warn(
-          "SSL certificate validation is disabled for availability checks. "
+          "SSL certificate validation and hostname verification are disabled for availability checks. "
               + "This is insecure and should only be used in development environments.");
       try {
         // Create a trust manager that accepts all certificates
@@ -77,7 +78,11 @@ public class AvailabilityCheckService {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, trustAllCerts, new SecureRandom());
 
-        builder.sslContext(sslContext);
+        // Create SSL parameters that disable hostname verification
+        SSLParameters sslParameters = new SSLParameters();
+        sslParameters.setEndpointIdentificationAlgorithm(null);
+
+        builder.sslContext(sslContext).sslParameters(sslParameters);
       } catch (NoSuchAlgorithmException | KeyManagementException e) {
         Log.error("Failed to configure SSL context to ignore certificates", e);
       }
