@@ -1,4 +1,11 @@
 # Copilot Guide for Startpunkt
+
+## Project Overview
+
+Startpunkt is a clean start page designed to display links to all self-hosted resources in a Kubernetes cluster. It's a Quarkus 3 service that aggregates Kubernetes resources (Ingress, Routes, VirtualServices, HTTPRoutes) into a Preact single-page application. Backend sources live in `src/main/java/us/ullberg/startpunkt`.
+
+## Architecture & Structure
+
 - Startpunkt is a Quarkus 3 service that aggregates Kubernetes resources into a Preact SPA; backend sources live in `src/main/java/us/ullberg/startpunkt`.
 - REST resources in `rest/` expose grouped data (`ApplicationResource`, `BookmarkResource`, `ConfigResource`, `I8nResource`, `ThemeResource`) and always return wrappers from `objects/`.
 - `ApplicationResource` builds a sorted `ApplicationSpec` list through wrapper classes in `objects/kubernetes`; respect the feature toggles from `application.yaml` and keep `Collections.sort(apps)` before grouping so UI ordering stays deterministic.
@@ -20,3 +27,23 @@
 - Generated artefacts under `target/` and `src/main/webui/node_modules/` should never be committed.
 - Renovate manages dependency bumps; when adding libraries, pin versions explicitly in `pom.xml` or the web UI `package.json` and run the full verify task.
 - Tests are split between fast unit tests (`*Test.java`, `.test.jsx`) and Quarkus native/IT (`*IT.java`); keep new coverage consistent with this naming so Surefire/Failsafe execute them correctly.
+
+## Code Style & Formatting
+
+- Java code follows Checkstyle and Spotless rules; run `./mvnw spotless:apply` to auto-format before committing.
+- Frontend code should be consistent with existing Preact/JSX style; avoid introducing new linting rules without discussion.
+- Keep imports organized and remove unused imports.
+
+## Commit Conventions
+
+- Follow conventional commit format: `type(scope): description` (e.g., `feat(api): add theme endpoint`, `fix(ui): correct bookmark sorting`).
+- Commitlint enforces this format; use `npm run commit` for an interactive prompt if unsure.
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`, `revert`.
+
+## Development Workflow
+
+- Create focused, well-scoped pull requests.
+- Run `./mvnw verify` before opening a PR to ensure all checks pass.
+- Add tests for new features and bug fixes.
+- Update documentation if changing APIs or configuration options.
+- Keep PRs small and reviewable; split large changes into multiple PRs.

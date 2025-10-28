@@ -1,0 +1,73 @@
+# Copilot Setup Steps
+# This file tells GitHub Copilot how to set up the development environment
+# for building and testing code changes in this repository.
+
+setup:
+  # Verify Java 21 is available (project requires Java 21)
+  - run: |
+      java -version 2>&1 | grep -E '(openjdk|java) version "(21|21\.)' || echo "Warning: Java 21 is recommended for this project"
+    description: Verify Java version (Java 21 recommended)
+
+  # Install Maven (wrapper is included in the repository)
+  - run: ./mvnw --version
+    description: Verify Maven wrapper is working
+
+  # Verify Node.js is available for frontend builds (requires v24.2.0 as per pom.xml)
+  - run: |
+      if command -v node &> /dev/null; then
+        NODE_VERSION=$(node --version)
+        echo "Node.js $NODE_VERSION is installed"
+      else
+        echo "Warning: Node.js v24.2.0 or later is recommended for frontend development"
+      fi
+    description: Verify Node.js is available
+
+  # Install frontend dependencies (Maven will do this via Quinoa)
+  - run: ./mvnw clean compile -DskipTests
+    description: Download dependencies and compile backend
+    timeout: 300
+
+  # Run full verification (backend + frontend tests)
+  - run: ./mvnw verify
+    description: Build and test the entire application
+    timeout: 600
+
+# Commands to use for common development tasks
+commands:
+  build:
+    run: ./mvnw clean compile
+    description: Build the application without running tests
+    timeout: 300
+
+  test:
+    run: ./mvnw verify
+    description: Run all tests (Java + JavaScript)
+    timeout: 600
+
+  dev:
+    run: ./mvnw quarkus:dev
+    description: Start development server with hot reload
+    timeout: 300
+    detached: true
+
+  lint:
+    run: ./mvnw spotless:check checkstyle:check
+    description: Check code formatting and style
+    timeout: 120
+
+  format:
+    run: ./mvnw spotless:apply
+    description: Auto-format code
+    timeout: 120
+
+  frontend-dev:
+    run: cd src/main/webui && npm run dev
+    description: Start frontend development server only
+    working_directory: src/main/webui
+    detached: true
+
+  frontend-test:
+    run: cd src/main/webui && npm test
+    description: Run frontend tests only
+    working_directory: src/main/webui
+    timeout: 120
