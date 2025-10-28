@@ -285,8 +285,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   }
 
   /**
-   * Returns the tags of the application. By default, reads from the
-   * "startpunkt.ullberg.us/tags" annotation.
+   * Returns the tags of the application. By default, reads from the "startpunkt.ullberg.us/tags"
+   * annotation.
    *
    * @param item the Kubernetes generic resource
    * @return comma-separated tags string or null if not set

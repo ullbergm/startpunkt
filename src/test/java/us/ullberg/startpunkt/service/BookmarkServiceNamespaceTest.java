@@ -22,9 +22,7 @@ import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha3.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 
-/**
- * Test class for {@link BookmarkService} with specific namespace configuration.
- */
+/** Test class for {@link BookmarkService} with specific namespace configuration. */
 @QuarkusTest
 @WithKubernetesTestServer
 @TestProfile(BookmarkServiceNamespaceTest.SpecificNamespacesProfile.class)
@@ -59,9 +57,7 @@ class BookmarkServiceNamespaceTest {
     assertNotNull(createdBookmarkCrd);
   }
 
-  /**
-   * Helper method to create a bookmark in a specific namespace.
-   */
+  /** Helper method to create a bookmark in a specific namespace. */
   private void createBookmark(String namespace, String name, String group, String url) {
     BookmarkSpec spec = new BookmarkSpec();
     spec.setName(name);
@@ -69,7 +65,11 @@ class BookmarkServiceNamespaceTest {
     spec.setUrl(url);
 
     Bookmark bookmark = new Bookmark();
-    bookmark.setMetadata(new ObjectMetaBuilder().withName(name.toLowerCase().replace(" ", "-")).withNamespace(namespace).build());
+    bookmark.setMetadata(
+        new ObjectMetaBuilder()
+            .withName(name.toLowerCase().replace(" ", "-"))
+            .withNamespace(namespace)
+            .build());
     bookmark.setSpec(spec);
 
     client.resources(Bookmark.class).inNamespace(namespace).resource(bookmark).create();
@@ -88,7 +88,7 @@ class BookmarkServiceNamespaceTest {
 
     assertNotNull(bookmarks);
     assertEquals(2, bookmarks.size());
-    
+
     // Verify only bookmarks from specified namespaces are retrieved
     assertTrue(bookmarks.stream().anyMatch(b -> "Default Bookmark".equals(b.getName())));
     assertTrue(bookmarks.stream().anyMatch(b -> "Startpunkt Bookmark".equals(b.getName())));
@@ -96,17 +96,15 @@ class BookmarkServiceNamespaceTest {
     assertTrue(bookmarks.stream().noneMatch(b -> "Other Bookmark".equals(b.getName())));
   }
 
-  /**
-   * Test profile for specific namespace configuration.
-   */
-  public static class SpecificNamespacesProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+  /** Test profile for specific namespace configuration. */
+  public static class SpecificNamespacesProfile
+      implements io.quarkus.test.junit.QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
       return Map.of(
           "startpunkt.namespaceSelector.any", "false",
           "startpunkt.namespaceSelector.matchNames[0]", "default",
-          "startpunkt.namespaceSelector.matchNames[1]", "startpunkt"
-      );
+          "startpunkt.namespaceSelector.matchNames[1]", "startpunkt");
     }
   }
 }

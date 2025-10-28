@@ -77,6 +77,11 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonPropertyDescription("Comma-separated tags for filtering applications")
   private String tags;
 
+  /** Whether the application is currently available (reachable). */
+  @JsonProperty("available")
+  @JsonPropertyDescription("Whether the application is currently available")
+  private Boolean available;
+
   /** Default constructor. */
   public ApplicationSpec() {}
 
@@ -390,6 +395,24 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
    */
   public void setTags(String tags) {
     this.tags = tags;
+  }
+
+  /**
+   * Gets whether the application is currently available.
+   *
+   * @return true if the application is available
+   */
+  public Boolean getAvailable() {
+    return available;
+  }
+
+  /**
+   * Sets whether the application is currently available.
+   *
+   * @param available whether the application is available
+   */
+  public void setAvailable(Boolean available) {
+    this.available = available;
   }
 
   /**

@@ -9,8 +9,8 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import java.net.HttpURLConnection;
@@ -65,9 +65,11 @@ class ApplicationResourceTest {
 
     // Create a new Application resource using the ApplicationSpec
     Application homeAssistant = new Application();
-    homeAssistant.setMetadata(new ObjectMetaBuilder().withName("homeassistant")
-        .addToAnnotations("startpunkt.ullberg.us/tags", "admin,home")
-        .build());
+    homeAssistant.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("homeassistant")
+            .addToAnnotations("startpunkt.ullberg.us/tags", "admin,home")
+            .build());
     homeAssistant.setSpec(homeAssistantSpec);
 
     // Create or replace the HomeAssistant application resource in the default
@@ -89,9 +91,11 @@ class ApplicationResourceTest {
 
     // Create a new Application resource using the ApplicationSpec
     Application nodeRed = new Application();
-    nodeRed.setMetadata(new ObjectMetaBuilder().withName("nodered")
-        .addToAnnotations("startpunkt.ullberg.us/tags", "dev,home")
-        .build());
+    nodeRed.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("nodered")
+            .addToAnnotations("startpunkt.ullberg.us/tags", "dev,home")
+            .build());
     nodeRed.setSpec(nodeRedSpec);
 
     // Create or replace the Node-Red application resource in the default namespace
@@ -215,7 +219,7 @@ class ApplicationResourceTest {
         .get("/api/apps/ping")
         .then()
         .statusCode(200)
-        .body(equalTo(new ApplicationResource(null).ping()));
+        .body(equalTo(new ApplicationResource(null, null).ping()));
   }
 
   // ---- Tag Filtering Tests ----
@@ -250,7 +254,8 @@ class ApplicationResourceTest {
         .body("groups[1].applications[0].name", equalTo("cyberchef"));
   }
 
-  // Test filtering by single tag 'home' - should return both Home Automation apps and untagged CyberChef
+  // Test filtering by single tag 'home' - should return both Home Automation apps and untagged
+  // CyberChef
   @Test
   void testFilterBySingleTagHome() {
     given()
@@ -295,7 +300,7 @@ class ApplicationResourceTest {
   @Test
   void testFilterWithEmptyTags() {
     given()
-        .when()  
+        .when()
         .get("/api/apps/")
         .then()
         .statusCode(200)
@@ -304,14 +309,12 @@ class ApplicationResourceTest {
         .body("groups[0].applications[0].name", equalTo("cyberchef"));
   }
 
-  /**
-   * Test class with specific namespace configuration - any = false, specific namespaces
-   */
+  /** Test class with specific namespace configuration - any = false, specific namespaces */
   @QuarkusTest
   @WithKubernetesTestServer
   @io.quarkus.test.junit.TestProfile(SpecificNamespacesApplicationProfile.class)
   static class SpecificNamespacesApplicationTest {
-    
+
     @KubernetesTestServer KubernetesServer server;
     private NamespacedKubernetesClient client;
 
@@ -341,15 +344,14 @@ class ApplicationResourceTest {
 
       // Create applications in multiple namespaces to test namespace filtering
       createApplicationInNamespace("default", "default-app", "Default App", "Default");
-      createApplicationInNamespace("startpunkt", "startpunkt-app", "Startpunkt App", "Startpunkt");  
+      createApplicationInNamespace("startpunkt", "startpunkt-app", "Startpunkt App", "Startpunkt");
       createApplicationInNamespace("kube-system", "system-app", "System App", "System");
       createApplicationInNamespace("other", "other-app", "Other App", "Other");
     }
 
-    /**
-     * Helper method to create an application in a specific namespace.
-     */
-    private void createApplicationInNamespace(String namespace, String name, String displayName, String group) {
+    /** Helper method to create an application in a specific namespace. */
+    private void createApplicationInNamespace(
+        String namespace, String name, String displayName, String group) {
       ApplicationSpec spec = new ApplicationSpec();
       spec.setName(displayName);
       spec.setGroup(group);
@@ -359,7 +361,8 @@ class ApplicationResourceTest {
       spec.setTargetBlank(true);
 
       Application application = new Application();
-      application.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+      application.setMetadata(
+          new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
       application.setSpec(spec);
 
       client.resources(Application.class).inNamespace(namespace).resource(application).create();
@@ -377,32 +380,30 @@ class ApplicationResourceTest {
           .body("groups.find { it.name == 'Default' }.applications.size()", equalTo(1))
           .body("groups.find { it.name == 'Startpunkt' }.applications.size()", equalTo(1))
           .body("groups.find { it.name == 'Default' }.applications[0].name", equalTo("Default App"))
-          .body("groups.find { it.name == 'Startpunkt' }.applications[0].name", equalTo("Startpunkt App"));
+          .body(
+              "groups.find { it.name == 'Startpunkt' }.applications[0].name",
+              equalTo("Startpunkt App"));
     }
   }
 
-  /**
-   * Test profile for specific namespace configuration in ApplicationResource tests.
-   */
-  public static class SpecificNamespacesApplicationProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+  /** Test profile for specific namespace configuration in ApplicationResource tests. */
+  public static class SpecificNamespacesApplicationProfile
+      implements io.quarkus.test.junit.QuarkusTestProfile {
     @Override
     public java.util.Map<String, String> getConfigOverrides() {
       return java.util.Map.of(
           "startpunkt.namespaceSelector.any", "false",
           "startpunkt.namespaceSelector.matchNames[0]", "default",
-          "startpunkt.namespaceSelector.matchNames[1]", "startpunkt"
-      );
+          "startpunkt.namespaceSelector.matchNames[1]", "startpunkt");
     }
   }
 
-  /**
-   * Test class with empty namespace configuration
-   */
+  /** Test class with empty namespace configuration */
   @QuarkusTest
   @WithKubernetesTestServer
   @io.quarkus.test.junit.TestProfile(EmptyNamespacesApplicationProfile.class)
   static class EmptyNamespacesApplicationTest {
-    
+
     @KubernetesTestServer KubernetesServer server;
     private NamespacedKubernetesClient client;
 
@@ -435,10 +436,9 @@ class ApplicationResourceTest {
       createApplicationInNamespace("startpunkt", "startpunkt-app", "Startpunkt App", "Startpunkt");
     }
 
-    /**
-     * Helper method to create an application in a specific namespace.
-     */
-    private void createApplicationInNamespace(String namespace, String name, String displayName, String group) {
+    /** Helper method to create an application in a specific namespace. */
+    private void createApplicationInNamespace(
+        String namespace, String name, String displayName, String group) {
       ApplicationSpec spec = new ApplicationSpec();
       spec.setName(displayName);
       spec.setGroup(group);
@@ -448,7 +448,8 @@ class ApplicationResourceTest {
       spec.setTargetBlank(true);
 
       Application application = new Application();
-      application.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+      application.setMetadata(
+          new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
       application.setSpec(spec);
 
       client.resources(Application.class).inNamespace(namespace).resource(application).create();
@@ -466,16 +467,15 @@ class ApplicationResourceTest {
     }
   }
 
-  /**
-   * Test profile for empty namespace configuration in ApplicationResource tests.
-   */
-  public static class EmptyNamespacesApplicationProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+  /** Test profile for empty namespace configuration in ApplicationResource tests. */
+  public static class EmptyNamespacesApplicationProfile
+      implements io.quarkus.test.junit.QuarkusTestProfile {
     @Override
     public java.util.Map<String, String> getConfigOverrides() {
       return java.util.Map.of(
           "startpunkt.namespaceSelector.any", "false"
           // No matchNames configured - this tests the Optional.empty() case
-      );
+          );
     }
   }
 }

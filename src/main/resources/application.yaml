@@ -5,6 +5,12 @@ startpunkt:
   # Default language for the web UI
   defaultLanguage: "en-US"
 
+  # Application availability checking
+  availability:
+    enabled: true  # If true, check application availability
+    timeout: 5  # Timeout in seconds for availability checks
+    interval: 60  # Interval in seconds between availability checks
+
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
     any: true  # If true, look for resources in all namespaces
