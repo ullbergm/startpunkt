@@ -5,6 +5,14 @@ startpunkt:
   # Default language for the web UI
   defaultLanguage: "en-US"
 
+  # Application availability checking
+  availability:
+    enabled: true  # If true, check application availability
+    timeout: 5  # Timeout in seconds for availability checks
+    interval: 60  # Interval in seconds between availability checks
+    # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
+    # Only 5xx server errors or connection failures mark a service as unavailable
+
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
     any: true  # If true, look for resources in all namespaces
@@ -41,6 +49,7 @@ startpunkt:
   # Web ui configuration
   web:
     title: "Startpunkt"  # Title of the web UI
+    refreshInterval: 60  # Interval in seconds to refresh applications and bookmarks (0 = disabled)
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI

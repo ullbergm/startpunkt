@@ -153,6 +153,10 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
 
     <!-- Quarkus Extensions -->
     <dependency>
@@ -540,6 +544,7 @@
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-config-yaml</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-kubernetes-client</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
 
                 <!-- Quarkiverse -->
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
@@ -555,6 +560,10 @@
                 <!-- Explicitly used but Maven misses it -->
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
+              <ignoredUsedUndeclaredDependencies>
+                <!-- Transitively provided by quarkus-scheduler -->
+                <ignoredUsedUndeclaredDependency>io.quarkus:quarkus-scheduler-api</ignoredUsedUndeclaredDependency>
+              </ignoredUsedUndeclaredDependencies>
 
             </configuration>
           </execution>

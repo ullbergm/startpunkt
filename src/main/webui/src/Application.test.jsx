@@ -6,7 +6,7 @@ jest.mock('@iconify/react', () => ({
       data-testid="iconify-icon"
       data-icon={props.icon}
       class={props.className || props.class}
-      style={{ width: props.width, height: props.height, color: props.color }}
+      style={{ ...props.style, width: props.width, height: props.height, color: props.color }}
     />
   ),
 }));
@@ -166,5 +166,67 @@ describe('Application component', () => {
     render(<Application app={appDataIcon} />);
     // Just verify the component renders without crashing
     expect(screen.getByText(appDataIcon.name)).toBeInTheDocument();
+  });
+
+  test('renders unavailable app with greyed out appearance', () => {
+    const unavailableApp = {
+      ...defaultApp,
+      available: false,
+    };
+    const { container } = render(<Application app={unavailableApp} />);
+    const appContainer = container.querySelector('.col');
+    expect(appContainer).toHaveClass('unavailable');
+    expect(appContainer.style.opacity).toBe('0.5');
+    expect(appContainer.style.cursor).toBe('not-allowed');
+  });
+
+  test('does not render link for unavailable app', () => {
+    const unavailableApp = {
+      ...defaultApp,
+      available: false,
+    };
+    render(<Application app={unavailableApp} />);
+    const link = screen.queryByRole('link', { name: unavailableApp.name });
+    expect(link).not.toBeInTheDocument();
+  });
+
+  test('renders link for available app', () => {
+    const availableApp = {
+      ...defaultApp,
+      available: true,
+    };
+    render(<Application app={availableApp} />);
+    const link = screen.getByRole('link', { name: availableApp.name });
+    expect(link).toBeInTheDocument();
+  });
+
+  test('renders icon with reduced opacity for unavailable app', async () => {
+    const unavailableApp = {
+      ...defaultApp,
+      available: false,
+    };
+    render(<Application app={unavailableApp} />);
+    const icon = await screen.findByTestId('iconify-icon');
+    expect(icon.style.opacity).toBe('0.4');
+  });
+
+  test('renders icon with normal opacity for available app', async () => {
+    const availableApp = {
+      ...defaultApp,
+      available: true,
+    };
+    render(<Application app={availableApp} />);
+    const icon = await screen.findByTestId('iconify-icon');
+    expect(icon.style.opacity).toBe('1');
+  });
+
+  test('treats undefined availability as available', () => {
+    const appNoAvailability = {
+      ...defaultApp,
+      available: undefined,
+    };
+    render(<Application app={appNoAvailability} />);
+    const link = screen.getByRole('link', { name: appNoAvailability.name });
+    expect(link).toBeInTheDocument();
   });
 });

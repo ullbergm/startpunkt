@@ -20,9 +20,7 @@ import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha3.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 
-/**
- * Test class for {@link BookmarkService} with default namespace configuration behavior.
- */
+/** Test class for {@link BookmarkService} with default namespace configuration behavior. */
 @QuarkusTest
 @WithKubernetesTestServer
 class BookmarkServiceTest {
@@ -56,9 +54,7 @@ class BookmarkServiceTest {
     assertNotNull(createdBookmarkCrd);
   }
 
-  /**
-   * Helper method to create a bookmark in a specific namespace.
-   */
+  /** Helper method to create a bookmark in a specific namespace. */
   private void createBookmark(String namespace, String name, String group, String url) {
     BookmarkSpec spec = new BookmarkSpec();
     spec.setName(name);
@@ -66,7 +62,11 @@ class BookmarkServiceTest {
     spec.setUrl(url);
 
     Bookmark bookmark = new Bookmark();
-    bookmark.setMetadata(new ObjectMetaBuilder().withName(name.toLowerCase().replace(" ", "-")).withNamespace(namespace).build());
+    bookmark.setMetadata(
+        new ObjectMetaBuilder()
+            .withName(name.toLowerCase().replace(" ", "-"))
+            .withNamespace(namespace)
+            .build());
     bookmark.setSpec(spec);
 
     client.resources(Bookmark.class).inNamespace(namespace).resource(bookmark).create();
@@ -84,7 +84,7 @@ class BookmarkServiceTest {
 
     assertNotNull(bookmarks);
     assertEquals(3, bookmarks.size());
-    
+
     // Verify all bookmarks are retrieved
     assertTrue(bookmarks.stream().anyMatch(b -> "Test Bookmark 1".equals(b.getName())));
     assertTrue(bookmarks.stream().anyMatch(b -> "Test Bookmark 2".equals(b.getName())));

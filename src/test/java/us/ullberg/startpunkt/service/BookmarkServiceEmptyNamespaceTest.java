@@ -21,9 +21,7 @@ import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha3.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
 
-/**
- * Test class for {@link BookmarkService} with empty namespace configuration.
- */
+/** Test class for {@link BookmarkService} with empty namespace configuration. */
 @QuarkusTest
 @WithKubernetesTestServer
 @TestProfile(BookmarkServiceEmptyNamespaceTest.EmptyNamespacesProfile.class)
@@ -58,9 +56,7 @@ class BookmarkServiceEmptyNamespaceTest {
     assertNotNull(createdBookmarkCrd);
   }
 
-  /**
-   * Helper method to create a bookmark in a specific namespace.
-   */
+  /** Helper method to create a bookmark in a specific namespace. */
   private void createBookmark(String namespace, String name, String group, String url) {
     BookmarkSpec spec = new BookmarkSpec();
     spec.setName(name);
@@ -68,7 +64,11 @@ class BookmarkServiceEmptyNamespaceTest {
     spec.setUrl(url);
 
     Bookmark bookmark = new Bookmark();
-    bookmark.setMetadata(new ObjectMetaBuilder().withName(name.toLowerCase().replace(" ", "-")).withNamespace(namespace).build());
+    bookmark.setMetadata(
+        new ObjectMetaBuilder()
+            .withName(name.toLowerCase().replace(" ", "-"))
+            .withNamespace(namespace)
+            .build());
     bookmark.setSpec(spec);
 
     client.resources(Bookmark.class).inNamespace(namespace).resource(bookmark).create();
@@ -88,16 +88,14 @@ class BookmarkServiceEmptyNamespaceTest {
     assertEquals(0, bookmarks.size());
   }
 
-  /**
-   * Test profile for empty namespace configuration.
-   */
+  /** Test profile for empty namespace configuration. */
   public static class EmptyNamespacesProfile implements io.quarkus.test.junit.QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
       return Map.of(
           "startpunkt.namespaceSelector.any", "false"
           // No matchNames configured - this tests the Optional.empty() case
-      );
+          );
     }
   }
 }
