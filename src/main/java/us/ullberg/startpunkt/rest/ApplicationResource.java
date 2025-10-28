@@ -25,6 +25,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
+import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
 import us.ullberg.startpunkt.objects.kubernetes.GatewayApiHttpRouteWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
@@ -151,16 +152,21 @@ public class ApplicationResource {
     // Sort the list of applications
     Collections.sort(apps);
 
-    // Register URLs for availability checking and update availability status
+    // Register URLs for availability checking
     for (ApplicationSpec app : apps) {
       if (app.getUrl() != null && !app.getUrl().isEmpty()) {
         availabilityCheckService.registerUrl(app.getUrl());
       }
     }
-    availabilityCheckService.updateAvailability(apps);
 
     // Return the list of applications
     return apps;
+  }
+
+  // Method to retrieve applications and wrap them with availability status
+  private ArrayList<ApplicationSpecWithAvailability> retrieveAppsWithAvailability() {
+    ArrayList<ApplicationSpec> apps = retrieveApps();
+    return new ArrayList<>(availabilityCheckService.wrapWithAvailability(apps));
   }
 
   /**
@@ -179,14 +185,15 @@ public class ApplicationResource {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(implementation = ApplicationSpec.class, required = true)))
+              schema =
+                  @Schema(implementation = ApplicationSpecWithAvailability.class, required = true)))
   @APIResponse(responseCode = "404", description = "No application found")
   @Timed(value = "startpunkt.api.getapp", description = "Get a application")
   @CacheResult(cacheName = "getApp")
   public Response getApp(
       @PathParam("groupName") String groupName, @PathParam("appName") String appName) {
     // Find the application with the specified name
-    for (ApplicationSpec a : retrieveApps()) {
+    for (ApplicationSpecWithAvailability a : retrieveAppsWithAvailability()) {
       if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
         return Response.ok(a).build();
       }
@@ -248,8 +255,8 @@ public class ApplicationResource {
    * @return HTTP 200 with grouped applications or 404 if none found
    */
   private Response getAppsWithTags(String tags) {
-    // Retrieve the list of applications
-    ArrayList<ApplicationSpec> applist = retrieveApps();
+    // Retrieve the list of applications with availability
+    ArrayList<ApplicationSpecWithAvailability> applist = retrieveAppsWithAvailability();
 
     // Apply tag filtering
     if (tags != null && !tags.trim().isEmpty()) {
@@ -264,7 +271,7 @@ public class ApplicationResource {
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
 
     // Group the applications by their group property
-    for (ApplicationSpec a : applist) {
+    for (ApplicationSpecWithAvailability a : applist) {
       // Find the group
       ApplicationGroup group = null;
       for (ApplicationGroup g : groups) {
@@ -300,8 +307,8 @@ public class ApplicationResource {
    * @param filterTags comma-separated list of tags to filter by
    * @return filtered list of applications
    */
-  ArrayList<ApplicationSpec> filterApplicationsByTags(
-      ArrayList<ApplicationSpec> applications, String filterTags) {
+  ArrayList<ApplicationSpecWithAvailability> filterApplicationsByTags(
+      ArrayList<ApplicationSpecWithAvailability> applications, String filterTags) {
     if (filterTags == null || filterTags.trim().isEmpty()) {
       return applications;
     }
@@ -318,9 +325,9 @@ public class ApplicationResource {
       return applications;
     }
 
-    ArrayList<ApplicationSpec> filteredApps = new ArrayList<>();
+    ArrayList<ApplicationSpecWithAvailability> filteredApps = new ArrayList<>();
 
-    for (ApplicationSpec app : applications) {
+    for (ApplicationSpecWithAvailability app : applications) {
       // Always include applications with no tags
       if (app.getTags() == null || app.getTags().trim().isEmpty()) {
         filteredApps.add(app);
@@ -351,11 +358,11 @@ public class ApplicationResource {
    * @param applications list of applications to filter
    * @return filtered list containing only applications without tags
    */
-  ArrayList<ApplicationSpec> filterApplicationsWithoutTags(
-      ArrayList<ApplicationSpec> applications) {
-    ArrayList<ApplicationSpec> filteredApps = new ArrayList<>();
+  ArrayList<ApplicationSpecWithAvailability> filterApplicationsWithoutTags(
+      ArrayList<ApplicationSpecWithAvailability> applications) {
+    ArrayList<ApplicationSpecWithAvailability> filteredApps = new ArrayList<>();
 
-    for (ApplicationSpec app : applications) {
+    for (ApplicationSpecWithAvailability app : applications) {
       // Include only applications with no tags
       if (app.getTags() == null || app.getTags().trim().isEmpty()) {
         filteredApps.add(app);

@@ -8,11 +8,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
 
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
@@ -82,33 +84,42 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Updates the availability status for a list of applications. This method checks all URLs and
+   * Wraps ApplicationSpec objects with availability information. This method checks all URLs and
    * caches the results.
    *
-   * @param applications list of applications to check
+   * @param applications list of applications to wrap
+   * @return list of wrapped applications with availability status
    */
-  public void updateAvailability(List<ApplicationSpec> applications) {
-    if (!availabilityCheckEnabled) {
-      // Set all applications as available if checking is disabled
-      applications.forEach(app -> app.setAvailable(true));
-      return;
-    }
+  public List<ApplicationSpecWithAvailability> wrapWithAvailability(
+      List<ApplicationSpec> applications) {
+    List<ApplicationSpecWithAvailability> wrappedApps = new ArrayList<>();
 
     for (ApplicationSpec app : applications) {
-      String url = app.getUrl();
-      if (url != null && !url.isEmpty()) {
-        // Check if we have a cached result
-        Boolean cached = availabilityCache.get(url);
-        if (cached != null) {
-          app.setAvailable(cached);
-        } else {
-          // If not cached, default to true to avoid blocking
-          app.setAvailable(true);
-        }
+      ApplicationSpecWithAvailability wrapped = new ApplicationSpecWithAvailability(app);
+
+      if (!availabilityCheckEnabled) {
+        // Set all applications as available if checking is disabled
+        wrapped.setAvailable(true);
       } else {
-        app.setAvailable(true); // No URL to check, consider available
+        String url = app.getUrl();
+        if (url != null && !url.isEmpty()) {
+          // Check if we have a cached result
+          Boolean cached = availabilityCache.get(url);
+          if (cached != null) {
+            wrapped.setAvailable(cached);
+          } else {
+            // If not cached, default to true to avoid blocking
+            wrapped.setAvailable(true);
+          }
+        } else {
+          wrapped.setAvailable(true); // No URL to check, consider available
+        }
       }
+
+      wrappedApps.add(wrapped);
     }
+
+    return wrappedApps;
   }
 
   /**
