@@ -39,6 +39,7 @@
     - [Native containers (supports amd64)](#native-containers-supports-amd64-1)
 - [⚙️ Configuration](#️-configuration)
   - [✍️ Application settings](#️-application-settings)
+  - [🏠 Hosting at a Custom Root Path](#-hosting-at-a-custom-root-path)
   - [📝 Custom applications](#-custom-applications)
   - [🗒️ Annotations](#️-annotations)
 - [👌 Built With](#-built-with)
@@ -175,6 +176,7 @@ startpunkt:
   # Web ui configuration
   web:
     title: "Startpunkt"  # Title of the web UI
+    rootPath: "/"  # Root path where Startpunkt is hosted (e.g., "/startpunkt/" for subdirectory hosting)
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI
@@ -191,6 +193,45 @@ startpunkt:
         emphasisColor: "#FAB795"
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
+```
+
+### 🏠 Hosting at a Custom Root Path
+
+By default, Startpunkt is hosted at the root path (`/`) of your domain. If you need to host it at a subdirectory (e.g., `https://yourdomain.com/startpunkt/`), you can configure the `startpunkt.web.rootPath` setting in your `application.yaml`:
+
+```yaml
+startpunkt:
+  web:
+    rootPath: "/startpunkt/"
+```
+
+This configuration affects both the backend API and frontend assets, ensuring all routes work correctly when hosted at a custom path.
+
+**Important Notes:**
+- The `rootPath` must start and end with a forward slash (e.g., `/startpunkt/`, not `/startpunkt`)
+- When using an ingress controller or reverse proxy, make sure to configure it to forward requests to Startpunkt at the specified root path
+- This setting is different from the `rootPath` property in Application CRDs, which appends paths to individual application URLs
+
+**Example Ingress Configuration:**
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: startpunkt
+  namespace: default
+spec:
+  rules:
+  - host: yourdomain.com
+    http:
+      paths:
+      - path: /startpunkt
+        pathType: Prefix
+        backend:
+          service:
+            name: startpunkt
+            port:
+              number: 8080
 ```
 
 ### 📝 Custom applications
