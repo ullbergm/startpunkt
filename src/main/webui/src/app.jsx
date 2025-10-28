@@ -168,6 +168,8 @@ export function App() {
   const [title, setTitle] = useState("Startpunkt");
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
+  const [rootPath, setRootPath] = useState("/");
+  const [configLoaded, setConfigLoaded] = useState(false);
   useEffect(() => {
     var config = fetch('/api/config')
       .then((res) => res.json())
@@ -176,6 +178,8 @@ export function App() {
         setTitle(res.config.web.title);
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
+        setRootPath(res.config.web.rootPath || "/");
+        setConfigLoaded(true);
       });
 
   }, [])
@@ -186,12 +190,27 @@ export function App() {
   // Extract tags from URL path for filtering
   const getTagsFromUrl = () => {
     const pathname = window.location.pathname;
-    // Remove leading slash and return tags if present
-    const path = pathname.replace(/^\//, '');
+    // Normalize root path by ensuring it starts and ends with /
+    const normalizedRootPath = rootPath.replace(/\/$/, '') + '/';
+    const normalizedPathname = pathname.replace(/\/$/, '') + '/';
+    
+    // Remove the root path prefix if present
+    let relativePath = normalizedPathname;
+    if (normalizedPathname.startsWith(normalizedRootPath)) {
+      relativePath = normalizedPathname.substring(normalizedRootPath.length);
+    }
+    
+    // Remove leading and trailing slashes and return tags if present
+    const path = relativePath.replace(/^\/+|\/+$/g, '');
     return path && path !== '' ? path : null;
   };
 
   useEffect(() => {
+    // Wait for config to be loaded
+    if (!configLoaded) {
+      return;
+    }
+    
     const tags = getTagsFromUrl();
     const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
     
@@ -211,7 +230,7 @@ export function App() {
       .catch(err => {
         setBookmarkGroups([]);
       });
-  }, []);
+  }, [configLoaded]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&

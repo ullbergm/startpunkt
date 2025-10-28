@@ -4,6 +4,7 @@ import {
 import preact from '@preact/preset-vite'
 
 export default defineConfig({
+    base: process.env.VITE_ROOT_PATH || '/',
     plugins: [preact()],
     resolve: {
         alias: {

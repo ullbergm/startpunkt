@@ -41,6 +41,7 @@ startpunkt:
   # Web ui configuration
   web:
     title: "Startpunkt"  # Title of the web UI
+    rootPath: "/"  # Root path for the web UI (e.g., "/startpunkt/" for hosting at a subdirectory)
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI

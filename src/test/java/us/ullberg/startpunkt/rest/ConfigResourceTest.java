@@ -23,7 +23,8 @@ class ConfigResourceTest {
         .body("config.version", anything())
         .body("config.web.showGithubLink", equalTo(true))
         .body("config.web.checkForUpdates", equalTo(true))
-        .body("config.web.title", equalTo("Startpunkt"));
+        .body("config.web.title", equalTo("Startpunkt"))
+        .body("config.web.rootPath", equalTo("/"));
   }
 
   // Test the ping endpoint

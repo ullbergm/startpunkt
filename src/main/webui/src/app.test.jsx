@@ -35,7 +35,7 @@ beforeEach(() => {
       return Promise.resolve({
         json: () => Promise.resolve({
           config: {
-            web: { showGithubLink: true, title: 'Startpunkt', checkForUpdates: false },
+            web: { showGithubLink: true, title: 'Startpunkt', checkForUpdates: false, rootPath: '/' },
             version: '1.0.0',
           },
           version: '1.0.0',
