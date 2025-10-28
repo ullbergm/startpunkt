@@ -1,0 +1,74 @@
+# Copilot Setup Steps
+# This file tells GitHub Copilot how to set up the development environment
+# for building and testing code changes in this repository.
+
+setup:
+  # Install Java 21 (Temurin distribution)
+  - run: |
+      if ! command -v java &> /dev/null || [ "$(java -version 2>&1 | grep -oP '(?<=version ")[0-9]+' | head -1)" != "21" ]; then
+        echo "Java 21 is required but not installed or wrong version"
+        exit 1
+      fi
+    description: Verify Java 21 is installed
+
+  # Install Maven (wrapper is included in the repository)
+  - run: ./mvnw --version
+    description: Verify Maven wrapper is working
+
+  # Install Node.js and npm for frontend builds
+  - run: |
+      if ! command -v node &> /dev/null; then
+        echo "Node.js is required but not installed"
+        exit 1
+      fi
+    description: Verify Node.js is installed
+
+  # Install frontend dependencies (Maven will do this via Quinoa)
+  - run: ./mvnw clean compile -DskipTests
+    description: Download dependencies and compile backend
+    timeout: 300
+
+  # Run full verification (backend + frontend tests)
+  - run: ./mvnw verify
+    description: Build and test the entire application
+    timeout: 600
+
+# Commands to use for common development tasks
+commands:
+  build:
+    run: ./mvnw clean compile
+    description: Build the application without running tests
+    timeout: 300
+
+  test:
+    run: ./mvnw verify
+    description: Run all tests (Java + JavaScript)
+    timeout: 600
+
+  dev:
+    run: ./mvnw quarkus:dev
+    description: Start development server with hot reload
+    timeout: 300
+    detached: true
+
+  lint:
+    run: ./mvnw spotless:check checkstyle:check
+    description: Check code formatting and style
+    timeout: 120
+
+  format:
+    run: ./mvnw spotless:apply
+    description: Auto-format code
+    timeout: 120
+
+  frontend-dev:
+    run: cd src/main/webui && npm run dev
+    description: Start frontend development server only
+    working_directory: src/main/webui
+    detached: true
+
+  frontend-test:
+    run: cd src/main/webui && npm test
+    description: Run frontend tests only
+    working_directory: src/main/webui
+    timeout: 120
