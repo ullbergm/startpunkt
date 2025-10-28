@@ -337,5 +337,53 @@ describe('App', () => {
     });
   });
 
+  it('handles custom root path configuration', async () => {
+    // Mock config with custom root path
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/config')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({
+            config: {
+              web: { showGithubLink: true, title: 'Startpunkt', checkForUpdates: false, rootPath: '/startpunkt/' },
+              version: '1.0.0',
+            },
+            version: '1.0.0',
+          }),
+        });
+      }
+      if (url.includes('/api/i8n')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ "home.theme.toggle": "Toggle theme" }),
+        });
+      }
+      if (url.includes('/api/apps')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ 
+            groups: [
+              { name: 'G1', applications: [{ name: 'App1', url: 'http://app1.com' }] }
+            ] 
+          }),
+        });
+      }
+      if (url.includes('/api/bookmarks')) {
+        return Promise.resolve({
+          json: () => Promise.resolve({ groups: [] }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({}) });
+    });
+
+    render(<App />);
+    
+    // Wait for the app to load and config to be processed
+    await waitFor(() => {
+      expect(screen.getByTestId('app-groups')).toHaveTextContent('1');
+    });
+    
+    // Verify that fetch was called with correct URLs
+    expect(global.fetch).toHaveBeenCalledWith('/api/config');
+    expect(global.fetch).toHaveBeenCalledWith('/api/apps');
+  });
+
 
 });
