@@ -7,11 +7,18 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
@@ -32,16 +39,51 @@ public class AvailabilityCheckService {
   @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60")
   private int availabilityCheckInterval;
 
+  @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
+  private boolean ignoreCertificates;
+
   private final Map<String, Boolean> availabilityCache = new ConcurrentHashMap<>();
   private final HttpClient httpClient;
 
   /** Constructor that initializes the HTTP client with appropriate timeouts. */
-  public AvailabilityCheckService() {
-    this.httpClient =
+  public AvailabilityCheckService(
+      @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
+          boolean ignoreCertificates) {
+    HttpClient.Builder builder =
         HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build();
+            .followRedirects(HttpClient.Redirect.NORMAL);
+
+    if (ignoreCertificates) {
+      Log.warn(
+          "SSL certificate validation is disabled for availability checks. "
+              + "This is insecure and should only be used in development environments.");
+      try {
+        // Create a trust manager that accepts all certificates
+        TrustManager[] trustAllCerts =
+            new TrustManager[] {
+              new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                  return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+              }
+            };
+
+        // Install the all-trusting trust manager
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+
+        builder.sslContext(sslContext);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        Log.error("Failed to configure SSL context to ignore certificates", e);
+      }
+    }
+
+    this.httpClient = builder.build();
   }
 
   /**
