@@ -168,6 +168,7 @@ export function App() {
   const [title, setTitle] = useState("Startpunkt");
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(0);
   useEffect(() => {
     var config = fetch('/api/config')
       .then((res) => res.json())
@@ -176,6 +177,7 @@ export function App() {
         setTitle(res.config.web.title);
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
+        setRefreshInterval(res.config.web.refreshInterval || 0);
       });
 
   }, [])
@@ -191,7 +193,8 @@ export function App() {
     return path && path !== '' ? path : null;
   };
 
-  useEffect(() => {
+  // Function to fetch applications and bookmarks
+  const fetchData = () => {
     const tags = getTagsFromUrl();
     const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
     
@@ -211,7 +214,27 @@ export function App() {
       .catch(err => {
         setBookmarkGroups([]);
       });
+    
+    // Dispatch custom event to notify SpotlightSearch to refresh
+    window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  // Set up periodic refresh if configured
+  useEffect(() => {
+    if (refreshInterval > 0) {
+      const intervalId = setInterval(() => {
+        fetchData();
+      }, refreshInterval * 1000);
+
+      // Cleanup function to clear interval on unmount or when refreshInterval changes
+      return () => clearInterval(intervalId);
+    }
+  }, [refreshInterval]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&

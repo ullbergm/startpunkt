@@ -36,6 +36,10 @@ public class ConfigResource {
   @ConfigProperty(name = "startpunkt.web.title", defaultValue = "Startpunkt")
   public String title;
 
+  /** Refresh interval in seconds for applications and bookmarks (0 = disabled). */
+  @ConfigProperty(name = "startpunkt.web.refreshInterval", defaultValue = "300")
+  public int refreshInterval;
+
   /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   public String version;
@@ -81,7 +85,9 @@ public class ConfigResource {
                 "checkForUpdates",
                 checkForUpdates,
                 "title",
-                title)));
+                title,
+                "refreshInterval",
+                refreshInterval)));
   }
 
   /**

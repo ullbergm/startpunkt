@@ -125,6 +125,7 @@ export default function SpotlightSearch({ testVisible = false }) {
     const [apps, setApps] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const inputRef = useRef(null);
     const itemRefs = useRef([]);
     const indexRef = useRef(null);
@@ -133,6 +134,15 @@ export default function SpotlightSearch({ testVisible = false }) {
     useEffect(() => {
         if (typeof testVisible === 'boolean') setVisible(testVisible);
     }, [testVisible]);
+
+    // Listen for refresh events from the main app
+    useEffect(() => {
+        const handleRefresh = () => {
+            setRefreshTrigger(prev => prev + 1);
+        };
+        window.addEventListener('startpunkt-refresh', handleRefresh);
+        return () => window.removeEventListener('startpunkt-refresh', handleRefresh);
+    }, []);
 
     useEffect(() => {
         async function fetchAll() {
@@ -152,9 +162,20 @@ export default function SpotlightSearch({ testVisible = false }) {
                 }
             }
 
+            // Extract tags from URL path for filtering
+            const getTagsFromUrl = () => {
+                const pathname = window.location.pathname;
+                // Remove leading slash and return tags if present
+                const path = pathname.replace(/^\//, '');
+                return path && path !== '' ? path : null;
+            };
+
+            const tags = getTagsFromUrl();
+            const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
+
             // Fetch both apps and bookmarks in parallel
             const [appRes, bmRes] = await Promise.all([
-                safeFetch('/api/apps'),
+                safeFetch(appsEndpoint),
                 safeFetch('/api/bookmarks')
             ]);
 
@@ -181,7 +202,7 @@ export default function SpotlightSearch({ testVisible = false }) {
             indexRef.current = index;
         }
         fetchAll();
-    }, []);
+    }, [refreshTrigger]);
 
     useEffect(() => {
         if (query.trim() && indexRef.current) {

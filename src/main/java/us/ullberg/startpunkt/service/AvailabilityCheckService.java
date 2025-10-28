@@ -75,10 +75,17 @@ public class AvailabilityCheckService {
       HttpResponse<Void> response =
           httpClient.send(request, HttpResponse.BodyHandlers.discarding());
 
-      // Consider 2xx and 3xx status codes as available
-      return response.statusCode() < 400;
+      // Consider 2xx, 3xx, and 4xx status codes as available
+      // 4xx means the server is responding but rejecting our specific request
+      // Only 5xx server errors indicate the service is actually unavailable
+      if (response.statusCode() >= 200 && response.statusCode() < 500) {
+        return true;
+      } else {
+        Log.warnf("Availability check for %s returned status code %d", url, response.statusCode());
+        return false;
+      }
     } catch (Exception e) {
-      Log.debugf("Availability check failed for %s: %s", url, e.getMessage());
+      Log.warnf("Availability check failed for %s: %s", url, e.getMessage());
       return false;
     }
   }
