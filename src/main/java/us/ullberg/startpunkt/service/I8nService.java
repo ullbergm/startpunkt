@@ -34,24 +34,26 @@ public class I8nService {
    */
   @Timed(value = "startpunkt.i8n", description = "Get a translation for a given language")
   public String getTranslation(String language) throws IOException {
+    Log.debugf("Getting translation for language: %s", language);
     InputStream translation;
 
     // Check language format
     if (language.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
+      Log.debugf("Language format valid: %s", language);
       translation = getClass().getResourceAsStream("/i8n/" + language + ".json");
     } else {
-      Log.warn("Invalid language format, falling back to US English");
+      Log.warnf("Invalid language format: %s, falling back to US English", language);
       translation = getClass().getResourceAsStream("/i8n/en-US.json");
     }
 
     // Fallback to configured default language if translation is not found
     if (translation == null) {
-      Log.info(
-          "No translation found for language: "
-              + language
-              + ", falling back to default language: "
-              + defaultLanguage);
+      Log.infof(
+          "No translation found for language: %s, falling back to default language: %s",
+          language, defaultLanguage);
       translation = getClass().getResourceAsStream("/i8n/" + defaultLanguage + ".json");
+    } else {
+      Log.debugf("Translation file found for language: %s", language);
     }
 
     return new String(translation.readAllBytes(), StandardCharsets.UTF_8);

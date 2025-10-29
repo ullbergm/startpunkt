@@ -100,6 +100,7 @@ public class ApplicationResource {
 
   // Method to retrieve the list of applications
   private ArrayList<ApplicationSpec> retrieveApps() {
+    Log.debug("Retrieving applications from Kubernetes");
     // Check if the client is available
     if (kubernetesClient == null) {
       Log.warn("KubernetesClient is null, returning empty application list");
@@ -109,6 +110,8 @@ public class ApplicationResource {
     // Create a list of application wrappers to retrieve applications from
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
     applicationWrappers.add(new StartpunktApplicationWrapper());
+    Log.debugf("Enabled wrappers: Startpunkt=true, Hajimari=%s, OpenShift=%s, Ingress=%s, Istio=%s, GatewayAPI=%s",
+        hajimariEnabled, openshiftEnabled, ingressEnabled, istioVirtualServiceEnabled, gatewayApiEnabled);
 
     if (hajimariEnabled) {
       applicationWrappers.add(new HajimariApplicationWrapper());
@@ -139,9 +142,11 @@ public class ApplicationResource {
     try {
       // Retrieve the applications from the application wrappers using the injected client
       for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        apps.addAll(
-            applicationWrapper.getApplicationSpecs(
-                kubernetesClient, anyNamespace, matchNames.orElse(List.of())));
+        Log.debugf("Retrieving applications using wrapper: %s", applicationWrapper.getClass().getSimpleName());
+        var wrapperApps = applicationWrapper.getApplicationSpecs(
+                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
+        Log.debugf("Retrieved %d applications from %s", wrapperApps.size(), applicationWrapper.getClass().getSimpleName());
+        apps.addAll(wrapperApps);
       }
     } catch (Exception e) {
       Log.error("Error retrieving applications from Kubernetes", e);
@@ -151,6 +156,7 @@ public class ApplicationResource {
 
     // Sort the list of applications
     Collections.sort(apps);
+    Log.debugf("Total applications retrieved: %d", apps.size());
 
     // Register URLs for availability checking
     for (ApplicationSpec app : apps) {
@@ -255,16 +261,22 @@ public class ApplicationResource {
    * @return HTTP 200 with grouped applications or 404 if none found
    */
   private Response getAppsWithTags(String tags) {
+    Log.debugf("Getting applications with tag filter: %s", tags != null ? tags : "(none)");
     // Retrieve the list of applications with availability
     ArrayList<ApplicationSpecWithAvailability> applist = retrieveAppsWithAvailability();
+    Log.debugf("Retrieved %d applications with availability", applist.size());
 
     // Apply tag filtering
     if (tags != null && !tags.trim().isEmpty()) {
       // If tags are specified, show applications with matching tags AND untagged applications
+      Log.debugf("Filtering applications by tags: %s", tags);
       applist = filterApplicationsByTags(applist, tags);
+      Log.debugf("After tag filtering: %d applications", applist.size());
     } else {
       // If no tags are specified, show only untagged applications
+      Log.debug("No tags specified, showing only untagged applications");
       applist = filterApplicationsWithoutTags(applist);
+      Log.debugf("After filtering untagged: %d applications", applist.size());
     }
 
     // Create a list to store application groups
@@ -285,11 +297,14 @@ public class ApplicationResource {
       if (group == null) {
         group = new ApplicationGroup(a.getGroup());
         groups.add(group);
+        Log.debugf("Created new application group: %s", a.getGroup());
       }
 
       // Add the application to the group
       group.addApplication(a);
     }
+
+    Log.debugf("Grouped applications into %d groups", groups.size());
 
     if (groups.isEmpty()) {
       return Response.status(404, "No applications found").build();

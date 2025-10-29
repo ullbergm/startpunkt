@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
+import io.quarkus.logging.Log;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -84,25 +85,32 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   protected GenericKubernetesResourceList getGenericKubernetesResources(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     ResourceDefinitionContext resourceDefinitionContext = getResourceDefinitionContext();
+    Log.debugf("Fetching %s/%s resources from Kubernetes", group, pluralKind);
 
     try {
       if (anyNamespace) {
-        return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+        Log.debug("Searching across all namespaces");
+        GenericKubernetesResourceList result = client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+        Log.debugf("Found %d %s resources in all namespaces", result.getItems().size(), pluralKind);
+        return result;
       }
 
       GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+      Log.debugf("Searching in specific namespaces: %s", matchNames);
       for (String namespace : matchNames) {
-        list.getItems()
-            .addAll(
-                client
+        var items = client
                     .genericKubernetesResources(resourceDefinitionContext)
                     .inNamespace(namespace)
                     .list()
-                    .getItems());
+                    .getItems();
+        Log.debugf("Found %d %s resources in namespace: %s", items.size(), pluralKind, namespace);
+        list.getItems().addAll(items);
       }
 
+      Log.debugf("Total %s resources found: %d", pluralKind, list.getItems().size());
       return list;
     } catch (Exception ex) {
+      Log.warnf("Error retrieving %s/%s resources: %s", group, pluralKind, ex.getMessage());
       // Returning empty list if retrieval fails. Consider improving error handling.
       return new GenericKubernetesResourceList();
     }
