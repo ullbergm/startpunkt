@@ -1,10 +1,19 @@
-import { useState } from 'preact/hooks';
+import { useState, useRef, useEffect } from 'preact/hooks';
 import { Text } from 'preact-i18n';
 
 export function LayoutSettings({ layoutPrefs }) {
   const { preferences, updatePreference, savePreset, loadPreset, deletePreset, resetToDefaults } = layoutPrefs;
   const [presetName, setPresetName] = useState('');
   const [showPresetInput, setShowPresetInput] = useState(false);
+  const presetInputRef = useRef(null);
+
+  // Auto-focus the preset name input when it becomes visible
+  useEffect(() => {
+    if (showPresetInput && presetInputRef.current) {
+      presetInputRef.current.focus();
+      presetInputRef.current.select();
+    }
+  }, [showPresetInput]);
 
   const handleSavePreset = () => {
     if (presetName.trim()) {
@@ -43,61 +52,25 @@ export function LayoutSettings({ layoutPrefs }) {
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-layout-text"
           style="max-width: 300px; max-height: 80vh; overflow-y: auto;"
+          onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">
             <h6 class="mb-2">Layout Settings</h6>
             
-            {/* Grid Size */}
-            <div class="mb-3">
-              <label class="form-label small mb-1">Card Size</label>
-              <div class="btn-group w-100" role="group">
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="gridSize" 
-                  id="gridSizeSmall" 
-                  checked={preferences.gridSize === 'small'}
-                  onChange={() => updatePreference('gridSize', 'small')}
-                />
-                <label class="btn btn-outline-primary btn-sm" for="gridSizeSmall">S</label>
-                
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="gridSize" 
-                  id="gridSizeMedium" 
-                  checked={preferences.gridSize === 'medium'}
-                  onChange={() => updatePreference('gridSize', 'medium')}
-                />
-                <label class="btn btn-outline-primary btn-sm" for="gridSizeMedium">M</label>
-                
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="gridSize" 
-                  id="gridSizeLarge" 
-                  checked={preferences.gridSize === 'large'}
-                  onChange={() => updatePreference('gridSize', 'large')}
-                />
-                <label class="btn btn-outline-primary btn-sm" for="gridSizeLarge">L</label>
-              </div>
-            </div>
-
             {/* Column Count */}
             <div class="mb-3">
-              <label for="columnCountSelect" class="form-label small mb-1">Columns</label>
-              <select 
-                id="columnCountSelect"
-                class="form-select form-select-sm" 
+              <label for="columnCountSlider" class="form-label small mb-1">
+                Columns: {preferences.columnCount}
+              </label>
+              <input 
+                type="range"
+                class="form-range"
+                id="columnCountSlider"
+                min="1"
+                max="6"
                 value={preferences.columnCount}
                 onChange={(e) => updatePreference('columnCount', parseInt(e.target.value))}
-              >
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-              </select>
+              />
             </div>
 
             {/* Spacing */}
@@ -224,6 +197,7 @@ export function LayoutSettings({ layoutPrefs }) {
               {showPresetInput ? (
                 <div class="input-group input-group-sm">
                   <input 
+                    ref={presetInputRef}
                     type="text" 
                     class="form-control" 
                     placeholder="Preset name"

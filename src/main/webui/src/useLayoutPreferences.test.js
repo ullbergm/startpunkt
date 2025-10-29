@@ -30,23 +30,22 @@ describe('useLayoutPreferences', () => {
   test('should initialize with default preferences', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
-    expect(result.current.preferences.gridSize).toBe('medium');
     expect(result.current.preferences.compactMode).toBe(true);
     expect(result.current.preferences.columnCount).toBe(5);
     expect(result.current.preferences.showDescription).toBe(true);
     expect(result.current.preferences.showTags).toBe(false);
     expect(result.current.preferences.showStatus).toBe(true);
-    expect(result.current.preferences.spacing).toBe('tight');
+    expect(result.current.preferences.spacing).toBe('normal');
   });
 
   test('should update individual preference', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
     act(() => {
-      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('compactMode', false);
     });
     
-    expect(result.current.preferences.gridSize).toBe('large');
+    expect(result.current.preferences.compactMode).toBe(false);
   });
 
   test('should clear current preset when manually changing settings', () => {
@@ -59,7 +58,7 @@ describe('useLayoutPreferences', () => {
     expect(result.current.preferences.currentPreset).toBe('myPreset');
     
     act(() => {
-      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('compactMode', false);
     });
     
     expect(result.current.preferences.currentPreset).toBeNull();
@@ -69,7 +68,7 @@ describe('useLayoutPreferences', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
     act(() => {
-      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('spacing', 'wide');
     });
     
     act(() => {
@@ -77,13 +76,13 @@ describe('useLayoutPreferences', () => {
     });
     
     act(() => {
-      result.current.savePreset('largeThreeColumn');
+      result.current.savePreset('wideThreeColumn');
     });
     
-    expect(result.current.preferences.savedPresets.largeThreeColumn).toBeDefined();
-    expect(result.current.preferences.savedPresets.largeThreeColumn.gridSize).toBe('large');
-    expect(result.current.preferences.savedPresets.largeThreeColumn.columnCount).toBe(3);
-    expect(result.current.preferences.currentPreset).toBe('largeThreeColumn');
+    expect(result.current.preferences.savedPresets.wideThreeColumn).toBeDefined();
+    expect(result.current.preferences.savedPresets.wideThreeColumn.spacing).toBe('wide');
+    expect(result.current.preferences.savedPresets.wideThreeColumn.columnCount).toBe(3);
+    expect(result.current.preferences.currentPreset).toBe('wideThreeColumn');
   });
 
   test('should load preset', () => {
@@ -91,7 +90,6 @@ describe('useLayoutPreferences', () => {
     
     act(() => {
       result.current.savePreset('testPreset', {
-        gridSize: 'small',
         compactMode: false,
         columnCount: 4,
         showDescription: false,
@@ -103,7 +101,7 @@ describe('useLayoutPreferences', () => {
     
     // Change settings
     act(() => {
-      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('spacing', 'wide');
       result.current.updatePreference('compactMode', true);
     });
     
@@ -112,7 +110,7 @@ describe('useLayoutPreferences', () => {
       result.current.loadPreset('testPreset');
     });
     
-    expect(result.current.preferences.gridSize).toBe('small');
+    expect(result.current.preferences.spacing).toBe('tight');
     expect(result.current.preferences.compactMode).toBe(false);
     expect(result.current.preferences.currentPreset).toBe('testPreset');
   });
@@ -138,7 +136,7 @@ describe('useLayoutPreferences', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
     act(() => {
-      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('spacing', 'wide');
       result.current.updatePreference('compactMode', false);
       result.current.savePreset('test');
     });
@@ -147,33 +145,9 @@ describe('useLayoutPreferences', () => {
       result.current.resetToDefaults();
     });
     
-    expect(result.current.preferences.gridSize).toBe('medium');
+    expect(result.current.preferences.spacing).toBe('tight');
     expect(result.current.preferences.compactMode).toBe(true);
     expect(result.current.preferences.savedPresets).toEqual({});
-  });
-
-  test('should generate CSS variables for small grid size', () => {
-    const { result } = renderHook(() => useLayoutPreferences());
-    
-    act(() => {
-      result.current.updatePreference('gridSize', 'small');
-    });
-    
-    const vars = result.current.getCSSVariables();
-    expect(vars['--card-width']).toBe('200px');
-    expect(vars['--card-icon-size']).toBe('32px');
-  });
-
-  test('should generate CSS variables for large grid size', () => {
-    const { result } = renderHook(() => useLayoutPreferences());
-    
-    act(() => {
-      result.current.updatePreference('gridSize', 'large');
-    });
-    
-    const vars = result.current.getCSSVariables();
-    expect(vars['--card-width']).toBe('400px');
-    expect(vars['--card-icon-size']).toBe('64px');
   });
 
   test('should generate CSS variables for tight spacing', () => {

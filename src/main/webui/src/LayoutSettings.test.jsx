@@ -5,13 +5,12 @@ import { LayoutSettings } from './LayoutSettings';
 describe('LayoutSettings', () => {
   const mockLayoutPrefs = {
     preferences: {
-      gridSize: 'medium',
       compactMode: true,
       columnCount: 5,
       showDescription: true,
-      showTags: true,
+      showTags: false,
       showStatus: true,
-      spacing: 'normal',
+      spacing: 'tight',
       currentPreset: null,
       savedPresets: {}
     },
@@ -48,22 +47,6 @@ describe('LayoutSettings', () => {
     
     const button = screen.getByLabelText('Layout settings');
     expect(button).toHaveAttribute('data-bs-toggle', 'dropdown');
-  });
-
-  test('changes grid size', () => {
-    render(
-      <IntlProvider definition={{}}>
-        <LayoutSettings layoutPrefs={mockLayoutPrefs} />
-      </IntlProvider>
-    );
-    
-    const button = screen.getByLabelText('Layout settings');
-    fireEvent.click(button);
-    
-    const largeButton = screen.getByLabelText('L');
-    fireEvent.click(largeButton);
-    
-    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('gridSize', 'large');
   });
 
   test('changes column count', () => {
@@ -108,10 +91,10 @@ describe('LayoutSettings', () => {
     const button = screen.getByLabelText('Layout settings');
     fireEvent.click(button);
     
-    const tightButton = screen.getByLabelText('Tight');
-    fireEvent.click(tightButton);
+    const normalButton = screen.getByLabelText('Normal');
+    fireEvent.click(normalButton);
     
-    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('spacing', 'tight');
+    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('spacing', 'normal');
   });
 
   test('toggles card content visibility options', () => {
@@ -174,8 +157,8 @@ describe('LayoutSettings', () => {
       preferences: {
         ...mockLayoutPrefs.preferences,
         savedPresets: {
-          'Preset 1': { gridSize: 'small' },
-          'Preset 2': { gridSize: 'large' }
+          'Preset 1': { spacing: 'tight' },
+          'Preset 2': { spacing: 'wide' }
         }
       }
     };
@@ -199,7 +182,7 @@ describe('LayoutSettings', () => {
       preferences: {
         ...mockLayoutPrefs.preferences,
         savedPresets: {
-          'Test Preset': { gridSize: 'small' }
+          'Test Preset': { spacing: 'tight' }
         }
       }
     };
@@ -225,7 +208,7 @@ describe('LayoutSettings', () => {
       preferences: {
         ...mockLayoutPrefs.preferences,
         savedPresets: {
-          'To Delete': { gridSize: 'small' }
+          'To Delete': { spacing: 'tight' }
         }
       }
     };

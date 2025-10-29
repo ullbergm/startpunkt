@@ -4,9 +4,8 @@ import { useLocalStorage } from '@rehooks/local-storage';
  * Custom hook for managing layout preferences with localStorage persistence
  * 
  * Layout preferences include:
- * - gridSize: 'small' | 'medium' | 'large'
  * - compactMode: boolean
- * - columnCount: number (2-6)
+ * - columnCount: number (1-6)
  * - showDescription: boolean
  * - showTags: boolean
  * - showStatus: boolean
@@ -16,13 +15,12 @@ import { useLocalStorage } from '@rehooks/local-storage';
  */
 
 const DEFAULT_PREFERENCES = {
-  gridSize: 'medium',
   compactMode: true,
   columnCount: 5,
   showDescription: true,
   showTags: false,
   showStatus: true,
-  spacing: 'tight',
+  spacing: 'normal',
   currentPreset: null,
   savedPresets: {}
 };
@@ -45,7 +43,6 @@ export function useLayoutPreferences() {
 
   const savePreset = (name, presetData = null) => {
     const dataToSave = presetData || {
-      gridSize: preferences.gridSize,
       compactMode: preferences.compactMode,
       columnCount: preferences.columnCount,
       showDescription: preferences.showDescription,
@@ -94,26 +91,6 @@ export function useLayoutPreferences() {
   // Get CSS variables based on current preferences
   const getCSSVariables = () => {
     const vars = {};
-
-    // Card width based on grid size
-    switch (preferences.gridSize) {
-      case 'small':
-        vars['--card-width'] = '200px';
-        vars['--card-icon-size'] = '32px';
-        vars['--card-font-size'] = '0.875rem';
-        break;
-      case 'large':
-        vars['--card-width'] = '400px';
-        vars['--card-icon-size'] = '64px';
-        vars['--card-font-size'] = '1.125rem';
-        break;
-      case 'medium':
-      default:
-        vars['--card-width'] = '280px';
-        vars['--card-icon-size'] = '48px';
-        vars['--card-font-size'] = '1rem';
-        break;
-    }
 
     // Gap/spacing between cards
     switch (preferences.spacing) {

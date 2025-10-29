@@ -20,7 +20,7 @@ export function ApplicationGroup(props) {
 
   return (
     <div style={{ marginBottom: cssVars['--group-spacing'] || '3rem' }}>
-      <h2 class="pb-2 border-bottom text-uppercase">{props.group}</h2>
+      <h3 class="pb-2 border-bottom text-uppercase">{props.group}</h3>
 
       <div class={paddingClass} style={gridStyle}>
         {Array.isArray(props.applications) && props.applications.map((app) => (

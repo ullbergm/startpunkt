@@ -20,8 +20,6 @@ export function Application(props) {
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
   const showTags = layoutPrefs?.preferences.showTags !== false;
   const showStatus = layoutPrefs?.preferences.showStatus !== false;
-  const iconSize = layoutPrefs?.getCSSVariables()['--card-icon-size']?.replace('px', '') || '48';
-  const fontSize = layoutPrefs?.getCSSVariables()['--card-font-size'] || '1rem';
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
   
   // Parse tags from comma-separated string
@@ -49,11 +47,11 @@ export function Application(props) {
           aria-label={props.app.name}
         />
       )}
-      {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable, iconSize)}
-      <div class="px-2">
-        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
+      {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
+      <div class="px-2" style={{ fontSize: '0.875rem' }}>
+        <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
           {props.app.name}
-        </h3>
+        </h4>
         {showDescription && props.app.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
         )}
