@@ -47,17 +47,11 @@ describe('BookmarkGroup component', () => {
         expect(container.querySelectorAll('[data-testid="bookmark"]')).toHaveLength(0);
     });
 
-    test('renders bookmarks inside correct Bootstrap grid container', () => {
+    test('renders bookmarks inside CSS grid container', () => {
         render(<BookmarkGroup group="Grid Test" bookmarks={bookmarks} />);
-        const gridDiv = document.querySelector('.row');
-        expect(gridDiv).toBeInTheDocument();
-        expect(gridDiv).toHaveClass(
-            'row-cols-1',
-            'row-cols-sm-2',
-            'row-cols-md-3',
-            'row-cols-lg-4',
-            'g-4',
-            'py-5'
-        );
+        const container = document.querySelector('[style*="display: grid"]');
+        expect(container).toBeInTheDocument();
+        // Should have grid display style
+        expect(container.style.display).toBe('grid');
     });
 });

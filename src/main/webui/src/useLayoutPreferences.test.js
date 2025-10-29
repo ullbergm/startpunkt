@@ -1,0 +1,230 @@
+import { renderHook, act } from '@testing-library/preact';
+import { useLayoutPreferences } from './useLayoutPreferences';
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    }
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+});
+
+describe('useLayoutPreferences', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  test('should initialize with default preferences', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    expect(result.current.preferences.gridSize).toBe('medium');
+    expect(result.current.preferences.viewMode).toBe('grid');
+    expect(result.current.preferences.compactMode).toBe(false);
+    expect(result.current.preferences.columnCount).toBe('auto');
+    expect(result.current.preferences.spacing).toBe('normal');
+  });
+
+  test('should update individual preference', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+    });
+    
+    expect(result.current.preferences.gridSize).toBe('large');
+  });
+
+  test('should clear current preset when manually changing settings', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.savePreset('myPreset');
+    });
+    
+    expect(result.current.preferences.currentPreset).toBe('myPreset');
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+    });
+    
+    expect(result.current.preferences.currentPreset).toBeNull();
+  });
+
+  test('should save preset with current settings', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+    });
+    
+    act(() => {
+      result.current.updatePreference('viewMode', 'list');
+    });
+    
+    act(() => {
+      result.current.savePreset('largeList');
+    });
+    
+    expect(result.current.preferences.savedPresets.largeList).toBeDefined();
+    expect(result.current.preferences.savedPresets.largeList.gridSize).toBe('large');
+    expect(result.current.preferences.savedPresets.largeList.viewMode).toBe('list');
+    expect(result.current.preferences.currentPreset).toBe('largeList');
+  });
+
+  test('should load preset', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.savePreset('testPreset', {
+        gridSize: 'small',
+        viewMode: 'list',
+        compactMode: true,
+        columnCount: 4,
+        showDescription: false,
+        showTags: true,
+        showStatus: false,
+        spacing: 'tight'
+      });
+    });
+    
+    // Change settings
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('compactMode', false);
+    });
+    
+    // Load preset
+    act(() => {
+      result.current.loadPreset('testPreset');
+    });
+    
+    expect(result.current.preferences.gridSize).toBe('small');
+    expect(result.current.preferences.viewMode).toBe('list');
+    expect(result.current.preferences.compactMode).toBe(true);
+    expect(result.current.preferences.currentPreset).toBe('testPreset');
+  });
+
+  test('should delete preset', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.savePreset('toDelete');
+    });
+    
+    expect(result.current.preferences.savedPresets.toDelete).toBeDefined();
+    
+    act(() => {
+      result.current.deletePreset('toDelete');
+    });
+    
+    expect(result.current.preferences.savedPresets.toDelete).toBeUndefined();
+    expect(result.current.preferences.currentPreset).toBeNull();
+  });
+
+  test('should reset to defaults', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+      result.current.updatePreference('compactMode', true);
+      result.current.savePreset('test');
+    });
+    
+    act(() => {
+      result.current.resetToDefaults();
+    });
+    
+    expect(result.current.preferences.gridSize).toBe('medium');
+    expect(result.current.preferences.compactMode).toBe(false);
+    expect(result.current.preferences.savedPresets).toEqual({});
+  });
+
+  test('should generate CSS variables for small grid size', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'small');
+    });
+    
+    const vars = result.current.getCSSVariables();
+    expect(vars['--card-width']).toBe('200px');
+    expect(vars['--card-icon-size']).toBe('32px');
+  });
+
+  test('should generate CSS variables for large grid size', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('gridSize', 'large');
+    });
+    
+    const vars = result.current.getCSSVariables();
+    expect(vars['--card-width']).toBe('400px');
+    expect(vars['--card-icon-size']).toBe('64px');
+  });
+
+  test('should generate CSS variables for tight spacing', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('spacing', 'tight');
+    });
+    
+    const vars = result.current.getCSSVariables();
+    expect(vars['--card-gap']).toBe('0.5rem');
+  });
+
+  test('should generate CSS variables for compact mode', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('compactMode', true);
+    });
+    
+    const vars = result.current.getCSSVariables();
+    expect(vars['--card-padding']).toBe('0.5rem');
+    expect(vars['--group-spacing']).toBe('1rem');
+  });
+
+  test('should generate grid template columns for list view', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('viewMode', 'list');
+    });
+    
+    const columns = result.current.getGridTemplateColumns();
+    expect(columns).toBe('1fr');
+  });
+
+  test('should generate grid template columns for auto column count', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    const columns = result.current.getGridTemplateColumns();
+    expect(columns).toContain('repeat(auto-fill');
+  });
+
+  test('should generate grid template columns for fixed column count', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    act(() => {
+      result.current.updatePreference('columnCount', 4);
+    });
+    
+    const columns = result.current.getGridTemplateColumns();
+    expect(columns).toBe('repeat(4, 1fr)');
+  });
+});

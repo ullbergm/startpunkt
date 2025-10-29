@@ -101,14 +101,15 @@ describe('Bookmark component', () => {
         };
         render(<Bookmark bookmark={bookmarkNoInfo} />);
         expect(screen.getByText(baseBookmark.name)).toBeInTheDocument();
-        // Empty info should still create the element but with empty content
-        const infoElements = screen.getAllByText('', { selector: 'p.accent' });
-        expect(infoElements[0]).toBeInTheDocument();
+        // With showDescription true by default, empty info should not render a p element
+        const infoElements = screen.queryAllByText('', { selector: 'p.accent' });
+        expect(infoElements.length).toBe(0);
     });
 
     test('applies correct CSS classes', () => {
         render(<Bookmark bookmark={baseBookmark} />);
-        const container = screen.getByText(baseBookmark.name).closest('.col');
-        expect(container).toHaveClass('col', 'd-flex', 'align-items-start');
+        // Find the outer container div with d-flex class
+        const containers = screen.getByText(baseBookmark.name).parentElement.parentElement;
+        expect(containers).toHaveClass('d-flex', 'align-items-start');
     });
 });

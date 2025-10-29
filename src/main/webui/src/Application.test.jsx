@@ -174,7 +174,7 @@ describe('Application component', () => {
       available: false,
     };
     const { container } = render(<Application app={unavailableApp} />);
-    const appContainer = container.querySelector('.col');
+    const appContainer = container.querySelector('.unavailable');
     expect(appContainer).toHaveClass('unavailable');
     expect(appContainer.style.opacity).toBe('0.5');
     expect(appContainer.style.cursor).toBe('not-allowed');
