@@ -34,7 +34,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          repository: ullbergm/startpunkt
           fetch-depth: 0
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
@@ -50,6 +49,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email \
             "github-actions[bot]@users.noreply.github.com"
+          
+          # Ensure the remote is using SSH, not HTTPS
+          git remote set-url origin git@github.com:ullbergm/startpunkt.git
 
       - name: Get current version from latest tag
         id: current_version
