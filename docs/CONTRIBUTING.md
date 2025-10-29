@@ -121,7 +121,7 @@ The changelog groups changes into the following categories based on the conventi
 - 🔨 **Refactoring** (`refactor:`) - Code refactoring
 - 🧪 **Tests** (`test:`) - Test additions or modifications
 - 📦 **Dependencies** (`chore:`) - Dependency updates and maintenance
-- 🚀 **CI/CD** (`ci:`) - CI/CD workflow changes
+- ⚙️ **CI/CD** (`ci:`) - CI/CD workflow changes
 - 🎨 **Styling** (`style:`) - Code style changes
 - ⚡ **Performance** (`perf:`) - Performance improvements
 - 🔧 **Build** (`build:`) - Build system changes
