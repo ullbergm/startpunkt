@@ -133,13 +133,16 @@ public class AvailabilityCheckService {
       HttpResponse<Void> response =
           httpClient.send(request, HttpResponse.BodyHandlers.discarding());
 
-      // Consider 2xx, 3xx, and 4xx status codes as available
-      // 4xx means the server is responding but rejecting our specific request
-      // Only 5xx server errors indicate the service is actually unavailable
-      if (response.statusCode() >= 200 && response.statusCode() < 500) {
+      // Consider 2xx and 3xx status codes as available
+      // 404 Not Found should count as unavailable (resource doesn't exist)
+      // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting our request
+      // 5xx server errors indicate the service is actually unavailable
+      int statusCode = response.statusCode();
+      if ((statusCode >= 200 && statusCode < 400)
+          || (statusCode >= 400 && statusCode < 500 && statusCode != 404)) {
         return true;
       } else {
-        Log.warnf("Availability check for %s returned status code %d", url, response.statusCode());
+        Log.warnf("Availability check for %s returned status code %d", url, statusCode);
         return false;
       }
     } catch (Exception e) {
