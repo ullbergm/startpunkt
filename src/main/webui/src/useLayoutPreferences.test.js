@@ -33,7 +33,10 @@ describe('useLayoutPreferences', () => {
     expect(result.current.preferences.gridSize).toBe('medium');
     expect(result.current.preferences.compactMode).toBe(true);
     expect(result.current.preferences.columnCount).toBe(5);
-    expect(result.current.preferences.spacing).toBe('normal');
+    expect(result.current.preferences.showDescription).toBe(true);
+    expect(result.current.preferences.showTags).toBe(false);
+    expect(result.current.preferences.showStatus).toBe(true);
+    expect(result.current.preferences.spacing).toBe('tight');
   });
 
   test('should update individual preference', () => {
