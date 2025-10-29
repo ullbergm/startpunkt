@@ -71,7 +71,7 @@ export function useWebSocket(url, options = {}) {
       setStatus('connecting');
       
       // Convert http/https to ws/wss
-      const wsUrl = url.replace(/^http/, 'ws');
+      const wsUrl = url.replace(/^http(s)?:/, 'ws$1:');
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = (event) => {
