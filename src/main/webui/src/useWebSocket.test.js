@@ -89,7 +89,6 @@ describe('useWebSocket', () => {
     // Simulate incoming message
     const testMessage = { type: 'APPLICATION_ADDED', data: { name: 'test-app' } };
     await act(async () => {
-      const ws = result.current;
       // Access the internal websocket and trigger message
       const event = { data: JSON.stringify(testMessage) };
       // We need to access the ws ref somehow - this is a limitation of the test
