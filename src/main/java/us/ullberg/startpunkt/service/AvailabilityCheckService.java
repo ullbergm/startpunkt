@@ -39,8 +39,8 @@ public class AvailabilityCheckService {
   @ConfigProperty(name = "startpunkt.availability.timeout", defaultValue = "5")
   private int availabilityTimeout;
 
-  @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60")
-  private int availabilityCheckInterval;
+  @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60s")
+  private String availabilityCheckInterval;
 
   @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
   private boolean ignoreCertificates;
@@ -186,7 +186,7 @@ public class AvailabilityCheckService {
    * Background job that periodically checks application availability. This runs asynchronously to
    * avoid blocking the main request flow.
    */
-  @Scheduled(every = "10s", delayed = "5s")
+  @Scheduled(every = "{startpunkt.availability.interval}", delayed = "5s")
   void refreshAvailability() {
     if (!availabilityCheckEnabled) {
       return;

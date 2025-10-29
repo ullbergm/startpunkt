@@ -9,7 +9,7 @@ startpunkt:
   availability:
     enabled: true  # If true, check application availability
     timeout: 5  # Timeout in seconds for availability checks
-    interval: 60  # Interval in seconds between availability checks
+    interval: 60s  # Interval between availability checks (e.g., 60s, 5m, 1h)
     ignoreCertificates: false  # If true, ignore SSL certificate validation errors (insecure, use only in development)
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
