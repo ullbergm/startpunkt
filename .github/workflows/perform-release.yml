@@ -35,7 +35,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ''
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Setup Java ${{ env.JAVA_VERSION }}
