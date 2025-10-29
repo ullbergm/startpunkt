@@ -6,6 +6,7 @@ import { writeStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
 import SpotlightSearch from './SpotlightSearch';
+import { useWebSocket } from './useWebSocket';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -169,15 +170,21 @@ export function App() {
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
+  const [websocketEnabled, setWebsocketEnabled] = useState(false);
+  
   useEffect(() => {
     var config = fetch('/api/config')
       .then((res) => res.json())
       .then((res) => {
+        console.log('Config loaded:', res);
         setShowGitHubLink(res.config.web.showGithubLink);
         setTitle(res.config.web.title);
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
         setRefreshInterval(res.config.web.refreshInterval || 0);
+        const wsEnabled = res.config.websocket?.enabled || false;
+        console.log('WebSocket enabled:', wsEnabled);
+        setWebsocketEnabled(wsEnabled);
       });
 
   }, [])
@@ -198,12 +205,15 @@ export function App() {
     const tags = getTagsFromUrl();
     const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
     
+    console.log('[fetchData] Fetching applications from:', appsEndpoint);
     fetch(appsEndpoint)
       .then(res => res.json())
       .then(res => {
+        console.log('[fetchData] Received application data:', res);
         setApplicationGroups(res.groups || []);
       })
       .catch(err => {
+        console.error('[fetchData] Error fetching applications:', err);
         setApplicationGroups([]);
       });
     fetch('/api/bookmarks')
@@ -219,14 +229,70 @@ export function App() {
     window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
   };
 
+  // WebSocket connection for real-time updates
+  const websocket = useWebSocket(
+    `${window.location.origin}/api/ws/updates`,
+    {
+      enabled: websocketEnabled,
+      onMessage: (message) => {
+        console.log('WebSocket message received:', message);
+        
+        // Handle different event types
+        if (message.type === 'APPLICATION_ADDED' || 
+            message.type === 'APPLICATION_REMOVED' || 
+            message.type === 'APPLICATION_UPDATED' ||
+            message.type === 'STATUS_CHANGED') {
+          // Refresh applications when changes occur or status changes
+          console.log('Refreshing applications due to:', message.type);
+          // Add a small delay to ensure backend cache is fully updated
+          setTimeout(() => {
+            fetchData();
+          }, 100); // 100ms delay to avoid race condition
+        } else if (message.type === 'BOOKMARK_ADDED' || 
+                   message.type === 'BOOKMARK_REMOVED' || 
+                   message.type === 'BOOKMARK_UPDATED') {
+          // Refresh bookmarks when changes occur
+          fetchData();
+        } else if (message.type === 'CONFIG_CHANGED') {
+          // Reload config and data when configuration changes
+          window.location.reload();
+        }
+      },
+      onOpen: () => {
+        console.log('WebSocket connected for real-time updates');
+      },
+      onClose: () => {
+        console.log('WebSocket disconnected, falling back to HTTP polling');
+      }
+    }
+  );
+
+  // Calculate seconds since last heartbeat
+  const [secondsSinceHeartbeat, setSecondsSinceHeartbeat] = useState(null);
+  
+  useEffect(() => {
+    if (!websocket.lastHeartbeat) {
+      setSecondsSinceHeartbeat(null);
+      return;
+    }
+    
+    // Update every second
+    const interval = setInterval(() => {
+      const seconds = Math.floor((Date.now() - websocket.lastHeartbeat) / 1000);
+      setSecondsSinceHeartbeat(seconds);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [websocket.lastHeartbeat]);
+
   // Initial data fetch
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Set up periodic refresh if configured
+  // Set up periodic refresh if configured (only when WebSocket is not connected)
   useEffect(() => {
-    if (refreshInterval > 0) {
+    if (refreshInterval > 0 && (!websocketEnabled || !websocket.isConnected)) {
       const intervalId = setInterval(() => {
         fetchData();
       }, refreshInterval * 1000);
@@ -234,7 +300,7 @@ export function App() {
       // Cleanup function to clear interval on unmount or when refreshInterval changes
       return () => clearInterval(intervalId);
     }
-  }, [refreshInterval]);
+  }, [refreshInterval, websocketEnabled, websocket.isConnected]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&
@@ -309,7 +375,26 @@ export function App() {
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto">
           <div>
-            <h3 class="float-md-start mb-0"><img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}</h3>
+            <h3 class="float-md-start mb-0">
+              <img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}
+              {websocketEnabled && (
+                <span 
+                  class={`badge ms-2 ${websocket.isConnected ? 'bg-success' : websocket.isConnecting ? 'bg-warning' : 'bg-secondary'}`}
+                  style="font-size: 0.5rem; vertical-align: middle;"
+                  title={
+                    websocket.isConnected 
+                      ? (secondsSinceHeartbeat !== null 
+                          ? `Real-time updates active (${secondsSinceHeartbeat}s since last heartbeat)` 
+                          : 'Real-time updates active')
+                      : websocket.isConnecting 
+                        ? 'Connecting...' 
+                        : 'Using HTTP polling'
+                  }
+                >
+                  {websocket.isConnected ? '●' : websocket.isConnecting ? '○' : '◌'}
+                </span>
+              )}
+            </h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
               {hasApplications() && (
                 <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
