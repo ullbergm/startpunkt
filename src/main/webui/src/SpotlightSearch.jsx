@@ -226,9 +226,10 @@ export default function SpotlightSearch({ testVisible = false }) {
     }, [query, apps]);
 
     useEffect(() => {
-        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-
         const handleKeyDown = (e) => {
+            // Don't capture keystrokes if user is typing in an input or textarea
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+            
             const isTypingChar = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
             if (!visible && isTypingChar) {
                 setVisible(true);

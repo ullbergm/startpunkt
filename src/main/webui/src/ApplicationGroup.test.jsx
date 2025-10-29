@@ -33,7 +33,7 @@ describe('ApplicationGroup component', () => {
   test('renders group title in uppercase with styling', () => {
     render(<ApplicationGroup group="Test Group" applications={apps} />);
     // Match original casing or use case-insensitive regex
-    const heading = screen.getByRole('heading', { level: 2, name: /test group/i });
+    const heading = screen.getByRole('heading', { level: 3, name: /test group/i });
     expect(heading).toBeInTheDocument();
     expect(heading).toHaveClass('pb-2', 'border-bottom', 'text-uppercase');
   });

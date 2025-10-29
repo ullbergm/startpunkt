@@ -4,7 +4,7 @@ export function BookmarkGroupList(props) {
   return (
     <div class="container px-4 py-5" id="icon-grid">
       {Array.isArray(props.groups) && props.groups.map(group => (
-        <BookmarkGroup group={group.name} bookmarks={group.bookmarks} />
+        <BookmarkGroup key={group.name} group={group.name} bookmarks={group.bookmarks} layoutPrefs={props.layoutPrefs} />
       ))}
     </div>
   )

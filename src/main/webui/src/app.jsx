@@ -7,6 +7,8 @@ import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
 import SpotlightSearch from './SpotlightSearch';
 import { useWebSocket } from './useWebSocket';
+import { useLayoutPreferences } from './useLayoutPreferences';
+import { LayoutSettings } from './LayoutSettings';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -152,6 +154,9 @@ export function ThemeSwitcher() {
 
 export function App() {
   const [definition, setDefinition] = useState([]);
+
+  // Initialize layout preferences hook
+  const layoutPrefs = useLayoutPreferences();
 
   useEffect(() => {
     var lang = navigator.language;
@@ -370,6 +375,7 @@ export function App() {
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
       <ThemeSwitcher />
+      <LayoutSettings layoutPrefs={layoutPrefs} />
       <SpotlightSearch />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
@@ -407,8 +413,8 @@ export function App() {
         </header>
 
         <main class="px-3">
-          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} />}
-          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} />}
+          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
           {currentPage === "loading" && (
             <div class="text-center">
               <h1 class="display-4">Loading...</h1>
