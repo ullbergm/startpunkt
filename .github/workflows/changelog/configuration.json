@@ -4,30 +4,25 @@
             "title": "## 🚀 Features",
             "labels": [
                 "feature",
-                "feat",
-                "chore(enhancement)",
-                "feat(enhancement)",
-                "chore(documentation)",
-                "feat(i8n)"
+                "feat"
             ]
         },
         {
             "title": "## 🐛 Fixes",
             "labels": [
-                "fix",
-                "feat(fix)"
+                "fix"
             ]
         },
         {
-            "title": "## 📦 Dependencies",
+            "title": "## 📚 Documentation",
             "labels": [
-                "chore(deps)",
-                "fix(deps)",
-                "feat(github-action)",
-                "fix(js)",
-                "fix(container)",
-                "feat(container)",
-                "feat(js)"
+                "docs"
+            ]
+        },
+        {
+            "title": "## 🔨 Refactoring",
+            "labels": [
+                "refactor"
             ]
         },
         {
@@ -37,29 +32,46 @@
             ]
         },
         {
-            "title": "## 🚀 CI/CD Workflows",
+            "title": "## 📦 Dependencies",
+            "labels": [
+                "chore"
+            ]
+        },
+        {
+            "title": "## 🚀 CI/CD",
             "labels": [
                 "ci"
             ]
         },
         {
-            "title": "## 🚀 Build / Deploy",
+            "title": "## 🎨 Styling",
             "labels": [
-                "chore(build)"
+                "style"
             ]
         },
         {
-            "title": "## Other",
-            "exhaustive": true,
-            "exhaustive_rules": "false",
-            "empty_content": "- no matching PRs",
-            "rules": [
-                {
-                    "pattern": "open",
-                    "on_property": "status",
-                    "flags": "gu"
-                }
+            "title": "## ⚡ Performance",
+            "labels": [
+                "perf"
             ]
+        },
+        {
+            "title": "## 🔧 Build",
+            "labels": [
+                "build"
+            ]
+        },
+        {
+            "title": "## ↩️ Reverts",
+            "labels": [
+                "revert"
+            ]
+        },
+        {
+            "title": "## Other Changes",
+            "exhaustive": true,
+            "exhaustive_rules": false,
+            "empty_content": "- No other changes"
         }
     ],
     "label_extractor": [
