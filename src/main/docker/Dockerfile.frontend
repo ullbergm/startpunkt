@@ -12,7 +12,7 @@
 ###
 
 # Stage 1: Build the frontend
-FROM node:24.2.0-alpine AS builder
+FROM node:24.11.0-alpine AS builder
 
 WORKDIR /build
 
@@ -29,7 +29,7 @@ COPY src/main/webui/ ./
 RUN npm run build
 
 # Stage 2: Serve with Nginx
-FROM nginx:1.27-alpine
+FROM nginx:1.29-alpine
 
 # Install envsubst for runtime environment variable substitution
 RUN apk add --no-cache gettext
