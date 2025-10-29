@@ -192,13 +192,18 @@ The plugin automatically inherits authentication from the OpenShift console. No 
 If you encounter CORS issues, ensure the Startpunkt backend allows requests from the console:
 
 ```yaml
-# In application.yaml
+# In application.yaml or via environment variables
 quarkus:
   http:
     cors:
       ~: true
+      # For production, specify your console URL(s)
       origins: "https://console-openshift-console.apps.your-cluster.example.com"
+      # For development/testing, you can use:
+      # origins: "*"
 ```
+
+**Security Note**: The default configuration uses `*` which allows all origins. In production, it's recommended to specify the exact console URL for better security.
 
 ## Security Considerations
 

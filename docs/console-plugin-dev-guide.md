@@ -6,7 +6,7 @@ Quick reference guide for developing and testing the OpenShift Console Plugin.
 
 ```bash
 # Ensure you have Node.js 18+ and npm installed
-node --version  # Should be v18+
+node --version  # Should be 18.x or higher
 npm --version
 ```
 
@@ -212,8 +212,14 @@ Ensure backend CORS is configured in `src/main/resources/application.properties`
 
 ```properties
 quarkus.http.cors=true
+# For development - allows all origins
 quarkus.http.cors.origins=*
+
+# For production - specify exact console URL(s)
+# quarkus.http.cors.origins=https://console-openshift-console.apps.your-cluster.example.com
 ```
+
+**⚠️ Security Note**: Using `*` for CORS origins is acceptable for development but should be replaced with specific console URLs in production environments.
 
 ### SSL/TLS Certificate Issues
 
