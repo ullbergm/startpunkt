@@ -22,7 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
@@ -110,69 +110,79 @@ public class ApplicationResource {
     // Create a list of application wrappers to retrieve applications from
 <span class="fc" id="L111">    var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
 <span class="fc" id="L112">    applicationWrappers.add(new StartpunktApplicationWrapper());</span>
-<span class="fc" id="L113">    Log.debugf(&quot;Enabled wrappers: Startpunkt=true, Hajimari=%s, OpenShift=%s, Ingress=%s, Istio=%s, GatewayAPI=%s&quot;,</span>
-<span class="fc" id="L114">        hajimariEnabled, openshiftEnabled, ingressEnabled, istioVirtualServiceEnabled, gatewayApiEnabled);</span>
+<span class="fc" id="L113">    Log.debugf(</span>
+        &quot;Enabled wrappers: Startpunkt=true, Hajimari=%s, OpenShift=%s, Ingress=%s, Istio=%s, GatewayAPI=%s&quot;,
+<span class="fc" id="L115">        hajimariEnabled,</span>
+<span class="fc" id="L116">        openshiftEnabled,</span>
+<span class="fc" id="L117">        ingressEnabled,</span>
+<span class="fc" id="L118">        istioVirtualServiceEnabled,</span>
+<span class="fc" id="L119">        gatewayApiEnabled);</span>
 
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="fc" id="L117">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L122">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
     }
 
-<span class="pc bpc" id="L120" title="1 of 2 branches missed.">    if (openshiftEnabled) {</span>
-<span class="fc" id="L121">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    if (openshiftEnabled) {</span>
+<span class="fc" id="L126">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
     }
 
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">    if (ingressEnabled) {</span>
-<span class="fc" id="L125">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">    if (ingressEnabled) {</span>
+<span class="fc" id="L130">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
     }
 
-<span class="pc bpc" id="L128" title="1 of 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
-<span class="fc" id="L129">      applicationWrappers.add(</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
+<span class="fc" id="L134">      applicationWrappers.add(</span>
           new IstioVirtualServiceApplicationWrapper(
               istioVirtualServiceOnlyAnnotated, defaultProtocol));
     }
 
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">    if (gatewayApiEnabled) {</span>
-<span class="fc" id="L135">      applicationWrappers.add(</span>
-<span class="fc" id="L136">          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">    if (gatewayApiEnabled) {</span>
+<span class="fc" id="L140">      applicationWrappers.add(</span>
+<span class="fc" id="L141">          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));</span>
     }
 
     // Create a list of applications
-<span class="fc" id="L140">    var apps = new ArrayList&lt;ApplicationSpec&gt;();</span>
+<span class="fc" id="L145">    var apps = new ArrayList&lt;ApplicationSpec&gt;();</span>
 
     try {
       // Retrieve the applications from the application wrappers using the injected client
-<span class="fc bfc" id="L144" title="All 2 branches covered.">      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
-<span class="fc" id="L145">        Log.debugf(&quot;Retrieving applications using wrapper: %s&quot;, applicationWrapper.getClass().getSimpleName());</span>
-<span class="fc" id="L146">        var wrapperApps = applicationWrapper.getApplicationSpecs(</span>
-<span class="fc" id="L147">                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));</span>
-<span class="fc" id="L148">        Log.debugf(&quot;Retrieved %d applications from %s&quot;, wrapperApps.size(), applicationWrapper.getClass().getSimpleName());</span>
-<span class="fc" id="L149">        apps.addAll(wrapperApps);</span>
-<span class="fc" id="L150">      }</span>
-<span class="nc" id="L151">    } catch (Exception e) {</span>
-<span class="nc" id="L152">      Log.error(&quot;Error retrieving applications from Kubernetes&quot;, e);</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
+<span class="fc" id="L150">        Log.debugf(</span>
+            &quot;Retrieving applications using wrapper: %s&quot;,
+<span class="fc" id="L152">            applicationWrapper.getClass().getSimpleName());</span>
+<span class="fc" id="L153">        var wrapperApps =</span>
+<span class="fc" id="L154">            applicationWrapper.getApplicationSpecs(</span>
+<span class="fc" id="L155">                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));</span>
+<span class="fc" id="L156">        Log.debugf(</span>
+            &quot;Retrieved %d applications from %s&quot;,
+<span class="fc" id="L158">            wrapperApps.size(), applicationWrapper.getClass().getSimpleName());</span>
+<span class="fc" id="L159">        apps.addAll(wrapperApps);</span>
+<span class="fc" id="L160">      }</span>
+<span class="nc" id="L161">    } catch (Exception e) {</span>
+<span class="nc" id="L162">      Log.error(&quot;Error retrieving applications from Kubernetes&quot;, e);</span>
       // Return empty list on error to avoid 500s
-<span class="nc" id="L154">      return new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L155">    }</span>
+<span class="nc" id="L164">      return new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L165">    }</span>
 
     // Sort the list of applications
-<span class="fc" id="L158">    Collections.sort(apps);</span>
-<span class="fc" id="L159">    Log.debugf(&quot;Total applications retrieved: %d&quot;, apps.size());</span>
+<span class="fc" id="L168">    Collections.sort(apps);</span>
+<span class="fc" id="L169">    Log.debugf(&quot;Total applications retrieved: %d&quot;, apps.size());</span>
 
     // Register URLs for availability checking
-<span class="fc bfc" id="L162" title="All 2 branches covered.">    for (ApplicationSpec app : apps) {</span>
-<span class="pc bpc" id="L163" title="2 of 4 branches missed.">      if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
-<span class="fc" id="L164">        availabilityCheckService.registerUrl(app.getUrl());</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    for (ApplicationSpec app : apps) {</span>
+<span class="pc bpc" id="L173" title="2 of 4 branches missed.">      if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
+<span class="fc" id="L174">        availabilityCheckService.registerUrl(app.getUrl());</span>
       }
-<span class="fc" id="L166">    }</span>
+<span class="fc" id="L176">    }</span>
 
     // Return the list of applications
-<span class="fc" id="L169">    return apps;</span>
+<span class="fc" id="L179">    return apps;</span>
   }
 
   // Method to retrieve applications and wrap them with availability status
   private ArrayList&lt;ApplicationSpecWithAvailability&gt; retrieveAppsWithAvailability() {
-<span class="fc" id="L174">    ArrayList&lt;ApplicationSpec&gt; apps = retrieveApps();</span>
-<span class="fc" id="L175">    return new ArrayList&lt;&gt;(availabilityCheckService.wrapWithAvailability(apps));</span>
+<span class="fc" id="L184">    ArrayList&lt;ApplicationSpec&gt; apps = retrieveApps();</span>
+<span class="fc" id="L185">    return new ArrayList&lt;&gt;(availabilityCheckService.wrapWithAvailability(apps));</span>
   }
 
   /**
@@ -199,13 +209,13 @@ public class ApplicationResource {
   public Response getApp(
       @PathParam(&quot;groupName&quot;) String groupName, @PathParam(&quot;appName&quot;) String appName) {
     // Find the application with the specified name
-<span class="fc bfc" id="L202" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability a : retrieveAppsWithAvailability()) {</span>
-<span class="fc bfc" id="L203" title="All 4 branches covered.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
-<span class="fc" id="L204">        return Response.ok(a).build();</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability a : retrieveAppsWithAvailability()) {</span>
+<span class="fc bfc" id="L213" title="All 4 branches covered.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
+<span class="fc" id="L214">        return Response.ok(a).build();</span>
       }
-<span class="fc" id="L206">    }</span>
+<span class="fc" id="L216">    }</span>
 
-<span class="fc" id="L208">    return Response.status(404, &quot;No application found&quot;).build();</span>
+<span class="fc" id="L218">    return Response.status(404, &quot;No application found&quot;).build();</span>
   }
 
   /**
@@ -230,7 +240,7 @@ public class ApplicationResource {
       description = &quot;Get the list of applications filtered by tags&quot;)
   @CacheResult(cacheName = &quot;getAppsFiltered&quot;)
   public Response getAppsFiltered(@PathParam(&quot;tags&quot;) String tags) {
-<span class="fc" id="L233">    return getAppsWithTags(tags);</span>
+<span class="fc" id="L243">    return getAppsWithTags(tags);</span>
   }
 
   /**
@@ -251,7 +261,7 @@ public class ApplicationResource {
   @Timed(value = &quot;startpunkt.api.getapps&quot;, description = &quot;Get the list of applications&quot;)
   @CacheResult(cacheName = &quot;getApps&quot;)
   public Response getApps() {
-<span class="fc" id="L254">    return getAppsWithTags(null);</span>
+<span class="fc" id="L264">    return getAppsWithTags(null);</span>
   }
 
   /**
@@ -261,57 +271,57 @@ public class ApplicationResource {
    * @return HTTP 200 with grouped applications or 404 if none found
    */
   private Response getAppsWithTags(String tags) {
-<span class="fc bfc" id="L264" title="All 2 branches covered.">    Log.debugf(&quot;Getting applications with tag filter: %s&quot;, tags != null ? tags : &quot;(none)&quot;);</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">    Log.debugf(&quot;Getting applications with tag filter: %s&quot;, tags != null ? tags : &quot;(none)&quot;);</span>
     // Retrieve the list of applications with availability
-<span class="fc" id="L266">    ArrayList&lt;ApplicationSpecWithAvailability&gt; applist = retrieveAppsWithAvailability();</span>
-<span class="fc" id="L267">    Log.debugf(&quot;Retrieved %d applications with availability&quot;, applist.size());</span>
+<span class="fc" id="L276">    ArrayList&lt;ApplicationSpecWithAvailability&gt; applist = retrieveAppsWithAvailability();</span>
+<span class="fc" id="L277">    Log.debugf(&quot;Retrieved %d applications with availability&quot;, applist.size());</span>
 
     // Apply tag filtering
-<span class="pc bpc" id="L270" title="1 of 4 branches missed.">    if (tags != null &amp;&amp; !tags.trim().isEmpty()) {</span>
+<span class="pc bpc" id="L280" title="1 of 4 branches missed.">    if (tags != null &amp;&amp; !tags.trim().isEmpty()) {</span>
       // If tags are specified, show applications with matching tags AND untagged applications
-<span class="fc" id="L272">      Log.debugf(&quot;Filtering applications by tags: %s&quot;, tags);</span>
-<span class="fc" id="L273">      applist = filterApplicationsByTags(applist, tags);</span>
-<span class="fc" id="L274">      Log.debugf(&quot;After tag filtering: %d applications&quot;, applist.size());</span>
+<span class="fc" id="L282">      Log.debugf(&quot;Filtering applications by tags: %s&quot;, tags);</span>
+<span class="fc" id="L283">      applist = filterApplicationsByTags(applist, tags);</span>
+<span class="fc" id="L284">      Log.debugf(&quot;After tag filtering: %d applications&quot;, applist.size());</span>
     } else {
       // If no tags are specified, show only untagged applications
-<span class="fc" id="L277">      Log.debug(&quot;No tags specified, showing only untagged applications&quot;);</span>
-<span class="fc" id="L278">      applist = filterApplicationsWithoutTags(applist);</span>
-<span class="fc" id="L279">      Log.debugf(&quot;After filtering untagged: %d applications&quot;, applist.size());</span>
+<span class="fc" id="L287">      Log.debug(&quot;No tags specified, showing only untagged applications&quot;);</span>
+<span class="fc" id="L288">      applist = filterApplicationsWithoutTags(applist);</span>
+<span class="fc" id="L289">      Log.debugf(&quot;After filtering untagged: %d applications&quot;, applist.size());</span>
     }
 
     // Create a list to store application groups
-<span class="fc" id="L283">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L293">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
 
     // Group the applications by their group property
-<span class="fc bfc" id="L286" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability a : applist) {</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability a : applist) {</span>
       // Find the group
-<span class="fc" id="L288">      ApplicationGroup group = null;</span>
-<span class="fc bfc" id="L289" title="All 2 branches covered.">      for (ApplicationGroup g : groups) {</span>
-<span class="fc bfc" id="L290" title="All 2 branches covered.">        if (g.getName().equals(a.getGroup())) {</span>
-<span class="fc" id="L291">          group = g;</span>
-<span class="fc" id="L292">          break;</span>
+<span class="fc" id="L298">      ApplicationGroup group = null;</span>
+<span class="fc bfc" id="L299" title="All 2 branches covered.">      for (ApplicationGroup g : groups) {</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">        if (g.getName().equals(a.getGroup())) {</span>
+<span class="fc" id="L301">          group = g;</span>
+<span class="fc" id="L302">          break;</span>
         }
-<span class="fc" id="L294">      }</span>
+<span class="fc" id="L304">      }</span>
 
       // If the group doesn't exist, create it
-<span class="fc bfc" id="L297" title="All 2 branches covered.">      if (group == null) {</span>
-<span class="fc" id="L298">        group = new ApplicationGroup(a.getGroup());</span>
-<span class="fc" id="L299">        groups.add(group);</span>
-<span class="fc" id="L300">        Log.debugf(&quot;Created new application group: %s&quot;, a.getGroup());</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">      if (group == null) {</span>
+<span class="fc" id="L308">        group = new ApplicationGroup(a.getGroup());</span>
+<span class="fc" id="L309">        groups.add(group);</span>
+<span class="fc" id="L310">        Log.debugf(&quot;Created new application group: %s&quot;, a.getGroup());</span>
       }
 
       // Add the application to the group
-<span class="fc" id="L304">      group.addApplication(a);</span>
-<span class="fc" id="L305">    }</span>
+<span class="fc" id="L314">      group.addApplication(a);</span>
+<span class="fc" id="L315">    }</span>
 
-<span class="fc" id="L307">    Log.debugf(&quot;Grouped applications into %d groups&quot;, groups.size());</span>
+<span class="fc" id="L317">    Log.debugf(&quot;Grouped applications into %d groups&quot;, groups.size());</span>
 
-<span class="pc bpc" id="L309" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
-<span class="nc" id="L310">      return Response.status(404, &quot;No applications found&quot;).build();</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
+<span class="nc" id="L320">      return Response.status(404, &quot;No applications found&quot;).build();</span>
     }
 
     // Return the list of application groups
-<span class="fc" id="L314">    return Response.ok(new ApplicationGroupList(groups)).build();</span>
+<span class="fc" id="L324">    return Response.ok(new ApplicationGroupList(groups)).build();</span>
   }
 
   /**
@@ -324,47 +334,47 @@ public class ApplicationResource {
    */
   ArrayList&lt;ApplicationSpecWithAvailability&gt; filterApplicationsByTags(
       ArrayList&lt;ApplicationSpecWithAvailability&gt; applications, String filterTags) {
-<span class="pc bpc" id="L327" title="2 of 4 branches missed.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
-<span class="nc" id="L328">      return applications;</span>
+<span class="pc bpc" id="L337" title="2 of 4 branches missed.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
+<span class="nc" id="L338">      return applications;</span>
     }
 
     // Parse filter tags
-<span class="fc" id="L332">    var filterTagSet =</span>
-<span class="fc" id="L333">        java.util.Arrays.stream(filterTags.split(&quot;,&quot;))</span>
-<span class="fc" id="L334">            .map(String::trim)</span>
-<span class="fc" id="L335">            .map(String::toLowerCase)</span>
-<span class="pc bpc" id="L336" title="1 of 2 branches missed.">            .filter(tag -&gt; !tag.isEmpty())</span>
-<span class="fc" id="L337">            .collect(java.util.stream.Collectors.toSet());</span>
+<span class="fc" id="L342">    var filterTagSet =</span>
+<span class="fc" id="L343">        java.util.Arrays.stream(filterTags.split(&quot;,&quot;))</span>
+<span class="fc" id="L344">            .map(String::trim)</span>
+<span class="fc" id="L345">            .map(String::toLowerCase)</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">            .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="fc" id="L347">            .collect(java.util.stream.Collectors.toSet());</span>
 
-<span class="pc bpc" id="L339" title="1 of 2 branches missed.">    if (filterTagSet.isEmpty()) {</span>
-<span class="nc" id="L340">      return applications;</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    if (filterTagSet.isEmpty()) {</span>
+<span class="nc" id="L350">      return applications;</span>
     }
 
-<span class="fc" id="L343">    ArrayList&lt;ApplicationSpecWithAvailability&gt; filteredApps = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L353">    ArrayList&lt;ApplicationSpecWithAvailability&gt; filteredApps = new ArrayList&lt;&gt;();</span>
 
-<span class="fc bfc" id="L345" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
       // Always include applications with no tags
-<span class="pc bpc" id="L347" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
-<span class="fc" id="L348">        filteredApps.add(app);</span>
-<span class="fc" id="L349">        continue;</span>
+<span class="pc bpc" id="L357" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="fc" id="L358">        filteredApps.add(app);</span>
+<span class="fc" id="L359">        continue;</span>
       }
 
       // Parse application tags
-<span class="fc" id="L353">      var appTagSet =</span>
-<span class="fc" id="L354">          java.util.Arrays.stream(app.getTags().split(&quot;,&quot;))</span>
-<span class="fc" id="L355">              .map(String::trim)</span>
-<span class="fc" id="L356">              .map(String::toLowerCase)</span>
-<span class="pc bpc" id="L357" title="1 of 2 branches missed.">              .filter(tag -&gt; !tag.isEmpty())</span>
-<span class="fc" id="L358">              .collect(java.util.stream.Collectors.toSet());</span>
+<span class="fc" id="L363">      var appTagSet =</span>
+<span class="fc" id="L364">          java.util.Arrays.stream(app.getTags().split(&quot;,&quot;))</span>
+<span class="fc" id="L365">              .map(String::trim)</span>
+<span class="fc" id="L366">              .map(String::toLowerCase)</span>
+<span class="pc bpc" id="L367" title="1 of 2 branches missed.">              .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="fc" id="L368">              .collect(java.util.stream.Collectors.toSet());</span>
 
       // Include if any tag matches
-<span class="fc" id="L361">      boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);</span>
-<span class="fc bfc" id="L362" title="All 2 branches covered.">      if (hasMatchingTag) {</span>
-<span class="fc" id="L363">        filteredApps.add(app);</span>
+<span class="fc" id="L371">      boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">      if (hasMatchingTag) {</span>
+<span class="fc" id="L373">        filteredApps.add(app);</span>
       }
-<span class="fc" id="L365">    }</span>
+<span class="fc" id="L375">    }</span>
 
-<span class="fc" id="L367">    return filteredApps;</span>
+<span class="fc" id="L377">    return filteredApps;</span>
   }
 
   /**
@@ -375,16 +385,16 @@ public class ApplicationResource {
    */
   ArrayList&lt;ApplicationSpecWithAvailability&gt; filterApplicationsWithoutTags(
       ArrayList&lt;ApplicationSpecWithAvailability&gt; applications) {
-<span class="fc" id="L378">    ArrayList&lt;ApplicationSpecWithAvailability&gt; filteredApps = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L388">    ArrayList&lt;ApplicationSpecWithAvailability&gt; filteredApps = new ArrayList&lt;&gt;();</span>
 
-<span class="fc bfc" id="L380" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
+<span class="fc bfc" id="L390" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
       // Include only applications with no tags
-<span class="pc bpc" id="L382" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
-<span class="fc" id="L383">        filteredApps.add(app);</span>
+<span class="pc bpc" id="L392" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="fc" id="L393">        filteredApps.add(app);</span>
       }
-<span class="fc" id="L385">    }</span>
+<span class="fc" id="L395">    }</span>
 
-<span class="fc" id="L387">    return filteredApps;</span>
+<span class="fc" id="L397">    return filteredApps;</span>
   }
 
   /**
@@ -400,8 +410,8 @@ public class ApplicationResource {
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L403">    Log.debug(&quot;Ping Application Resource&quot;);</span>
-<span class="fc" id="L404">    return &quot;Pong from Application Resource&quot;;</span>
+<span class="fc" id="L413">    Log.debug(&quot;Ping Application Resource&quot;);</span>
+<span class="fc" id="L414">    return &quot;Pong from Application Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

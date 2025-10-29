@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UrlFrom.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.crd.v1alpha4</a> &gt; <span class="el_source">UrlFrom.java</span></div><h1>UrlFrom.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.crd.v1alpha4;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import io.fabric8.generator.annotation.Required;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+/**
+ * Represents a reference to read the URL from a different Kubernetes object.
+ *
+ * &lt;p&gt;This allows the Application CRD to dynamically read the URL from another resource such as a
+ * Service, ConfigMap, or any other Kubernetes object.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
+public class UrlFrom {
+
+  /** API group of the referenced object. */
+  @JsonProperty(&quot;apiGroup&quot;)
+  @JsonPropertyDescription(&quot;API group of the referenced object (e.g., 'v1', 'apps/v1')&quot;)
+  private String apiGroup;
+
+  /** API version of the referenced object. */
+  @JsonProperty(&quot;apiVersion&quot;)
+  @JsonPropertyDescription(&quot;API version of the referenced object (e.g., 'v1')&quot;)
+  @Required
+  private String apiVersion;
+
+  /** Kind of the referenced object. */
+  @JsonProperty(&quot;kind&quot;)
+  @JsonPropertyDescription(&quot;Kind of the referenced object (e.g., 'Service', 'ConfigMap')&quot;)
+  @Required
+  private String kind;
+
+  /** Name of the referenced object. */
+  @JsonProperty(&quot;name&quot;)
+  @JsonPropertyDescription(&quot;Name of the referenced object&quot;)
+  @Required
+  private String name;
+
+  /** Namespace of the referenced object (defaults to same namespace as the Application). */
+  @JsonProperty(&quot;namespace&quot;)
+  @JsonPropertyDescription(&quot;Namespace of the referenced object (defaults to same namespace)&quot;)
+  private String namespace;
+
+  /** JSON path to the property in the referenced object that contains the hostname or URL. */
+  @JsonProperty(&quot;property&quot;)
+  @JsonPropertyDescription(
+      &quot;JSON path to the property in the referenced object (e.g., 'spec.host', 'data.url')&quot;)
+  @Required
+  private String property;
+
+  /**
+   * Optional URL template to build the final URL from the extracted value. Use {0} as placeholder
+   * for the extracted value (e.g., 'https://{0}/dashboard/').
+   */
+  @JsonProperty(&quot;urlTemplate&quot;)
+  @JsonPropertyDescription(
+      &quot;Optional URL template to build the final URL. Use {0} as placeholder (e.g., 'https://{0}/dashboard/')&quot;)
+  private String urlTemplate;
+
+  /** Default constructor. */
+<span class="fc" id="L64">  public UrlFrom() {}</span>
+
+  /**
+   * Parameterized constructor.
+   *
+   * @param apiGroup API group of the referenced object
+   * @param apiVersion API version of the referenced object
+   * @param kind Kind of the referenced object
+   * @param name Name of the referenced object
+   * @param namespace Namespace of the referenced object
+   * @param property JSON path to the property containing the URL
+   */
+  public UrlFrom(
+      String apiGroup,
+      String apiVersion,
+      String kind,
+      String name,
+      String namespace,
+<span class="nc" id="L82">      String property) {</span>
+<span class="nc" id="L83">    this.apiGroup = apiGroup;</span>
+<span class="nc" id="L84">    this.apiVersion = apiVersion;</span>
+<span class="nc" id="L85">    this.kind = kind;</span>
+<span class="nc" id="L86">    this.name = name;</span>
+<span class="nc" id="L87">    this.namespace = namespace;</span>
+<span class="nc" id="L88">    this.property = property;</span>
+<span class="nc" id="L89">    this.urlTemplate = null;</span>
+<span class="nc" id="L90">  }</span>
+
+  /**
+   * Parameterized constructor with urlTemplate.
+   *
+   * @param apiGroup API group of the referenced object
+   * @param apiVersion API version of the referenced object
+   * @param kind Kind of the referenced object
+   * @param name Name of the referenced object
+   * @param namespace Namespace of the referenced object
+   * @param property JSON path to the property containing the URL
+   * @param urlTemplate URL template to apply to the extracted value
+   */
+  public UrlFrom(
+      String apiGroup,
+      String apiVersion,
+      String kind,
+      String name,
+      String namespace,
+      String property,
+<span class="nc" id="L110">      String urlTemplate) {</span>
+<span class="nc" id="L111">    this.apiGroup = apiGroup;</span>
+<span class="nc" id="L112">    this.apiVersion = apiVersion;</span>
+<span class="nc" id="L113">    this.kind = kind;</span>
+<span class="nc" id="L114">    this.name = name;</span>
+<span class="nc" id="L115">    this.namespace = namespace;</span>
+<span class="nc" id="L116">    this.property = property;</span>
+<span class="nc" id="L117">    this.urlTemplate = urlTemplate;</span>
+<span class="nc" id="L118">  }</span>
+
+  /**
+   * Gets the API group of the referenced object.
+   *
+   * @return API group
+   */
+  public String getApiGroup() {
+<span class="fc" id="L126">    return apiGroup;</span>
+  }
+
+  /**
+   * Sets the API group of the referenced object.
+   *
+   * @param apiGroup API group
+   */
+  public void setApiGroup(String apiGroup) {
+<span class="nc" id="L135">    this.apiGroup = apiGroup;</span>
+<span class="nc" id="L136">  }</span>
+
+  /**
+   * Gets the API version of the referenced object.
+   *
+   * @return API version
+   */
+  public String getApiVersion() {
+<span class="fc" id="L144">    return apiVersion;</span>
+  }
+
+  /**
+   * Sets the API version of the referenced object.
+   *
+   * @param apiVersion API version
+   */
+  public void setApiVersion(String apiVersion) {
+<span class="fc" id="L153">    this.apiVersion = apiVersion;</span>
+<span class="fc" id="L154">  }</span>
+
+  /**
+   * Gets the kind of the referenced object.
+   *
+   * @return kind
+   */
+  public String getKind() {
+<span class="fc" id="L162">    return kind;</span>
+  }
+
+  /**
+   * Sets the kind of the referenced object.
+   *
+   * @param kind kind
+   */
+  public void setKind(String kind) {
+<span class="fc" id="L171">    this.kind = kind;</span>
+<span class="fc" id="L172">  }</span>
+
+  /**
+   * Gets the name of the referenced object.
+   *
+   * @return name
+   */
+  public String getName() {
+<span class="fc" id="L180">    return name;</span>
+  }
+
+  /**
+   * Sets the name of the referenced object.
+   *
+   * @param name name
+   */
+  public void setName(String name) {
+<span class="fc" id="L189">    this.name = name;</span>
+<span class="fc" id="L190">  }</span>
+
+  /**
+   * Gets the namespace of the referenced object.
+   *
+   * @return namespace
+   */
+  public String getNamespace() {
+<span class="fc" id="L198">    return namespace;</span>
+  }
+
+  /**
+   * Sets the namespace of the referenced object.
+   *
+   * @param namespace namespace
+   */
+  public void setNamespace(String namespace) {
+<span class="nc" id="L207">    this.namespace = namespace;</span>
+<span class="nc" id="L208">  }</span>
+
+  /**
+   * Gets the JSON path to the property containing the URL.
+   *
+   * @return property path
+   */
+  public String getProperty() {
+<span class="fc" id="L216">    return property;</span>
+  }
+
+  /**
+   * Sets the JSON path to the property containing the URL.
+   *
+   * @param property property path
+   */
+  public void setProperty(String property) {
+<span class="fc" id="L225">    this.property = property;</span>
+<span class="fc" id="L226">  }</span>
+
+  /**
+   * Gets the URL template to build the final URL.
+   *
+   * @return URL template or null if not set
+   */
+  public String getUrlTemplate() {
+<span class="fc" id="L234">    return urlTemplate;</span>
+  }
+
+  /**
+   * Sets the URL template to build the final URL.
+   *
+   * @param urlTemplate URL template with {0} placeholder
+   */
+  public void setUrlTemplate(String urlTemplate) {
+<span class="fc" id="L243">    this.urlTemplate = urlTemplate;</span>
+<span class="fc" id="L244">  }</span>
+
+  @Override
+  public boolean equals(Object o) {
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L249">      return true;</span>
+    }
+<span class="nc bnc" id="L251" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L252">      return false;</span>
+    }
+
+<span class="nc" id="L255">    UrlFrom urlFrom = (UrlFrom) o;</span>
+
+<span class="nc bnc" id="L257" title="All 6 branches missed.">    if (apiGroup != null ? !apiGroup.equals(urlFrom.apiGroup) : urlFrom.apiGroup != null) {</span>
+<span class="nc" id="L258">      return false;</span>
+    }
+<span class="nc bnc" id="L260" title="All 6 branches missed.">    if (apiVersion != null ? !apiVersion.equals(urlFrom.apiVersion) : urlFrom.apiVersion != null) {</span>
+<span class="nc" id="L261">      return false;</span>
+    }
+<span class="nc bnc" id="L263" title="All 6 branches missed.">    if (kind != null ? !kind.equals(urlFrom.kind) : urlFrom.kind != null) {</span>
+<span class="nc" id="L264">      return false;</span>
+    }
+<span class="nc bnc" id="L266" title="All 6 branches missed.">    if (name != null ? !name.equals(urlFrom.name) : urlFrom.name != null) {</span>
+<span class="nc" id="L267">      return false;</span>
+    }
+<span class="nc bnc" id="L269" title="All 6 branches missed.">    if (namespace != null ? !namespace.equals(urlFrom.namespace) : urlFrom.namespace != null) {</span>
+<span class="nc" id="L270">      return false;</span>
+    }
+<span class="nc bnc" id="L272" title="All 6 branches missed.">    if (property != null ? !property.equals(urlFrom.property) : urlFrom.property != null) {</span>
+<span class="nc" id="L273">      return false;</span>
+    }
+<span class="nc bnc" id="L275" title="All 2 branches missed.">    return urlTemplate != null</span>
+<span class="nc" id="L276">        ? urlTemplate.equals(urlFrom.urlTemplate)</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        : urlFrom.urlTemplate == null;</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="nc bnc" id="L282" title="All 2 branches missed.">    int result = apiGroup != null ? apiGroup.hashCode() : 0;</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">    result = 31 * result + (apiVersion != null ? apiVersion.hashCode() : 0);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">    result = 31 * result + (kind != null ? kind.hashCode() : 0);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    result = 31 * result + (name != null ? name.hashCode() : 0);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">    result = 31 * result + (namespace != null ? namespace.hashCode() : 0);</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">    result = 31 * result + (property != null ? property.hashCode() : 0);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">    result = 31 * result + (urlTemplate != null ? urlTemplate.hashCode() : 0);</span>
+<span class="nc" id="L289">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L294">    return &quot;UrlFrom{&quot;</span>
+        + &quot;apiGroup='&quot;
+        + apiGroup
+        + '\''
+        + &quot;, apiVersion='&quot;
+        + apiVersion
+        + '\''
+        + &quot;, kind='&quot;
+        + kind
+        + '\''
+        + &quot;, name='&quot;
+        + name
+        + '\''
+        + &quot;, namespace='&quot;
+        + namespace
+        + '\''
+        + &quot;, property='&quot;
+        + property
+        + '\''
+        + &quot;, urlTemplate='&quot;
+        + urlTemplate
+        + '\''
+        + '}';
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

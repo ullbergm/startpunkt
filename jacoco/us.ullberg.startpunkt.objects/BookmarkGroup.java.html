@@ -5,7 +5,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 
 /**
  * Represents a group of bookmarks with a name and a list of {@link BookmarkSpec}. Implements

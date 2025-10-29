@@ -19,7 +19,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
 import us.ullberg.startpunkt.service.BookmarkService;

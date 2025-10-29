@@ -14,7 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * &quot;applications.startpunkt.ullberg.us&quot; version &quot;v1alpha3&quot;. Contains the spec and status for the
  * Application.
  */
-@Version(value = &quot;v1alpha3&quot;, storage = true, served = true, deprecated = false)
+@Version(value = &quot;v1alpha3&quot;, storage = false, served = true, deprecated = true)
 @Group(&quot;startpunkt.ullberg.us&quot;)
 @Plural(&quot;applications&quot;)
 public class Application extends CustomResource&lt;ApplicationSpec, ApplicationStatus&gt;
@@ -22,8 +22,8 @@ public class Application extends CustomResource&lt;ApplicationSpec, ApplicationS
 
   /** Creates a new Application instance with default values. */
   public Application() {
-<span class="fc" id="L25">    super();</span>
-<span class="fc" id="L26">  }</span>
+<span class="nc" id="L25">    super();</span>
+<span class="nc" id="L26">  }</span>
 
   /**
    * Constructs an Application with the specified specification fields.

@@ -78,7 +78,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
   private String tags;
 
   /** Default constructor. */
-<span class="fc" id="L81">  public ApplicationSpec() {}</span>
+<span class="nc" id="L81">  public ApplicationSpec() {}</span>
 
   /**
    * Parameterized constructor to initialize all fields.
@@ -180,19 +180,19 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
       int location,
       Boolean enabled,
       String rootPath,
-<span class="fc" id="L183">      String tags) {</span>
-<span class="fc" id="L184">    this.name = name;</span>
-<span class="fc" id="L185">    this.group = group;</span>
-<span class="fc" id="L186">    this.icon = icon;</span>
-<span class="fc" id="L187">    this.iconColor = iconColor;</span>
-<span class="fc" id="L188">    this.url = url;</span>
-<span class="fc" id="L189">    this.info = info;</span>
-<span class="fc" id="L190">    this.targetBlank = targetBlank;</span>
-<span class="fc" id="L191">    this.location = location;</span>
-<span class="fc" id="L192">    this.enabled = enabled;</span>
-<span class="fc" id="L193">    this.rootPath = rootPath;</span>
-<span class="fc" id="L194">    this.tags = tags;</span>
-<span class="fc" id="L195">  }</span>
+<span class="nc" id="L183">      String tags) {</span>
+<span class="nc" id="L184">    this.name = name;</span>
+<span class="nc" id="L185">    this.group = group;</span>
+<span class="nc" id="L186">    this.icon = icon;</span>
+<span class="nc" id="L187">    this.iconColor = iconColor;</span>
+<span class="nc" id="L188">    this.url = url;</span>
+<span class="nc" id="L189">    this.info = info;</span>
+<span class="nc" id="L190">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L191">    this.location = location;</span>
+<span class="nc" id="L192">    this.enabled = enabled;</span>
+<span class="nc" id="L193">    this.rootPath = rootPath;</span>
+<span class="nc" id="L194">    this.tags = tags;</span>
+<span class="nc" id="L195">  }</span>
 
   /**
    * Gets the name of the application bookmark.
@@ -200,7 +200,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return application name
    */
   public String getName() {
-<span class="fc" id="L203">    return name;</span>
+<span class="nc" id="L203">    return name;</span>
   }
 
   /**
@@ -209,8 +209,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param name application name
    */
   public void setName(String name) {
-<span class="fc" id="L212">    this.name = name;</span>
-<span class="fc" id="L213">  }</span>
+<span class="nc" id="L212">    this.name = name;</span>
+<span class="nc" id="L213">  }</span>
 
   /**
    * Gets the group this bookmark belongs to.
@@ -218,7 +218,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return group the bookmark belongs to
    */
   public String getGroup() {
-<span class="fc" id="L221">    return group;</span>
+<span class="nc" id="L221">    return group;</span>
   }
 
   /**
@@ -227,8 +227,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param group the group name
    */
   public void setGroup(String group) {
-<span class="fc" id="L230">    this.group = group;</span>
-<span class="fc" id="L231">  }</span>
+<span class="nc" id="L230">    this.group = group;</span>
+<span class="nc" id="L231">  }</span>
 
   /**
    * Gets the icon for this bookmark.
@@ -236,7 +236,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return application icon
    */
   public String getIcon() {
-<span class="fc" id="L239">    return icon;</span>
+<span class="nc" id="L239">    return icon;</span>
   }
 
   /**
@@ -245,8 +245,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param icon icon name or URL
    */
   public void setIcon(String icon) {
-<span class="fc" id="L248">    this.icon = icon;</span>
-<span class="fc" id="L249">  }</span>
+<span class="nc" id="L248">    this.icon = icon;</span>
+<span class="nc" id="L249">  }</span>
 
   /**
    * Gets the color of the bookmark icon.
@@ -254,7 +254,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return icon color
    */
   public String getIconColor() {
-<span class="fc" id="L257">    return iconColor;</span>
+<span class="nc" id="L257">    return iconColor;</span>
   }
 
   /**
@@ -263,8 +263,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param iconColor icon color name
    */
   public void setIconColor(String iconColor) {
-<span class="fc" id="L266">    this.iconColor = iconColor;</span>
-<span class="fc" id="L267">  }</span>
+<span class="nc" id="L266">    this.iconColor = iconColor;</span>
+<span class="nc" id="L267">  }</span>
 
   /**
    * Gets the URL the bookmark points to.
@@ -272,7 +272,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return application URL
    */
   public String getUrl() {
-<span class="fc" id="L275">    return url;</span>
+<span class="nc" id="L275">    return url;</span>
   }
 
   /**
@@ -281,8 +281,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param url application URL
    */
   public void setUrl(String url) {
-<span class="fc" id="L284">    this.url = url;</span>
-<span class="fc" id="L285">  }</span>
+<span class="nc" id="L284">    this.url = url;</span>
+<span class="nc" id="L285">  }</span>
 
   /**
    * Gets the optional info or description of the bookmark.
@@ -290,7 +290,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return additional info or description
    */
   public String getInfo() {
-<span class="fc" id="L293">    return info;</span>
+<span class="nc" id="L293">    return info;</span>
   }
 
   /**
@@ -299,8 +299,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param info additional bookmark info
    */
   public void setInfo(String info) {
-<span class="fc" id="L302">    this.info = info;</span>
-<span class="fc" id="L303">  }</span>
+<span class="nc" id="L302">    this.info = info;</span>
+<span class="nc" id="L303">  }</span>
 
   /**
    * Gets whether the URL should open in a new browser tab.
@@ -308,7 +308,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return true if the link should open in a new tab
    */
   public Boolean getTargetBlank() {
-<span class="fc" id="L311">    return targetBlank;</span>
+<span class="nc" id="L311">    return targetBlank;</span>
   }
 
   /**
@@ -317,8 +317,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param targetBlank whether to open the URL in a new tab
    */
   public void setTargetBlank(Boolean targetBlank) {
-<span class="fc" id="L320">    this.targetBlank = targetBlank;</span>
-<span class="fc" id="L321">  }</span>
+<span class="nc" id="L320">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L321">  }</span>
 
   /**
    * Gets the sorting order of the bookmark.
@@ -326,7 +326,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return sorting order
    */
   public int getLocation() {
-<span class="fc" id="L329">    return location;</span>
+<span class="nc" id="L329">    return location;</span>
   }
 
   /**
@@ -335,8 +335,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param location sorting order
    */
   public void setLocation(int location) {
-<span class="fc" id="L338">    this.location = location;</span>
-<span class="fc" id="L339">  }</span>
+<span class="nc" id="L338">    this.location = location;</span>
+<span class="nc" id="L339">  }</span>
 
   /**
    * Gets whether the bookmark is enabled.
@@ -344,7 +344,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return true if the bookmark is enabled
    */
   public Boolean getEnabled() {
-<span class="fc" id="L347">    return enabled;</span>
+<span class="nc" id="L347">    return enabled;</span>
   }
 
   /**
@@ -353,8 +353,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param enabled whether the bookmark is enabled
    */
   public void setEnabled(Boolean enabled) {
-<span class="fc" id="L356">    this.enabled = enabled;</span>
-<span class="fc" id="L357">  }</span>
+<span class="nc" id="L356">    this.enabled = enabled;</span>
+<span class="nc" id="L357">  }</span>
 
   /**
    * Gets the root path to append to the URL.
@@ -362,7 +362,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return root path string
    */
   public String getRootPath() {
-<span class="fc" id="L365">    return rootPath;</span>
+<span class="nc" id="L365">    return rootPath;</span>
   }
 
   /**
@@ -371,8 +371,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param rootPath root path string
    */
   public void setRootPath(String rootPath) {
-<span class="fc" id="L374">    this.rootPath = rootPath;</span>
-<span class="fc" id="L375">  }</span>
+<span class="nc" id="L374">    this.rootPath = rootPath;</span>
+<span class="nc" id="L375">  }</span>
 
   /**
    * Gets the comma-separated tags for filtering applications.
@@ -380,7 +380,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @return tags string
    */
   public String getTags() {
-<span class="fc" id="L383">    return tags;</span>
+<span class="nc" id="L383">    return tags;</span>
   }
 
   /**
@@ -389,8 +389,8 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    * @param tags comma-separated tags string
    */
   public void setTags(String tags) {
-<span class="fc" id="L392">    this.tags = tags;</span>
-<span class="fc" id="L393">  }</span>
+<span class="nc" id="L392">    this.tags = tags;</span>
+<span class="nc" id="L393">  }</span>
 
   /**
    * Compares this ApplicationSpec with another for sorting by group, location, and name.
@@ -400,14 +400,14 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public int compareTo(ApplicationSpec other) {
-<span class="fc" id="L403">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="fc bfc" id="L404" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
-<span class="fc" id="L405">      return groupCompare;</span>
+<span class="nc" id="L403">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="nc" id="L405">      return groupCompare;</span>
     }
 
-<span class="fc" id="L408">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="pc bpc" id="L409" title="1 of 2 branches missed.">    if (locationCompare != 0) {</span>
-<span class="fc" id="L410">      return locationCompare;</span>
+<span class="nc" id="L408">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L409" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L410">      return locationCompare;</span>
     }
 
 <span class="nc" id="L413">    return this.getName().compareTo(other.getName());</span>

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StartpunktApplicationWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">StartpunktApplicationWrapper.java</span></div><h1>StartpunktApplicationWrapper.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
+import io.quarkus.logging.Log;
+import java.util.List;
+import java.util.Map;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Wrapper for Startpunkt application Kubernetes custom resources. This class extracts
@@ -11,11 +17,51 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group &quot;startpunkt.ullberg.us&quot;, version
-   * &quot;v1alpha3&quot;, and plural &quot;applications&quot;.
+   * &quot;v1alpha4&quot;, and plural &quot;applications&quot;.
    */
   public StartpunktApplicationWrapper() {
-<span class="fc" id="L17">    super(&quot;startpunkt.ullberg.us&quot;, &quot;v1alpha3&quot;, &quot;applications&quot;);</span>
-<span class="fc" id="L18">  }</span>
+<span class="fc" id="L23">    super(&quot;startpunkt.ullberg.us&quot;, &quot;v1alpha4&quot;, &quot;applications&quot;);</span>
+<span class="fc" id="L24">  }</span>
+
+  /**
+   * Retrieves application specifications with support for urlFrom references.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @return list of ApplicationSpec instances
+   */
+  @Override
+  public List&lt;ApplicationSpec&gt; getApplicationSpecs(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
+<span class="fc" id="L37">    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()</span>
+<span class="fc" id="L38">        .map(item -&gt; mapToApplicationSpec(item, client))</span>
+<span class="fc" id="L39">        .toList();</span>
+  }
+
+  /**
+   * Maps a GenericKubernetesResource to an ApplicationSpec instance with client support for urlFrom
+   * resolution.
+   *
+   * @param item the Kubernetes generic resource
+   * @param client the Kubernetes client instance
+   * @return the ApplicationSpec mapped from the resource
+   */
+  protected ApplicationSpec mapToApplicationSpec(
+      GenericKubernetesResource item, KubernetesClient client) {
+<span class="fc" id="L52">    return new ApplicationSpec(</span>
+<span class="fc" id="L53">        getAppName(item),</span>
+<span class="fc" id="L54">        getAppGroup(item),</span>
+<span class="fc" id="L55">        getAppIcon(item),</span>
+<span class="fc" id="L56">        getAppIconColor(item),</span>
+<span class="fc" id="L57">        getAppUrl(item, client),</span>
+<span class="fc" id="L58">        getAppInfo(item),</span>
+<span class="fc" id="L59">        getAppTargetBlank(item),</span>
+<span class="fc" id="L60">        getAppLocation(item),</span>
+<span class="fc" id="L61">        getAppEnabled(item),</span>
+<span class="fc" id="L62">        getAppRootPath(item),</span>
+<span class="fc" id="L63">        getAppTags(item));</span>
+  }
 
   /**
    * Retrieves the application name from the resource spec. This property is required.
@@ -25,7 +71,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppName(GenericKubernetesResource item) {
-<span class="fc" id="L28">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
+<span class="fc" id="L74">    return getSpec(item).get(&quot;name&quot;).toString().toLowerCase();</span>
   }
 
   /**
@@ -37,7 +83,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
-<span class="fc" id="L40">    return getOptionalSpecString(item, &quot;group&quot;, super.getAppGroup(item)).toLowerCase();</span>
+<span class="fc" id="L86">    return getOptionalSpecString(item, &quot;group&quot;, super.getAppGroup(item)).toLowerCase();</span>
   }
 
   /**
@@ -49,7 +95,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppRootPath(GenericKubernetesResource item) {
-<span class="fc" id="L52">    return getOptionalSpecString(item, &quot;rootPath&quot;, super.getAppRootPath(item));</span>
+<span class="fc" id="L98">    return getOptionalSpecString(item, &quot;rootPath&quot;, super.getAppRootPath(item));</span>
   }
 
   /**
@@ -60,15 +106,195 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L63">    String baseUrl = getSpec(item).get(&quot;url&quot;).toString();</span>
-<span class="fc" id="L64">    String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>
+    // This method is kept for backwards compatibility but won't be used in normal flow
+<span class="fc" id="L110">    String baseUrl = getOptionalSpecString(item, &quot;url&quot;, null);</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (baseUrl == null) {</span>
+<span class="nc" id="L112">      return null;</span>
+    }
+<span class="fc" id="L114">    String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>
 
-<span class="pc bpc" id="L66" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.trim().isEmpty()) {</span>
-<span class="nc" id="L67">      return appendRootPath(baseUrl, rootPath);</span>
+<span class="pc bpc" id="L116" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.trim().isEmpty()) {</span>
+<span class="nc" id="L117">      return appendRootPath(baseUrl, rootPath);</span>
     }
 
     // Fall back to annotation-based rootPath for backward compatibility
-<span class="fc" id="L71">    return appendRootPath(baseUrl, item);</span>
+<span class="fc" id="L121">    return appendRootPath(baseUrl, item);</span>
+  }
+
+  /**
+   * Retrieves the application URL from the resource spec with support for urlFrom references. If
+   * urlFrom is specified, reads the URL from the referenced Kubernetes object. Otherwise, falls
+   * back to the direct url field.
+   *
+   * @param item Kubernetes resource
+   * @param client Kubernetes client for resolving urlFrom references
+   * @return URL string with rootPath appended if specified
+   */
+  protected String getAppUrl(GenericKubernetesResource item, KubernetesClient client) {
+<span class="fc" id="L134">    var spec = getSpec(item);</span>
+
+    // Check if urlFrom is specified
+<span class="pc bpc" id="L137" title="1 of 4 branches missed.">    if (spec.containsKey(&quot;urlFrom&quot;) &amp;&amp; spec.get(&quot;urlFrom&quot;) != null) {</span>
+<span class="fc" id="L138">      String resolvedUrl = resolveUrlFromReference(item, client);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">      if (resolvedUrl != null) {</span>
+<span class="fc" id="L140">        String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>
+<span class="pc bpc" id="L141" title="3 of 4 branches missed.">        if (rootPath != null &amp;&amp; !rootPath.trim().isEmpty()) {</span>
+<span class="nc" id="L142">          return appendRootPath(resolvedUrl, rootPath);</span>
+        }
+<span class="fc" id="L144">        return appendRootPath(resolvedUrl, item);</span>
+      }
+    }
+
+    // Fall back to direct url field
+<span class="fc" id="L149">    return getAppUrl(item);</span>
+  }
+
+  /**
+   * Resolves the URL from a urlFrom reference by fetching the referenced Kubernetes object and
+   * extracting the specified property.
+   *
+   * @param item the Application resource containing the urlFrom reference
+   * @param client Kubernetes client for fetching the referenced object
+   * @return resolved URL or null if resolution fails
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private String resolveUrlFromReference(GenericKubernetesResource item, KubernetesClient client) {
+<span class="fc" id="L162">    var spec = getSpec(item);</span>
+<span class="fc" id="L163">    Map&lt;String, Object&gt; urlFromMap = (Map&lt;String, Object&gt;) spec.get(&quot;urlFrom&quot;);</span>
+
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    if (urlFromMap == null) {</span>
+<span class="nc" id="L166">      return null;</span>
+    }
+
+    try {
+<span class="fc" id="L170">      String apiVersion = (String) urlFromMap.get(&quot;apiVersion&quot;);</span>
+<span class="fc" id="L171">      String kind = (String) urlFromMap.get(&quot;kind&quot;);</span>
+<span class="fc" id="L172">      String name = (String) urlFromMap.get(&quot;name&quot;);</span>
+<span class="fc" id="L173">      String namespace = (String) urlFromMap.get(&quot;namespace&quot;);</span>
+<span class="fc" id="L174">      String property = (String) urlFromMap.get(&quot;property&quot;);</span>
+<span class="fc" id="L175">      String apiGroup = (String) urlFromMap.get(&quot;apiGroup&quot;);</span>
+<span class="fc" id="L176">      String urlTemplate = (String) urlFromMap.get(&quot;urlTemplate&quot;);</span>
+
+<span class="pc bpc" id="L178" title="4 of 8 branches missed.">      if (apiVersion == null || kind == null || name == null || property == null) {</span>
+<span class="nc" id="L179">        Log.warn(&quot;urlFrom is missing required fields (apiVersion, kind, name, or property)&quot;);</span>
+<span class="nc" id="L180">        return null;</span>
+      }
+
+      // Default namespace to the same namespace as the Application
+<span class="pc bpc" id="L184" title="3 of 4 branches missed.">      if (namespace == null || namespace.isEmpty()) {</span>
+<span class="fc" id="L185">        namespace = item.getMetadata().getNamespace();</span>
+      }
+
+      // Determine the group from apiVersion (e.g., &quot;v1&quot; -&gt; &quot;&quot;, &quot;apps/v1&quot; -&gt; &quot;apps&quot;)
+<span class="fc" id="L189">      String group = &quot;&quot;;</span>
+<span class="pc bpc" id="L190" title="3 of 4 branches missed.">      if (apiGroup != null &amp;&amp; !apiGroup.isEmpty()) {</span>
+<span class="nc" id="L191">        group = apiGroup;</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">      } else if (apiVersion.contains(&quot;/&quot;)) {</span>
+<span class="nc" id="L193">        group = apiVersion.substring(0, apiVersion.indexOf(&quot;/&quot;));</span>
+<span class="nc" id="L194">        apiVersion = apiVersion.substring(apiVersion.indexOf(&quot;/&quot;) + 1);</span>
+      }
+
+      // Build ResourceDefinitionContext for the referenced resource
+<span class="fc" id="L198">      ResourceDefinitionContext context =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L200">              .withGroup(group)</span>
+<span class="fc" id="L201">              .withVersion(apiVersion)</span>
+<span class="fc" id="L202">              .withPlural(kind.toLowerCase() + &quot;s&quot;) // Simple pluralization</span>
+<span class="fc" id="L203">              .withNamespaced(true)</span>
+<span class="fc" id="L204">              .build();</span>
+
+      // Fetch the referenced resource
+<span class="fc" id="L207">      GenericKubernetesResource referencedResource =</span>
+<span class="fc" id="L208">          client.genericKubernetesResources(context).inNamespace(namespace).withName(name).get();</span>
+
+<span class="fc bfc" id="L210" title="All 2 branches covered.">      if (referencedResource == null) {</span>
+<span class="fc" id="L211">        Log.warn(</span>
+<span class="fc" id="L212">            String.format(</span>
+                &quot;Referenced resource not found: %s/%s in namespace %s&quot;, kind, name, namespace));
+<span class="fc" id="L214">        return null;</span>
+      }
+
+      // Extract the property value using the property path
+<span class="fc" id="L218">      String extractedValue = extractProperty(referencedResource, property);</span>
+
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">      if (extractedValue == null) {</span>
+<span class="nc" id="L221">        return null;</span>
+      }
+
+      // Apply URL template if provided
+<span class="pc bpc" id="L225" title="1 of 4 branches missed.">      if (urlTemplate != null &amp;&amp; !urlTemplate.isEmpty()) {</span>
+<span class="fc" id="L226">        return urlTemplate.replace(&quot;{0}&quot;, extractedValue);</span>
+      }
+
+<span class="fc" id="L229">      return extractedValue;</span>
+
+<span class="nc" id="L231">    } catch (Exception e) {</span>
+<span class="nc" id="L232">      Log.error(&quot;Error resolving urlFrom reference&quot;, e);</span>
+<span class="nc" id="L233">      return null;</span>
+    }
+  }
+
+  /**
+   * Extracts a property value from a Kubernetes resource using a JSON path. Supports simple paths
+   * like &quot;spec.host&quot;, &quot;data.url&quot;, &quot;status.loadBalancer.ingress[0].hostname&quot;.
+   *
+   * @param resource the Kubernetes resource
+   * @param propertyPath the property path (dot-separated)
+   * @return the property value as a string, or null if not found
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private String extractProperty(GenericKubernetesResource resource, String propertyPath) {
+<span class="pc bpc" id="L247" title="2 of 4 branches missed.">    if (propertyPath == null || propertyPath.isEmpty()) {</span>
+<span class="nc" id="L248">      return null;</span>
+    }
+
+<span class="fc" id="L251">    Map&lt;String, Object&gt; current = resource.getAdditionalProperties();</span>
+<span class="fc" id="L252">    String[] parts = propertyPath.split(&quot;\\.&quot;);</span>
+
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">    for (int i = 0; i &lt; parts.length; i++) {</span>
+<span class="fc" id="L255">      String part = parts[i];</span>
+
+      // Handle array indexing (e.g., &quot;ingress[0]&quot;)
+<span class="pc bpc" id="L258" title="3 of 4 branches missed.">      if (part.contains(&quot;[&quot;) &amp;&amp; part.contains(&quot;]&quot;)) {</span>
+<span class="nc" id="L259">        String arrayName = part.substring(0, part.indexOf(&quot;[&quot;));</span>
+<span class="nc" id="L260">        int index = Integer.parseInt(part.substring(part.indexOf(&quot;[&quot;) + 1, part.indexOf(&quot;]&quot;)));</span>
+
+<span class="nc" id="L262">        Object arrayObj = current.get(arrayName);</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (arrayObj instanceof List) {</span>
+<span class="nc" id="L264">          List&lt;Object&gt; list = (List&lt;Object&gt;) arrayObj;</span>
+<span class="nc bnc" id="L265" title="All 4 branches missed.">          if (index &gt;= 0 &amp;&amp; index &lt; list.size()) {</span>
+<span class="nc" id="L266">            Object item = list.get(index);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">            if (i == parts.length - 1) {</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">              return item != null ? item.toString() : null;</span>
+            }
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            if (item instanceof Map) {</span>
+<span class="nc" id="L271">              current = (Map&lt;String, Object&gt;) item;</span>
+<span class="nc" id="L272">              continue;</span>
+            }
+          }
+        }
+<span class="nc" id="L276">        return null;</span>
+      }
+
+<span class="fc" id="L279">      Object value = current.get(part);</span>
+<span class="pc bpc" id="L280" title="1 of 2 branches missed.">      if (value == null) {</span>
+<span class="nc" id="L281">        return null;</span>
+      }
+
+      // If this is the last part, return the value
+<span class="fc bfc" id="L285" title="All 2 branches covered.">      if (i == parts.length - 1) {</span>
+<span class="fc" id="L286">        return value.toString();</span>
+      }
+
+      // Otherwise, continue navigating if it's a map
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">      if (value instanceof Map) {</span>
+<span class="fc" id="L291">        current = (Map&lt;String, Object&gt;) value;</span>
+      } else {
+<span class="nc" id="L293">        return null;</span>
+      }
+    }
+
+<span class="nc" id="L297">    return null;</span>
   }
 
   /**
@@ -80,14 +306,14 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="fc" id="L83">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
+<span class="fc" id="L309">    return getOptionalSpecString(item, &quot;icon&quot;, super.getAppIcon(item));</span>
   }
 
   // Override getAppIconColor since the spec has an optional property called iconColor
   // If the iconColor is not set, return the super.getAppIconColor response
   @Override
   protected String getAppIconColor(GenericKubernetesResource item) {
-<span class="fc" id="L90">    return getOptionalSpecString(item, &quot;iconColor&quot;, super.getAppIconColor(item));</span>
+<span class="fc" id="L316">    return getOptionalSpecString(item, &quot;iconColor&quot;, super.getAppIconColor(item));</span>
   }
 
   /**
@@ -99,7 +325,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="fc" id="L102">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
+<span class="fc" id="L328">    return getOptionalSpecString(item, &quot;info&quot;, super.getAppInfo(item));</span>
   }
 
   /**
@@ -111,7 +337,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="fc" id="L114">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
+<span class="fc" id="L340">    return getOptionalSpecBoolean(item, &quot;targetBlank&quot;, super.getAppTargetBlank(item));</span>
   }
 
   /**
@@ -123,8 +349,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="fc" id="L126">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
-<span class="fc bfc" id="L127" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
+<span class="fc" id="L352">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
   }
 
   /**
@@ -135,7 +361,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="fc" id="L138">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+<span class="fc" id="L364">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
   }
 
   /**
@@ -146,7 +372,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L149">    return getOptionalSpecString(item, &quot;tags&quot;, super.getAppTags(item));</span>
+<span class="fc" id="L375">    return getOptionalSpecString(item, &quot;tags&quot;, super.getAppTags(item));</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

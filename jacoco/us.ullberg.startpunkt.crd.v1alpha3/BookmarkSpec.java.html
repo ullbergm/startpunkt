@@ -53,7 +53,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
   private int location;
 
   /** Default no-argument constructor. */
-<span class="fc" id="L56">  public BookmarkSpec() {}</span>
+<span class="nc" id="L56">  public BookmarkSpec() {}</span>
 
   /**
    * Constructs a BookmarkSpec with all properties.
@@ -73,15 +73,15 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
       String url,
       String info,
       Boolean targetBlank,
-<span class="fc" id="L76">      int location) {</span>
-<span class="fc" id="L77">    this.name = name;</span>
-<span class="fc" id="L78">    this.group = group;</span>
-<span class="fc" id="L79">    this.icon = icon;</span>
-<span class="fc" id="L80">    this.url = url;</span>
-<span class="fc" id="L81">    this.info = info;</span>
-<span class="fc" id="L82">    this.targetBlank = targetBlank;</span>
-<span class="fc" id="L83">    this.location = location;</span>
-<span class="fc" id="L84">  }</span>
+<span class="nc" id="L76">      int location) {</span>
+<span class="nc" id="L77">    this.name = name;</span>
+<span class="nc" id="L78">    this.group = group;</span>
+<span class="nc" id="L79">    this.icon = icon;</span>
+<span class="nc" id="L80">    this.url = url;</span>
+<span class="nc" id="L81">    this.info = info;</span>
+<span class="nc" id="L82">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L83">    this.location = location;</span>
+<span class="nc" id="L84">  }</span>
 
   /**
    * Get the bookmark name.
@@ -89,7 +89,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark name
    */
   public String getName() {
-<span class="fc" id="L92">    return name;</span>
+<span class="nc" id="L92">    return name;</span>
   }
 
   /**
@@ -98,8 +98,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param name the bookmark name to set
    */
   public void setName(String name) {
-<span class="fc" id="L101">    this.name = name;</span>
-<span class="fc" id="L102">  }</span>
+<span class="nc" id="L101">    this.name = name;</span>
+<span class="nc" id="L102">  }</span>
 
   /**
    * Get the bookmark group.
@@ -107,7 +107,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark group
    */
   public String getGroup() {
-<span class="fc" id="L110">    return group;</span>
+<span class="nc" id="L110">    return group;</span>
   }
 
   /**
@@ -116,8 +116,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param group the bookmark group to set
    */
   public void setGroup(String group) {
-<span class="fc" id="L119">    this.group = group;</span>
-<span class="fc" id="L120">  }</span>
+<span class="nc" id="L119">    this.group = group;</span>
+<span class="nc" id="L120">  }</span>
 
   /**
    * Get the bookmark icon.
@@ -125,7 +125,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark icon
    */
   public String getIcon() {
-<span class="fc" id="L128">    return icon;</span>
+<span class="nc" id="L128">    return icon;</span>
   }
 
   /**
@@ -134,8 +134,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param icon the bookmark icon to set
    */
   public void setIcon(String icon) {
-<span class="fc" id="L137">    this.icon = icon;</span>
-<span class="fc" id="L138">  }</span>
+<span class="nc" id="L137">    this.icon = icon;</span>
+<span class="nc" id="L138">  }</span>
 
   /**
    * Get the bookmark url.
@@ -143,7 +143,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark URL
    */
   public String getUrl() {
-<span class="fc" id="L146">    return url;</span>
+<span class="nc" id="L146">    return url;</span>
   }
 
   /**
@@ -152,8 +152,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param url the bookmark URL to set
    */
   public void setUrl(String url) {
-<span class="fc" id="L155">    this.url = url;</span>
-<span class="fc" id="L156">  }</span>
+<span class="nc" id="L155">    this.url = url;</span>
+<span class="nc" id="L156">  }</span>
 
   /**
    * Get the bookmark info.
@@ -161,7 +161,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark info/description
    */
   public String getInfo() {
-<span class="fc" id="L164">    return info;</span>
+<span class="nc" id="L164">    return info;</span>
   }
 
   /**
@@ -170,8 +170,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param info the bookmark info to set
    */
   public void setInfo(String info) {
-<span class="fc" id="L173">    this.info = info;</span>
-<span class="fc" id="L174">  }</span>
+<span class="nc" id="L173">    this.info = info;</span>
+<span class="nc" id="L174">  }</span>
 
   /**
    * Get whether the url should open in a new tab.
@@ -179,7 +179,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return whether the URL should open in a new tab
    */
   public Boolean getTargetBlank() {
-<span class="fc" id="L182">    return targetBlank;</span>
+<span class="nc" id="L182">    return targetBlank;</span>
   }
 
   /**
@@ -188,8 +188,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param targetBlank the targetBlank flag to set
    */
   public void setTargetBlank(Boolean targetBlank) {
-<span class="fc" id="L191">    this.targetBlank = targetBlank;</span>
-<span class="fc" id="L192">  }</span>
+<span class="nc" id="L191">    this.targetBlank = targetBlank;</span>
+<span class="nc" id="L192">  }</span>
 
   /**
    * Get the sorting location.
@@ -197,7 +197,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the sorting location of the bookmark
    */
   public int getLocation() {
-<span class="fc" id="L200">    return location;</span>
+<span class="nc" id="L200">    return location;</span>
   }
 
   /**
@@ -206,8 +206,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param location the sorting location to set
    */
   public void setLocation(int location) {
-<span class="fc" id="L209">    this.location = location;</span>
-<span class="fc" id="L210">  }</span>
+<span class="nc" id="L209">    this.location = location;</span>
+<span class="nc" id="L210">  }</span>
 
   /**
    * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
@@ -218,14 +218,14 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    */
   @Override
   public int compareTo(BookmarkSpec other) {
-<span class="fc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="fc bfc" id="L222" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
-<span class="fc" id="L223">      return groupCompare;</span>
+<span class="nc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="nc" id="L223">      return groupCompare;</span>
     }
 
-<span class="fc" id="L226">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="pc bpc" id="L227" title="1 of 2 branches missed.">    if (locationCompare != 0) {</span>
-<span class="fc" id="L228">      return locationCompare;</span>
+<span class="nc" id="L226">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L228">      return locationCompare;</span>
     }
 
 <span class="nc" id="L231">    return this.getName().compareTo(other.getName());</span>

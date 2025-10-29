@@ -13,13 +13,13 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * Represents a Kubernetes custom resource for a Bookmark. This resource is namespaced and includes
  * specifications and status.
  */
-@Version(value = &quot;v1alpha3&quot;, storage = true, served = true, deprecated = false)
+@Version(value = &quot;v1alpha3&quot;, storage = false, served = true, deprecated = true)
 @Group(&quot;startpunkt.ullberg.us&quot;)
 @Plural(&quot;bookmarks&quot;)
 public class Bookmark extends CustomResource&lt;BookmarkSpec, BookmarkStatus&gt; implements Namespaced {
 
   /** Default no-argument constructor. */
-<span class="fc" id="L22">  public Bookmark() {}</span>
+<span class="nc" id="L22">  public Bookmark() {}</span>
 
   /**
    * Constructs a Bookmark resource with the given properties.
