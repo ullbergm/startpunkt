@@ -71,7 +71,7 @@ startpunkt:
   # WebSocket real-time updates
   websocket:
     enabled: true  # If true, enable WebSocket support for real-time updates
-    heartbeatInterval: 30  # Heartbeat interval in seconds to keep connections alive
+    heartbeatInterval: 30s  # Heartbeat interval in seconds to keep connections alive (e.g., 60s, 5m, 1h)
     eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
 
 # Logging configuration (uncomment to enable debug logging)

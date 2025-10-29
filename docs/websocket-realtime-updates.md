@@ -30,7 +30,7 @@ startpunkt:
 ### Configuration Options
 
 - **`enabled`** (default: `true`): Master switch for WebSocket functionality
-- **`heartbeatInterval`** (default: `30`): Seconds between heartbeat messages
+- **`heartbeatInterval`** (default: `30s`): Seconds between heartbeat messages
 - **`eventDebounceMs`** (default: `500`): Milliseconds to wait before broadcasting rapid events
 
 ## WebSocket Endpoint

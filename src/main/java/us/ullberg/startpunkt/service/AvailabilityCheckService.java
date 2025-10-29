@@ -274,10 +274,25 @@ public class AvailabilityCheckService {
    * Invalidates the application caches to force fresh data on next request. Called when
    * availability status changes to ensure clients get updated data.
    */
-  @CacheInvalidate(cacheName = "getApp")
-  @CacheInvalidate(cacheName = "getApps")
-  @CacheInvalidate(cacheName = "getAppsFiltered")
   public void invalidateApplicationCaches() {
+    invalidateGetAppCache();
+    invalidateGetAppsCache();
+    invalidateGetAppsFilteredCache();
     Log.debug("Invalidated application caches due to availability changes");
+  }
+
+  @CacheInvalidate(cacheName = "getApp")
+  protected void invalidateGetAppCache() {
+    // No-op: annotation triggers cache invalidation
+  }
+
+  @CacheInvalidate(cacheName = "getApps")
+  protected void invalidateGetAppsCache() {
+    // No-op: annotation triggers cache invalidation
+  }
+
+  @CacheInvalidate(cacheName = "getAppsFiltered")
+  protected void invalidateGetAppsFilteredCache() {
+    // No-op: annotation triggers cache invalidation
   }
 }

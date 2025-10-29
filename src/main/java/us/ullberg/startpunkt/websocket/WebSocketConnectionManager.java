@@ -26,8 +26,8 @@ public class WebSocketConnectionManager {
   @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
   boolean websocketEnabled;
 
-  @ConfigProperty(name = "startpunkt.websocket.heartbeatInterval", defaultValue = "30")
-  int heartbeatInterval;
+  @ConfigProperty(name = "startpunkt.websocket.heartbeatInterval", defaultValue = "30s")
+  String heartbeatInterval;
 
   /**
    * Constructor for WebSocketConnectionManager.
@@ -124,7 +124,7 @@ public class WebSocketConnectionManager {
    *
    * <p>This is scheduled based on the configured heartbeat interval.
    */
-  @Scheduled(every = "{startpunkt.websocket.heartbeatInterval}s")
+  @Scheduled(every = "{startpunkt.websocket.heartbeatInterval}")
   void sendHeartbeat() {
     if (!websocketEnabled || connections.isEmpty()) {
       return;
