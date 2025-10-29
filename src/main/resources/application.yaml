@@ -68,6 +68,12 @@ startpunkt:
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
 
+  # WebSocket real-time updates
+  websocket:
+    enabled: true  # If true, enable WebSocket support for real-time updates
+    heartbeatInterval: 30  # Heartbeat interval in seconds to keep connections alive
+    eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
+
 # Logging configuration (uncomment to enable debug logging)
 # quarkus:
 #   log:

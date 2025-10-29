@@ -157,6 +157,14 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-scheduler</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-websockets</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-websockets-next</artifactId>
+    </dependency>
 
     <!-- Quarkus Extensions -->
     <dependency>
@@ -545,6 +553,8 @@
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-kubernetes-client</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-websockets</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-websockets-next</ignoredUnusedDeclaredDependency>
 
                 <!-- Quarkiverse -->
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
