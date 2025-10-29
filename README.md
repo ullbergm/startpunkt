@@ -305,6 +305,7 @@ It also provides several libraries that simplify the development immensely.
 
 See the [open issues](https://github.com/ullbergm/startpunkt/issues) for a list of proposed features (and known issues).
 
+- [Feature Enhancements List](docs/FEATURE_ENHANCEMENTS.md) - Comprehensive list of potential future enhancements
 - [Top Feature Requests](https://github.com/ullbergm/startpunkt/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Top Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Newest Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
