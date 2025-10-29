@@ -4,7 +4,7 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Wrapper for Istio VirtualService custom resources to extract application info. Supports filtering

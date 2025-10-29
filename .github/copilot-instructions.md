@@ -11,7 +11,7 @@ Startpunkt is a clean start page designed to display links to all self-hosted re
 - `ApplicationResource` builds a sorted `ApplicationSpec` list through wrapper classes in `objects/kubernetes`; respect the feature toggles from `application.yaml` and keep `Collections.sort(apps)` before grouping so UI ordering stays deterministic.
 - Wrappers extend `BaseKubernetesObject`, read Fabric8 generic resources, and enrich URLs with annotations like `startpunkt.ullberg.us/rootPath` and `startpunkt.ullberg.us/tags`; preserve the tag filtering rules implemented in `filterApplicationsByTags` and `filterApplicationsWithoutTags`.
 - Bookmarks flow through `BookmarkService` and `BookmarkGroupList`; group names are lowercased and location `0` is normalized to `1000` for Hajimari compatibility.
-- CRD Java models under `crd/v1alpha3` are consumed by both the API and Fabric8 mocks; add new fields with generator annotations rather than editing generated YAML, and keep older versions intact for compatibility.
+- CRD Java models under `crd/v1alpha4` are consumed by both the API and Fabric8 mocks; add new fields with generator annotations rather than editing generated YAML, and keep older versions intact for compatibility.
 - Translations reside in `src/main/resources/i8n/*.json`; `I8nService` validates language format and falls back to `startpunkt.defaultLanguage`.
 - Theme endpoints build responses from `Theme`/`ThemeColors`; always provide both `light` and `dark` palettes because the SPA expects them.
 - Front-end code is in `src/main/webui`; `main.jsx` bootstraps Preact components that consume the REST JSON (`groups[].applications[]`, `bookmarks[].links[]`). Component tests live alongside sources with `.test.jsx` using Testing Library + Jest.

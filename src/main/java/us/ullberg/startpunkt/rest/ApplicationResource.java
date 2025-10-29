@@ -22,7 +22,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
@@ -110,8 +110,13 @@ public class ApplicationResource {
     // Create a list of application wrappers to retrieve applications from
     var applicationWrappers = new ArrayList<BaseKubernetesObject>();
     applicationWrappers.add(new StartpunktApplicationWrapper());
-    Log.debugf("Enabled wrappers: Startpunkt=true, Hajimari=%s, OpenShift=%s, Ingress=%s, Istio=%s, GatewayAPI=%s",
-        hajimariEnabled, openshiftEnabled, ingressEnabled, istioVirtualServiceEnabled, gatewayApiEnabled);
+    Log.debugf(
+        "Enabled wrappers: Startpunkt=true, Hajimari=%s, OpenShift=%s, Ingress=%s, Istio=%s, GatewayAPI=%s",
+        hajimariEnabled,
+        openshiftEnabled,
+        ingressEnabled,
+        istioVirtualServiceEnabled,
+        gatewayApiEnabled);
 
     if (hajimariEnabled) {
       applicationWrappers.add(new HajimariApplicationWrapper());
@@ -142,10 +147,15 @@ public class ApplicationResource {
     try {
       // Retrieve the applications from the application wrappers using the injected client
       for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        Log.debugf("Retrieving applications using wrapper: %s", applicationWrapper.getClass().getSimpleName());
-        var wrapperApps = applicationWrapper.getApplicationSpecs(
+        Log.debugf(
+            "Retrieving applications using wrapper: %s",
+            applicationWrapper.getClass().getSimpleName());
+        var wrapperApps =
+            applicationWrapper.getApplicationSpecs(
                 kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-        Log.debugf("Retrieved %d applications from %s", wrapperApps.size(), applicationWrapper.getClass().getSimpleName());
+        Log.debugf(
+            "Retrieved %d applications from %s",
+            wrapperApps.size(), applicationWrapper.getClass().getSimpleName());
         apps.addAll(wrapperApps);
       }
     } catch (Exception e) {

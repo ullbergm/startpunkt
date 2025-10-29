@@ -268,7 +268,7 @@ Note: Environment variable names use double underscores (`__`) to represent dots
 To add applications, that are either outside of the cluster or are using an ingress method that is not supported (yet), you can use the CRDs:
 
 ```yaml
-apiVersion: startpunkt.ullberg.us/v1alpha3
+apiVersion: startpunkt.ullberg.us/v1alpha4
 kind: Application
 metadata:
   name: nas
@@ -286,7 +286,7 @@ spec:
 For Startpunkt Application CRDs, you can use the `rootPath` property directly in the spec to append a path to the URL:
 
 ```yaml
-apiVersion: startpunkt.ullberg.us/v1alpha3
+apiVersion: startpunkt.ullberg.us/v1alpha4
 kind: Application
 metadata:
   name: web-app
@@ -303,6 +303,137 @@ spec:
 This will create a link to `https://app.example.com/admin/dashboard`.
 
 > **_NOTE:_** For Startpunkt CRDs, the `rootPath` property in the spec takes precedence over the `startpunkt.ullberg.us/rootPath` annotation if both are present.
+
+#### Dynamic URL Resolution with urlFrom
+
+The `urlFrom` field allows you to dynamically read URLs from other Kubernetes objects like Services, ConfigMaps, or any other resource. This is useful when you need to reference dynamically assigned values such as LoadBalancer IPs, cluster IPs, or configuration stored in ConfigMaps.
+
+##### Simple Usage - Reading a Complete URL
+
+If you have a complete URL stored in another Kubernetes object, you can reference it directly:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: grafana
+  namespace: default
+spec:
+  name: Grafana
+  group: Monitoring
+  icon: mdi:chart-line
+  urlFrom:
+    apiVersion: v1
+    kind: ConfigMap
+    name: app-urls
+    property: data.grafana
+  info: Metrics Dashboard
+```
+
+This example reads the URL from a ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-urls
+  namespace: default
+data:
+  grafana: "https://grafana.example.com"
+```
+
+##### Advanced Usage - Building URLs with Templates
+
+When the referenced object contains only a hostname or IP address (not a complete URL), you can use the `urlTemplate` field to construct the full URL. The `{0}` placeholder will be replaced with the extracted value:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: service-app
+  namespace: default
+spec:
+  name: My Service
+  group: Applications
+  icon: mdi:web
+  urlFrom:
+    apiVersion: v1
+    kind: Service
+    name: my-service
+    property: spec.clusterIP
+    urlTemplate: "https://{0}/dashboard/"
+  info: Service Dashboard
+```
+
+This will extract the IP address (e.g., `10.0.0.100`) from the Service's `spec.clusterIP` and build the final URL as `https://10.0.0.100/dashboard/`.
+
+##### Using LoadBalancer IPs
+
+For services with LoadBalancer type, you can extract the external IP:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: external-app
+  namespace: default
+spec:
+  name: External Application
+  group: Public Services
+  icon: mdi:cloud
+  urlFrom:
+    apiVersion: v1
+    kind: Service
+    name: external-service
+    property: status.loadBalancer.ingress[0].ip
+    urlTemplate: "https://{0}:8443/app"
+  info: Externally Accessible Application
+```
+
+##### Nested Property Paths
+
+The `property` field supports dot notation for nested properties and bracket notation for array elements:
+
+- **Nested objects**: `spec.clusterIP`, `data.endpoint`, `spec.host`
+- **Array elements**: `status.loadBalancer.ingress[0].hostname`, `status.addresses[0].address`
+- **Combined**: `spec.template.spec.containers[0].image`
+
+##### urlFrom Configuration Reference
+
+| Field | Description | Required |
+|-------|-------------|----------|
+| `apiVersion` | API version of the referenced object (e.g., `v1`, `apps/v1`) | Yes |
+| `kind` | Kind of the referenced object (e.g., `Service`, `ConfigMap`, `Secret`) | Yes |
+| `name` | Name of the referenced object | Yes |
+| `property` | JSON path to extract the value (supports dot notation and array indexing) | Yes |
+| `namespace` | Namespace of the referenced object (defaults to Application's namespace) | No |
+| `apiGroup` | API group of the referenced object (optional, can be derived from apiVersion) | No |
+| `urlTemplate` | Template to build the URL using `{0}` as placeholder for extracted value | No |
+
+##### Fallback Behavior
+
+If you specify both `url` and `urlFrom` fields, the Application will:
+1. First attempt to resolve the URL from `urlFrom`
+2. If resolution fails (e.g., referenced object not found), fall back to the static `url` value
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: resilient-app
+  namespace: default
+spec:
+  name: Resilient App
+  group: Applications
+  icon: mdi:shield-check
+  url: https://fallback.example.com  # Fallback URL
+  urlFrom:
+    apiVersion: v1
+    kind: ConfigMap
+    name: dynamic-urls
+    property: data.primary
+  info: Application with fallback URL
+```
 
 ### 🗒️ Annotations
 

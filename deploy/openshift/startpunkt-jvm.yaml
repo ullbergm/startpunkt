@@ -102,7 +102,96 @@ spec:
     singular: "application"
   scope: "Namespaced"
   versions:
-  - name: "v1alpha3"
+  - name: "v1alpha4"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              enabled:
+                description: "Enable the bookmark"
+                type: "boolean"
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Application icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              iconColor:
+                description: "Application icon color, e.g. 'red'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Application name"
+                type: "string"
+              rootPath:
+                description: "Root path to append to the URL"
+                type: "string"
+              tags:
+                description: "Comma-separated tags for filtering applications"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Application URL"
+                type: "string"
+              urlFrom:
+                description: "Reference to read the URL from a different Kubernetes\
+                  \ object"
+                properties:
+                  apiGroup:
+                    description: "API group of the referenced object (e.g., 'v1',\
+                      \ 'apps/v1')"
+                    type: "string"
+                  apiVersion:
+                    description: "API version of the referenced object (e.g., 'v1')"
+                    type: "string"
+                  kind:
+                    description: "Kind of the referenced object (e.g., 'Service',\
+                      \ 'ConfigMap')"
+                    type: "string"
+                  name:
+                    description: "Name of the referenced object"
+                    type: "string"
+                  namespace:
+                    description: "Namespace of the referenced object (defaults to\
+                      \ same namespace)"
+                    type: "string"
+                  property:
+                    description: "JSON path to the property in the referenced object\
+                      \ (e.g., 'spec.host', 'data.url')"
+                    type: "string"
+                  urlTemplate:
+                    description: "Optional URL template to build the final URL. Use\
+                      \ {0} as placeholder (e.g., 'https://{0}/dashboard/')"
+                    type: "string"
+                required:
+                - "apiVersion"
+                - "kind"
+                - "name"
+                - "property"
+                type: "object"
+            required:
+            - "name"
+            type: "object"
+            oneOf:
+            - required: ["url"]
+            - required: ["urlFrom"]
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: true
+    subresources:
+      status: {}
+  - deprecated: true
+    name: "v1alpha3"
     schema:
       openAPIV3Schema:
         properties:
@@ -149,7 +238,7 @@ spec:
             type: "object"
         type: "object"
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
   - deprecated: true
@@ -258,7 +347,7 @@ spec:
     singular: "bookmark"
   scope: "Namespaced"
   versions:
-  - name: "v1alpha3"
+  - name: "v1alpha4"
     schema:
       openAPIV3Schema:
         properties:
@@ -295,6 +384,46 @@ spec:
         type: "object"
     served: true
     storage: true
+    subresources:
+      status: {}
+  - deprecated: true
+    name: "v1alpha3"
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              group:
+                description: "Group the bookmark belongs to"
+                type: "string"
+              icon:
+                description: "Bookmark icon, e.g. 'mdi:home', 'https://example.com/icon.png'"
+                type: "string"
+              info:
+                description: "Description of the bookmark"
+                type: "string"
+              location:
+                description: "Sorting order of the bookmark"
+                type: "integer"
+              name:
+                description: "Bookmark name"
+                type: "string"
+              targetBlank:
+                description: "Open the URL in a new tab"
+                type: "boolean"
+              url:
+                description: "Bookmark URL"
+                type: "string"
+            required:
+            - "group"
+            - "name"
+            - "url"
+            type: "object"
+          status:
+            type: "object"
+        type: "object"
+    served: true
+    storage: false
     subresources:
       status: {}
   - deprecated: true
@@ -377,7 +506,6 @@ spec:
     storage: false
     subresources:
       status: {}
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

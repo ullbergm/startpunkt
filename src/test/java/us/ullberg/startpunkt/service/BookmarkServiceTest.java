@@ -17,8 +17,8 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha3.Bookmark;
-import us.ullberg.startpunkt.crd.v1alpha3.BookmarkSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
+import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 
 /** Test class for {@link BookmarkService} with default namespace configuration behavior. */
 @QuarkusTest

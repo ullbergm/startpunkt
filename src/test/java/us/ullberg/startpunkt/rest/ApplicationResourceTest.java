@@ -16,8 +16,8 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import java.net.HttpURLConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha3.Application;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 @QuarkusTest
 @WithKubernetesTestServer

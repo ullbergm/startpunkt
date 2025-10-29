@@ -1,4 +1,4 @@
-package us.ullberg.startpunkt.crd.v1alpha3;
+package us.ullberg.startpunkt.crd.v1alpha4;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -11,10 +11,10 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Represents the CustomResource for an Application. Maps to the Kubernetes resource
- * "applications.startpunkt.ullberg.us" version "v1alpha3". Contains the spec and status for the
+ * "applications.startpunkt.ullberg.us" version "v1alpha4". Contains the spec and status for the
  * Application.
  */
-@Version(value = "v1alpha3", storage = false, served = true, deprecated = true)
+@Version(value = "v1alpha4", storage = true, served = true, deprecated = false)
 @Group("startpunkt.ullberg.us")
 @Plural("applications")
 public class Application extends CustomResource<ApplicationSpec, ApplicationStatus>

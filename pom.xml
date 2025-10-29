@@ -584,7 +584,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence></dependencyConvergence>
               </rules>
               <fail>true</fail>
             </configuration>

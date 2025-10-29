@@ -1,4 +1,4 @@
-package us.ullberg.startpunkt.crd.v1alpha3;
+package us.ullberg.startpunkt.crd.v1alpha4;
 
 import static org.junit.jupiter.api.Assertions.*;
 

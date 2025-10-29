@@ -8,7 +8,7 @@ import io.quarkus.logging.Log;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Abstract base class representing a Kubernetes custom resource wrapper. Provides common
@@ -90,7 +90,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
     try {
       if (anyNamespace) {
         Log.debug("Searching across all namespaces");
-        GenericKubernetesResourceList result = client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
+        GenericKubernetesResourceList result =
+            client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
         Log.debugf("Found %d %s resources in all namespaces", result.getItems().size(), pluralKind);
         return result;
       }
@@ -98,11 +99,12 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
       GenericKubernetesResourceList list = new GenericKubernetesResourceList();
       Log.debugf("Searching in specific namespaces: %s", matchNames);
       for (String namespace : matchNames) {
-        var items = client
-                    .genericKubernetesResources(resourceDefinitionContext)
-                    .inNamespace(namespace)
-                    .list()
-                    .getItems();
+        var items =
+            client
+                .genericKubernetesResources(resourceDefinitionContext)
+                .inNamespace(namespace)
+                .list()
+                .getItems();
         Log.debugf("Found %d %s resources in namespace: %s", items.size(), pluralKind, namespace);
         list.getItems().addAll(items);
       }
