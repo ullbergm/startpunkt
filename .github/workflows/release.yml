@@ -1,9 +1,11 @@
+---
 name: 'Release'
 
-on:
+on: # yamllint disable-line rule:truthy
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,19 +16,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
-      - name: Get version from tag
-        id: tag_name
-        run: |
-          echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
-        shell: bash
-        
       - name: Build Changelog
         id: github_release
-        uses: mikepenz/release-changelog-builder-action@main
+        uses: mikepenz/release-changelog-builder-action@v5
         with:
-          #configuration: ".github/workflows/changelog/configuration.json"
-          owner: "ullbergm"
-          repo: "startpunkt"
           configuration: ".github/workflows/changelog/configuration.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,6 +27,5 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          body: ${{steps.github_release.outputs.changelog}}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ steps.github_release.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}

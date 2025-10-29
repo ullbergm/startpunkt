@@ -78,3 +78,67 @@ Please try to create bug reports that are:
 4. Commit your changes (`git commit -m 'feat: add amazing_feature'`) Startpunkt uses [conventional commits](https://www.conventionalcommits.org), so please follow the specification in your commit messages.
 5. Push to the branch (`git push origin feat/amazing_feature`)
 6. [Open a Pull Request](https://github.com/ullbergm/startpunkt/compare?expand=1)
+
+## Release Process
+
+Startpunkt uses GitHub Actions to automate the release process. To create a new release:
+
+1. Navigate to the [Actions tab](https://github.com/ullbergm/startpunkt/actions/workflows/perform-release.yml) in the repository
+2. Click "Run workflow" on the "Perform Release" workflow
+3. Select the release type:
+   - **patch**: Increments the patch version (e.g., 2.1.0 → 2.1.1)
+   - **minor**: Increments the minor version (e.g., 2.1.0 → 2.2.0)
+   - **major**: Increments the major version (e.g., 2.1.0 → 3.0.0)
+   - **custom**: Allows you to specify a custom version number
+4. If you selected "custom", enter the desired version number (e.g., 2.3.0)
+5. Click "Run workflow"
+
+The workflow will:
+- Calculate the release version based on your selection
+- Run `mvnw release:prepare` to prepare the release
+- Run `mvnw release:perform` to complete the release
+- Push the release tag to the repository
+- Trigger the automatic GitHub release creation with changelog
+
+**Note**: Only maintainers with write access can trigger releases.
+
+### Automated Changelog Generation
+
+When a new version tag (e.g., `v2.2.4`) is pushed to the repository, the Release workflow automatically:
+
+1. Collects all merged pull requests since the last release
+2. Categorizes them based on conventional commit types in PR titles
+3. Generates a structured changelog
+4. Creates a GitHub release with the changelog
+
+**Changelog Categories:**
+
+The changelog groups changes into the following categories based on the conventional commit type:
+
+- 🚀 **Features** (`feat:`) - New features and enhancements
+- 🐛 **Fixes** (`fix:`) - Bug fixes
+- 📚 **Documentation** (`docs:`) - Documentation changes
+- 🔨 **Refactoring** (`refactor:`) - Code refactoring
+- 🧪 **Tests** (`test:`) - Test additions or modifications
+- 📦 **Dependencies** (`chore:`) - Dependency updates and maintenance
+- ⚙️ **CI/CD** (`ci:`) - CI/CD workflow changes
+- 🎨 **Styling** (`style:`) - Code style changes
+- ⚡ **Performance** (`perf:`) - Performance improvements
+- 🔧 **Build** (`build:`) - Build system changes
+- ↩️ **Reverts** (`revert:`) - Reverted changes
+
+**Best Practices for PR Titles:**
+
+To ensure your contributions are properly categorized in the changelog:
+
+1. Use conventional commit format in your PR titles: `type(scope): description`
+2. Choose the appropriate type from the list above
+3. Keep the description clear and concise
+4. Examples:
+   - `feat(api): add theme customization endpoint`
+   - `fix(ui): correct bookmark sorting order`
+   - `docs(readme): update installation instructions`
+   - `chore(deps): bump quarkus to 3.8.0`
+
+The changelog configuration is maintained in `.github/workflows/changelog/configuration.json`.
+

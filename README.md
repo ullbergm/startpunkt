@@ -79,15 +79,25 @@
 
 ## 🚀 Getting started
 
-<!-- ### Helm
+Startpunkt supports two deployment modes:
+- **Monolithic** (default): Single container with backend and frontend
+- **Microservices**: Separate containers for independent scaling ([see docs](docs/microservices.md))
 
-A simple helm chart is available in the repo that you can use to deploy the application.
+### Docker Compose (Microservices Mode)
+
+For local development or simple deployments with separate frontend/backend containers:
 
 ```shell
+# Clone the repository
 git clone https://github.com/ullbergm/startpunkt.git
+cd startpunkt
 
-helm .....
-``` -->
+# Build and start the microservices
+./build-microservices.sh
+docker-compose up
+```
+
+Access the application at http://localhost:8080
 
 ### Kubernetes
 
@@ -192,6 +202,66 @@ startpunkt:
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
 ```
+
+### 🐛 Logging configuration
+
+Startpunkt uses Quarkus logging with sensible defaults (INFO level). You can adjust log levels to troubleshoot issues or get more detailed information about what's happening.
+
+#### Changing the log level
+
+To change the log level, add the following to your `application.yaml` configuration:
+
+```yaml
+# Set the root log level (applies to all loggers)
+quarkus:
+  log:
+    level: DEBUG  # Options: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+```
+
+#### Fine-grained log level control
+
+For more control, you can set different log levels for specific packages:
+
+```yaml
+quarkus:
+  log:
+    level: INFO  # Default level for all loggers
+    category:
+      "us.ullberg.startpunkt":
+        level: DEBUG  # Debug level for all Startpunkt code
+      "us.ullberg.startpunkt.service":
+        level: TRACE  # Trace level for services only
+      "us.ullberg.startpunkt.rest":
+        level: DEBUG  # Debug level for REST endpoints
+```
+
+#### Common log categories
+
+- `us.ullberg.startpunkt.rest` - REST API endpoints (application, bookmark, theme, etc.)
+- `us.ullberg.startpunkt.service` - Service layer (BookmarkService, AvailabilityCheckService, I8nService)
+- `us.ullberg.startpunkt.objects.kubernetes` - Kubernetes resource wrappers
+
+#### Using environment variables
+
+You can also set log levels using environment variables in your Kubernetes deployment:
+
+```yaml
+env:
+  - name: QUARKUS_LOG_LEVEL
+    value: "DEBUG"
+  - name: QUARKUS_LOG_CATEGORY__US_ULLBERG_STARTPUNKT__LEVEL
+    value: "DEBUG"
+```
+
+Note: Environment variable names use double underscores (`__`) to represent dots (`.`) in package names.
+
+#### What gets logged at each level
+
+- **TRACE** - Very detailed tracing information, including individual availability checks
+- **DEBUG** - Detailed debugging information, including resource retrieval, filtering operations
+- **INFO** - General informational messages (default)
+- **WARN** - Warning messages for potentially problematic situations
+- **ERROR** - Error messages for failures
 
 ### 📝 Custom applications
 
@@ -305,6 +375,7 @@ It also provides several libraries that simplify the development immensely.
 
 See the [open issues](https://github.com/ullbergm/startpunkt/issues) for a list of proposed features (and known issues).
 
+- [Feature Enhancements List](docs/FEATURE_ENHANCEMENTS.md) - Comprehensive list of potential future enhancements
 - [Top Feature Requests](https://github.com/ullbergm/startpunkt/issues?q=label%3Aenhancement+is%3Aopen+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Top Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your votes using the 👍 reaction)
 - [Newest Bugs](https://github.com/ullbergm/startpunkt/issues?q=is%3Aopen+is%3Aissue+label%3Abug)

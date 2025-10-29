@@ -43,6 +43,7 @@ public class BookmarkService {
    */
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkSpec> retrieveBookmarks() {
+    Log.debug("Retrieving Startpunkt bookmarks from Kubernetes");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext ctx =
           new ResourceDefinitionContext.Builder()
@@ -53,7 +54,9 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, ctx);
-      return mapResourcesToBookmarks(list);
+      List<BookmarkSpec> bookmarks = mapResourcesToBookmarks(list);
+      Log.debugf("Retrieved %d Startpunkt bookmarks", bookmarks.size());
+      return bookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving bookmarks", e);
       return List.of();
@@ -64,12 +67,15 @@ public class BookmarkService {
   private GenericKubernetesResourceList getResourceList(
       final KubernetesClient client, ResourceDefinitionContext resourceDefinitionContext) {
     if (anyNamespace) {
+      Log.debug("Retrieving resources from all namespaces");
       return client.genericKubernetesResources(resourceDefinitionContext).inAnyNamespace().list();
     }
 
     // For each specified namespace, get the resource
+    Log.debugf("Retrieving resources from specific namespaces: %s", matchNames.orElse(List.of()));
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
     for (String ns : matchNames.orElse(List.of())) {
+      Log.debugf("Fetching resources from namespace: %s", ns);
       list.getItems()
           .addAll(
               client
@@ -125,7 +131,7 @@ public class BookmarkService {
    * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
    */
   public List<BookmarkSpec> retrieveHajimariBookmarks() {
-    Log.debug("Retrieve Hajimari Bookmarks");
+    Log.debug("Retrieving Hajimari bookmarks");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext resourceDefinitionContext =
           new ResourceDefinitionContext.Builder()
@@ -136,8 +142,10 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
+      List<BookmarkSpec> bookmarks = mapResourcesToBookmarks(list);
+      Log.debugf("Retrieved %d Hajimari bookmarks", bookmarks.size());
 
-      return mapResourcesToBookmarks(list);
+      return bookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving hajimari bookmarks", e);
       return List.of();
@@ -151,6 +159,7 @@ public class BookmarkService {
    * @return list of {@link BookmarkGroup} containing grouped bookmarks
    */
   public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpec> bookmarklist) {
+    Log.debugf("Generating bookmark groups from %d bookmarks", bookmarklist.size());
     var groups = new LinkedList<BookmarkGroup>();
 
     // Group the bookmarks by their group property
@@ -168,6 +177,7 @@ public class BookmarkService {
       if (group == null) {
         group = new BookmarkGroup(bookmark.getGroup());
         groups.add(group);
+        Log.debugf("Created new bookmark group: %s", bookmark.getGroup());
       }
 
       // Add the bookmark to the group

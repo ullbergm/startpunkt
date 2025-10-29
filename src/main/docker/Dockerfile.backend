@@ -1,0 +1,34 @@
+####
+# This Dockerfile builds the backend API service only (without frontend)
+#
+# Before building the container image run:
+#
+# ./mvnw package -DskipTests
+#
+# Then, build the image with:
+#
+# docker build -f src/main/docker/Dockerfile.backend -t startpunkt-backend .
+#
+# Then run the container using:
+#
+# docker run -i --rm -p 8081:8081 startpunkt-backend
+#
+###
+FROM registry.access.redhat.com/ubi8/openjdk-21:1.23-3.1759823915
+
+ENV LANGUAGE='en_US:en'
+
+# We make four distinct layers so if there are application changes the library layers can be re-used
+COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
+COPY --chown=185 target/quarkus-app/*.jar /deployments/
+COPY --chown=185 target/quarkus-app/app/ /deployments/app/
+COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+
+EXPOSE 8081
+USER 185
+
+# Enable microservices mode and configure for backend-only operation
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081 -Dquarkus.profile=microservices -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
