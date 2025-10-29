@@ -20,7 +20,7 @@ startpunkt,us.ullberg.startpunkt.objects,ApplicationGroup,122,42,28,4,21,12,23,5
 startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,BookmarkService,136,298,19,21,37,82,18,17,7,8
-startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,247,108,28,14,68,30,26,6,8,3
+startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,256,108,34,14,69,30,29,6,8,3
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationSpec,521,0,84,0,118,0,72,0,30,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationStatus,3,0,0,0,2,0,1,0,1,0
