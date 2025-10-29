@@ -24,7 +24,7 @@ env:
   JAVA_VERSION: '21'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 
 jobs:
@@ -49,9 +49,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email \
             "github-actions[bot]@users.noreply.github.com"
-          
-          # Ensure the remote is using SSH, not HTTPS
-          git remote set-url origin git@github.com:ullbergm/startpunkt.git
 
       - name: Get current version from latest tag
         id: current_version
