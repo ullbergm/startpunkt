@@ -91,8 +91,10 @@ describe('useWebSocket', () => {
     await act(async () => {
       // Access the internal websocket and trigger message
       const event = { data: JSON.stringify(testMessage) };
-      // We need to access the ws ref somehow - this is a limitation of the test
-      // In a real scenario, we'd trigger this from the mock
+      // Use the event to trigger the onmessage handler of the mock WebSocket
+      if (ws && ws._websocket && typeof ws._websocket.onmessage === 'function') {
+        ws._websocket.onmessage(event);
+      }
     });
   });
 
