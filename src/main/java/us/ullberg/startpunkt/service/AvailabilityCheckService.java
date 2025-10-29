@@ -1,5 +1,6 @@
 package us.ullberg.startpunkt.service;
 
+import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,6 +24,7 @@ import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
+import us.ullberg.startpunkt.websocket.WebSocketEventBroadcaster;
 
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
@@ -37,19 +39,28 @@ public class AvailabilityCheckService {
   @ConfigProperty(name = "startpunkt.availability.timeout", defaultValue = "5")
   private int availabilityTimeout;
 
-  @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60")
-  private int availabilityCheckInterval;
+  /**
+   * Interval for availability checks, injected from configuration.
+   * This field is referenced via annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}"))
+   * and is retained for documentation and potential future use.
+   */
+  @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60s")
+  private String availabilityCheckInterval;
 
   @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
   private boolean ignoreCertificates;
 
   private final Map<String, Boolean> availabilityCache = new ConcurrentHashMap<>();
+  private final Map<String, Boolean> previousAvailabilityCache = new ConcurrentHashMap<>();
   private final HttpClient httpClient;
+  private final WebSocketEventBroadcaster eventBroadcaster;
 
   /** Constructor that initializes the HTTP client with appropriate timeouts. */
   public AvailabilityCheckService(
       @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
-          boolean ignoreCertificates) {
+          boolean ignoreCertificates,
+      WebSocketEventBroadcaster eventBroadcaster) {
+    this.eventBroadcaster = eventBroadcaster;
     HttpClient.Builder builder =
         HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -180,28 +191,56 @@ public class AvailabilityCheckService {
    * Background job that periodically checks application availability. This runs asynchronously to
    * avoid blocking the main request flow.
    */
-  @Scheduled(every = "60s", delayed = "10s")
+  @Scheduled(every = "{startpunkt.availability.interval}", delayed = "5s")
   void refreshAvailability() {
     if (!availabilityCheckEnabled) {
       return;
     }
 
-    Log.debug("Running background availability checks");
+    Log.info("Running background availability checks for " + availabilityCache.size() + " URLs");
+
+    boolean hasChanges = false;
 
     // Get all unique URLs from the cache keys
-    availabilityCache
-        .keySet()
-        .forEach(
-            url -> {
-              try {
-                boolean isAvailable = checkAvailability(url);
-                availabilityCache.put(url, isAvailable);
-                Log.tracef("Availability check for %s: %s", url, isAvailable);
-              } catch (Exception e) {
-                Log.debugf("Error checking availability for %s: %s", url, e.getMessage());
-                availabilityCache.put(url, false);
-              }
-            });
+    for (String url : availabilityCache.keySet()) {
+      try {
+        boolean isAvailable = checkAvailability(url);
+        Boolean previousValue = previousAvailabilityCache.get(url);
+
+        availabilityCache.put(url, isAvailable);
+
+        // Track if availability changed
+        if (previousValue == null || previousValue != isAvailable) {
+          Log.infof("Availability changed for %s: %s -> %s", url, previousValue, isAvailable);
+          hasChanges = true;
+        }
+
+        previousAvailabilityCache.put(url, isAvailable);
+        Log.tracef("Availability check for %s: %s", url, isAvailable);
+      } catch (Exception e) {
+        Log.debugf("Error checking availability for %s: %s", url, e.getMessage());
+        Boolean previousValue = previousAvailabilityCache.get(url);
+
+        availabilityCache.put(url, false);
+
+        // Track if availability changed to false due to error
+        if (previousValue == null || previousValue) {
+          Log.infof("Availability changed for %s to false due to error: %s", url, e.getMessage());
+          hasChanges = true;
+        }
+
+        previousAvailabilityCache.put(url, false);
+      }
+    }
+
+    // Broadcast status changed event if any availability changed
+    if (hasChanges) {
+      Log.info("Broadcasting STATUS_CHANGED event due to availability changes");
+      // Invalidate caches BEFORE broadcasting to ensure fresh data
+      invalidateApplicationCaches();
+      eventBroadcaster.broadcastStatusChanged(
+          Map.of("timestamp", System.currentTimeMillis(), "reason", "availability_check"));
+    }
   }
 
   /**
@@ -211,7 +250,13 @@ public class AvailabilityCheckService {
    */
   public void registerUrl(String url) {
     if (availabilityCheckEnabled && url != null && !url.isEmpty()) {
-      availabilityCache.putIfAbsent(url, true); // Default to available until checked
+      boolean wasNew =
+          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked
+      if (wasNew) {
+        Log.infof(
+            "Registered URL for availability checking: %s (total: %d)",
+            url, availabilityCache.size());
+      }
     }
   }
 
@@ -223,5 +268,31 @@ public class AvailabilityCheckService {
    */
   public Boolean getCachedAvailability(String url) {
     return availabilityCache.get(url);
+  }
+
+  /**
+   * Invalidates the application caches to force fresh data on next request. Called when
+   * availability status changes to ensure clients get updated data.
+   */
+  public void invalidateApplicationCaches() {
+    invalidateGetAppCache();
+    invalidateGetAppsCache();
+    invalidateGetAppsFilteredCache();
+    Log.debug("Invalidated application caches due to availability changes");
+  }
+
+  @CacheInvalidate(cacheName = "getApp")
+  protected void invalidateGetAppCache() {
+    // No-op: annotation triggers cache invalidation
+  }
+
+  @CacheInvalidate(cacheName = "getApps")
+  protected void invalidateGetAppsCache() {
+    // No-op: annotation triggers cache invalidation
+  }
+
+  @CacheInvalidate(cacheName = "getAppsFiltered")
+  protected void invalidateGetAppsFilteredCache() {
+    // No-op: annotation triggers cache invalidation
   }
 }
