@@ -124,7 +124,7 @@ public class WebSocketConnectionManager {
    *
    * <p>This is scheduled based on the configured heartbeat interval.
    */
-  @Scheduled(every = "30s")
+  @Scheduled(every = "{startpunkt.websocket.heartbeatInterval}s")
   void sendHeartbeat() {
     if (!websocketEnabled || connections.isEmpty()) {
       return;
