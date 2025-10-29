@@ -176,12 +176,15 @@ export function App() {
     var config = fetch('/api/config')
       .then((res) => res.json())
       .then((res) => {
+        console.log('Config loaded:', res);
         setShowGitHubLink(res.config.web.showGithubLink);
         setTitle(res.config.web.title);
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
         setRefreshInterval(res.config.web.refreshInterval || 0);
-        setWebsocketEnabled(res.config.websocket?.enabled || false);
+        const wsEnabled = res.config.websocket?.enabled || false;
+        console.log('WebSocket enabled:', wsEnabled);
+        setWebsocketEnabled(wsEnabled);
       });
 
   }, [])
@@ -202,12 +205,15 @@ export function App() {
     const tags = getTagsFromUrl();
     const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
     
+    console.log('[fetchData] Fetching applications from:', appsEndpoint);
     fetch(appsEndpoint)
       .then(res => res.json())
       .then(res => {
+        console.log('[fetchData] Received application data:', res);
         setApplicationGroups(res.groups || []);
       })
       .catch(err => {
+        console.error('[fetchData] Error fetching applications:', err);
         setApplicationGroups([]);
       });
     fetch('/api/bookmarks')
@@ -234,9 +240,14 @@ export function App() {
         // Handle different event types
         if (message.type === 'APPLICATION_ADDED' || 
             message.type === 'APPLICATION_REMOVED' || 
-            message.type === 'APPLICATION_UPDATED') {
-          // Refresh applications when changes occur
-          fetchData();
+            message.type === 'APPLICATION_UPDATED' ||
+            message.type === 'STATUS_CHANGED') {
+          // Refresh applications when changes occur or status changes
+          console.log('Refreshing applications due to:', message.type);
+          // Add a small delay to ensure backend cache is fully updated
+          setTimeout(() => {
+            fetchData();
+          }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'BOOKMARK_ADDED' || 
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {

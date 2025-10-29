@@ -75,18 +75,20 @@ public class WebSocketConnectionManager {
    */
   public <T> void broadcast(WebSocketMessage<T> message) {
     if (!websocketEnabled || connections.isEmpty()) {
+      Log.warnf("Cannot broadcast - websocketEnabled: %s, connections: %d", websocketEnabled, connections.size());
       return;
     }
 
     String jsonMessage;
     try {
       jsonMessage = objectMapper.writeValueAsString(message);
+      Log.infof("Serialized message: %s", jsonMessage);
     } catch (JsonProcessingException e) {
       Log.error("Error serializing WebSocket message", e);
       return;
     }
 
-    Log.debugf("Broadcasting message to %d clients: %s", connections.size(), message.getType());
+    Log.infof("Broadcasting message to %d clients: %s", connections.size(), message.getType());
 
     // Remove closed connections and send to active ones
     connections.removeIf(
@@ -97,7 +99,14 @@ public class WebSocketConnectionManager {
           }
 
           try {
-            connection.sendText(jsonMessage);
+            Log.infof("Sending to connection %s: %s", connection.id(), jsonMessage);
+            // Use non-blocking send with subscribe to handle async result
+            connection.sendText(jsonMessage)
+                .subscribe()
+                .with(
+                    unused -> Log.infof("Successfully sent to connection %s", connection.id()),
+                    failure -> Log.errorf(failure, "Failed to send message to connection %s", connection.id())
+                );
             return false;
           } catch (Exception e) {
             Log.errorf(e, "Error sending message to connection %s", connection.id());

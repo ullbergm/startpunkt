@@ -47,6 +47,13 @@ public class WebSocketEventBroadcaster {
    */
   public <T> void broadcastEvent(WebSocketEventType eventType, T data) {
     if (!websocketEnabled) {
+      Log.warnf("WebSocket broadcasting is disabled, not broadcasting event: %s", eventType);
+      return;
+    }
+
+    int connectionCount = connectionManager.getConnectionCount();
+    if (connectionCount == 0) {
+      Log.debugf("No WebSocket connections available, not broadcasting event: %s", eventType);
       return;
     }
 
@@ -66,7 +73,7 @@ public class WebSocketEventBroadcaster {
     var message = new WebSocketMessage<>(eventType, data);
     connectionManager.broadcast(message);
 
-    Log.debugf(
+    Log.infof(
         "Broadcasted event: %s to %d clients", eventType, connectionManager.getConnectionCount());
   }
 

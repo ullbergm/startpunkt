@@ -32,6 +32,17 @@ export function useWebSocket(url, options = {}) {
   const reconnectAttempts = useRef(0);
   const shouldReconnect = useRef(true);
   const mountedRef = useRef(true);
+  const urlRef = useRef(url);
+  const enabledRef = useRef(enabled);
+  const callbacksRef = useRef({ onMessage, onOpen, onClose, onError });
+  const getReconnectDelayRef = useRef(null);
+
+  // Update refs when props change
+  useEffect(() => {
+    urlRef.current = url;
+    enabledRef.current = enabled;
+    callbacksRef.current = { onMessage, onOpen, onClose, onError };
+  }, [url, enabled, onMessage, onOpen, onClose, onError]);
 
   // Calculate reconnect delay with exponential backoff
   const getReconnectDelay = useCallback(() => {
@@ -41,10 +52,12 @@ export function useWebSocket(url, options = {}) {
     );
     return delay;
   }, [reconnectDelay, maxReconnectDelay]);
+  
+  getReconnectDelayRef.current = getReconnectDelay;
 
-  // Connect to WebSocket
+  // Connect to WebSocket - stable function that doesn't change
   const connect = useCallback(() => {
-    if (!enabled || !mountedRef.current) {
+    if (!enabledRef.current || !mountedRef.current) {
       return;
     }
 
@@ -67,8 +80,8 @@ export function useWebSocket(url, options = {}) {
         setStatus('connected');
         reconnectAttempts.current = 0; // Reset reconnect attempts on successful connection
         
-        if (onOpen) {
-          onOpen(event);
+        if (callbacksRef.current.onOpen) {
+          callbacksRef.current.onOpen(event);
         }
       };
 
@@ -77,10 +90,15 @@ export function useWebSocket(url, options = {}) {
         
         try {
           const message = JSON.parse(event.data);
+          console.log('[WebSocket] Message received:', {
+            type: message.type,
+            data: message.data,
+            timestamp: new Date().toISOString()
+          });
           setLastMessage(message);
           
-          if (onMessage) {
-            onMessage(message);
+          if (callbacksRef.current.onMessage) {
+            callbacksRef.current.onMessage(message);
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -94,8 +112,8 @@ export function useWebSocket(url, options = {}) {
         setStatus('disconnected');
         ws.current = null;
         
-        if (onClose) {
-          onClose(event);
+        if (callbacksRef.current.onClose) {
+          callbacksRef.current.onClose(event);
         }
 
         // Attempt to reconnect if it was not a clean close and reconnect is enabled
@@ -116,15 +134,15 @@ export function useWebSocket(url, options = {}) {
         console.error('WebSocket error:', event);
         setStatus('error');
         
-        if (onError) {
-          onError(event);
+        if (callbacksRef.current.onError) {
+          callbacksRef.current.onError(event);
         }
       };
     } catch (error) {
       console.error('Error creating WebSocket:', error);
       setStatus('error');
     }
-  }, [enabled, url, onMessage, onOpen, onClose, onError, getReconnectDelay]);
+  }, [enabled, url, getReconnectDelay]);
 
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
@@ -165,6 +183,13 @@ export function useWebSocket(url, options = {}) {
     
     if (enabled) {
       connect();
+    } else {
+      // Disconnect if disabled
+      if (ws.current) {
+        ws.current.close(1000, 'Disabled');
+        ws.current = null;
+      }
+      setStatus('disconnected');
     }
 
     return () => {
