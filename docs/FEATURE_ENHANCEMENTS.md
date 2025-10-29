@@ -46,7 +46,7 @@ This document outlines potential feature enhancements that could improve Startpu
 #### Application Screenshots/Previews (Priority: Low, Complexity: Complex)
 - **Status**: New
 - **Description**: Display screenshots or previews of applications
-  - Automated screenshot capture via headless browser
+  - Automated screenshot capture via headless browser automation
   - Manual upload option via annotations
   - Lazy loading for performance
   - Hover to show full preview
@@ -74,7 +74,7 @@ This document outlines potential feature enhancements that could improve Startpu
 - **Status**: New
 - **Description**: Allow users to customize how applications are displayed
   - Grid size options (small, medium, large cards)
-  - List view vs. grid view toggle
+  - List view versus grid view toggle
   - Compact mode for dense information display
   - Custom column counts
 - **Benefits**: Flexibility for different screen sizes and user preferences
@@ -192,7 +192,7 @@ This document outlines potential feature enhancements that could improve Startpu
 #### Per-Application Access Control (Priority: Medium, Complexity: Complex)
 - **Status**: New
 - **Description**: Control which users/groups can see which applications
-  - RBAC integration with Kubernetes
+  - Role-Based Access Control (RBAC) integration with Kubernetes
   - User group filtering
   - Hide sensitive applications from unauthorized users
 - **Benefits**: Enhanced security, multi-tenant support
@@ -234,9 +234,9 @@ This document outlines potential feature enhancements that could improve Startpu
 #### Multi-Profile Support (Priority: Medium, Complexity: Moderate)
 - **Status**: New
 - **Description**: Support different configuration profiles
-  - Development, staging, production profiles
-  - Environment-specific settings
-  - Easy profile switching
+  - Development, staging, production profiles for environment-specific deployments
+  - Environment-specific settings such as theme colors, default groups, and visibility rules
+  - Easy profile switching via configuration or environment variables
 - **Benefits**: Simplified multi-environment deployments
 
 #### Ingress Class Filtering (Priority: Medium, Complexity: Simple)
