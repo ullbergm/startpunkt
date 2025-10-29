@@ -47,7 +47,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    * @param client the Kubernetes client instance
    * @return the ApplicationSpec mapped from the resource
    */
-  protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item, KubernetesClient client) {
+  protected ApplicationSpec mapToApplicationSpec(
+      GenericKubernetesResource item, KubernetesClient client) {
     return new ApplicationSpec(
         getAppName(item),
         getAppGroup(item),
@@ -121,9 +122,9 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the application URL from the resource spec with support for urlFrom references.
-   * If urlFrom is specified, reads the URL from the referenced Kubernetes object.
-   * Otherwise, falls back to the direct url field.
+   * Retrieves the application URL from the resource spec with support for urlFrom references. If
+   * urlFrom is specified, reads the URL from the referenced Kubernetes object. Otherwise, falls
+   * back to the direct url field.
    *
    * @param item Kubernetes resource
    * @param client Kubernetes client for resolving urlFrom references
@@ -131,7 +132,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   protected String getAppUrl(GenericKubernetesResource item, KubernetesClient client) {
     var spec = getSpec(item);
-    
+
     // Check if urlFrom is specified
     if (spec.containsKey("urlFrom") && spec.get("urlFrom") != null) {
       String resolvedUrl = resolveUrlFromReference(item, client);
@@ -149,8 +150,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Resolves the URL from a urlFrom reference by fetching the referenced Kubernetes object
-   * and extracting the specified property.
+   * Resolves the URL from a urlFrom reference by fetching the referenced Kubernetes object and
+   * extracting the specified property.
    *
    * @param item the Application resource containing the urlFrom reference
    * @param client Kubernetes client for fetching the referenced object
@@ -160,7 +161,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   private String resolveUrlFromReference(GenericKubernetesResource item, KubernetesClient client) {
     var spec = getSpec(item);
     Map<String, Object> urlFromMap = (Map<String, Object>) spec.get("urlFrom");
-    
+
     if (urlFromMap == null) {
       return null;
     }
@@ -193,22 +194,22 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
       }
 
       // Build ResourceDefinitionContext for the referenced resource
-      ResourceDefinitionContext context = new ResourceDefinitionContext.Builder()
-          .withGroup(group)
-          .withVersion(apiVersion)
-          .withPlural(kind.toLowerCase() + "s") // Simple pluralization
-          .withNamespaced(true)
-          .build();
+      ResourceDefinitionContext context =
+          new ResourceDefinitionContext.Builder()
+              .withGroup(group)
+              .withVersion(apiVersion)
+              .withPlural(kind.toLowerCase() + "s") // Simple pluralization
+              .withNamespaced(true)
+              .build();
 
       // Fetch the referenced resource
-      GenericKubernetesResource referencedResource = client
-          .genericKubernetesResources(context)
-          .inNamespace(namespace)
-          .withName(name)
-          .get();
+      GenericKubernetesResource referencedResource =
+          client.genericKubernetesResources(context).inNamespace(namespace).withName(name).get();
 
       if (referencedResource == null) {
-        Log.warn(String.format("Referenced resource not found: %s/%s in namespace %s", kind, name, namespace));
+        Log.warn(
+            String.format(
+                "Referenced resource not found: %s/%s in namespace %s", kind, name, namespace));
         return null;
       }
 
@@ -222,8 +223,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Extracts a property value from a Kubernetes resource using a JSON path.
-   * Supports simple paths like "spec.host", "data.url", "status.loadBalancer.ingress[0].hostname".
+   * Extracts a property value from a Kubernetes resource using a JSON path. Supports simple paths
+   * like "spec.host", "data.url", "status.loadBalancer.ingress[0].hostname".
    *
    * @param resource the Kubernetes resource
    * @param propertyPath the property path (dot-separated)
@@ -240,12 +241,12 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
     for (int i = 0; i < parts.length; i++) {
       String part = parts[i];
-      
+
       // Handle array indexing (e.g., "ingress[0]")
       if (part.contains("[") && part.contains("]")) {
         String arrayName = part.substring(0, part.indexOf("["));
         int index = Integer.parseInt(part.substring(part.indexOf("[") + 1, part.indexOf("]")));
-        
+
         Object arrayObj = current.get(arrayName);
         if (arrayObj instanceof List) {
           List<Object> list = (List<Object>) arrayObj;

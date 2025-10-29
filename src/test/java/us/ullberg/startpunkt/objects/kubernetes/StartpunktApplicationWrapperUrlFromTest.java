@@ -54,7 +54,7 @@ class StartpunktApplicationWrapperUrlFromTest {
   @Test
   void testUrlFromWithConfigMap() {
     String namespace = "test1";
-    
+
     // Create a ConfigMap that will be referenced
     Map<String, Object> configMapProps = new HashMap<>();
     Map<String, Object> configMapData = new HashMap<>();
@@ -73,7 +73,7 @@ class StartpunktApplicationWrapperUrlFromTest {
     // Create an Application with urlFrom
     ApplicationSpec appSpec = new ApplicationSpec();
     appSpec.setName("Test App");
-    
+
     UrlFrom urlFrom = new UrlFrom();
     urlFrom.setApiVersion("v1");
     urlFrom.setKind("ConfigMap");
@@ -82,8 +82,7 @@ class StartpunktApplicationWrapperUrlFromTest {
     appSpec.setUrlFrom(urlFrom);
 
     Application app = new Application();
-    app.setMetadata(
-        new ObjectMetaBuilder().withName("test-app").withNamespace(namespace).build());
+    app.setMetadata(new ObjectMetaBuilder().withName("test-app").withNamespace(namespace).build());
     app.setSpec(appSpec);
 
     client.resources(Application.class).inNamespace(namespace).resource(app).create();
@@ -101,7 +100,7 @@ class StartpunktApplicationWrapperUrlFromTest {
   @Test
   void testUrlFromFallsBackToDirectUrl() {
     String namespace = "test2";
-    
+
     // Create an Application with both url and urlFrom (urlFrom reference doesn't exist)
     ApplicationSpec appSpec = new ApplicationSpec();
     appSpec.setName("Fallback App");
@@ -134,7 +133,7 @@ class StartpunktApplicationWrapperUrlFromTest {
   @Test
   void testUrlFromWithNestedProperty() {
     String namespace = "test3";
-    
+
     // Create a Service with nested properties
     Map<String, Object> serviceProps = new HashMap<>();
     Map<String, Object> serviceSpec = new HashMap<>();
