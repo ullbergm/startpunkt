@@ -101,3 +101,62 @@ startpunkt:
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 10
+
+# OpenShift Console Plugin configuration
+consolePlugin:
+  # Enable the OpenShift Console Plugin
+  enabled: false
+  
+  # Display name in OpenShift console
+  displayName: "Startpunkt"
+  
+  # Number of replicas for the plugin
+  replicas: 2
+  
+  # Container image configuration
+  image:
+    repository: ghcr.io/ullbergm/startpunkt-console-plugin
+    tag: v0.9.5
+    pullPolicy: IfNotPresent
+  
+  # URL to the Startpunkt backend service
+  # If not set, defaults to the main Startpunkt service
+  startpunktUrl: ""
+  
+  # Proxy configuration for backend API access
+  proxy:
+    enabled: true
+    authorize: true
+  
+  # Resource limits and requests
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  
+  # Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  
+  # Container security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  
+  # Node selector
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+  
+  # Affinity
+  affinity: {}

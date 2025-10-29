@@ -1,0 +1,62 @@
+{{- if .Values.consolePlugin.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-console-plugin
+  namespace: {{ .Values.startpunkt.namespace }}
+  labels:
+    {{- include "startpunkt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: console-plugin
+spec:
+  replicas: {{ .Values.consolePlugin.replicas }}
+  selector:
+    matchLabels:
+      {{- include "startpunkt.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: console-plugin
+  template:
+    metadata:
+      labels:
+        {{- include "startpunkt.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: console-plugin
+    spec:
+      {{- with .Values.consolePlugin.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.consolePlugin.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.consolePlugin.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: console-plugin
+          image: "{{ .Values.consolePlugin.image.repository }}:{{ .Values.consolePlugin.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.consolePlugin.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+          env:
+            - name: STARTPUNKT_URL
+              value: {{ .Values.consolePlugin.startpunktUrl | default (printf "http://%s.%s.svc.cluster.local:%d" (include "startpunkt.fullname" .) .Values.startpunkt.namespace (.Values.startpunkt.ports.http | int)) }}
+          volumeMounts:
+            - name: plugin-serving-cert
+              readOnly: true
+              mountPath: /var/serving-cert
+          {{- with .Values.consolePlugin.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.consolePlugin.securityContext | nindent 12 }}
+      volumes:
+        - name: plugin-serving-cert
+          secret:
+            secretName: {{ include "startpunkt.fullname" . }}-console-plugin-cert
+            defaultMode: 420
+      securityContext:
+        {{- toYaml .Values.consolePlugin.podSecurityContext | nindent 8 }}
+{{- end }}

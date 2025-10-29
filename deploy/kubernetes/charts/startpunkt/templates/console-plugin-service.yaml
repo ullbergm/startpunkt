@@ -1,0 +1,22 @@
+{{- if .Values.consolePlugin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-console-plugin
+  namespace: {{ .Values.startpunkt.namespace }}
+  labels:
+    {{- include "startpunkt.labels" . | nindent 4 }}
+    app.kubernetes.io/component: console-plugin
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "startpunkt.fullname" . }}-console-plugin-cert
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      port: 9443
+      targetPort: https
+      protocol: TCP
+  selector:
+    {{- include "startpunkt.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: console-plugin
+{{- end }}

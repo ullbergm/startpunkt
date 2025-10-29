@@ -1,0 +1,35 @@
+# Build stage
+FROM registry.access.redhat.com/ubi9/nodejs-18:latest AS builder
+
+USER root
+WORKDIR /app
+
+# Copy console plugin source
+COPY console-plugin/package*.json ./
+RUN npm ci
+
+COPY console-plugin/ ./
+RUN npm run build
+
+# Runtime stage - nginx to serve static files
+FROM registry.access.redhat.com/ubi9/nginx-122:latest
+
+# Copy built plugin assets
+COPY --from=builder /app/dist /usr/share/nginx/html/
+
+# Create nginx configuration for the plugin
+RUN echo 'server { \
+    listen 9443 ssl; \
+    ssl_certificate /var/serving-cert/tls.crt; \
+    ssl_certificate_key /var/serving-cert/tls.key; \
+    location / { \
+        root /usr/share/nginx/html; \
+        add_header Access-Control-Allow-Origin *; \
+        add_header Access-Control-Allow-Methods "GET, OPTIONS"; \
+        add_header Access-Control-Allow-Headers "Content-Type"; \
+    } \
+}' > /etc/nginx/conf.d/plugin.conf
+
+EXPOSE 9443
+
+CMD ["nginx", "-g", "daemon off;"]

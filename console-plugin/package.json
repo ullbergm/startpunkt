@@ -1,0 +1,43 @@
+{
+  "name": "@startpunkt/console-plugin",
+  "version": "3.1.0-SNAPSHOT",
+  "description": "OpenShift Console Dynamic Plugin for Startpunkt",
+  "private": true,
+  "main": "dist/plugin.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack serve --mode development",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@openshift-console/dynamic-plugin-sdk": "^1.7.0",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "^1.7.0",
+    "@patternfly/react-core": "^5.0.0",
+    "@patternfly/react-styles": "^5.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "css-loader": "^7.0.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.3.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-dev-server": "^5.0.0"
+  },
+  "consolePlugin": {
+    "name": "startpunkt-console-plugin",
+    "version": "3.1.0",
+    "displayName": "Startpunkt",
+    "description": "Kubernetes application dashboard integrated into OpenShift Console",
+    "exposedModules": {
+      "StartpunktPage": "./src/components/StartpunktPage"
+    },
+    "dependencies": {
+      "@console/pluginAPI": "*"
+    }
+  }
+}

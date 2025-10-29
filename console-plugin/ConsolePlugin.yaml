@@ -1,0 +1,19 @@
+apiVersion: console.openshift.io/v1
+kind: ConsolePlugin
+metadata:
+  name: startpunkt-console-plugin
+spec:
+  displayName: "Startpunkt"
+  service:
+    name: startpunkt-console-plugin
+    namespace: startpunkt
+    port: 9443
+    basePath: /
+  proxy:
+    - type: Service
+      alias: startpunkt-backend
+      authorize: true
+      service:
+        name: startpunkt
+        namespace: startpunkt
+        port: 8080

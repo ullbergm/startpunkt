@@ -1,0 +1,23 @@
+{{- if .Values.consolePlugin.enabled }}
+apiVersion: console.openshift.io/v1
+kind: ConsolePlugin
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-console-plugin
+spec:
+  displayName: {{ .Values.consolePlugin.displayName | default "Startpunkt" }}
+  service:
+    name: {{ include "startpunkt.fullname" . }}-console-plugin
+    namespace: {{ .Values.startpunkt.namespace }}
+    port: 9443
+    basePath: /
+  {{- if .Values.consolePlugin.proxy.enabled }}
+  proxy:
+    - type: Service
+      alias: startpunkt-backend
+      authorize: {{ .Values.consolePlugin.proxy.authorize }}
+      service:
+        name: {{ include "startpunkt.fullname" . }}
+        namespace: {{ .Values.startpunkt.namespace }}
+        port: {{ .Values.startpunkt.ports.http }}
+  {{- end }}
+{{- end }}
