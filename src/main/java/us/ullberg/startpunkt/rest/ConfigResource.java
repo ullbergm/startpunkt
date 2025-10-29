@@ -40,6 +40,10 @@ public class ConfigResource {
   @ConfigProperty(name = "startpunkt.web.refreshInterval", defaultValue = "300")
   public int refreshInterval;
 
+  /** Indicates whether WebSocket support is enabled. */
+  @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
+  public boolean websocketEnabled;
+
   /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   public String version;
@@ -87,7 +91,9 @@ public class ConfigResource {
                 "title",
                 title,
                 "refreshInterval",
-                refreshInterval)));
+                refreshInterval),
+            "websocket",
+            Map.of("enabled", websocketEnabled)));
   }
 
   /**
