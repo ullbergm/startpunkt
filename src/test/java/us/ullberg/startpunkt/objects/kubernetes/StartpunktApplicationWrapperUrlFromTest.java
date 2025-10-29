@@ -176,4 +176,52 @@ class StartpunktApplicationWrapperUrlFromTest {
     assertEquals("service app", spec.getName());
     assertEquals("10.0.0.100", spec.getUrl());
   }
+
+  @Test
+  void testUrlFromWithUrlTemplate() {
+    String namespace = "test4";
+
+    // Create a Service with nested properties
+    Map<String, Object> serviceProps = new HashMap<>();
+    Map<String, Object> serviceSpec = new HashMap<>();
+    serviceSpec.put("clusterIP", "10.0.0.200");
+    serviceProps.put("spec", serviceSpec);
+
+    GenericKubernetesResource service = new GenericKubernetesResource();
+    service.setApiVersion("v1");
+    service.setKind("Service");
+    service.setMetadata(
+        new ObjectMetaBuilder().withName("grafana-svc").withNamespace(namespace).build());
+    service.setAdditionalProperties(serviceProps);
+
+    client.resource(service).inNamespace(namespace).create();
+
+    // Create an Application with urlFrom referencing the Service and a URL template
+    ApplicationSpec appSpec = new ApplicationSpec();
+    appSpec.setName("Grafana");
+
+    UrlFrom urlFrom = new UrlFrom();
+    urlFrom.setApiVersion("v1");
+    urlFrom.setKind("Service");
+    urlFrom.setName("grafana-svc");
+    urlFrom.setProperty("spec.clusterIP");
+    urlFrom.setUrlTemplate("https://{0}/dashboard/");
+    appSpec.setUrlFrom(urlFrom);
+
+    Application app = new Application();
+    app.setMetadata(
+        new ObjectMetaBuilder().withName("grafana-app").withNamespace(namespace).build());
+    app.setSpec(appSpec);
+
+    client.resources(Application.class).inNamespace(namespace).resource(app).create();
+
+    // Test the wrapper
+    StartpunktApplicationWrapper wrapper = new StartpunktApplicationWrapper();
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of(namespace));
+
+    assertEquals(1, specs.size());
+    ApplicationSpec spec = specs.get(0);
+    assertEquals("grafana", spec.getName());
+    assertEquals("https://10.0.0.200/dashboard/", spec.getUrl());
+  }
 }

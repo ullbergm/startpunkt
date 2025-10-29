@@ -173,6 +173,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
       String namespace = (String) urlFromMap.get("namespace");
       String property = (String) urlFromMap.get("property");
       String apiGroup = (String) urlFromMap.get("apiGroup");
+      String urlTemplate = (String) urlFromMap.get("urlTemplate");
 
       if (apiVersion == null || kind == null || name == null || property == null) {
         Log.warn("urlFrom is missing required fields (apiVersion, kind, name, or property)");
@@ -214,7 +215,18 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
       }
 
       // Extract the property value using the property path
-      return extractProperty(referencedResource, property);
+      String extractedValue = extractProperty(referencedResource, property);
+
+      if (extractedValue == null) {
+        return null;
+      }
+
+      // Apply URL template if provided
+      if (urlTemplate != null && !urlTemplate.isEmpty()) {
+        return urlTemplate.replace("{0}", extractedValue);
+      }
+
+      return extractedValue;
 
     } catch (Exception e) {
       Log.error("Error resolving urlFrom reference", e);

@@ -51,6 +51,15 @@ public class UrlFrom {
   @Required
   private String property;
 
+  /**
+   * Optional URL template to build the final URL from the extracted value. Use {0} as placeholder
+   * for the extracted value (e.g., 'https://{0}/dashboard/').
+   */
+  @JsonProperty("urlTemplate")
+  @JsonPropertyDescription(
+      "Optional URL template to build the final URL. Use {0} as placeholder (e.g., 'https://{0}/dashboard/')")
+  private String urlTemplate;
+
   /** Default constructor. */
   public UrlFrom() {}
 
@@ -77,6 +86,35 @@ public class UrlFrom {
     this.name = name;
     this.namespace = namespace;
     this.property = property;
+    this.urlTemplate = null;
+  }
+
+  /**
+   * Parameterized constructor with urlTemplate.
+   *
+   * @param apiGroup API group of the referenced object
+   * @param apiVersion API version of the referenced object
+   * @param kind Kind of the referenced object
+   * @param name Name of the referenced object
+   * @param namespace Namespace of the referenced object
+   * @param property JSON path to the property containing the URL
+   * @param urlTemplate URL template to apply to the extracted value
+   */
+  public UrlFrom(
+      String apiGroup,
+      String apiVersion,
+      String kind,
+      String name,
+      String namespace,
+      String property,
+      String urlTemplate) {
+    this.apiGroup = apiGroup;
+    this.apiVersion = apiVersion;
+    this.kind = kind;
+    this.name = name;
+    this.namespace = namespace;
+    this.property = property;
+    this.urlTemplate = urlTemplate;
   }
 
   /**
@@ -187,6 +225,24 @@ public class UrlFrom {
     this.property = property;
   }
 
+  /**
+   * Gets the URL template to build the final URL.
+   *
+   * @return URL template or null if not set
+   */
+  public String getUrlTemplate() {
+    return urlTemplate;
+  }
+
+  /**
+   * Sets the URL template to build the final URL.
+   *
+   * @param urlTemplate URL template with {0} placeholder
+   */
+  public void setUrlTemplate(String urlTemplate) {
+    this.urlTemplate = urlTemplate;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -213,7 +269,12 @@ public class UrlFrom {
     if (namespace != null ? !namespace.equals(urlFrom.namespace) : urlFrom.namespace != null) {
       return false;
     }
-    return property != null ? property.equals(urlFrom.property) : urlFrom.property == null;
+    if (property != null ? !property.equals(urlFrom.property) : urlFrom.property != null) {
+      return false;
+    }
+    return urlTemplate != null
+        ? urlTemplate.equals(urlFrom.urlTemplate)
+        : urlFrom.urlTemplate == null;
   }
 
   @Override
@@ -224,6 +285,7 @@ public class UrlFrom {
     result = 31 * result + (name != null ? name.hashCode() : 0);
     result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
     result = 31 * result + (property != null ? property.hashCode() : 0);
+    result = 31 * result + (urlTemplate != null ? urlTemplate.hashCode() : 0);
     return result;
   }
 
@@ -247,6 +309,9 @@ public class UrlFrom {
         + '\''
         + ", property='"
         + property
+        + '\''
+        + ", urlTemplate='"
+        + urlTemplate
         + '\''
         + '}';
   }

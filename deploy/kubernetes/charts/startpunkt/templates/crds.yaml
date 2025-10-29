@@ -71,6 +71,9 @@ spec:
                   property:
                     description: "JSON path to the property in the referenced object (e.g., 'spec.host', 'data.url')"
                     type: "string"
+                  urlTemplate:
+                    description: "Optional URL template to build the final URL. Use {0} as placeholder (e.g., 'https://{0}/dashboard/')"
+                    type: "string"
                 required:
                 - "apiVersion"
                 - "kind"
