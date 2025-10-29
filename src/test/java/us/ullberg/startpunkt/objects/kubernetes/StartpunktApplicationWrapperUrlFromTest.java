@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import us.ullberg.startpunkt.crd.v1alpha3.Application;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
-import us.ullberg.startpunkt.crd.v1alpha3.UrlFrom;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.UrlFrom;
 
 @QuarkusTest
 @WithKubernetesTestServer

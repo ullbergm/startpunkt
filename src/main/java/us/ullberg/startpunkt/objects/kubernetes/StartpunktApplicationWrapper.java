@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.quarkus.logging.Log;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Wrapper for Startpunkt application Kubernetes custom resources. This class extracts
@@ -17,10 +17,10 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 
   /**
    * Constructs a StartpunktApplicationWrapper with group "startpunkt.ullberg.us", version
-   * "v1alpha3", and plural "applications".
+   * "v1alpha4", and plural "applications".
    */
   public StartpunktApplicationWrapper() {
-    super("startpunkt.ullberg.us", "v1alpha3", "applications");
+    super("startpunkt.ullberg.us", "v1alpha4", "applications");
   }
 
   /**

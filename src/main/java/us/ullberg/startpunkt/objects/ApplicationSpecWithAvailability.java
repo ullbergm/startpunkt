@@ -3,7 +3,7 @@ package us.ullberg.startpunkt.objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Wrapper for ApplicationSpec that adds runtime availability status. This class is used for API

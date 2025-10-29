@@ -8,7 +8,7 @@ import io.quarkus.logging.Log;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
  * Abstract base class representing a Kubernetes custom resource wrapper. Provides common

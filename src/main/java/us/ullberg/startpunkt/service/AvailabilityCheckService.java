@@ -21,7 +21,7 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpunkt.crd.v1alpha3.ApplicationSpec;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
 
 /**
