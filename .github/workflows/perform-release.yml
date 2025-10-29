@@ -113,13 +113,6 @@ jobs:
             -DskipTests \
             -B
 
-      - name: Perform release
-        run: |
-          ./mvnw release:perform \
-            -Darguments="-Dmaven.deploy.skip=true -DskipTests" \
-            -DskipTests \
-            -B
-
       - name: Output release information
         run: |
           echo "Release ${{ steps.release_version.outputs.version }} completed!"
