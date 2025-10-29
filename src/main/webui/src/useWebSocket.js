@@ -124,7 +124,7 @@ export function useWebSocket(url, options = {}) {
 
         // Attempt to reconnect if it was not a clean close and reconnect is enabled
         if (shouldReconnect.current && event.code !== 1000) {
-          const delay = getReconnectDelay();
+          const delay = getReconnectDelayRef.current();
           console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current + 1})`);
           
           reconnectTimeout.current = setTimeout(() => {
