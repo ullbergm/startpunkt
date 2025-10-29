@@ -20,9 +20,9 @@ const DEFAULT_PREFERENCES = {
   compactMode: true,
   columnCount: 5,
   showDescription: true,
-  showTags: true,
+  showTags: false,
   showStatus: true,
-  spacing: 'normal',
+  spacing: 'tight',
   currentPreset: null,
   savedPresets: {}
 };
