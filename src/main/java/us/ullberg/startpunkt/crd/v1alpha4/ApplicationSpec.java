@@ -485,7 +485,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (urlFrom != null ? !urlFrom.equals(that.urlFrom) : that.urlFrom != null) {
       return false;
     }
-
+    if (tags != null ? !tags.equals(that.tags) : that.tags != null) {
+      return false;
+    }
     return true;
   }
 
