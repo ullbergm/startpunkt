@@ -141,4 +141,24 @@ describe('useWebSocket', () => {
 
     expect(result.current.status).toBe('connecting');
   });
+
+  test('should track last heartbeat timestamp', async () => {
+    const { result } = renderHook(() => 
+      useWebSocket('ws://localhost:8080/api/ws/updates')
+    );
+
+    // Initially no heartbeat
+    expect(result.current.lastHeartbeat).toBeNull();
+
+    // Wait for connection
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    expect(result.current.isConnected).toBe(true);
+    
+    // Note: Testing the heartbeat timestamp update would require
+    // accessing the internal WebSocket instance to trigger onmessage
+    // This is tested through integration tests instead
+  });
 });

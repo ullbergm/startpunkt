@@ -245,9 +245,12 @@ public class AvailabilityCheckService {
    */
   public void registerUrl(String url) {
     if (availabilityCheckEnabled && url != null && !url.isEmpty()) {
-      boolean wasNew = availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked
+      boolean wasNew =
+          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked
       if (wasNew) {
-        Log.infof("Registered URL for availability checking: %s (total: %d)", url, availabilityCache.size());
+        Log.infof(
+            "Registered URL for availability checking: %s (total: %d)",
+            url, availabilityCache.size());
       }
     }
   }
@@ -263,8 +266,8 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Invalidates the application caches to force fresh data on next request.
-   * Called when availability status changes to ensure clients get updated data.
+   * Invalidates the application caches to force fresh data on next request. Called when
+   * availability status changes to ensure clients get updated data.
    */
   @CacheInvalidate(cacheName = "getApp")
   @CacheInvalidate(cacheName = "getApps")

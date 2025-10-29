@@ -267,6 +267,24 @@ export function App() {
     }
   );
 
+  // Calculate seconds since last heartbeat
+  const [secondsSinceHeartbeat, setSecondsSinceHeartbeat] = useState(null);
+  
+  useEffect(() => {
+    if (!websocket.lastHeartbeat) {
+      setSecondsSinceHeartbeat(null);
+      return;
+    }
+    
+    // Update every second
+    const interval = setInterval(() => {
+      const seconds = Math.floor((Date.now() - websocket.lastHeartbeat) / 1000);
+      setSecondsSinceHeartbeat(seconds);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [websocket.lastHeartbeat]);
+
   // Initial data fetch
   useEffect(() => {
     fetchData();
@@ -363,7 +381,15 @@ export function App() {
                 <span 
                   class={`badge ms-2 ${websocket.isConnected ? 'bg-success' : websocket.isConnecting ? 'bg-warning' : 'bg-secondary'}`}
                   style="font-size: 0.5rem; vertical-align: middle;"
-                  title={websocket.isConnected ? 'Real-time updates active' : websocket.isConnecting ? 'Connecting...' : 'Using HTTP polling'}
+                  title={
+                    websocket.isConnected 
+                      ? (secondsSinceHeartbeat !== null 
+                          ? `Real-time updates active (${secondsSinceHeartbeat}s since last heartbeat)` 
+                          : 'Real-time updates active')
+                      : websocket.isConnecting 
+                        ? 'Connecting...' 
+                        : 'Using HTTP polling'
+                  }
                 >
                   {websocket.isConnected ? '●' : websocket.isConnecting ? '○' : '◌'}
                 </span>

@@ -75,7 +75,9 @@ public class WebSocketConnectionManager {
    */
   public <T> void broadcast(WebSocketMessage<T> message) {
     if (!websocketEnabled || connections.isEmpty()) {
-      Log.warnf("Cannot broadcast - websocketEnabled: %s, connections: %d", websocketEnabled, connections.size());
+      Log.warnf(
+          "Cannot broadcast - websocketEnabled: %s, connections: %d",
+          websocketEnabled, connections.size());
       return;
     }
 
@@ -101,12 +103,14 @@ public class WebSocketConnectionManager {
           try {
             Log.infof("Sending to connection %s: %s", connection.id(), jsonMessage);
             // Use non-blocking send with subscribe to handle async result
-            connection.sendText(jsonMessage)
+            connection
+                .sendText(jsonMessage)
                 .subscribe()
                 .with(
                     unused -> Log.infof("Successfully sent to connection %s", connection.id()),
-                    failure -> Log.errorf(failure, "Failed to send message to connection %s", connection.id())
-                );
+                    failure ->
+                        Log.errorf(
+                            failure, "Failed to send message to connection %s", connection.id()));
             return false;
           } catch (Exception e) {
             Log.errorf(e, "Error sending message to connection %s", connection.id());

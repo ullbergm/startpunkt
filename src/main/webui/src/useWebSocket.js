@@ -26,6 +26,7 @@ export function useWebSocket(url, options = {}) {
 
   const [status, setStatus] = useState('disconnected'); // 'disconnected', 'connecting', 'connected', 'error'
   const [lastMessage, setLastMessage] = useState(null);
+  const [lastHeartbeat, setLastHeartbeat] = useState(null);
   
   const ws = useRef(null);
   const reconnectTimeout = useRef(null);
@@ -96,6 +97,11 @@ export function useWebSocket(url, options = {}) {
             timestamp: new Date().toISOString()
           });
           setLastMessage(message);
+          
+          // Track heartbeat timestamp
+          if (message.type === 'HEARTBEAT') {
+            setLastHeartbeat(Date.now());
+          }
           
           if (callbacksRef.current.onMessage) {
             callbacksRef.current.onMessage(message);
@@ -209,6 +215,7 @@ export function useWebSocket(url, options = {}) {
   return {
     status,
     lastMessage,
+    lastHeartbeat,
     sendMessage,
     connect,
     disconnect,
