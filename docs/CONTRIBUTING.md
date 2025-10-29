@@ -78,3 +78,27 @@ Please try to create bug reports that are:
 4. Commit your changes (`git commit -m 'feat: add amazing_feature'`) Startpunkt uses [conventional commits](https://www.conventionalcommits.org), so please follow the specification in your commit messages.
 5. Push to the branch (`git push origin feat/amazing_feature`)
 6. [Open a Pull Request](https://github.com/ullbergm/startpunkt/compare?expand=1)
+
+## Release Process
+
+Startpunkt uses GitHub Actions to automate the release process. To create a new release:
+
+1. Navigate to the [Actions tab](https://github.com/ullbergm/startpunkt/actions/workflows/perform-release.yml) in the repository
+2. Click "Run workflow" on the "Perform Release" workflow
+3. Select the release type:
+   - **patch**: Increments the patch version (e.g., 2.1.0 → 2.1.1)
+   - **minor**: Increments the minor version (e.g., 2.1.0 → 2.2.0)
+   - **major**: Increments the major version (e.g., 2.1.0 → 3.0.0)
+   - **custom**: Allows you to specify a custom version number
+4. If you selected "custom", enter the desired version number (e.g., 2.3.0)
+5. Click "Run workflow"
+
+The workflow will:
+- Calculate the release version based on your selection
+- Run `mvnw release:prepare` to prepare the release
+- Run `mvnw release:perform` to complete the release
+- Push the release tag to the repository
+- Trigger the automatic GitHub release creation with changelog
+
+**Note**: Only maintainers with write access can trigger releases.
+
