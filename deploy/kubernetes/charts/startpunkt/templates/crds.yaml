@@ -50,9 +50,35 @@ spec:
               url:
                 description: "Application URL"
                 type: "string"
+              urlFrom:
+                description: "Reference to read the URL from a different Kubernetes object"
+                properties:
+                  apiGroup:
+                    description: "API group of the referenced object (e.g., 'v1', 'apps/v1')"
+                    type: "string"
+                  apiVersion:
+                    description: "API version of the referenced object (e.g., 'v1')"
+                    type: "string"
+                  kind:
+                    description: "Kind of the referenced object (e.g., 'Service', 'ConfigMap')"
+                    type: "string"
+                  name:
+                    description: "Name of the referenced object"
+                    type: "string"
+                  namespace:
+                    description: "Namespace of the referenced object (defaults to same namespace)"
+                    type: "string"
+                  property:
+                    description: "JSON path to the property in the referenced object (e.g., 'spec.host', 'data.url')"
+                    type: "string"
+                required:
+                - "apiVersion"
+                - "kind"
+                - "name"
+                - "property"
+                type: "object"
             required:
             - "name"
-            - "url"
             type: "object"
           status:
             type: "object"

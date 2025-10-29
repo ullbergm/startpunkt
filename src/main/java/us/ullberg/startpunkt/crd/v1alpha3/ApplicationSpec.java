@@ -41,11 +41,15 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonPropertyDescription("Application icon color, e.g. 'red'")
   private String iconColor;
 
-  /** Application URL (required). */
+  /** Application URL (required if urlFrom is not specified). */
   @JsonProperty("url")
   @JsonPropertyDescription("Application URL")
-  @Required
   private String url;
+
+  /** Reference to read the URL from a different Kubernetes object. */
+  @JsonProperty("urlFrom")
+  @JsonPropertyDescription("Reference to read the URL from a different Kubernetes object")
+  private UrlFrom urlFrom;
 
   /** Description or additional info about the bookmark. */
   @JsonProperty("info")
@@ -393,6 +397,24 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   /**
+   * Gets the URL reference to read from a different Kubernetes object.
+   *
+   * @return UrlFrom reference or null if not set
+   */
+  public UrlFrom getUrlFrom() {
+    return urlFrom;
+  }
+
+  /**
+   * Sets the URL reference to read from a different Kubernetes object.
+   *
+   * @param urlFrom UrlFrom reference
+   */
+  public void setUrlFrom(UrlFrom urlFrom) {
+    this.urlFrom = urlFrom;
+  }
+
+  /**
    * Compares this ApplicationSpec with another for sorting by group, location, and name.
    *
    * @param other the other ApplicationSpec
@@ -460,6 +482,9 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (rootPath != null ? !rootPath.equals(that.rootPath) : that.rootPath != null) {
       return false;
     }
+    if (urlFrom != null ? !urlFrom.equals(that.urlFrom) : that.urlFrom != null) {
+      return false;
+    }
 
     return true;
   }
@@ -481,6 +506,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     result = 31 * result + location;
     result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
     result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);
+    result = 31 * result + (urlFrom != null ? urlFrom.hashCode() : 0);
     return result;
   }
 
@@ -522,6 +548,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
         + ", tags='"
         + tags
         + '\''
+        + ", urlFrom="
+        + urlFrom
         + '}';
   }
 }
