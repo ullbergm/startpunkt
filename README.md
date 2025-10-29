@@ -74,6 +74,7 @@
 - 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
 - 🌎 **Internationalized**. Supports multiple languages.
 - 🎨 **Themes**. Supports themes.
+- 🎯 **OpenShift Console Plugin**. Native integration with OpenShift web console ([docs](docs/console-plugin-installation.md)).
 
 ---
 

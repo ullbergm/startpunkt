@@ -45,3 +45,8 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins/
+
+# Console plugin build artifacts
+console-plugin/node_modules/
+console-plugin/dist/
+console-plugin/package-lock.json
