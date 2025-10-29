@@ -34,27 +34,29 @@ public class I8nService {
    */
   @Timed(value = &quot;startpunkt.i8n&quot;, description = &quot;Get a translation for a given language&quot;)
   public String getTranslation(String language) throws IOException {
+<span class="fc" id="L37">    Log.debugf(&quot;Getting translation for language: %s&quot;, language);</span>
     InputStream translation;
 
     // Check language format
-<span class="fc bfc" id="L40" title="All 2 branches covered.">    if (language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) {</span>
-<span class="fc" id="L41">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + language + &quot;.json&quot;);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">    if (language.matches(&quot;^[a-z]{2}(-[A-Z]{2})?$&quot;)) {</span>
+<span class="fc" id="L42">      Log.debugf(&quot;Language format valid: %s&quot;, language);</span>
+<span class="fc" id="L43">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + language + &quot;.json&quot;);</span>
     } else {
-<span class="fc" id="L43">      Log.warn(&quot;Invalid language format, falling back to US English&quot;);</span>
-<span class="fc" id="L44">      translation = getClass().getResourceAsStream(&quot;/i8n/en-US.json&quot;);</span>
+<span class="fc" id="L45">      Log.warnf(&quot;Invalid language format: %s, falling back to US English&quot;, language);</span>
+<span class="fc" id="L46">      translation = getClass().getResourceAsStream(&quot;/i8n/en-US.json&quot;);</span>
     }
 
     // Fallback to configured default language if translation is not found
-<span class="fc bfc" id="L48" title="All 2 branches covered.">    if (translation == null) {</span>
-<span class="fc" id="L49">      Log.info(</span>
-          &quot;No translation found for language: &quot;
-              + language
-              + &quot;, falling back to default language: &quot;
-              + defaultLanguage);
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    if (translation == null) {</span>
+<span class="fc" id="L51">      Log.infof(</span>
+          &quot;No translation found for language: %s, falling back to default language: %s&quot;,
+          language, defaultLanguage);
 <span class="fc" id="L54">      translation = getClass().getResourceAsStream(&quot;/i8n/&quot; + defaultLanguage + &quot;.json&quot;);</span>
+    } else {
+<span class="fc" id="L56">      Log.debugf(&quot;Translation file found for language: %s&quot;, language);</span>
     }
 
-<span class="fc" id="L57">    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
+<span class="fc" id="L59">    return new String(translation.readAllBytes(), StandardCharsets.UTF_8);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
