@@ -67,3 +67,11 @@ startpunkt:
         emphasisColor: "#FAB795"
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
+
+# Logging configuration (uncomment to enable debug logging)
+# quarkus:
+#   log:
+#     level: INFO  # Default log level
+#     category:
+#       "us.ullberg.startpunkt":
+#         level: DEBUG  # Enable debug logging for Startpunkt
