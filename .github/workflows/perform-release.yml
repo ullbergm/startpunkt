@@ -1,0 +1,119 @@
+name: Perform Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'Release type (major, minor, patch, or custom)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - custom
+      custom-version:
+        description: >-
+          Custom version (only used if release-type is custom,
+          e.g., 2.3.0)
+        required: false
+        type: string
+
+env:
+  JAVA_VERSION: '21'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: '${{ env.JAVA_VERSION }}'
+          distribution: temurin
+          cache: maven
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email \
+            "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(./mvnw help:evaluate \
+            -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          # Extract base version without -SNAPSHOT
+          BASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r -a VERSION_PARTS <<< "$BASE_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
+          echo "patch=$PATCH" >> $GITHUB_OUTPUT
+
+      - name: Calculate release version
+        id: release_version
+        run: |
+          MAJOR=${{ steps.current_version.outputs.major }}
+          MINOR=${{ steps.current_version.outputs.minor }}
+          PATCH=${{ steps.current_version.outputs.patch }}
+
+          if [ "${{ inputs.release-type }}" == "major" ]; then
+            RELEASE_VERSION="$((MAJOR + 1)).0.0"
+          elif [ "${{ inputs.release-type }}" == "minor" ]; then
+            RELEASE_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          elif [ "${{ inputs.release-type }}" == "patch" ]; then
+            RELEASE_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          elif [ "${{ inputs.release-type }}" == "custom" ]; then
+            if [ -z "${{ inputs.custom-version }}" ]; then
+              echo "Error: Custom version required for custom type"
+              exit 1
+            fi
+            RELEASE_VERSION="${{ inputs.custom-version }}"
+          else
+            echo "Error: Invalid release type"
+            exit 1
+          fi
+
+          echo "Release version: $RELEASE_VERSION"
+          echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Prepare release
+        run: |
+          ./mvnw release:prepare \
+            -DreleaseVersion=${{ steps.release_version.outputs.version }} \
+            -Darguments="-DskipTests" \
+            -DskipTests \
+            -B
+
+      - name: Perform release
+        run: |
+          ./mvnw release:perform \
+            -Darguments="-Dmaven.deploy.skip=true -DskipTests" \
+            -DskipTests \
+            -B
+
+      - name: Output release information
+        run: |
+          echo "Release ${{ steps.release_version.outputs.version }} completed!"
+          echo "Tag v${{ steps.release_version.outputs.version }} has been created."
+          echo "GitHub Release will be created automatically by the release workflow."
+
