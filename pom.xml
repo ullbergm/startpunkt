@@ -597,8 +597,8 @@
         <version>3.0.0</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat></googleJavaFormat>
+            <removeUnusedImports></removeUnusedImports>
           </java>
         </configuration>
         <executions>

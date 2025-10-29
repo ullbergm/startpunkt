@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Backend API service
+  backend:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.backend
+    container_name: startpunkt-backend
+    ports:
+      - "8081:8081"
+    environment:
+      # Kubernetes client configuration for local development
+      - KUBERNETES_NAMESPACE=default
+      # Log level
+      - QUARKUS_LOG_LEVEL=INFO
+    networks:
+      - startpunkt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Frontend service
+  frontend:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.frontend
+    container_name: startpunkt-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      # Backend API base URL
+      - API_BASE_URL=http://backend:8081
+    networks:
+      - startpunkt-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  startpunkt-network:
+    driver: bridge

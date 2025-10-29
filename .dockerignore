@@ -1,5 +1,38 @@
-*
-!target/*-runner
-!target/*-runner.jar
-!target/lib/*
+# General
+.git
+.gitignore
+.github
+.mvn
+.vscode
+*.md
+LICENSE
+renovate.json
+commitlint.config.js
+
+# Backend build artifacts not needed
+target/maven-archiver
+target/maven-status
+target/generated-sources
+target/generated-test-sources
+target/surefire-reports
+target/test-classes
+target/jacoco*
+target/site
+target/quinoa
+
+# Frontend development files not needed for backend
+src/main/webui/node_modules
+src/main/webui/test-results
+src/main/webui/.vite
+
+# Keep what we need for backend
 !target/quarkus-app/*
+
+# Keep what we need for frontend
+!src/main/webui/package*.json
+!src/main/webui/src
+!src/main/webui/public
+!src/main/webui/index.html
+!src/main/webui/vite.config.js
+!src/main/docker/nginx.conf
+
