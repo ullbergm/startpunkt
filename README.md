@@ -79,15 +79,25 @@
 
 ## 🚀 Getting started
 
-<!-- ### Helm
+Startpunkt supports two deployment modes:
+- **Monolithic** (default): Single container with backend and frontend
+- **Microservices**: Separate containers for independent scaling ([see docs](docs/microservices.md))
 
-A simple helm chart is available in the repo that you can use to deploy the application.
+### Docker Compose (Microservices Mode)
+
+For local development or simple deployments with separate frontend/backend containers:
 
 ```shell
+# Clone the repository
 git clone https://github.com/ullbergm/startpunkt.git
+cd startpunkt
 
-helm .....
-``` -->
+# Build and start the microservices
+./build-microservices.sh
+docker-compose up
+```
+
+Access the application at http://localhost:8080
 
 ### Kubernetes
 
