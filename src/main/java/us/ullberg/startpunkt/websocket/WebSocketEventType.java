@@ -1,6 +1,9 @@
 package us.ullberg.startpunkt.websocket;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 /** Enumeration of WebSocket event types for real-time updates. */
+@RegisterForReflection
 public enum WebSocketEventType {
   /** A new application was added to the cluster. */
   APPLICATION_ADDED,

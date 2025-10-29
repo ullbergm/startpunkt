@@ -1,6 +1,8 @@
 package us.ullberg.startpunkt.websocket;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.time.Instant;
 
 /**
@@ -9,9 +11,15 @@ import java.time.Instant;
  * @param <T> The type of data payload in the message
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@RegisterForReflection
 public class WebSocketMessage<T> {
+  @JsonProperty("type")
   private WebSocketEventType type;
+  
+  @JsonProperty("timestamp")
   private Instant timestamp;
+  
+  @JsonProperty("data")
   private T data;
 
   /** Default constructor for JSON deserialization. */
