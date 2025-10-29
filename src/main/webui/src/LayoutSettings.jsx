@@ -3,13 +3,8 @@ import { Text } from 'preact-i18n';
 
 export function LayoutSettings({ layoutPrefs }) {
   const { preferences, updatePreference, savePreset, loadPreset, deletePreset, resetToDefaults } = layoutPrefs;
-  const [showSettings, setShowSettings] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [showPresetInput, setShowPresetInput] = useState(false);
-
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-  };
 
   const handleSavePreset = () => {
     if (presetName.trim()) {
@@ -27,9 +22,6 @@ export function LayoutSettings({ layoutPrefs }) {
         <symbol id="grid-3x3-gap" viewBox="0 0 16 16">
           <path d="M4 2v2H2V2h2zm1 12v-2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zm0-5V7a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zm0-5V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zm5 10v-2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zm0-5V7a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zm0-5V2a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1zM9 2v2H7V2h2zm5 0v2h-2V2h2zM4 7v2H2V7h2zm5 0v2H7V7h2zm5 0h-2v2h2V7zM4 12v2H2v-2h2zm5 0v2H7v-2h2zm5 0v2h-2v-2h2zM12 1a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zm-1 6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zm1 4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2z"/>
         </symbol>
-        <symbol id="list-ul" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-        </symbol>
       </svg>
 
       <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-layout-toggle" style="margin-right: 5rem !important;">
@@ -37,108 +29,76 @@ export function LayoutSettings({ layoutPrefs }) {
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-layout" 
           type="button"
-          aria-expanded={showSettings}
-          data-bs-toggle="dropdown" 
+          aria-expanded="false"
+          data-bs-toggle="dropdown"
           aria-label="Layout settings"
-          onClick={toggleSettings}
         >
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
-            <use href={preferences.viewMode === 'list' ? '#list-ul' : '#grid-3x3-gap'}></use>
+            <use href="#grid-3x3-gap"></use>
           </svg>
           <span class="visually-hidden" id="bd-layout-text">Layout</span>
         </button>
         
         <div 
-          class={`dropdown-menu dropdown-menu-end shadow ${showSettings ? 'show' : ''}`}
+          class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-layout-text"
           style="max-width: 300px; max-height: 80vh; overflow-y: auto;"
         >
           <div class="px-3 py-2">
             <h6 class="mb-2">Layout Settings</h6>
             
-            {/* View Mode */}
+            {/* Grid Size */}
             <div class="mb-3">
-              <label class="form-label small mb-1">View Mode</label>
+              <label class="form-label small mb-1">Card Size</label>
               <div class="btn-group w-100" role="group">
                 <input 
                   type="radio" 
                   class="btn-check" 
-                  name="viewMode" 
-                  id="viewModeGrid" 
-                  checked={preferences.viewMode === 'grid'}
-                  onChange={() => updatePreference('viewMode', 'grid')}
+                  name="gridSize" 
+                  id="gridSizeSmall" 
+                  checked={preferences.gridSize === 'small'}
+                  onChange={() => updatePreference('gridSize', 'small')}
                 />
-                <label class="btn btn-outline-primary btn-sm" for="viewModeGrid">Grid</label>
+                <label class="btn btn-outline-primary btn-sm" for="gridSizeSmall">S</label>
                 
                 <input 
                   type="radio" 
                   class="btn-check" 
-                  name="viewMode" 
-                  id="viewModeList" 
-                  checked={preferences.viewMode === 'list'}
-                  onChange={() => updatePreference('viewMode', 'list')}
+                  name="gridSize" 
+                  id="gridSizeMedium" 
+                  checked={preferences.gridSize === 'medium'}
+                  onChange={() => updatePreference('gridSize', 'medium')}
                 />
-                <label class="btn btn-outline-primary btn-sm" for="viewModeList">List</label>
+                <label class="btn btn-outline-primary btn-sm" for="gridSizeMedium">M</label>
+                
+                <input 
+                  type="radio" 
+                  class="btn-check" 
+                  name="gridSize" 
+                  id="gridSizeLarge" 
+                  checked={preferences.gridSize === 'large'}
+                  onChange={() => updatePreference('gridSize', 'large')}
+                />
+                <label class="btn btn-outline-primary btn-sm" for="gridSizeLarge">L</label>
               </div>
             </div>
 
-            {/* Grid Size (only in grid mode) */}
-            {preferences.viewMode === 'grid' && (
-              <div class="mb-3">
-                <label class="form-label small mb-1">Card Size</label>
-                <div class="btn-group w-100" role="group">
-                  <input 
-                    type="radio" 
-                    class="btn-check" 
-                    name="gridSize" 
-                    id="gridSizeSmall" 
-                    checked={preferences.gridSize === 'small'}
-                    onChange={() => updatePreference('gridSize', 'small')}
-                  />
-                  <label class="btn btn-outline-primary btn-sm" for="gridSizeSmall">S</label>
-                  
-                  <input 
-                    type="radio" 
-                    class="btn-check" 
-                    name="gridSize" 
-                    id="gridSizeMedium" 
-                    checked={preferences.gridSize === 'medium'}
-                    onChange={() => updatePreference('gridSize', 'medium')}
-                  />
-                  <label class="btn btn-outline-primary btn-sm" for="gridSizeMedium">M</label>
-                  
-                  <input 
-                    type="radio" 
-                    class="btn-check" 
-                    name="gridSize" 
-                    id="gridSizeLarge" 
-                    checked={preferences.gridSize === 'large'}
-                    onChange={() => updatePreference('gridSize', 'large')}
-                  />
-                  <label class="btn btn-outline-primary btn-sm" for="gridSizeLarge">L</label>
-                </div>
-              </div>
-            )}
-
-            {/* Column Count (only in grid mode) */}
-            {preferences.viewMode === 'grid' && (
-              <div class="mb-3">
-                <label for="columnCountSelect" class="form-label small mb-1">Columns</label>
-                <select 
-                  id="columnCountSelect"
-                  class="form-select form-select-sm" 
-                  value={preferences.columnCount}
-                  onChange={(e) => updatePreference('columnCount', e.target.value === 'auto' ? 'auto' : parseInt(e.target.value))}
-                >
-                  <option value="auto">Auto</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                </select>
-              </div>
-            )}
+            {/* Column Count */}
+            <div class="mb-3">
+              <label for="columnCountSelect" class="form-label small mb-1">Columns</label>
+              <select 
+                id="columnCountSelect"
+                class="form-select form-select-sm" 
+                value={preferences.columnCount}
+                onChange={(e) => updatePreference('columnCount', parseInt(e.target.value))}
+              >
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </div>
 
             {/* Spacing */}
             <div class="mb-3">

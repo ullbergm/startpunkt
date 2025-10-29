@@ -6,9 +6,8 @@ describe('LayoutSettings', () => {
   const mockLayoutPrefs = {
     preferences: {
       gridSize: 'medium',
-      viewMode: 'grid',
-      compactMode: false,
-      columnCount: 'auto',
+      compactMode: true,
+      columnCount: 5,
       showDescription: true,
       showTags: true,
       showStatus: true,
@@ -22,7 +21,7 @@ describe('LayoutSettings', () => {
     deletePreset: jest.fn(),
     resetToDefaults: jest.fn(),
     getCSSVariables: jest.fn(() => ({})),
-    getGridTemplateColumns: jest.fn(() => 'repeat(auto-fill, minmax(280px, 1fr))')
+    getGridTemplateColumns: jest.fn(() => 'repeat(5, 1fr)')
   };
 
   beforeEach(() => {
@@ -48,25 +47,7 @@ describe('LayoutSettings', () => {
     );
     
     const button = screen.getByLabelText('Layout settings');
-    fireEvent.click(button);
-    
-    expect(screen.getByText('Layout Settings')).toBeInTheDocument();
-  });
-
-  test('switches view mode from grid to list', () => {
-    render(
-      <IntlProvider definition={{}}>
-        <LayoutSettings layoutPrefs={mockLayoutPrefs} />
-      </IntlProvider>
-    );
-    
-    const button = screen.getByLabelText('Layout settings');
-    fireEvent.click(button);
-    
-    const listButton = screen.getByLabelText('List');
-    fireEvent.click(listButton);
-    
-    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('viewMode', 'list');
+    expect(button).toHaveAttribute('data-bs-toggle', 'dropdown');
   });
 
   test('changes grid size', () => {
@@ -114,7 +95,7 @@ describe('LayoutSettings', () => {
     const compactCheckbox = screen.getByLabelText('Compact Mode');
     fireEvent.click(compactCheckbox);
     
-    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('compactMode', true);
+    expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('compactMode', false);
   });
 
   test('changes spacing setting', () => {
@@ -278,27 +259,5 @@ describe('LayoutSettings', () => {
     fireEvent.click(resetButton);
     
     expect(mockLayoutPrefs.resetToDefaults).toHaveBeenCalled();
-  });
-
-  test('hides grid-specific options in list view', () => {
-    const listViewPrefs = {
-      ...mockLayoutPrefs,
-      preferences: {
-        ...mockLayoutPrefs.preferences,
-        viewMode: 'list'
-      }
-    };
-    
-    render(
-      <IntlProvider definition={{}}>
-        <LayoutSettings layoutPrefs={listViewPrefs} />
-      </IntlProvider>
-    );
-    
-    const button = screen.getByLabelText('Layout settings');
-    fireEvent.click(button);
-    
-    expect(screen.queryByText('Card Size')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Columns')).not.toBeInTheDocument();
   });
 });

@@ -31,9 +31,8 @@ describe('useLayoutPreferences', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
     expect(result.current.preferences.gridSize).toBe('medium');
-    expect(result.current.preferences.viewMode).toBe('grid');
-    expect(result.current.preferences.compactMode).toBe(false);
-    expect(result.current.preferences.columnCount).toBe('auto');
+    expect(result.current.preferences.compactMode).toBe(true);
+    expect(result.current.preferences.columnCount).toBe(5);
     expect(result.current.preferences.spacing).toBe('normal');
   });
 
@@ -71,17 +70,17 @@ describe('useLayoutPreferences', () => {
     });
     
     act(() => {
-      result.current.updatePreference('viewMode', 'list');
+      result.current.updatePreference('columnCount', 3);
     });
     
     act(() => {
-      result.current.savePreset('largeList');
+      result.current.savePreset('largeThreeColumn');
     });
     
-    expect(result.current.preferences.savedPresets.largeList).toBeDefined();
-    expect(result.current.preferences.savedPresets.largeList.gridSize).toBe('large');
-    expect(result.current.preferences.savedPresets.largeList.viewMode).toBe('list');
-    expect(result.current.preferences.currentPreset).toBe('largeList');
+    expect(result.current.preferences.savedPresets.largeThreeColumn).toBeDefined();
+    expect(result.current.preferences.savedPresets.largeThreeColumn.gridSize).toBe('large');
+    expect(result.current.preferences.savedPresets.largeThreeColumn.columnCount).toBe(3);
+    expect(result.current.preferences.currentPreset).toBe('largeThreeColumn');
   });
 
   test('should load preset', () => {
@@ -90,8 +89,7 @@ describe('useLayoutPreferences', () => {
     act(() => {
       result.current.savePreset('testPreset', {
         gridSize: 'small',
-        viewMode: 'list',
-        compactMode: true,
+        compactMode: false,
         columnCount: 4,
         showDescription: false,
         showTags: true,
@@ -103,7 +101,7 @@ describe('useLayoutPreferences', () => {
     // Change settings
     act(() => {
       result.current.updatePreference('gridSize', 'large');
-      result.current.updatePreference('compactMode', false);
+      result.current.updatePreference('compactMode', true);
     });
     
     // Load preset
@@ -112,8 +110,7 @@ describe('useLayoutPreferences', () => {
     });
     
     expect(result.current.preferences.gridSize).toBe('small');
-    expect(result.current.preferences.viewMode).toBe('list');
-    expect(result.current.preferences.compactMode).toBe(true);
+    expect(result.current.preferences.compactMode).toBe(false);
     expect(result.current.preferences.currentPreset).toBe('testPreset');
   });
 
@@ -139,7 +136,7 @@ describe('useLayoutPreferences', () => {
     
     act(() => {
       result.current.updatePreference('gridSize', 'large');
-      result.current.updatePreference('compactMode', true);
+      result.current.updatePreference('compactMode', false);
       result.current.savePreset('test');
     });
     
@@ -148,7 +145,7 @@ describe('useLayoutPreferences', () => {
     });
     
     expect(result.current.preferences.gridSize).toBe('medium');
-    expect(result.current.preferences.compactMode).toBe(false);
+    expect(result.current.preferences.compactMode).toBe(true);
     expect(result.current.preferences.savedPresets).toEqual({});
   });
 
@@ -197,24 +194,6 @@ describe('useLayoutPreferences', () => {
     const vars = result.current.getCSSVariables();
     expect(vars['--card-padding']).toBe('0.5rem');
     expect(vars['--group-spacing']).toBe('1rem');
-  });
-
-  test('should generate grid template columns for list view', () => {
-    const { result } = renderHook(() => useLayoutPreferences());
-    
-    act(() => {
-      result.current.updatePreference('viewMode', 'list');
-    });
-    
-    const columns = result.current.getGridTemplateColumns();
-    expect(columns).toBe('1fr');
-  });
-
-  test('should generate grid template columns for auto column count', () => {
-    const { result } = renderHook(() => useLayoutPreferences());
-    
-    const columns = result.current.getGridTemplateColumns();
-    expect(columns).toContain('repeat(auto-fill');
   });
 
   test('should generate grid template columns for fixed column count', () => {

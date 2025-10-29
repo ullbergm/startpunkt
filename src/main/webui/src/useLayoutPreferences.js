@@ -5,9 +5,8 @@ import { useLocalStorage } from '@rehooks/local-storage';
  * 
  * Layout preferences include:
  * - gridSize: 'small' | 'medium' | 'large'
- * - viewMode: 'grid' | 'list'
  * - compactMode: boolean
- * - columnCount: 'auto' | number (2-6)
+ * - columnCount: number (2-6)
  * - showDescription: boolean
  * - showTags: boolean
  * - showStatus: boolean
@@ -18,9 +17,8 @@ import { useLocalStorage } from '@rehooks/local-storage';
 
 const DEFAULT_PREFERENCES = {
   gridSize: 'medium',
-  viewMode: 'grid',
-  compactMode: false,
-  columnCount: 'auto',
+  compactMode: true,
+  columnCount: 5,
   showDescription: true,
   showTags: true,
   showStatus: true,
@@ -48,7 +46,6 @@ export function useLayoutPreferences() {
   const savePreset = (name, presetData = null) => {
     const dataToSave = presetData || {
       gridSize: preferences.gridSize,
-      viewMode: preferences.viewMode,
       compactMode: preferences.compactMode,
       columnCount: preferences.columnCount,
       showDescription: preferences.showDescription,
@@ -146,15 +143,6 @@ export function useLayoutPreferences() {
 
   // Get grid template columns based on column count
   const getGridTemplateColumns = () => {
-    if (preferences.viewMode === 'list') {
-      return '1fr';
-    }
-
-    if (preferences.columnCount === 'auto') {
-      // Responsive auto-fill based on card width
-      return `repeat(auto-fill, minmax(var(--card-width, 280px), 1fr))`;
-    }
-
     // Fixed column count
     return `repeat(${preferences.columnCount}, 1fr)`;
   };
