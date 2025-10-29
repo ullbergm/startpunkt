@@ -193,6 +193,66 @@ startpunkt:
         textAccentColor: "#E95678"
 ```
 
+### 🐛 Logging configuration
+
+Startpunkt uses Quarkus logging with sensible defaults (INFO level). You can adjust log levels to troubleshoot issues or get more detailed information about what's happening.
+
+#### Changing the log level
+
+To change the log level, add the following to your `application.yaml` configuration:
+
+```yaml
+# Set the root log level (applies to all loggers)
+quarkus:
+  log:
+    level: DEBUG  # Options: TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF
+```
+
+#### Fine-grained log level control
+
+For more control, you can set different log levels for specific packages:
+
+```yaml
+quarkus:
+  log:
+    level: INFO  # Default level for all loggers
+    category:
+      "us.ullberg.startpunkt":
+        level: DEBUG  # Debug level for all Startpunkt code
+      "us.ullberg.startpunkt.service":
+        level: TRACE  # Trace level for services only
+      "us.ullberg.startpunkt.rest":
+        level: DEBUG  # Debug level for REST endpoints
+```
+
+#### Common log categories
+
+- `us.ullberg.startpunkt.rest` - REST API endpoints (application, bookmark, theme, etc.)
+- `us.ullberg.startpunkt.service` - Service layer (BookmarkService, AvailabilityCheckService, I8nService)
+- `us.ullberg.startpunkt.objects.kubernetes` - Kubernetes resource wrappers
+
+#### Using environment variables
+
+You can also set log levels using environment variables in your Kubernetes deployment:
+
+```yaml
+env:
+  - name: QUARKUS_LOG_LEVEL
+    value: "DEBUG"
+  - name: QUARKUS_LOG_CATEGORY__US_ULLBERG_STARTPUNKT__LEVEL
+    value: "DEBUG"
+```
+
+Note: Environment variable names use double underscores (`__`) to represent dots (`.`) in package names.
+
+#### What gets logged at each level
+
+- **TRACE** - Very detailed tracing information, including individual availability checks
+- **DEBUG** - Detailed debugging information, including resource retrieval, filtering operations
+- **INFO** - General informational messages (default)
+- **WARN** - Warning messages for potentially problematic situations
+- **ERROR** - Error messages for failures
+
 ### 📝 Custom applications
 
 To add applications, that are either outside of the cluster or are using an ingress method that is not supported (yet), you can use the CRDs:
