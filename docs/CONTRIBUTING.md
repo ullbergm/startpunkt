@@ -102,3 +102,43 @@ The workflow will:
 
 **Note**: Only maintainers with write access can trigger releases.
 
+### Automated Changelog Generation
+
+When a new version tag (e.g., `v2.2.4`) is pushed to the repository, the Release workflow automatically:
+
+1. Collects all merged pull requests since the last release
+2. Categorizes them based on conventional commit types in PR titles
+3. Generates a structured changelog
+4. Creates a GitHub release with the changelog
+
+**Changelog Categories:**
+
+The changelog groups changes into the following categories based on the conventional commit type:
+
+- 🚀 **Features** (`feat:`) - New features and enhancements
+- 🐛 **Fixes** (`fix:`) - Bug fixes
+- 📚 **Documentation** (`docs:`) - Documentation changes
+- 🔨 **Refactoring** (`refactor:`) - Code refactoring
+- 🧪 **Tests** (`test:`) - Test additions or modifications
+- 📦 **Dependencies** (`chore:`) - Dependency updates and maintenance
+- ⚙️ **CI/CD** (`ci:`) - CI/CD workflow changes
+- 🎨 **Styling** (`style:`) - Code style changes
+- ⚡ **Performance** (`perf:`) - Performance improvements
+- 🔧 **Build** (`build:`) - Build system changes
+- ↩️ **Reverts** (`revert:`) - Reverted changes
+
+**Best Practices for PR Titles:**
+
+To ensure your contributions are properly categorized in the changelog:
+
+1. Use conventional commit format in your PR titles: `type(scope): description`
+2. Choose the appropriate type from the list above
+3. Keep the description clear and concise
+4. Examples:
+   - `feat(api): add theme customization endpoint`
+   - `fix(ui): correct bookmark sorting order`
+   - `docs(readme): update installation instructions`
+   - `chore(deps): bump quarkus to 3.8.0`
+
+The changelog configuration is maintained in `.github/workflows/changelog/configuration.json`.
+
