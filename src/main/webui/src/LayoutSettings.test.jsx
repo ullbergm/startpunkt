@@ -59,8 +59,8 @@ describe('LayoutSettings', () => {
     const button = screen.getByLabelText('Layout settings');
     fireEvent.click(button);
     
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: '4' } });
+    const slider = screen.getByRole('slider', { name: /Columns: 5/i });
+    fireEvent.change(slider, { target: { value: '4' } });
     
     expect(mockLayoutPrefs.updatePreference).toHaveBeenCalledWith('columnCount', 4);
   });

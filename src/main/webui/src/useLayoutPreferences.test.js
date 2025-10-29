@@ -145,7 +145,7 @@ describe('useLayoutPreferences', () => {
       result.current.resetToDefaults();
     });
     
-    expect(result.current.preferences.spacing).toBe('tight');
+    expect(result.current.preferences.spacing).toBe('normal');
     expect(result.current.preferences.compactMode).toBe(true);
     expect(result.current.preferences.savedPresets).toEqual({});
   });
