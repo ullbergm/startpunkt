@@ -10,6 +10,12 @@ export function Bookmark(props) {
   const fontSize = layoutPrefs?.getCSSVariables()['--card-font-size'] || '1rem';
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
   
+  // Build container style
+  const containerStyle = {
+    transform: 'rotate(0)',
+    padding: padding
+  };
+  
   const renderIcon = (icon, name, size) => {
     if (!icon) return null;
     if (icon.includes('://')) {
@@ -37,7 +43,7 @@ export function Bookmark(props) {
   // List view - compact horizontal layout
   if (viewMode === 'list') {
     return (
-      <div class="d-flex align-items-start" style={`transform: rotate(0); padding: ${padding};`}>
+      <div class="d-flex align-items-start" style={containerStyle}>
         <a
           href={props.bookmark.url}
           target={props.bookmark.targetBlank ? '_blank' : '_self'}
@@ -48,7 +54,7 @@ export function Bookmark(props) {
         {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
         <div class="d-flex align-items-center flex-grow-1">
           <div>
-            <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={`font-size: ${fontSize};`}>
+            <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
               {props.bookmark.name}
             </h3>
           </div>
@@ -59,7 +65,7 @@ export function Bookmark(props) {
   
   // Grid view - standard card layout
   return (
-    <div class="d-flex align-items-start" style={`transform: rotate(0); padding: ${padding};`}>
+    <div class="d-flex align-items-start" style={containerStyle}>
       <a
         href={props.bookmark.url}
         target={props.bookmark.targetBlank ? '_blank' : '_self'}
@@ -69,11 +75,11 @@ export function Bookmark(props) {
       />
       {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
       <div class="px-2">
-        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={`font-size: ${fontSize};`}>
+        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
           {props.bookmark.name}
         </h3>
         {showDescription && props.bookmark.info && (
-          <p class="accent text-uppercase" style="margin-bottom: 0;">{props.bookmark.info}</p>
+          <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
       </div>
     </div>

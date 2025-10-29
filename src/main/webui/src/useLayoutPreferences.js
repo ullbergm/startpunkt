@@ -39,7 +39,8 @@ export function useLayoutPreferences() {
     setPreferences({
       ...preferences,
       [key]: value,
-      // Clear current preset when manually changing settings
+      // Clear current preset when manually changing settings (except when setting preset itself)
+      // This ensures users know they've deviated from a saved preset
       currentPreset: key === 'currentPreset' ? value : null
     });
   };

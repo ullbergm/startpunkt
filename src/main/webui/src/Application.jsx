@@ -15,8 +15,6 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 export function Application(props) {
   const { layoutPrefs } = props;
   const isUnavailable = props.app.available === false;
-  const containerClass = `d-flex align-items-start${isUnavailable ? ' unavailable' : ''}`;
-  const containerStyle = `transform: rotate(0);${isUnavailable ? ' opacity: 0.5; cursor: not-allowed;' : ''}`;
   
   // Get preferences with defaults
   const viewMode = layoutPrefs?.preferences.viewMode || 'grid';
@@ -26,10 +24,18 @@ export function Application(props) {
   const fontSize = layoutPrefs?.getCSSVariables()['--card-font-size'] || '1rem';
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
   
+  // Build container classes and styles
+  const containerClass = `d-flex align-items-start${isUnavailable ? ' unavailable' : ''}`;
+  const containerStyle = {
+    transform: 'rotate(0)',
+    padding: padding,
+    ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' })
+  };
+  
   // List view - compact horizontal layout
   if (viewMode === 'list') {
     return (
-      <div class={containerClass} style={`${containerStyle} padding: ${padding};`}>
+      <div class={containerClass} style={containerStyle}>
         {!isUnavailable && (
           <a
             href={props.app.url}
@@ -42,7 +48,7 @@ export function Application(props) {
         {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable, iconSize)}
         <div class="d-flex align-items-center flex-grow-1">
           <div>
-            <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={`font-size: ${fontSize};`}>
+            <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
               {props.app.name}
             </h3>
           </div>
@@ -53,7 +59,7 @@ export function Application(props) {
   
   // Grid view - standard card layout
   return (
-    <div class={containerClass} style={`${containerStyle} padding: ${padding};`}>
+    <div class={containerClass} style={containerStyle}>
       {!isUnavailable && (
         <a
           href={props.app.url}
@@ -65,14 +71,14 @@ export function Application(props) {
       )}
       {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable, iconSize)}
       <div class="px-2">
-        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={`font-size: ${fontSize};`}>
+        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
           {props.app.name}
         </h3>
         {showDescription && props.app.info && (
-          <p class="accent text-uppercase" style="margin-bottom: 0;">{props.app.info}</p>
+          <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
         )}
         {showStatus && isUnavailable && (
-          <span class="badge bg-warning text-dark mt-1" style="font-size: 0.7rem;">Unavailable</span>
+          <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }}>Unavailable</span>
         )}
       </div>
     </div>
