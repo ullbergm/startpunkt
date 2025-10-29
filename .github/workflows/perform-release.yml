@@ -50,17 +50,26 @@ jobs:
           git config --global user.email \
             "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get current version
+      - name: Get current version from latest tag
         id: current_version
         run: |
-          CURRENT_VERSION=$(./mvnw help:evaluate \
-            -Dexpression=project.version -q -DforceStdout)
-          echo "Current version: $CURRENT_VERSION"
+          # Get the highest version tag using git's version sort
+          LATEST_TAG=$(git tag --list "v*" --sort=version:refname | tail -n 1)
+          
+          # Fallback if no tags exist
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+          
+          echo "Latest tag: $LATEST_TAG"
+          
+          # Remove the 'v' prefix
+          CURRENT_VERSION=${LATEST_TAG#v}
+          echo "Current released version: $CURRENT_VERSION"
           echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
-          # Extract base version without -SNAPSHOT
-          BASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
-          IFS='.' read -r -a VERSION_PARTS <<< "$BASE_VERSION"
+          # Extract version parts
+          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
           MAJOR="${VERSION_PARTS[0]}"
           MINOR="${VERSION_PARTS[1]}"
           PATCH="${VERSION_PARTS[2]}"
