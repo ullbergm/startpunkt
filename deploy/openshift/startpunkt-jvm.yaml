@@ -180,6 +180,9 @@ spec:
             required:
             - "name"
             type: "object"
+            oneOf:
+            - required: ["url"]
+            - required: ["urlFrom"]
           status:
             type: "object"
         type: "object"
