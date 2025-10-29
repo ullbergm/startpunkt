@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSocketMessage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.websocket</a> &gt; <span class="el_source">WebSocketMessage.java</span></div><h1>WebSocketMessage.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.websocket;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.Instant;
+
+/**
+ * WebSocket message sent to clients for real-time updates.
+ *
+ * @param &lt;T&gt; The type of data payload in the message
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class WebSocketMessage&lt;T&gt; {
+  private WebSocketEventType type;
+  private Instant timestamp;
+  private T data;
+
+  /** Default constructor for JSON deserialization. */
+<span class="nc" id="L18">  public WebSocketMessage() {</span>
+<span class="nc" id="L19">    this.timestamp = Instant.now();</span>
+<span class="nc" id="L20">  }</span>
+
+  /**
+   * Creates a WebSocket message with type and data.
+   *
+   * @param type the event type
+   * @param data the message payload
+   */
+<span class="fc" id="L28">  public WebSocketMessage(WebSocketEventType type, T data) {</span>
+<span class="fc" id="L29">    this.type = type;</span>
+<span class="fc" id="L30">    this.data = data;</span>
+<span class="fc" id="L31">    this.timestamp = Instant.now();</span>
+<span class="fc" id="L32">  }</span>
+
+  /**
+   * Gets the event type.
+   *
+   * @return the event type
+   */
+  public WebSocketEventType getType() {
+<span class="nc" id="L40">    return type;</span>
+  }
+
+  /**
+   * Sets the event type.
+   *
+   * @param type the event type
+   */
+  public void setType(WebSocketEventType type) {
+<span class="nc" id="L49">    this.type = type;</span>
+<span class="nc" id="L50">  }</span>
+
+  /**
+   * Gets the timestamp.
+   *
+   * @return the timestamp
+   */
+  public Instant getTimestamp() {
+<span class="nc" id="L58">    return timestamp;</span>
+  }
+
+  /**
+   * Sets the timestamp.
+   *
+   * @param timestamp the timestamp
+   */
+  public void setTimestamp(Instant timestamp) {
+<span class="nc" id="L67">    this.timestamp = timestamp;</span>
+<span class="nc" id="L68">  }</span>
+
+  /**
+   * Gets the data payload.
+   *
+   * @return the data payload
+   */
+  public T getData() {
+<span class="nc" id="L76">    return data;</span>
+  }
+
+  /**
+   * Sets the data payload.
+   *
+   * @param data the data payload
+   */
+  public void setData(T data) {
+<span class="nc" id="L85">    this.data = data;</span>
+<span class="nc" id="L86">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

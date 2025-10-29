@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebSocketEventBroadcaster.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.websocket</a> &gt; <span class="el_source">WebSocketEventBroadcaster.java</span></div><h1>WebSocketEventBroadcaster.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.websocket;
+
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+/**
+ * Service for broadcasting WebSocket events to connected clients.
+ *
+ * &lt;p&gt;This service provides methods to broadcast various types of events (application changes,
+ * configuration updates, etc.) to all connected WebSocket clients. It includes debouncing logic to
+ * prevent flooding clients with rapid updates.
+ */
+@ApplicationScoped
+public class WebSocketEventBroadcaster {
+
+  private final WebSocketConnectionManager connectionManager;
+
+  @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean websocketEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.websocket.eventDebounceMs&quot;, defaultValue = &quot;500&quot;)
+  long eventDebounceMs;
+
+  // Track last broadcast time for each event type to implement debouncing
+<span class="fc" id="L30">  private final Map&lt;String, Instant&gt; lastBroadcastTimes = new ConcurrentHashMap&lt;&gt;();</span>
+
+  /**
+   * Constructor for WebSocketEventBroadcaster.
+   *
+   * @param connectionManager the connection manager
+   */
+<span class="fc" id="L37">  public WebSocketEventBroadcaster(WebSocketConnectionManager connectionManager) {</span>
+<span class="fc" id="L38">    this.connectionManager = connectionManager;</span>
+<span class="fc" id="L39">  }</span>
+
+  /**
+   * Broadcasts an event to all connected clients with debouncing.
+   *
+   * @param eventType the type of event
+   * @param data the event data
+   * @param &lt;T&gt; the type of the event data
+   */
+  public &lt;T&gt; void broadcastEvent(WebSocketEventType eventType, T data) {
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    if (!websocketEnabled) {</span>
+<span class="nc" id="L50">      Log.warnf(&quot;WebSocket broadcasting is disabled, not broadcasting event: %s&quot;, eventType);</span>
+<span class="nc" id="L51">      return;</span>
+    }
+
+<span class="fc" id="L54">    int connectionCount = connectionManager.getConnectionCount();</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (connectionCount == 0) {</span>
+<span class="fc" id="L56">      Log.debugf(&quot;No WebSocket connections available, not broadcasting event: %s&quot;, eventType);</span>
+<span class="fc" id="L57">      return;</span>
+    }
+
+    // Create a unique key for this event type and data
+<span class="nc" id="L61">    String eventKey = eventType.toString();</span>
+
+    // Check if we should debounce this event
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L65">      Log.debugf(&quot;Debouncing event: %s&quot;, eventType);</span>
+<span class="nc" id="L66">      return;</span>
+    }
+
+    // Update last broadcast time
+<span class="nc" id="L70">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+    // Create and broadcast the message
+<span class="nc" id="L73">    var message = new WebSocketMessage&lt;&gt;(eventType, data);</span>
+<span class="nc" id="L74">    connectionManager.broadcast(message);</span>
+
+<span class="nc" id="L76">    Log.infof(</span>
+<span class="nc" id="L77">        &quot;Broadcasted event: %s to %d clients&quot;, eventType, connectionManager.getConnectionCount());</span>
+<span class="nc" id="L78">  }</span>
+
+  /**
+   * Checks if an event should be debounced based on the last broadcast time.
+   *
+   * @param eventKey the unique key for the event
+   * @return true if the event should be debounced, false otherwise
+   */
+  private boolean shouldDebounce(String eventKey) {
+<span class="nc" id="L87">    Instant lastBroadcast = lastBroadcastTimes.get(eventKey);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    if (lastBroadcast == null) {</span>
+<span class="nc" id="L89">      return false;</span>
+    }
+
+<span class="nc" id="L92">    Duration timeSinceLastBroadcast = Duration.between(lastBroadcast, Instant.now());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    return timeSinceLastBroadcast.toMillis() &lt; eventDebounceMs;</span>
+  }
+
+  /**
+   * Broadcasts an application added event.
+   *
+   * @param applicationData the application data
+   */
+  public void broadcastApplicationAdded(Object applicationData) {
+<span class="fc" id="L102">    broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);</span>
+<span class="fc" id="L103">  }</span>
+
+  /**
+   * Broadcasts an application removed event.
+   *
+   * @param applicationData the application data
+   */
+  public void broadcastApplicationRemoved(Object applicationData) {
+<span class="fc" id="L111">    broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);</span>
+<span class="fc" id="L112">  }</span>
+
+  /**
+   * Broadcasts an application updated event.
+   *
+   * @param applicationData the application data
+   */
+  public void broadcastApplicationUpdated(Object applicationData) {
+<span class="fc" id="L120">    broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);</span>
+<span class="fc" id="L121">  }</span>
+
+  /**
+   * Broadcasts a configuration changed event.
+   *
+   * @param configData the configuration data
+   */
+  public void broadcastConfigChanged(Object configData) {
+<span class="fc" id="L129">    broadcastEvent(WebSocketEventType.CONFIG_CHANGED, configData);</span>
+<span class="fc" id="L130">  }</span>
+
+  /**
+   * Broadcasts a status changed event.
+   *
+   * @param statusData the status data
+   */
+  public void broadcastStatusChanged(Object statusData) {
+<span class="fc" id="L138">    broadcastEvent(WebSocketEventType.STATUS_CHANGED, statusData);</span>
+<span class="fc" id="L139">  }</span>
+
+  /**
+   * Broadcasts a bookmark added event.
+   *
+   * @param bookmarkData the bookmark data
+   */
+  public void broadcastBookmarkAdded(Object bookmarkData) {
+<span class="fc" id="L147">    broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);</span>
+<span class="fc" id="L148">  }</span>
+
+  /**
+   * Broadcasts a bookmark removed event.
+   *
+   * @param bookmarkData the bookmark data
+   */
+  public void broadcastBookmarkRemoved(Object bookmarkData) {
+<span class="fc" id="L156">    broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);</span>
+<span class="fc" id="L157">  }</span>
+
+  /**
+   * Broadcasts a bookmark updated event.
+   *
+   * @param bookmarkData the bookmark data
+   */
+  public void broadcastBookmarkUpdated(Object bookmarkData) {
+<span class="fc" id="L165">    broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);</span>
+<span class="fc" id="L166">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

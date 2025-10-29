@@ -6,7 +6,7 @@ startpunkt,us.ullberg.startpunkt.health,PingConfigResourceHealthCheck,38,0,0,0,1
 startpunkt,us.ullberg.startpunkt.health,PingThemeResourceHealthCheck,38,0,0,0,16,0,3,0,3,0
 startpunkt,us.ullberg.startpunkt.health,PingBookmarkResourceHealthCheck,38,0,0,0,16,0,3,0,3,0
 startpunkt,us.ullberg.startpunkt.rest,ThemeResource,0,46,0,0,0,8,0,4,0,4
-startpunkt,us.ullberg.startpunkt.rest,ConfigResource,0,36,0,0,0,11,0,4,0,4
+startpunkt,us.ullberg.startpunkt.rest,ConfigResource,0,42,0,0,0,12,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,I8nResource,12,35,0,0,4,11,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,ApplicationResource,25,512,17,49,8,122,17,28,0,12
 startpunkt,us.ullberg.startpunkt.rest,Theme,11,15,0,0,5,6,3,3,3,3
@@ -20,7 +20,7 @@ startpunkt,us.ullberg.startpunkt.objects,ApplicationGroup,122,42,28,4,21,12,23,5
 startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,BookmarkService,136,298,19,21,37,82,18,17,7,8
-startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,157,87,16,10,46,24,17,4,5,3
+startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,247,108,28,14,68,30,26,6,8,3
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationSpec,521,0,84,0,118,0,72,0,30,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationStatus,3,0,0,0,2,0,1,0,1,0
@@ -62,3 +62,8 @@ startpunkt,us.ullberg.startpunkt.crd.v1alpha2,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha2,ApplicationStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha2,Application,91,0,4,0,22,0,8,0,6,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha2,ApplicationList,3,0,0,0,2,0,1,0,1,0
+startpunkt,us.ullberg.startpunkt.websocket,UpdatesWebSocket,70,0,2,0,24,0,6,0,5,0
+startpunkt,us.ullberg.startpunkt.websocket,WebSocketEventType,0,57,0,0,0,10,0,1,0,1
+startpunkt,us.ullberg.startpunkt.websocket,WebSocketConnectionManager,117,38,6,4,34,11,10,4,5,4
+startpunkt,us.ullberg.startpunkt.websocket,WebSocketEventBroadcaster,63,64,8,2,17,25,6,10,1,10
+startpunkt,us.ullberg.startpunkt.websocket,WebSocketMessage,27,12,0,0,12,5,7,1,7,1
