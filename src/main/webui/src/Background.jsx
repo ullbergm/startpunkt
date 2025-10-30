@@ -48,8 +48,9 @@ export function Background() {
         document.body.insertBefore(overlay, document.body.firstChild);
       }
       
+      const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
-        ? `https://picsum.photos/seed/startpunkt/${window.screen.width}/${window.screen.height}`
+        ? `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`
         : backgroundPrefs.preferences.imageUrl;
       
       // Validate URL before using

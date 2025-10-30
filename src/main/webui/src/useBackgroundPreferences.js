@@ -116,8 +116,9 @@ export function useBackgroundPreferences() {
         break;
       
       case 'pictureOfDay':
-        // Use Lorem Picsum with fixed seed for consistent image, matching screen size
-        const picsumUrl = `https://picsum.photos/seed/startpunkt/${window.screen.width}/${window.screen.height}`;
+        // Use Lorem Picsum with today's date as seed for daily-changing image, matching screen size
+        const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        const picsumUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
         if (isValidUrl(picsumUrl)) {
           style.backgroundImage = `url(${CSS.escape(picsumUrl)})`;
           style.backgroundSize = 'cover';
