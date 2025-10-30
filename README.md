@@ -74,6 +74,14 @@
 - 🚀 **Fast**. Using Quarkus natively compiled binaries makes them really fast.
 - 🌎 **Internationalized**. Supports multiple languages.
 - 🎨 **Themes**. Supports themes.
+- ♿ **Accessible**. WCAG 2.1 compliant with comprehensive accessibility features:
+  - Full keyboard navigation support
+  - Screen reader optimized with ARIA labels
+  - High contrast mode
+  - Adjustable font sizes (75%-200%)
+  - Visible focus indicators
+  - Skip-to-content link
+  - See [docs/accessibility.md](docs/accessibility.md) for details
 
 ---
 
