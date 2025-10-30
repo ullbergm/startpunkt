@@ -52,74 +52,6 @@ jobs:
               (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.conclusion == 'success'))
             }}" >>$GITHUB_OUTPUT
 
-  build-jvm-images:
-    needs: init
-    if: ${{ needs.init.outputs.run == 'true' }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch:
-          - amd64
-          - arm64
-    name: "Build JVM images (${{ matrix.arch}})"
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: 📝 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: ${{env.IMAGE_FULL_NAME}}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-          flavor: |
-            latest=false
-            suffix=-jvm-${{ matrix.arch }},onlatest=true
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: temurin
-          cache: maven
-
-      - name: Create env vars
-        working-directory: .
-        run: |
-          echo "DOCKERFILE=Dockerfile.jvm" >> "$GITHUB_ENV"
-
-      - name: Build app (${{ matrix.arch }})
-        working-directory: .
-        run: ./mvnw -B clean package -DskipTests -Dmaven.compiler.release=${{ env.JAVA_VERSION }} -Dquarkus.http.host=0.0.0.0
-
-      - name: Set up QEMU
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-
-      - name: Build JVM image (${{ matrix.arch }})
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/${{ matrix.arch }}
-          push: false
-          load: true
-          file: ./src/main/docker/${{ env.DOCKERFILE }}
-          tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Save JVM Image (${{ matrix.arch }})
-        uses: ishworkh/container-image-artifact-upload@v2.0.0
-        with:
-          image: "${{ steps.meta.outputs.tags }}"
-
   build-native-images:
     needs: init
     if: ${{ needs.init.outputs.run == 'true' }}
@@ -201,7 +133,6 @@ jobs:
 
   push-images:
     needs:
-      - build-jvm-images
       - build-native-images
     runs-on: ubuntu-latest
     strategy:
@@ -211,7 +142,6 @@ jobs:
           - arm64
         kind:
           - "" # native
-          - "-jvm"
     name: "Push app images (${{ matrix.arch }}${{ matrix.kind }})"
     steps:
       - uses: actions/checkout@v5
@@ -250,33 +180,6 @@ jobs:
         working-directory: .
         run: "docker push -a ${{ env.IMAGE_FULL_NAME }}"
 
-  create-multiarch-jvm-tags:
-    needs: push-images
-    runs-on: ubuntu-latest
-    outputs:
-      tags: ${{ steps.json.outputs.tags }}
-    name: Create multiarch JVM manifests
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: 📝 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: ${{env.IMAGE_FULL_NAME}}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-          flavor: |
-            latest=auto
-            suffix=-jvm,onlatest=true
-      
-      - name: Convert a list of tags to a JSON array
-        id: json
-        run: echo tags=$(echo '${{ steps.meta.outputs.tags }}' | jq -nRc '[inputs]' | jq -R -s '.') >> $GITHUB_OUTPUT
-
   create-multiarch-native-tags:
     needs: push-images
     runs-on: ubuntu-latest
@@ -302,44 +205,6 @@ jobs:
       - name: Convert a list of tags to a JSON array
         id: json
         run: echo tags=$(echo '${{ steps.meta.outputs.tags }}' | jq -nRc '[inputs]' | jq -R -s '.') >> $GITHUB_OUTPUT
-
-  create-multiarch-jvm-manifests:
-    needs: create-multiarch-jvm-tags
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tag: ${{ fromJson(fromJson(needs.create-multiarch-jvm-tags.outputs.tags)) }}          
-    name: Create multiarch JVM manifests (${{ matrix.tag }})
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: 📝 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: ${{env.IMAGE_FULL_NAME}}
-
-      - name: 🔑 Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check if it is a tag build
-        run: echo "TAG=${{ matrix.tag }}" >> $GITHUB_ENV
-
-      - name: Check if it is a tag build
-        if: startsWith(github.ref, 'refs/tags/')
-        run: echo "TAG=${{ env.IMAGE_FULL_NAME }}:${GITHUB_REF##refs/tags/v}-jvm" >> $GITHUB_ENV
-
-      - name: Create and push multi-arch JVM manifests (${{ matrix.tag }})
-        shell: bash
-        run: |
-          docker manifest create ${{ matrix.tag }} \
-            -a ${{ env.TAG }}-amd64 \
-            -a ${{ env.TAG }}-arm64
-          docker manifest push ${{ matrix.tag }}
 
   create-multiarch-native-manifests:
     needs: create-multiarch-native-tags

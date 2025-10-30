@@ -44,45 +44,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  simple-build-test:
-    runs-on: ubuntu-latest
-    if: github.repository == 'ullbergm/startpunkt'
-    name: build-test
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: 'Setup Java ${{ env.JAVA_VERSION }}'
-        uses: actions/setup-java@v5
-        with:
-          java-version: '${{ env.JAVA_VERSION }}'
-          distribution: temurin
-          cache: maven
-
-      - name: 'build-test-jvm-java-${{ env.JAVA_VERSION }}'
-        working-directory: .
-        run: >-
-          if [[ "${{ github.repository }}" != "ullbergm/startpunkt" ]] || ${{ startsWith(github.ref, 'refs/heads/renovate') }}; then
-            echo "Skipping Sonar analysis"
-            ./mvnw -B -fae clean verify -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
-          else
-            echo "Running Sonar analysis"
-            ./mvnw -B -fae clean verify sonar:sonar -Dquarkus.http.host=0.0.0.0 -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
-            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }} -Dsonar.projectKey=${{ env.SONAR_PROJECTKEY }} -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
-          fi
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Publish JUnit test results to GitHub
-        if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          check_name: "Test Results - JVM"
-          files: |
-            **/target/surefire-reports/*.xml
-            **/test-results/jest/*.xml
-
   native-build-test:
     runs-on: ubuntu-latest
     if: github.repository == 'ullbergm/startpunkt'
