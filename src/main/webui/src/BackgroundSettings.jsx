@@ -291,10 +291,11 @@ export function BackgroundSettings() {
                 resetToDefaults();
                 // Also reset theme to auto
                 writeStorage('theme', 'auto');
-                window.dispatchEvent(new StorageEvent('storage', {
-                  key: 'theme',
-                  newValue: 'auto',
-                  storageArea: localStorage
+                window.dispatchEvent(new CustomEvent('themeChanged', {
+                  detail: {
+                    key: 'theme',
+                    newValue: 'auto'
+                  }
                 }));
               }}
             >
