@@ -14,7 +14,7 @@
 # docker run -i --rm -p 8081:8081 startpunkt-backend
 #
 ###
-FROM registry.access.redhat.com/ubi8/openjdk-21:1.23-3.1759823915
+FROM registry.access.redhat.com/ubi8/openjdk-21:1.23-3.1761164965
 
 ENV LANGUAGE='en_US:en'
 
