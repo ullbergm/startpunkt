@@ -1,17 +1,31 @@
 import { renderHook, act } from '@testing-library/preact';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 
-// Mock the useLocalStorage hook
-jest.mock('@rehooks/local-storage', () => ({
-  useLocalStorage: jest.fn((key, initialValue) => {
-    const [state, setState] = require('preact/hooks').useState(initialValue);
-    return [state, setState];
-  }),
-}));
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
 
 describe('useCollapsibleGroups', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    localStorageMock.clear();
   });
 
   test('initializes with empty collapsed groups', () => {
