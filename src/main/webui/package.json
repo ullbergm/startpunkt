@@ -21,6 +21,7 @@
       "@version-checker/core": "^3.1.0",
       "bootstrap": "^5.3.7",
       "flexsearch": "^0.8.205",
+      "geopattern": "^1.2.3",
       "preact": "^10.22.0",
       "preact-i18n": "^2.4.0-preactx",
       "react-responsive": "^10.0.0"

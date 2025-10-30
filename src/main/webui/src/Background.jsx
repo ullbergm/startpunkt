@@ -28,7 +28,8 @@ export function Background() {
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
     const isImageType = backgroundPrefs.preferences.type === 'image' || 
-                        backgroundPrefs.preferences.type === 'pictureOfDay';
+                        backgroundPrefs.preferences.type === 'pictureOfDay' ||
+                        backgroundPrefs.preferences.type === 'geopattern';
     
     // Get or create background overlay for images (to handle opacity and blur)
     let overlay = document.getElementById('background-overlay');
@@ -48,40 +49,58 @@ export function Background() {
         document.body.insertBefore(overlay, document.body.firstChild);
       }
       
-      const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-      const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
-        ? `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`
-        : backgroundPrefs.preferences.imageUrl;
-      
-      // Validate URL before using
-      if (isValidUrl(imageUrl)) {
-        overlay.style.backgroundImage = `url(${CSS.escape(imageUrl)})`;
-        overlay.style.backgroundSize = 'cover';
-        overlay.style.backgroundPosition = 'center';
-        overlay.style.backgroundRepeat = 'no-repeat';
-        
-        // Apply opacity from style (for images)
+      // Handle different background types
+      if (backgroundPrefs.preferences.type === 'geopattern') {
+        // Geopattern - apply the generated pattern
+        overlay.style.backgroundImage = style.backgroundImage;
+        overlay.style.backgroundSize = style.backgroundSize;
+        overlay.style.backgroundPosition = style.backgroundPosition;
+        overlay.style.backgroundRepeat = style.backgroundRepeat;
         overlay.style.opacity = style.opacity || 1.0;
+        overlay.style.filter = 'none';
+        overlay.style.transform = 'none';
         
-        // Apply blur if enabled
-        if (backgroundPrefs.preferences.blur) {
-          overlay.style.filter = 'blur(10px)';
-          overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
-        } else {
-          overlay.style.filter = 'none';
-          overlay.style.transform = 'none';
-        }
-        
-        // Clear body background to prevent doubling
+        // Clear body background
         document.body.style.backgroundImage = 'none';
         document.body.style.background = 'none';
         document.body.style.backgroundColor = 'transparent';
       } else {
-        // Invalid URL, remove overlay and fall back to solid color
-        if (overlay) {
-          overlay.remove();
+        // Picture of Day or Custom Image
+        const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
+          ? `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`
+          : backgroundPrefs.preferences.imageUrl;
+        
+        // Validate URL before using
+        if (isValidUrl(imageUrl)) {
+          overlay.style.backgroundImage = `url(${CSS.escape(imageUrl)})`;
+          overlay.style.backgroundSize = 'cover';
+          overlay.style.backgroundPosition = 'center';
+          overlay.style.backgroundRepeat = 'no-repeat';
+          
+          // Apply opacity from style (for images)
+          overlay.style.opacity = style.opacity || 1.0;
+          
+          // Apply blur if enabled
+          if (backgroundPrefs.preferences.blur) {
+            overlay.style.filter = 'blur(10px)';
+            overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
+          } else {
+            overlay.style.filter = 'none';
+            overlay.style.transform = 'none';
+          }
+          
+          // Clear body background to prevent doubling
+          document.body.style.backgroundImage = 'none';
+          document.body.style.background = 'none';
+          document.body.style.backgroundColor = 'transparent';
+        } else {
+          // Invalid URL, remove overlay and fall back to solid color
+          if (overlay) {
+            overlay.remove();
+          }
+          document.body.style.backgroundColor = style.backgroundColor || '';
         }
-        document.body.style.backgroundColor = style.backgroundColor || '';
       }
     } else {
       // For solid colors and gradients, apply directly to body

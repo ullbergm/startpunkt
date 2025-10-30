@@ -175,7 +175,8 @@ describe('useLayoutPreferences', () => {
     
     expect(result.current.preferences.spacing).toBe('normal');
     expect(result.current.preferences.compactMode).toBe(true);
-    expect(result.current.preferences.savedPresets).toEqual({});
+    // Presets should be preserved when resetting to defaults
+    expect(result.current.preferences.savedPresets).toHaveProperty('test');
   });
 
   test('should generate CSS variables for tight spacing', () => {

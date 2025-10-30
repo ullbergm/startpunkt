@@ -49,6 +49,7 @@ export function BackgroundSettings() {
                 <option value="gradient">Gradient</option>
                 <option value="image">Custom Image</option>
                 <option value="pictureOfDay">Picture of the Day</option>
+                <option value="geopattern">Geopattern</option>
               </select>
             </div>
 
@@ -131,6 +132,39 @@ export function BackgroundSettings() {
                 />
                 <small class="form-text text-muted">Enter a valid image URL</small>
               </div>
+            )}
+
+            {/* Geopattern Settings */}
+            {preferences.type === 'geopattern' && (
+              <>
+                <div class="mb-3">
+                  <label for="geopatternSeed" class="form-label small mb-1">
+                    Pattern Seed
+                  </label>
+                  <input 
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="geopatternSeed"
+                    placeholder="Enter text to generate pattern"
+                    value={preferences.geopatternSeed}
+                    onInput={(e) => updatePreference('geopatternSeed', e.target.value)}
+                  />
+                  <small class="form-text text-muted">Change the text to generate different patterns</small>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="geopatternColor" class="form-label small mb-1">
+                    Pattern Color
+                  </label>
+                  <input 
+                    type="color"
+                    class="form-control form-control-color"
+                    id="geopatternColor"
+                    value={preferences.color}
+                    onChange={(e) => updatePreference('color', e.target.value)}
+                  />
+                </div>
+              </>
             )}
 
             {/* Blur Option for Images */}

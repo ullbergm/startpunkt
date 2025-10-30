@@ -120,7 +120,11 @@ export function useLayoutPreferences() {
   };
 
   const resetToDefaults = () => {
-    setPreferences(DEFAULT_PREFERENCES);
+    // Preserve saved presets when resetting to defaults
+    setPreferences({
+      ...DEFAULT_PREFERENCES,
+      savedPresets: preferences.savedPresets
+    });
   };
 
   // Get CSS variables based on current preferences

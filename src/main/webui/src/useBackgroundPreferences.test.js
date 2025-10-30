@@ -37,7 +37,8 @@ describe('useBackgroundPreferences', () => {
       gradientDirection: 'to bottom right',
       imageUrl: '',
       blur: false,
-      opacity: 1.0
+      opacity: 1.0,
+      geopatternSeed: 'startpunkt'
     });
   });
 

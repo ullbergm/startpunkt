@@ -1,16 +1,18 @@
 import { useLocalStorage } from '@rehooks/local-storage';
+import GeoPattern from 'geopattern';
 
 /**
  * Custom hook for managing background preferences with localStorage persistence
  * 
  * Background preferences include:
- * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay'
+ * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern'
  * - color: string (hex color)
  * - secondaryColor: string (hex color for gradients)
  * - gradientDirection: string (CSS gradient direction)
  * - imageUrl: string (URL for custom image)
  * - blur: boolean (whether to blur background)
  * - opacity: number (0.0 to 1.0)
+ * - geopatternSeed: string (seed for geopattern generation)
  */
 
 const DEFAULT_PREFERENCES = {
@@ -20,7 +22,8 @@ const DEFAULT_PREFERENCES = {
   gradientDirection: 'to bottom right',
   imageUrl: '',
   blur: false,
-  opacity: 1.0
+  opacity: 1.0,
+  geopatternSeed: 'startpunkt'
 };
 
 export function useBackgroundPreferences() {
@@ -138,6 +141,25 @@ export function useBackgroundPreferences() {
           }
         }
         break;
+      
+      case 'geopattern': {
+        // Generate a geopattern based on seed
+        const seed = preferences.geopatternSeed || 'startpunkt';
+        const pattern = GeoPattern.generate(seed, {
+          color: baseColor
+        });
+        
+        style.backgroundImage = pattern.toDataUrl();
+        style.backgroundSize = 'auto';
+        style.backgroundPosition = 'center';
+        style.backgroundRepeat = 'repeat';
+        
+        // Apply opacity if needed
+        if (opacity !== 1.0) {
+          style.opacity = opacity;
+        }
+        break;
+      }
       
       case 'solid':
       default:
