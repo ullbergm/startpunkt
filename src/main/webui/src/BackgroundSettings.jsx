@@ -90,10 +90,11 @@ export function BackgroundSettings() {
                       console.log('Setting theme to dark, current:', theme);
                       writeStorage('theme', 'dark');
                       // Force a storage event dispatch for same-window updates
-                      window.dispatchEvent(new StorageEvent('storage', {
-                        key: 'theme',
-                        newValue: 'dark',
-                        storageArea: localStorage
+                      window.dispatchEvent(new CustomEvent('theme-changed', {
+                        detail: {
+                          key: 'theme',
+                          newValue: 'dark'
+                        }
                       }));
                     }}
                     title="Dark mode"
