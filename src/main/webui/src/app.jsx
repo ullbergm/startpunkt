@@ -19,6 +19,8 @@ import './app.scss';
 import { ApplicationGroupList } from './ApplicationGroupList';
 import { BookmarkGroupList } from './BookmarkGroupList';
 import { ForkMe } from './ForkMe';
+import { Background } from './Background';
+import { BackgroundSettings } from './BackgroundSettings';
 
 export function ThemeSwitcher() {
   const [themes, setThemes] = useState({
@@ -374,8 +376,10 @@ export function App() {
     <IntlProvider definition={definition}>
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
+      <Background />
       <ThemeSwitcher />
       <LayoutSettings layoutPrefs={layoutPrefs} />
+      <BackgroundSettings />
       <SpotlightSearch />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
