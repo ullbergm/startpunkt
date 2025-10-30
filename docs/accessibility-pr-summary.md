@@ -107,7 +107,11 @@ This PR implements comprehensive accessibility features to make Startpunkt fully
 
 ### Manual Testing Required
 - [ ] Keyboard-only navigation through entire application
-- [ ] Screen reader testing (NVDA, JAWS, VoiceOver, Orca)
+- [ ] Screen reader testing:
+  - [ ] NVDA (Windows, free)
+  - [ ] JAWS (Windows, commercial)
+  - [ ] VoiceOver (macOS/iOS, built-in)
+  - [ ] Orca (Linux, built-in)
 - [ ] High contrast mode visual verification
 - [ ] Font size scaling across all components
 - [ ] Focus indicator visibility in all states

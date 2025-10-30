@@ -6,7 +6,7 @@
 
 The new accessibility settings button appears in the bottom-right corner, to the left of the existing settings buttons.
 
-**Icon**: Universal Access symbol (♿)
+**Icon**: Universal Access symbol (represented as a person with arms outstretched)
 **Location**: Bottom-right corner, leftmost of the settings cluster
 
 ### 2. Accessibility Settings Panel
