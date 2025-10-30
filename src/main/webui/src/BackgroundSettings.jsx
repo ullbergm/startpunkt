@@ -1,4 +1,3 @@
-import { Text } from 'preact-i18n';
 import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 
