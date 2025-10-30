@@ -1,7 +1,48 @@
-import { Application } from './Application';
+import { useState } from 'preact/hooks';
+import Application from './Application';
+import ApplicationPreview from './ApplicationPreview';
+
+/**
+ * Renders a single application card within a list item container.
+ * The hover handlers are on the list item to prevent premature exit.
+ */
+function ApplicationListItem({ app, layoutPrefs, previewConfig }) {
+  const [isHovering, setIsHovering] = useState(false);
+  const isUnavailable = app.available === false;
+  
+  const previewEnabled = previewConfig?.enabled !== false;
+  const previewDelay = previewConfig?.delay || 5000;
+
+  const handleMouseEnter = () => {
+    if (!isUnavailable) {
+      setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
+  return (
+    <div 
+      role="listitem" 
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Application app={app} layoutPrefs={layoutPrefs} isHovering={isHovering} />
+      <ApplicationPreview 
+        url={app.url}
+        name={app.name}
+        isHovering={isHovering}
+        enabled={previewEnabled && !isUnavailable}
+        delay={previewDelay}
+      />
+    </div>
+  );
+}
 
 export function ApplicationGroup(props) {
-  const { layoutPrefs, isCollapsed, onToggle } = props;
+  const { layoutPrefs, previewConfig, isCollapsed, onToggle } = props;
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
@@ -62,9 +103,12 @@ export function ApplicationGroup(props) {
           aria-label={`${props.group} applications`}
         >
           {Array.isArray(props.applications) && props.applications.map((app) => (
-            <div role="listitem" key={app.name}>
-              <Application app={app} layoutPrefs={layoutPrefs} />
-            </div>
+            <ApplicationListItem 
+              key={app.name}
+              app={app} 
+              layoutPrefs={layoutPrefs} 
+              previewConfig={previewConfig}
+            />
           ))}
         </div>
       )}

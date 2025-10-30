@@ -23,7 +23,9 @@ class ConfigResourceTest {
         .body("config.version", anything())
         .body("config.web.showGithubLink", equalTo(true))
         .body("config.web.checkForUpdates", equalTo(true))
-        .body("config.web.title", equalTo("Startpunkt"));
+        .body("config.web.title", equalTo("Startpunkt"))
+        .body("config.web.preview.enabled", equalTo(true))
+        .body("config.web.preview.delay", equalTo(1000));
   }
 
   // Test the ping endpoint
