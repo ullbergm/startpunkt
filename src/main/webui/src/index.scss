@@ -155,6 +155,98 @@ button:focus-visible {
 .bd-mode-toggle .dropdown-menu .active .bi {
   display: block !important;
 }
+
+/* Make dropdowns respect theme colors */
+.dropdown-menu {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.dropdown-item {
+  color: var(--bs-body-color) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--bs-secondary-bg) !important;
+  color: var(--bs-emphasis-color) !important;
+}
+
+.dropdown-item.active {
+  background-color: var(--bs-primary) !important;
+  color: var(--bs-white) !important;
+}
+
+/* Form controls in dropdowns should also respect theme */
+.dropdown-menu .form-control,
+.dropdown-menu .form-select {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.dropdown-menu .form-control:focus,
+.dropdown-menu .form-select:focus {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+.dropdown-menu .form-label,
+.dropdown-menu .form-check-label {
+  color: var(--bs-body-color) !important;
+}
+
+.dropdown-menu h6 {
+  color: var(--bs-emphasis-color) !important;
+}
+
+.dropdown-menu hr {
+  border-color: var(--bs-border-color) !important;
+  opacity: 0.5;
+}
+
+.dropdown-menu small,
+.dropdown-menu .text-muted {
+  color: var(--bs-secondary-color) !important;
+}
+
+/* Button groups in dropdowns */
+.dropdown-menu .btn-group .btn-outline-secondary {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.dropdown-menu .btn-group .btn-outline-secondary:hover {
+  background-color: var(--bs-secondary-bg) !important;
+  color: var(--bs-emphasis-color) !important;
+}
+
+/* Primary buttons in dropdowns - selected state */
+.dropdown-menu .btn-group .btn-primary {
+  background-color: var(--bs-emphasis-color) !important;
+  border-color: var(--bs-emphasis-color) !important;
+  color: var(--bs-body-bg) !important;
+}
+
+.dropdown-menu .btn-group .btn-primary:hover {
+  background-color: var(--bs-body-color) !important;
+  border-color: var(--bs-body-color) !important;
+  color: var(--bs-body-bg) !important;
+}
+
+/* Form check (switches) */
+.dropdown-menu .form-check-input {
+  background-color: var(--bs-body-bg) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.dropdown-menu .form-check-input:checked {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
 /*
  * Globals
  */
@@ -166,11 +258,6 @@ button:focus-visible {
 .btn-light:focus {
   color: #333;
   text-shadow: none; /* Prevent inheritance from `body` */
-}
-
-
-.cover-container {
-  /* max-width: 42em; */
 }
 
 
