@@ -39,17 +39,32 @@ export function BookmarkGroup(props) {
         onClick={handleToggle}
         tabIndex={0}
         onKeyDown={handleKeyDown}
+        role="button"
+        aria-expanded={!isCollapsed}
+        aria-controls={`bookmark-group-${props.group.replace(/\s+/g, '-')}`}
+        aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${props.group} bookmark group`}
       >
-        <span style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+        <span 
+          style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+          aria-hidden="true"
+        >
           ▼
         </span>
         {props.group}
       </h2>
 
       {!isCollapsed && (
-        <div class={paddingClass} style={gridStyle}>
+        <div 
+          class={paddingClass} 
+          style={gridStyle}
+          id={`bookmark-group-${props.group.replace(/\s+/g, '-')}`}
+          role="list"
+          aria-label={`${props.group} bookmarks`}
+        >
           {Array.isArray(props.bookmarks) && props.bookmarks.map((bookmark) => (
-            <Bookmark key={bookmark.name} bookmark={bookmark} layoutPrefs={layoutPrefs} />
+            <div role="listitem" key={bookmark.name}>
+              <Bookmark bookmark={bookmark} layoutPrefs={layoutPrefs} />
+            </div>
           ))}
         </div>
       )}

@@ -230,6 +230,14 @@ export default function SpotlightSearch({ testVisible = false }) {
             // Don't capture keystrokes if user is typing in an input or textarea
             if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
             
+            // Open search with / key
+            if (!visible && e.key === '/') {
+                e.preventDefault();
+                setVisible(true);
+                setTimeout(() => inputRef.current?.focus(), 0);
+                return;
+            }
+            
             const isTypingChar = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
             if (!visible && isTypingChar) {
                 setVisible(true);
@@ -270,7 +278,14 @@ export default function SpotlightSearch({ testVisible = false }) {
     }
 
     return (
-        <div ref={containerRef} style={overlayStyle}>
+        <div 
+            ref={containerRef} 
+            style={overlayStyle}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="spotlight-search-label"
+        >
+            <h2 id="spotlight-search-label" class="visually-hidden">Search applications and bookmarks</h2>
             <input
                 ref={inputRef}
                 type="text"
@@ -302,17 +317,28 @@ export default function SpotlightSearch({ testVisible = false }) {
                     }
                 }}
                 style={inputStyle}
+                aria-label="Search for applications and bookmarks"
+                aria-controls="search-results"
+                aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
             />
 
-            <ul style={resultsStyle}>
+            <ul 
+                style={resultsStyle}
+                id="search-results"
+                role="listbox"
+                aria-label="Search results"
+            >
                 {query.trim() && filtered.length === 0 && (
-                    <li style={{ padding: '0.5rem', color: '#888' }}>No results</li>
+                    <li role="status" aria-live="polite" style={{ padding: '0.5rem', color: '#888' }}>No results</li>
                 )}
 
                 {filtered.map((app, index) => (
                     <li
                         key={app.id}
+                        id={`search-result-${index}`}
                         ref={(el) => itemRefs.current[index] = el}
+                        role="option"
+                        aria-selected={index === selectedIndex}
                         style={{
                             ...itemStyle,
                             backgroundColor: index === selectedIndex ? '#eee' : 'white',

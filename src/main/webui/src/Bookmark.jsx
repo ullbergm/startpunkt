@@ -43,13 +43,13 @@ export function Bookmark(props) {
   // List view - compact horizontal layout
   if (viewMode === 'list') {
     return (
-      <div class="d-flex align-items-start" style={containerStyle}>
+      <div class="d-flex align-items-start" style={containerStyle} role="article" aria-label={`Bookmark: ${props.bookmark.name}`}>
         <a
           href={props.bookmark.url}
           target={props.bookmark.targetBlank ? '_blank' : '_self'}
           class="stretched-link"
           rel="external noopener noreferrer"
-          aria-label={props.bookmark.name}
+          aria-label={`${props.bookmark.name}${props.bookmark.info ? ` - ${props.bookmark.info}` : ''}`}
         />
         {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
         <div class="d-flex align-items-center flex-grow-1">
@@ -65,13 +65,13 @@ export function Bookmark(props) {
   
   // Grid view - standard card layout
   return (
-    <div class="d-flex align-items-start" style={containerStyle}>
+    <div class="d-flex align-items-start" style={containerStyle} role="article" aria-label={`Bookmark: ${props.bookmark.name}`}>
       <a
         href={props.bookmark.url}
         target={props.bookmark.targetBlank ? '_blank' : '_self'}
         class="stretched-link"
         rel="external noopener noreferrer"
-        aria-label={props.bookmark.name}
+        aria-label={`${props.bookmark.name}${props.bookmark.info ? ` - ${props.bookmark.info}` : ''}`}
       />
       {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
       <div class="px-2">

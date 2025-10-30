@@ -10,6 +10,7 @@ import { useWebSocket } from './useWebSocket';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { LayoutSettings } from './LayoutSettings';
+import { AccessibilitySettings } from './AccessibilitySettings';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -317,19 +318,29 @@ export function App() {
 
   return (
     <IntlProvider definition={definition}>
+      {/* Skip to content link for screen readers */}
+      <a 
+        href="#main-content" 
+        class="visually-hidden-focusable position-absolute top-0 start-0 p-3 m-3 bg-primary text-white"
+        style="z-index: 9999;"
+      >
+        Skip to main content
+      </a>
+
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
       <ThemeApplier />
       <Background />
+      <AccessibilitySettings />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
       <SpotlightSearch />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-        <header class="mb-auto">
+        <header class="mb-auto" role="banner">
           <div>
             <h3 class="float-md-start mb-0">
-              <img src={startpunktLogo} alt="Startpunkt" width="48" height="48" />&nbsp;{title}
+              <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}
               {websocketEnabled && (
                 <span 
                   class={`badge ms-2 ${websocket.isConnected ? 'bg-success' : websocket.isConnecting ? 'bg-warning' : 'bg-secondary'}`}
@@ -348,29 +359,29 @@ export function App() {
                 </span>
               )}
             </h3>
-            <nav class="nav nav-masthead justify-content-center float-md-end">
+            <nav class="nav nav-masthead justify-content-center float-md-end" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
-                <a class={applicationsClass} aria-current="page" href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
+                <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
               )}
               {hasBookmarks() && (
-                <a class={bookmarksClass} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
+                <a class={bookmarksClass} aria-current={currentPage === "bookmarks" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
               )}
             </nav>
           </div>
         </header>
 
-        <main class="px-3">
+        <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
           {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
           {currentPage === "loading" && (
-            <div class="text-center">
+            <div class="text-center" role="status" aria-live="polite">
               <h1 class="display-4">Loading...</h1>
               <p class="lead">Checking for configured applications and bookmarks...</p>
               <p>If none are found, you can add them to get started.</p>
             </div>
           )}
           {currentPage === "empty" && (
-            <div class="text-center">
+            <div class="text-center" role="status">
               <h1 class="display-4">No Items Available</h1>
               <p class="lead">There are currently no applications or bookmarks configured.</p>
               <p>Please add some applications or bookmarks to get started.</p>
@@ -378,8 +389,8 @@ export function App() {
           )}
         </main>
 
-        <footer class="mt-auto text-white-50">
-          <p><a href="https://github.com/ullbergm/startpunkt" class="text-white-50" target="_blank">Startpunkt</a> v{version}, by <a href="https://ullberg.us" class="text-white-50" target="_blank">Magnus Ullberg</a>.</p>
+        <footer class="mt-auto text-white-50" role="contentinfo">
+          <p><a href="https://github.com/ullbergm/startpunkt" class="text-white-50" target="_blank" rel="noopener noreferrer">Startpunkt</a> v{version}, by <a href="https://ullberg.us" class="text-white-50" target="_blank" rel="noopener noreferrer">Magnus Ullberg</a>.</p>
         </footer>
       </div>
     </IntlProvider>

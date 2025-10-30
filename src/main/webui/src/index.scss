@@ -65,6 +65,63 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Enhanced Focus Indicators */
+*:focus-visible {
+  outline: 3px solid #646cff;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #646cff;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+body.high-contrast {
+  --bs-body-bg: #000000;
+  --bs-body-color: #ffffff;
+  --bs-emphasis-color: #ffffff;
+  --color-text-pri: #ffffff;
+  --color-text-acc: #ffff00;
+  --bs-border-color: #ffffff;
+  --bs-secondary-bg: #1a1a1a;
+  --bs-secondary-color: #ffffff;
+}
+
+body.high-contrast * {
+  border-color: #ffffff !important;
+}
+
+body.high-contrast a,
+body.high-contrast .nav-link {
+  color: #ffff00 !important;
+  text-decoration: underline;
+}
+
+body.high-contrast button,
+body.high-contrast .btn {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast .badge {
+  background-color: #ffff00 !important;
+  color: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+body.high-contrast *:focus-visible {
+  outline: 4px solid #ffff00;
+  outline-offset: 3px;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

@@ -18,7 +18,8 @@ describe('BookmarkGroup component', () => {
 
     test('renders group heading with styling and uppercase text', () => {
         render(<BookmarkGroup group="My Bookmarks" bookmarks={bookmarks} isCollapsed={false} />);
-        const heading = screen.getByRole('heading', { level: 2 });
+        // The h2 now has role="button" for accessibility
+        const heading = screen.getByRole('button', { name: /collapse my bookmarks/i });
         expect(heading).toBeInTheDocument();
         expect(heading).toHaveClass('pb-2', 'border-bottom', 'text-uppercase');
         expect(heading.textContent).toMatch(/My Bookmarks/i);
@@ -66,7 +67,7 @@ describe('BookmarkGroup component', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
         
-        const heading = screen.getByRole('heading', { level: 2 });
+        const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.click(heading);
         
         expect(onToggle).toHaveBeenCalledTimes(1);
@@ -76,7 +77,7 @@ describe('BookmarkGroup component', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
         
-        const heading = screen.getByRole('heading', { level: 2 });
+        const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.keyDown(heading, { key: 'Enter' });
         
         expect(onToggle).toHaveBeenCalledTimes(1);
@@ -86,7 +87,7 @@ describe('BookmarkGroup component', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
         
-        const heading = screen.getByRole('heading', { level: 2 });
+        const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.keyDown(heading, { key: ' ' });
         
         expect(onToggle).toHaveBeenCalledTimes(1);
