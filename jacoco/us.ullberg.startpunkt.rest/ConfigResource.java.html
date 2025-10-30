@@ -44,22 +44,14 @@ public class ConfigResource {
   @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
   public boolean websocketEnabled;
 
-  /** Indicates whether application preview on hover is enabled. */
-  @ConfigProperty(name = &quot;startpunkt.web.preview.enabled&quot;, defaultValue = &quot;true&quot;)
-  public boolean previewEnabled;
-
-  /** Delay in milliseconds before showing preview (default: 5000 = 5 seconds). */
-  @ConfigProperty(name = &quot;startpunkt.web.preview.delay&quot;, defaultValue = &quot;5000&quot;)
-  public int previewDelay;
-
   /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = &quot;quarkus.application.version&quot;, defaultValue = &quot;0&quot;)
   public String version;
 
   /** Default constructor. */
-<span class="fc" id="L60">  public ConfigResource() {</span>
+<span class="fc" id="L52">  public ConfigResource() {</span>
     // No special initialization needed
-<span class="fc" id="L62">  }</span>
+<span class="fc" id="L54">  }</span>
 
   /**
    * Retrieves the current application configuration.
@@ -76,7 +68,7 @@ public class ConfigResource {
               mediaType = MediaType.APPLICATION_JSON,
               schema = @Schema(implementation = Map.class, required = true)))
   public Response getConfig() {
-<span class="fc" id="L79">    return Response.ok(generateConfig()).build();</span>
+<span class="fc" id="L71">    return Response.ok(generateConfig()).build();</span>
   }
 
   /**
@@ -85,25 +77,23 @@ public class ConfigResource {
    * @return a map representing the config payload
    */
   private Map&lt;String, Object&gt; generateConfig() {
-<span class="fc" id="L88">    return Map.of(</span>
+<span class="fc" id="L80">    return Map.of(</span>
         &quot;config&quot;,
-<span class="fc" id="L90">        Map.of(</span>
+<span class="fc" id="L82">        Map.of(</span>
             &quot;version&quot;,
             version,
             &quot;web&quot;,
-<span class="fc" id="L94">            Map.of(</span>
+<span class="fc" id="L86">            Map.of(</span>
                 &quot;showGithubLink&quot;,
-<span class="fc" id="L96">                showGithubLink,</span>
+<span class="fc" id="L88">                showGithubLink,</span>
                 &quot;checkForUpdates&quot;,
-<span class="fc" id="L98">                checkForUpdates,</span>
+<span class="fc" id="L90">                checkForUpdates,</span>
                 &quot;title&quot;,
                 title,
                 &quot;refreshInterval&quot;,
-<span class="fc" id="L102">                refreshInterval,</span>
-                &quot;preview&quot;,
-<span class="fc" id="L104">                Map.of(&quot;enabled&quot;, previewEnabled, &quot;delay&quot;, previewDelay)),</span>
+<span class="fc" id="L94">                refreshInterval),</span>
             &quot;websocket&quot;,
-<span class="fc" id="L106">            Map.of(&quot;enabled&quot;, websocketEnabled)));</span>
+<span class="fc" id="L96">            Map.of(&quot;enabled&quot;, websocketEnabled)));</span>
   }
 
   /**
@@ -119,8 +109,8 @@ public class ConfigResource {
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L122">    Log.debug(&quot;Ping Config Resource&quot;);</span>
-<span class="fc" id="L123">    return &quot;Pong from Config Resource&quot;;</span>
+<span class="fc" id="L112">    Log.debug(&quot;Ping Config Resource&quot;);</span>
+<span class="fc" id="L113">    return &quot;Pong from Config Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
