@@ -46,34 +46,7 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('ThemeSwitcher', () => {
-  it('renders theme switcher dropdown', async () => {
-    render(<ThemeSwitcher />);
-    expect(await screen.findByRole('button', { name: /toggle theme/i })).toBeInTheDocument();
-    expect(screen.getByText(/light/i)).toBeInTheDocument();
-    expect(screen.getByText(/dark/i)).toBeInTheDocument();
-    expect(screen.getByText(/auto/i)).toBeInTheDocument();
-  });
-
-  it('calls writeStorage when a theme button is clicked', async () => {
-    const { writeStorage } = require('@rehooks/local-storage');
-    render(<ThemeSwitcher />);
-    // Wait for DOM to update
-    await screen.findByRole('button', { name: /toggle theme/i });
-
-    // Click dark theme button
-    fireEvent.click(screen.getByText(/dark/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');
-
-    // Click light theme button
-    fireEvent.click(screen.getByText(/light/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'light');
-
-    // Click auto theme button
-    fireEvent.click(screen.getByText(/auto/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'auto');
-  });
-
+describe('ThemeSwitcher (theme logic)', () => {
   it('sets correct CSS variables for light and dark theme', async () => {
     render(<ThemeSwitcher />);
     await waitFor(() => expect(document.body.style.setProperty).toHaveBeenCalled());

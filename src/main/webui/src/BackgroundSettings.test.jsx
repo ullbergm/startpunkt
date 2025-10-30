@@ -3,9 +3,37 @@ import { IntlProvider } from 'preact-i18n';
 import { BackgroundSettings } from './BackgroundSettings';
 
 // Mock the useBackgroundPreferences hook
+const mockUpdatePreference = jest.fn();
+const mockResetToDefaults = jest.fn();
+
+let mockPreferences = {
+  type: 'solid',
+  color: '#F8F6F1',
+  secondaryColor: '#FFFFFF',
+  gradientDirection: 'to bottom right',
+  imageUrl: '',
+  blur: false,
+  opacity: 1.0
+};
+
 jest.mock('./useBackgroundPreferences', () => ({
   useBackgroundPreferences: () => ({
-    preferences: {
+    preferences: mockPreferences,
+    updatePreference: mockUpdatePreference,
+    resetToDefaults: mockResetToDefaults
+  })
+}));
+
+jest.mock('@rehooks/local-storage', () => ({
+  useLocalStorage: (key, initial) => [global._mockTheme || initial, jest.fn()],
+  writeStorage: jest.fn(),
+}));
+
+describe('BackgroundSettings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global._mockTheme = 'auto';
+    mockPreferences = {
       type: 'solid',
       color: '#F8F6F1',
       secondaryColor: '#FFFFFF',
@@ -13,15 +41,7 @@ jest.mock('./useBackgroundPreferences', () => ({
       imageUrl: '',
       blur: false,
       opacity: 1.0
-    },
-    updatePreference: jest.fn(),
-    resetToDefaults: jest.fn()
-  })
-}));
-
-describe('BackgroundSettings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+    };
   });
 
   test('renders background settings button', () => {
@@ -107,5 +127,71 @@ describe('BackgroundSettings', () => {
     
     const resetButton = screen.getByText('Reset to Defaults');
     expect(resetButton).toBeInTheDocument();
+  });
+
+  test('displays theme mode selection when type is theme', () => {
+    mockPreferences.type = 'theme';
+    
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Background settings');
+    fireEvent.click(button);
+    
+    expect(screen.getByText('Theme Mode')).toBeInTheDocument();
+    expect(screen.getByTitle('Light mode')).toBeInTheDocument();
+    expect(screen.getByTitle('Dark mode')).toBeInTheDocument();
+    expect(screen.getByTitle('Auto (follow system)')).toBeInTheDocument();
+  });
+
+  test('does not display theme mode selection when type is not theme', () => {
+    mockPreferences.type = 'solid';
+    
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Background settings');
+    fireEvent.click(button);
+    
+    expect(screen.queryByText('Theme Mode')).not.toBeInTheDocument();
+  });
+
+  test('does not display opacity slider when type is theme', () => {
+    mockPreferences.type = 'theme';
+    
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Background settings');
+    fireEvent.click(button);
+    
+    expect(screen.queryByRole('slider', { name: /Opacity/i })).not.toBeInTheDocument();
+  });
+
+  test('calls setTheme when theme mode button is clicked', () => {
+    const { writeStorage } = require('@rehooks/local-storage');
+    mockPreferences.type = 'theme';
+    
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Background settings');
+    fireEvent.click(button);
+    
+    // Click dark theme button
+    fireEvent.click(screen.getByTitle('Dark mode'));
+    expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');
   });
 });
