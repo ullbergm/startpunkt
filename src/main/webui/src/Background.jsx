@@ -49,7 +49,7 @@ export function Background() {
       }
       
       const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
-        ? 'https://source.unsplash.com/daily?wallpaper'
+        ? `https://picsum.photos/seed/startpunkt/${window.screen.width}/${window.screen.height}`
         : backgroundPrefs.preferences.imageUrl;
       
       // Validate URL before using

@@ -116,10 +116,10 @@ export function useBackgroundPreferences() {
         break;
       
       case 'pictureOfDay':
-        // Use Unsplash daily image - consider making this configurable in production
-        const unsplashUrl = 'https://source.unsplash.com/daily?wallpaper';
-        if (isValidUrl(unsplashUrl)) {
-          style.backgroundImage = `url(${CSS.escape(unsplashUrl)})`;
+        // Use Lorem Picsum with fixed seed for consistent image, matching screen size
+        const picsumUrl = `https://picsum.photos/seed/startpunkt/${window.screen.width}/${window.screen.height}`;
+        if (isValidUrl(picsumUrl)) {
+          style.backgroundImage = `url(${CSS.escape(picsumUrl)})`;
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
