@@ -148,6 +148,8 @@ describe('LayoutSettings', () => {
     const confirmButton = screen.getByText('Save');
     fireEvent.click(confirmButton);
     
+    // Verify that savePreset is called with the preset name
+    // (background settings are captured internally in useLayoutPreferences)
     expect(mockLayoutPrefs.savePreset).toHaveBeenCalledWith('My Preset');
   });
 

@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
-import { ThemeSwitcher } from './app';
+import { ThemeApplier } from './app';
 
 jest.mock('@rehooks/local-storage', () => ({
   useLocalStorage: (key, initial) => [global._mockTheme || initial, jest.fn()],
@@ -16,9 +16,16 @@ jest.mock('@version-checker/browser', () => ({
   default: jest.fn(() => Promise.resolve({})),
 }));
 
+jest.mock('./useBackgroundPreferences', () => ({
+  useBackgroundPreferences: () => ({
+    preferences: { type: global._mockBackgroundType || 'theme' }
+  })
+}));
+
 beforeEach(() => {
   global._mockTheme = 'auto';
   global._mockSystemPrefersDark = false;
+  global._mockBackgroundType = 'theme';
   // Mock fetch for /api/theme
   global.fetch = jest.fn(() =>
     Promise.resolve({
@@ -46,48 +53,23 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('ThemeSwitcher', () => {
-  it('renders theme switcher dropdown', async () => {
-    render(<ThemeSwitcher />);
-    expect(await screen.findByRole('button', { name: /toggle theme/i })).toBeInTheDocument();
-    expect(screen.getByText(/light/i)).toBeInTheDocument();
-    expect(screen.getByText(/dark/i)).toBeInTheDocument();
-    expect(screen.getByText(/auto/i)).toBeInTheDocument();
-  });
-
-  it('calls writeStorage when a theme button is clicked', async () => {
-    const { writeStorage } = require('@rehooks/local-storage');
-    render(<ThemeSwitcher />);
-    // Wait for DOM to update
-    await screen.findByRole('button', { name: /toggle theme/i });
-
-    // Click dark theme button
-    fireEvent.click(screen.getByText(/dark/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');
-
-    // Click light theme button
-    fireEvent.click(screen.getByText(/light/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'light');
-
-    // Click auto theme button
-    fireEvent.click(screen.getByText(/auto/i).closest('button'));
-    expect(writeStorage).toHaveBeenCalledWith('theme', 'auto');
-  });
-
+describe('ThemeApplier (theme logic)', () => {
   it('sets correct CSS variables for light and dark theme', async () => {
-    render(<ThemeSwitcher />);
+    render(<ThemeApplier />);
     await waitFor(() => expect(document.body.style.setProperty).toHaveBeenCalled());
 
     // Set theme to dark
     global._mockTheme = 'dark';
-    render(<ThemeSwitcher />);
+    global._mockBackgroundType = 'theme';
+    render(<ThemeApplier />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#000')
     );
 
     // Set theme to light
     global._mockTheme = 'light';
-    render(<ThemeSwitcher />);
+    global._mockBackgroundType = 'theme';
+    render(<ThemeApplier />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#fff')
     );
@@ -96,7 +78,8 @@ describe('ThemeSwitcher', () => {
   it('uses system dark mode when theme is auto and prefers-color-scheme is dark', async () => {
     global._mockTheme = 'auto';
     global._mockSystemPrefersDark = true;
-    render(<ThemeSwitcher />);
+    global._mockBackgroundType = 'theme';
+    render(<ThemeApplier />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#000')
     );
