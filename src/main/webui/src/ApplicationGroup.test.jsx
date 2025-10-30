@@ -28,7 +28,7 @@ const mockLayoutPrefs = {
 
 const mockPreviewConfig = {
   enabled: true,
-  delay: 5000
+  delay: 1000
 };
 
 describe('ApplicationGroup Component', () => {

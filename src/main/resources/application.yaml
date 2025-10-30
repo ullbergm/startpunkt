@@ -56,7 +56,7 @@ startpunkt:
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI
     preview:
       enabled: true  # If true, enable live preview of applications on hover
-      delay: 2000  # Delay in milliseconds before showing preview (default: 2000 = 2 seconds)
+      delay: 1000  # Delay in milliseconds before showing preview (default: 5000 = 5 seconds)
       screenshot:
         width: 1280  # Width of captured screenshots in pixels
         height: 720  # Height of captured screenshots in pixels
