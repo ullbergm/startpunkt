@@ -67,7 +67,7 @@ export function BackgroundSettings() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('Setting theme to light, current:', theme);
+                      // Removed debug console.log statement
                       writeStorage('theme', 'light');
                       // Force a storage event dispatch for same-window updates
                       window.dispatchEvent(new StorageEvent('storage', {
