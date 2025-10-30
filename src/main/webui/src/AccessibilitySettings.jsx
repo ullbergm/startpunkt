@@ -51,7 +51,7 @@ export function AccessibilitySettings() {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-accessibility-toggle">
+      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-accessibility-toggle" style="margin-right: 0.75rem !important;">
         <button 
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-accessibility" 
