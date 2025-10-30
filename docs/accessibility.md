@@ -23,10 +23,6 @@ A dedicated accessibility settings panel is available via a button in the bottom
 - **Decrease Font Size**: Make text smaller
 - **Reset**: Return to default 100% font size
 - **Slider**: Fine-tune font size from 75% to 200%
-- **Keyboard Shortcuts**:
-  - `Ctrl + +` (or `Cmd + +` on Mac): Increase font size
-  - `Ctrl + -` (or `Cmd + -` on Mac): Decrease font size
-  - `Ctrl + 0` (or `Cmd + 0` on Mac): Reset font size
 
 #### High Contrast Mode
 Toggle high contrast mode for enhanced color contrast:
