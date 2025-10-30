@@ -123,7 +123,7 @@ export function useBackgroundPreferences() {
         const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
         const picsumUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
         if (isValidUrl(picsumUrl)) {
-          style.backgroundImage = `url(${CSS.escape(picsumUrl)})`;
+          style.backgroundImage = `url(${encodeURI(picsumUrl)})`;
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
