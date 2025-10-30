@@ -17,7 +17,7 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
   };
 
   const expandAll = (groupNames) => {
-    const newState = {};
+    const newState = { ...collapsedGroups };
     groupNames.forEach(name => {
       newState[name] = false;
     });
@@ -25,7 +25,7 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
   };
 
   const collapseAll = (groupNames) => {
-    const newState = {};
+    const newState = { ...collapsedGroups };
     groupNames.forEach(name => {
       newState[name] = true;
     });

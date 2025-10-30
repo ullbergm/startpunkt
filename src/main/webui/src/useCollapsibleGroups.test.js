@@ -95,11 +95,55 @@ describe('useCollapsibleGroups', () => {
   test('respects defaultCollapsed parameter', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key', true));
     
-    // First toggle should collapse (opposite of default true)
+    // First toggle should expand (opposite of default true)
     act(() => {
       result.current.toggleGroup('group1');
     });
 
     expect(result.current.collapsedGroups['group1']).toBe(false);
+  });
+
+  test('expandAll preserves state of groups not in the list', () => {
+    const { result } = renderHook(() => useCollapsibleGroups());
+    
+    // Set up some initial state
+    act(() => {
+      result.current.toggleGroup('group1');
+      result.current.toggleGroup('group2');
+      result.current.toggleGroup('group3');
+    });
+
+    expect(result.current.collapsedGroups['group1']).toBe(true);
+    expect(result.current.collapsedGroups['group2']).toBe(true);
+    expect(result.current.collapsedGroups['group3']).toBe(true);
+
+    // Expand only group1 and group2, leaving group3 alone
+    act(() => {
+      result.current.expandAll(['group1', 'group2']);
+    });
+
+    expect(result.current.collapsedGroups['group1']).toBe(false);
+    expect(result.current.collapsedGroups['group2']).toBe(false);
+    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
+  });
+
+  test('collapseAll preserves state of groups not in the list', () => {
+    const { result } = renderHook(() => useCollapsibleGroups());
+    
+    // Set up initial state with group3 collapsed
+    act(() => {
+      result.current.toggleGroup('group3');
+    });
+
+    expect(result.current.collapsedGroups['group3']).toBe(true);
+
+    // Collapse only group1 and group2, leaving group3 alone
+    act(() => {
+      result.current.collapseAll(['group1', 'group2']);
+    });
+
+    expect(result.current.collapsedGroups['group1']).toBe(true);
+    expect(result.current.collapsedGroups['group2']).toBe(true);
+    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
   });
 });
