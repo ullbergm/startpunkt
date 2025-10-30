@@ -41,6 +41,21 @@ export function useBackgroundPreferences() {
   };
 
   /**
+   * Convert hex color to rgba with opacity
+   */
+  const hexToRgba = (hex, opacity) => {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Parse RGB values
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  /**
    * Get the CSS style for the background based on current preferences
    */
   const getBackgroundStyle = (isDarkMode) => {
@@ -50,6 +65,7 @@ export function useBackgroundPreferences() {
     const defaultLightColor = '#F8F6F1';
     const defaultDarkColor = '#232530';
     const baseColor = preferences.color || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    const opacity = preferences.opacity !== undefined ? preferences.opacity : 1.0;
     
     // Helper to validate and sanitize URLs
     const isValidUrl = (url) => {
@@ -66,7 +82,15 @@ export function useBackgroundPreferences() {
       case 'gradient': {
         const secondaryColor = preferences.secondaryColor || (isDarkMode ? '#1a1b26' : '#FFFFFF');
         const direction = preferences.gradientDirection || 'to bottom right';
-        style.background = `linear-gradient(${direction}, ${baseColor}, ${secondaryColor})`;
+        
+        // Apply opacity to gradient colors
+        if (opacity !== 1.0) {
+          const color1 = hexToRgba(baseColor, opacity);
+          const color2 = hexToRgba(secondaryColor, opacity);
+          style.background = `linear-gradient(${direction}, ${color1}, ${color2})`;
+        } else {
+          style.background = `linear-gradient(${direction}, ${baseColor}, ${secondaryColor})`;
+        }
         break;
       }
       
@@ -79,9 +103,15 @@ export function useBackgroundPreferences() {
           if (preferences.blur) {
             style.filter = 'blur(5px)';
           }
+          // For images, opacity needs to be applied to a pseudo-element or overlay
+          style.opacity = opacity;
         } else {
           // Fallback to solid color if no valid image URL
-          style.backgroundColor = baseColor;
+          if (opacity !== 1.0) {
+            style.backgroundColor = hexToRgba(baseColor, opacity);
+          } else {
+            style.backgroundColor = baseColor;
+          }
         }
         break;
       
@@ -96,21 +126,27 @@ export function useBackgroundPreferences() {
           if (preferences.blur) {
             style.filter = 'blur(5px)';
           }
+          // For images, opacity needs to be applied to a pseudo-element or overlay
+          style.opacity = opacity;
         } else {
           // Fallback to solid color
-          style.backgroundColor = baseColor;
+          if (opacity !== 1.0) {
+            style.backgroundColor = hexToRgba(baseColor, opacity);
+          } else {
+            style.backgroundColor = baseColor;
+          }
         }
         break;
       
       case 'solid':
       default:
-        style.backgroundColor = baseColor;
+        // Apply opacity to solid color using rgba
+        if (opacity !== 1.0) {
+          style.backgroundColor = hexToRgba(baseColor, opacity);
+        } else {
+          style.backgroundColor = baseColor;
+        }
         break;
-    }
-    
-    // Apply opacity if not 1.0
-    if (preferences.opacity !== 1.0) {
-      style.opacity = preferences.opacity;
     }
     
     return style;

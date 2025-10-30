@@ -78,6 +78,52 @@ describe('useBackgroundPreferences', () => {
     expect(style.backgroundColor).toBe('#F8F6F1');
   });
 
+  test.skip('applies opacity to solid background using rgba', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('color', '#FF0000');
+      result.current.updatePreference('opacity', 0.5);
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    // Should convert to rgba with opacity
+    expect(style.backgroundColor).toBe('rgba(255, 0, 0, 0.5)');
+  });
+
+  test.skip('applies opacity to gradient colors using rgba', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'gradient');
+      result.current.updatePreference('color', '#FF0000');
+      result.current.updatePreference('secondaryColor', '#0000FF');
+      result.current.updatePreference('opacity', 0.7);
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    // Should use rgba colors in gradient
+    expect(style.background).toContain('rgba(255, 0, 0, 0.7)');
+    expect(style.background).toContain('rgba(0, 0, 255, 0.7)');
+  });
+
+  test.skip('applies opacity property to image backgrounds', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'image');
+      result.current.updatePreference('imageUrl', 'https://example.com/image.jpg');
+      result.current.updatePreference('opacity', 0.8);
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    // For images, opacity is set as a property (to be applied to overlay)
+    expect(style.opacity).toBe(0.8);
+  });
+
   test.skip('generates gradient background style', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
     
