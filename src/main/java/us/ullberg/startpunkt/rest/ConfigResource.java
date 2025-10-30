@@ -44,6 +44,14 @@ public class ConfigResource {
   @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
   public boolean websocketEnabled;
 
+  /** Indicates whether application preview on hover is enabled. */
+  @ConfigProperty(name = "startpunkt.web.preview.enabled", defaultValue = "true")
+  public boolean previewEnabled;
+
+  /** Delay in milliseconds before showing preview (default: 5000 = 5 seconds). */
+  @ConfigProperty(name = "startpunkt.web.preview.delay", defaultValue = "5000")
+  public int previewDelay;
+
   /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   public String version;
@@ -91,7 +99,9 @@ public class ConfigResource {
                 "title",
                 title,
                 "refreshInterval",
-                refreshInterval),
+                refreshInterval,
+                "preview",
+                Map.of("enabled", previewEnabled, "delay", previewDelay)),
             "websocket",
             Map.of("enabled", websocketEnabled)));
   }

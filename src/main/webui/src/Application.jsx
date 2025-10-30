@@ -13,7 +13,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs } = props;
+  const { layoutPrefs, isHovering } = props;
   const isUnavailable = props.app.available === false;
   
   // Get preferences with defaults
@@ -37,38 +37,43 @@ export function Application(props) {
   
   // Standard card layout
   return (
-    <div class={containerClass} style={containerStyle} role="article" aria-label={`Application: ${props.app.name}`}>
-      {!isUnavailable && (
-        <a
-          href={props.app.url}
-          target={props.app.targetBlank ? '_blank' : '_self'}
-          class="stretched-link"
-          rel="external noopener noreferrer"
-          aria-label={`${props.app.name}${props.app.info ? ` - ${props.app.info}` : ''}`}
-        />
-      )}
-      {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
-      <div class="px-2" style={{ fontSize: '0.875rem' }}>
-        <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
-          {props.app.name}
-        </h4>
-        {showDescription && props.app.info && (
-          <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
+    <div 
+      class={containerClass} 
+      style={containerStyle} 
+      role="article" 
+      aria-label={`Application: ${props.app.name}`}
+    >
+        {!isUnavailable && (
+          <a
+            href={props.app.url}
+            target={props.app.targetBlank ? '_blank' : '_self'}
+            class="stretched-link"
+            rel="external noopener noreferrer"
+            aria-label={`${props.app.name}${props.app.info ? ` - ${props.app.info}` : ''}`}
+          />
         )}
-        {showTags && tags.length > 0 && (
-          <div class="mt-1" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }} role="list" aria-label="Tags">
-            {tags.map((tag) => (
-              <span key={tag} class="badge bg-secondary" style={{ fontSize: '0.65rem' }} role="listitem">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        {showStatus && isUnavailable && (
-          <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
-        )}
+        {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
+        <div class="px-2" style={{ fontSize: '0.875rem' }}>
+          <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
+            {props.app.name}
+          </h4>
+          {showDescription && props.app.info && (
+            <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
+          )}
+          {showTags && tags.length > 0 && (
+            <div class="mt-1" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }} role="list" aria-label="Tags">
+              {tags.map((tag) => (
+                <span key={tag} class="badge bg-secondary" style={{ fontSize: '0.65rem' }} role="listitem">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          {showStatus && isUnavailable && (
+            <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
+          )}
+        </div>
       </div>
-    </div>
   );
 }
 

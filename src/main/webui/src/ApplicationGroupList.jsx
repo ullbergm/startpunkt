@@ -34,6 +34,7 @@ export function ApplicationGroupList(props) {
             group={group.name} 
             applications={group.applications} 
             layoutPrefs={props.layoutPrefs}
+            previewConfig={props.previewConfig}
             isCollapsed={isCollapsed(group.name)}
             onToggle={() => toggleGroup(group.name)}
           />

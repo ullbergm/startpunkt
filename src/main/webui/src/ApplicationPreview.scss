@@ -1,0 +1,230 @@
+.application-preview-overlay {
+  /* No longer used - keeping for backwards compatibility */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+  padding: 2rem;
+}
+
+.application-preview-container {
+  position: fixed;
+  background: var(--bs-body-bg, #ffffff);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+  pointer-events: none; /* Allow mouse to pass through to items below */
+}
+
+.application-preview-header {
+  background: var(--bs-secondary-bg, #f8f9fa);
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  flex-shrink: 0; /* Don't shrink the header */
+}
+
+.application-preview-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--bs-body-color, #212529);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.application-preview-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--bs-body-color, #212529);
+  cursor: pointer;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  transition: background-color 0.2s;
+  pointer-events: auto; /* Allow clicking the close button */
+}
+
+.application-preview-close:hover {
+  background-color: var(--bs-secondary-bg, #e9ecef);
+}
+
+.application-preview-close:focus {
+  outline: 2px solid var(--bs-primary, #0d6efd);
+  outline-offset: 2px;
+}
+
+.application-preview-content {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: var(--bs-body-bg, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0; /* Important for flexbox */
+}
+
+.application-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.application-preview-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: var(--bs-body-bg, #ffffff);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  color: var(--bs-body-color, #212529);
+  font-size: 0.9rem;
+}
+
+.application-preview-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem;
+  background: var(--bs-body-bg, #ffffff);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: var(--bs-body-color, #212529);
+  max-width: 90%;
+  pointer-events: auto; /* Allow clicking the link */
+  
+  .error-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.6;
+  }
+  
+  .error-message {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .error-hint {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-bottom: 0.75rem;
+  }
+  
+  a {
+    color: var(--bs-primary, #0d6efd);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .application-preview-overlay {
+    padding: 1rem;
+  }
+  
+  .application-preview-container {
+    width: 95%;
+    height: 85%;
+  }
+  
+  .application-preview-header {
+    padding: 0.75rem 1rem;
+    min-height: 3rem;
+  }
+  
+  .application-preview-title {
+    font-size: 0.85rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .application-preview-overlay {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+  
+  .application-preview-container {
+    border: 2px solid var(--bs-body-color, #212529);
+  }
+  
+  .application-preview-header {
+    border-bottom-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .application-preview-overlay,
+  .application-preview-container {
+    animation: none;
+  }
+}
+
+/* Focus management */
+.application-preview-overlay:focus-within {
+  outline: 3px solid var(--bs-primary, #0d6efd);
+  outline-offset: -3px;
+}

@@ -122,6 +122,8 @@ export function App() {
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [websocketEnabled, setWebsocketEnabled] = useState(false);
+  const [previewEnabled, setPreviewEnabled] = useState(true);
+  const [previewDelay, setPreviewDelay] = useState(5000);
   
   useEffect(() => {
     var config = fetch('/api/config')
@@ -136,6 +138,8 @@ export function App() {
         const wsEnabled = res.config.websocket?.enabled || false;
         console.log('WebSocket enabled:', wsEnabled);
         setWebsocketEnabled(wsEnabled);
+        setPreviewEnabled(res.config.web.preview?.enabled !== false);
+        setPreviewDelay(res.config.web.preview?.delay || 5000);
       });
 
   }, [])
@@ -371,7 +375,7 @@ export function App() {
         </header>
 
         <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
-          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} previewConfig={{ enabled: previewEnabled, delay: previewDelay }} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
           {currentPage === "loading" && (
             <div class="text-center" role="status" aria-live="polite">

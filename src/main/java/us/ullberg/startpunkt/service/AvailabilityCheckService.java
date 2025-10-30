@@ -40,9 +40,9 @@ public class AvailabilityCheckService {
   private int availabilityTimeout;
 
   /**
-   * Interval for availability checks, injected from configuration.
-   * This field is referenced via annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}"))
-   * and is retained for documentation and potential future use.
+   * Interval for availability checks, injected from configuration. This field is referenced via
+   * annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}")) and is
+   * retained for documentation and potential future use.
    */
   @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60s")
   private String availabilityCheckInterval;

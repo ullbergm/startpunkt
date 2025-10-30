@@ -54,6 +54,13 @@ startpunkt:
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI
+    preview:
+      enabled: true  # If true, enable live preview of applications on hover
+      delay: 2000  # Delay in milliseconds before showing preview (default: 2000 = 2 seconds)
+      screenshot:
+        width: 1280  # Width of captured screenshots in pixels
+        height: 720  # Height of captured screenshots in pixels
+        timeout: 10000  # Timeout in milliseconds for page load before screenshot
     theme:
       light:
         bodyBgColor: "#F8F6F1"
@@ -81,3 +88,14 @@ startpunkt:
 #     category:
 #       "us.ullberg.startpunkt":
 #         level: DEBUG  # Enable debug logging for Startpunkt
+
+# Cache configuration for screenshots
+quarkus:
+  cache:
+    caffeine:
+      screenshots:
+        expire-after-write: 1H  # Cache screenshots for 1 hour
+        maximum-size: 100  # Maximum number of screenshots to cache
+      screenshot-bytes:
+        expire-after-write: 1H
+        maximum-size: 100
