@@ -6,12 +6,13 @@ startpunkt,us.ullberg.startpunkt.health,PingConfigResourceHealthCheck,38,0,0,0,1
 startpunkt,us.ullberg.startpunkt.health,PingThemeResourceHealthCheck,38,0,0,0,16,0,3,0,3,0
 startpunkt,us.ullberg.startpunkt.health,PingBookmarkResourceHealthCheck,38,0,0,0,16,0,3,0,3,0
 startpunkt,us.ullberg.startpunkt.rest,ThemeResource,0,46,0,0,0,8,0,4,0,4
-startpunkt,us.ullberg.startpunkt.rest,ConfigResource,0,42,0,0,0,12,0,4,0,4
+startpunkt,us.ullberg.startpunkt.rest,ConfigResource,0,52,0,0,0,13,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,I8nResource,12,35,0,0,4,11,0,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,ApplicationResource,25,512,17,49,8,122,17,28,0,12
 startpunkt,us.ullberg.startpunkt.rest,Theme,11,15,0,0,5,6,3,3,3,3
 startpunkt,us.ullberg.startpunkt.rest,BookmarkResource,5,54,2,2,1,16,2,4,0,4
 startpunkt,us.ullberg.startpunkt.rest,ThemeColors,23,33,0,0,11,12,6,6,6,6
+startpunkt,us.ullberg.startpunkt.rest,ScreenshotResource,121,0,18,0,44,0,12,0,3,0
 startpunkt,us.ullberg.startpunkt.objects,BookmarkGroupList,17,13,3,1,5,4,5,2,3,2
 startpunkt,us.ullberg.startpunkt.objects,ApplicationSpecWithAvailability,3,54,0,0,2,16,1,3,1,3
 startpunkt,us.ullberg.startpunkt.objects,BookmarkGroup,123,32,31,3,20,10,22,4,5,4
@@ -21,6 +22,7 @@ startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,BookmarkService,136,298,19,21,37,82,18,17,7,8
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,256,108,34,14,69,30,29,6,8,3
+startpunkt,us.ullberg.startpunkt.service,ScreenshotService,374,0,50,0,119,0,30,0,5,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationSpec,521,0,84,0,118,0,72,0,30,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationStatus,3,0,0,0,2,0,1,0,1,0

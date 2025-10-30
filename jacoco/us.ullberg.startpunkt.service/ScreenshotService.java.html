@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScreenshotService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">ScreenshotService.java</span></div><h1>ScreenshotService.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.io.IOException;
+import java.util.Base64;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+/**
+ * Service for capturing screenshots of web applications using Playwright. Screenshots are cached to
+ * improve performance and reduce resource usage.
+ */
+@ApplicationScoped
+<span class="nc" id="L20">public class ScreenshotService {</span>
+
+  private Playwright playwright;
+  private Browser browser;
+
+  @ConfigProperty(name = &quot;startpunkt.web.preview.screenshot.width&quot;, defaultValue = &quot;1280&quot;)
+  int screenshotWidth;
+
+  @ConfigProperty(name = &quot;startpunkt.web.preview.screenshot.height&quot;, defaultValue = &quot;720&quot;)
+  int screenshotHeight;
+
+  @ConfigProperty(name = &quot;startpunkt.web.preview.screenshot.timeout&quot;, defaultValue = &quot;10000&quot;)
+  int screenshotTimeout;
+
+  @ConfigProperty(name = &quot;startpunkt.web.preview.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean previewEnabled;
+
+  /** Initializes the Playwright browser instance. Called lazily on first screenshot request. */
+  private synchronized void initializeBrowser() {
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    if (browser != null) {</span>
+<span class="nc" id="L40">      return;</span>
+    }
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    if (!previewEnabled) {</span>
+<span class="nc" id="L44">      Log.info(&quot;Preview feature is disabled, skipping browser initialization&quot;);</span>
+<span class="nc" id="L45">      return;</span>
+    }
+
+    try {
+<span class="nc" id="L49">      Log.info(&quot;Initializing Playwright browser for screenshots&quot;);</span>
+<span class="nc" id="L50">      playwright = Playwright.create();</span>
+<span class="nc" id="L51">      browser =</span>
+          playwright
+<span class="nc" id="L53">              .chromium()</span>
+<span class="nc" id="L54">              .launch(</span>
+                  new BrowserType.LaunchOptions()
+<span class="nc" id="L56">                      .setHeadless(true)</span>
+<span class="nc" id="L57">                      .setArgs(</span>
+<span class="nc" id="L58">                          java.util.List.of(</span>
+                              &quot;--no-sandbox&quot;,
+                              &quot;--disable-setuid-sandbox&quot;,
+                              &quot;--disable-dev-shm-usage&quot;,
+                              &quot;--disable-gpu&quot;)));
+<span class="nc" id="L63">      Log.info(&quot;Playwright browser initialized successfully&quot;);</span>
+<span class="nc" id="L64">    } catch (Exception e) {</span>
+<span class="nc" id="L65">      Log.error(&quot;Failed to initialize Playwright browser&quot;, e);</span>
+<span class="nc" id="L66">      throw new RuntimeException(&quot;Failed to initialize screenshot service&quot;, e);</span>
+<span class="nc" id="L67">    }</span>
+<span class="nc" id="L68">  }</span>
+
+  /**
+   * Captures a screenshot of the given URL and returns it as a base64-encoded PNG.
+   *
+   * @param url the URL to capture
+   * @return base64-encoded PNG screenshot
+   * @throws IOException if screenshot capture fails
+   */
+  @CacheResult(cacheName = &quot;screenshots&quot;)
+  public String captureScreenshot(String url) throws IOException {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    if (!previewEnabled) {</span>
+<span class="nc" id="L80">      throw new IllegalStateException(&quot;Preview feature is disabled&quot;);</span>
+    }
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    if (browser == null) {</span>
+<span class="nc" id="L84">      initializeBrowser();</span>
+    }
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    if (browser == null) {</span>
+<span class="nc" id="L88">      throw new IllegalStateException(&quot;Browser not initialized&quot;);</span>
+    }
+
+<span class="nc" id="L91">    Log.debugf(&quot;Capturing screenshot for URL: %s&quot;, url);</span>
+
+<span class="nc" id="L93">    Page page = null;</span>
+    try {
+<span class="nc" id="L95">      page = browser.newPage();</span>
+<span class="nc" id="L96">      page.setViewportSize(screenshotWidth, screenshotHeight);</span>
+
+      // Navigate to URL with timeout
+<span class="nc" id="L99">      com.microsoft.playwright.Response response = null;</span>
+      try {
+<span class="nc" id="L101">        response = page.navigate(url, new Page.NavigateOptions().setTimeout(screenshotTimeout));</span>
+        
+        // Check HTTP status code
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (response != null) {</span>
+<span class="nc" id="L105">          int status = response.status();</span>
+<span class="nc" id="L106">          Log.debugf(&quot;Response for %s - Status: %d&quot;, url, status);</span>
+          
+          // Check for WWW-Authenticate header which indicates auth is required
+          try {
+<span class="nc" id="L110">            String wwwAuth = response.headerValue(&quot;www-authenticate&quot;);</span>
+<span class="nc" id="L111">            Log.debugf(&quot;WWW-Authenticate header: %s&quot;, wwwAuth);</span>
+<span class="nc bnc" id="L112" title="All 4 branches missed.">            if (wwwAuth != null &amp;&amp; !wwwAuth.isEmpty()) {</span>
+<span class="nc" id="L113">              Log.debugf(</span>
+                  &quot;Detected Basic/Digest auth requirement via WWW-Authenticate header for %s&quot;,
+                  url);
+<span class="nc" id="L116">              throw new IOException(</span>
+                  &quot;Site requires authentication (Basic/Digest auth) - preview not available&quot;);
+            }
+<span class="nc" id="L119">          } catch (IOException e) {</span>
+<span class="nc" id="L120">            throw e;</span>
+<span class="nc" id="L121">          } catch (Exception e) {</span>
+            // Ignore header parsing errors
+<span class="nc" id="L123">            Log.warnf(&quot;Error reading WWW-Authenticate header: %s&quot;, e.getMessage());</span>
+<span class="nc" id="L124">          }</span>
+          
+<span class="nc bnc" id="L126" title="All 4 branches missed.">          if (status == 401 || status == 403) {</span>
+<span class="nc" id="L127">            Log.debugf(&quot;Detected HTTP %d auth requirement for %s&quot;, status, url);</span>
+<span class="nc" id="L128">            throw new IOException(</span>
+                &quot;Site requires authentication (HTTP &quot; + status + &quot;) - preview not available&quot;);
+<span class="nc bnc" id="L130" title="All 2 branches missed.">          } else if (status &gt;= 400) {</span>
+<span class="nc" id="L131">            Log.debugf(&quot;Detected HTTP %d error for %s&quot;, status, url);</span>
+<span class="nc" id="L132">            throw new IOException(</span>
+                &quot;Site returned error (HTTP &quot; + status + &quot;) - preview not available&quot;);
+          }
+          
+          // Also check if response body is empty (some auth pages return 401 with no content)
+          try {
+<span class="nc" id="L138">            String contentLength = response.headerValue(&quot;content-length&quot;);</span>
+<span class="nc" id="L139">            Log.debugf(&quot;Content-Length header: %s&quot;, contentLength);</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">            if (contentLength != null &amp;&amp; contentLength.equals(&quot;0&quot;)) {</span>
+<span class="nc" id="L141">              Log.debugf(&quot;Detected empty response for %s&quot;, url);</span>
+<span class="nc" id="L142">              throw new IOException(</span>
+                  &quot;Site requires authentication (empty response) - preview not available&quot;);
+            }
+<span class="nc" id="L145">          } catch (IOException e) {</span>
+<span class="nc" id="L146">            throw e;</span>
+<span class="nc" id="L147">          } catch (Exception e) {</span>
+            // Ignore header parsing errors
+<span class="nc" id="L149">            Log.warnf(&quot;Error reading Content-Length header: %s&quot;, e.getMessage());</span>
+<span class="nc" id="L150">          }</span>
+        }
+<span class="nc" id="L152">      } catch (IOException e) {</span>
+        // Re-throw our custom IOException
+<span class="nc" id="L154">        throw e;</span>
+<span class="nc" id="L155">      } catch (Exception e) {</span>
+        // Check if it's an auth dialog or other navigation issue
+<span class="nc" id="L157">        String errorMsg = e.getMessage().toLowerCase();</span>
+<span class="nc bnc" id="L158" title="All 4 branches missed.">        if (errorMsg.contains(&quot;net::err_&quot;) || errorMsg.contains(&quot;timeout&quot;)) {</span>
+<span class="nc" id="L159">          throw new IOException(</span>
+              &quot;Failed to load page - site may be unreachable or require authentication&quot;);
+        }
+<span class="nc" id="L162">        throw e;</span>
+<span class="nc" id="L163">      }</span>
+
+      // Wait a bit for dynamic content to load
+<span class="nc" id="L166">      page.waitForTimeout(1000);</span>
+
+      // Check if page has common authentication indicators
+      try {
+<span class="nc" id="L170">        String pageTitle = page.title().toLowerCase();</span>
+<span class="nc" id="L171">        String pageUrl = page.url().toLowerCase();</span>
+<span class="nc" id="L172">        Log.debugf(&quot;Page loaded - Title: '%s', URL: '%s'&quot;, pageTitle, pageUrl);</span>
+        
+        // Check for common auth page indicators
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (pageTitle.contains(&quot;sign in&quot;)</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            || pageTitle.contains(&quot;login&quot;)</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">            || pageTitle.contains(&quot;authenticate&quot;)</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            || pageTitle.contains(&quot;unauthorized&quot;)</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">            || pageUrl.contains(&quot;/login&quot;)</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            || pageUrl.contains(&quot;/auth&quot;)) {</span>
+<span class="nc" id="L181">          Log.debugf(&quot;Detected login page via title/URL for %s&quot;, url);</span>
+<span class="nc" id="L182">          throw new IOException(&quot;Site requires authentication - redirected to login page&quot;);</span>
+        }
+<span class="nc" id="L184">      } catch (IOException e) {</span>
+<span class="nc" id="L185">        throw e;</span>
+<span class="nc" id="L186">      } catch (Exception e) {</span>
+        // Ignore errors checking page content
+<span class="nc" id="L188">        Log.debugf(&quot;Could not check page content for auth indicators: %s&quot;, e.getMessage());</span>
+<span class="nc" id="L189">      }</span>
+
+      // Capture screenshot
+<span class="nc" id="L192">      byte[] screenshotBytes = page.screenshot(new Page.ScreenshotOptions().setFullPage(false));</span>
+<span class="nc" id="L193">      Log.debugf(&quot;Screenshot captured: %d bytes&quot;, screenshotBytes.length);</span>
+
+      // Check if screenshot is effectively blank (might indicate auth popup or error page)
+      // Empty pages typically result in very small PNG files (&lt; 10KB)
+<span class="nc bnc" id="L197" title="All 2 branches missed.">      if (screenshotBytes.length &lt; 10000) {</span>
+        // Very small screenshot, likely blank or error
+<span class="nc" id="L199">        Log.debugf(</span>
+            &quot;Screenshot too small (%d bytes), likely auth or blank page for %s&quot;,
+            screenshotBytes.length,
+            url);
+<span class="nc" id="L203">        throw new IOException(</span>
+            &quot;Preview unavailable - site may require authentication or failed to load&quot;);
+      }
+
+      // Convert to base64
+<span class="nc" id="L208">      String base64Screenshot = Base64.getEncoder().encodeToString(screenshotBytes);</span>
+
+<span class="nc" id="L210">      Log.debugf(</span>
+<span class="nc" id="L211">          &quot;Successfully captured screenshot for URL: %s (%d bytes)&quot;, url, screenshotBytes.length);</span>
+
+<span class="nc" id="L213">      return base64Screenshot;</span>
+
+<span class="nc" id="L215">    } catch (IOException e) {</span>
+      // Don't log stack trace for expected IOExceptions - they're already logged in ScreenshotResource
+      // These are normal conditions like auth requirements, not actual errors
+<span class="nc" id="L218">      throw e;</span>
+<span class="nc" id="L219">    } catch (Exception e) {</span>
+      // Only log unexpected exceptions with stack trace
+<span class="nc" id="L221">      Log.errorf(e, &quot;Unexpected error capturing screenshot for URL: %s&quot;, url);</span>
+<span class="nc" id="L222">      throw new IOException(&quot;Failed to capture screenshot: &quot; + e.getMessage(), e);</span>
+    } finally {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">      if (page != null) {</span>
+        try {
+<span class="nc" id="L226">          page.close();</span>
+<span class="nc" id="L227">        } catch (Exception e) {</span>
+<span class="nc" id="L228">          Log.warn(&quot;Failed to close page&quot;, e);</span>
+<span class="nc" id="L229">        }</span>
+      }
+    }
+  }
+
+  /**
+   * Captures a screenshot and returns the raw PNG bytes.
+   *
+   * @param url the URL to capture
+   * @return PNG screenshot bytes
+   * @throws IOException if screenshot capture fails
+   */
+  @CacheResult(cacheName = &quot;screenshot-bytes&quot;)
+  public byte[] captureScreenshotBytes(String url) throws IOException {
+<span class="nc" id="L243">    String base64 = captureScreenshot(url);</span>
+<span class="nc" id="L244">    return Base64.getDecoder().decode(base64);</span>
+  }
+
+  /** Cleans up Playwright resources on application shutdown. */
+  @PreDestroy
+  public void cleanup() {
+<span class="nc" id="L250">    Log.info(&quot;Cleaning up Playwright resources&quot;);</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">    if (browser != null) {</span>
+      try {
+<span class="nc" id="L253">        browser.close();</span>
+<span class="nc" id="L254">      } catch (Exception e) {</span>
+<span class="nc" id="L255">        Log.warn(&quot;Error closing browser&quot;, e);</span>
+<span class="nc" id="L256">      }</span>
+    }
+<span class="nc bnc" id="L258" title="All 2 branches missed.">    if (playwright != null) {</span>
+      try {
+<span class="nc" id="L260">        playwright.close();</span>
+<span class="nc" id="L261">      } catch (Exception e) {</span>
+<span class="nc" id="L262">        Log.warn(&quot;Error closing Playwright&quot;, e);</span>
+<span class="nc" id="L263">      }</span>
+    }
+<span class="nc" id="L265">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

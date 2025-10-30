@@ -15,10 +15,10 @@ import java.time.Instant;
 public class WebSocketMessage&lt;T&gt; {
   @JsonProperty(&quot;type&quot;)
   private WebSocketEventType type;
-  
+
   @JsonProperty(&quot;timestamp&quot;)
   private Instant timestamp;
-  
+
   @JsonProperty(&quot;data&quot;)
   private T data;
 
