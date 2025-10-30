@@ -73,7 +73,7 @@ export function Background() {
         
         // Validate URL before using
         if (isValidUrl(imageUrl)) {
-          overlay.style.backgroundImage = `url(${CSS.escape(imageUrl)})`;
+          overlay.style.backgroundImage = `url(${encodeURI(imageUrl)})`;
           overlay.style.backgroundSize = 'cover';
           overlay.style.backgroundPosition = 'center';
           overlay.style.backgroundRepeat = 'no-repeat';
