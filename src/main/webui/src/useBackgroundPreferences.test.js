@@ -31,7 +31,7 @@ describe('useBackgroundPreferences', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
     
     expect(result.current.preferences).toEqual({
-      type: 'solid',
+      type: 'theme',
       color: '#F8F6F1',
       secondaryColor: '#FFFFFF',
       gradientDirection: 'to bottom right',
@@ -73,6 +73,11 @@ describe('useBackgroundPreferences', () => {
 
   test('generates solid background style', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
+    
+    // Set type to solid since default is now 'theme'
+    act(() => {
+      result.current.updatePreference('type', 'solid');
+    });
     
     const style = result.current.getBackgroundStyle(false);
     
@@ -161,6 +166,11 @@ describe('useBackgroundPreferences', () => {
 
   test('uses dark theme color defaults when in dark mode', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
+    
+    // Set type to solid since default is now 'theme'
+    act(() => {
+      result.current.updatePreference('type', 'solid');
+    });
     
     const style = result.current.getBackgroundStyle(true);
     

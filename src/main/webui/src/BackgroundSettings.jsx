@@ -45,6 +45,7 @@ export function BackgroundSettings() {
                 value={preferences.type}
                 onChange={(e) => updatePreference('type', e.target.value)}
               >
+                <option value="theme">Theme (Auto Light/Dark)</option>
                 <option value="solid">Solid Color</option>
                 <option value="gradient">Gradient</option>
                 <option value="image">Custom Image</option>

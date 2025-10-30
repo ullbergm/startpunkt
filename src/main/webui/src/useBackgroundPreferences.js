@@ -5,7 +5,7 @@ import GeoPattern from 'geopattern';
  * Custom hook for managing background preferences with localStorage persistence
  * 
  * Background preferences include:
- * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern'
+ * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern' | 'theme'
  * - color: string (hex color)
  * - secondaryColor: string (hex color for gradients)
  * - gradientDirection: string (CSS gradient direction)
@@ -16,7 +16,7 @@ import GeoPattern from 'geopattern';
  */
 
 const DEFAULT_PREFERENCES = {
-  type: 'solid',
+  type: 'theme',
   color: '#F8F6F1',
   secondaryColor: '#FFFFFF',
   gradientDirection: 'to bottom right',
@@ -160,6 +160,12 @@ export function useBackgroundPreferences() {
         }
         break;
       }
+      
+      case 'theme':
+        // Use the built-in theme colors (set via CSS variables)
+        // The theme automatically handles light/dark mode
+        // Return empty style to let the theme background show through
+        break;
       
       case 'solid':
       default:

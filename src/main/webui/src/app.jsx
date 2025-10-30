@@ -55,6 +55,11 @@ export function ThemeSwitcher() {
   // Read the system prefers-color-scheme and set the theme
   const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, undefined);
 
+  // Log theme changes for debugging
+  useEffect(() => {
+    console.log("Theme value in ThemeSwitcher:", theme);
+  }, [theme]);
+
   // Set the active class based on the current theme
   const lightClass = 'dropdown-item d-flex align-items-center' + (theme === 'light' ? ' active' : '');
   const darkClass = 'dropdown-item d-flex align-items-center' + (theme === 'dark' ? ' active' : '');
@@ -65,6 +70,7 @@ export function ThemeSwitcher() {
 
   // Toggle the color scheme based on the state
   useEffect(() => {
+    console.log("Theme effect triggered with theme:", theme, "systemPrefersDark:", systemPrefersDark);
     if (theme === 'dark' || (theme === 'auto' && systemPrefersDark)) {
       console.log("Setting dark theme");
       document.body.style.setProperty('--bs-body-bg', themes.dark.bodyBgColor);
@@ -376,8 +382,8 @@ export function App() {
     <IntlProvider definition={definition}>
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
-      <Background />
       <ThemeSwitcher />
+      <Background />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
       <SpotlightSearch />

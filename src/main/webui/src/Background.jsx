@@ -103,7 +103,7 @@ export function Background() {
         }
       }
     } else {
-      // For solid colors and gradients, apply directly to body
+      // For solid colors, gradients, and theme - apply directly to body
       // Remove overlay if it exists
       if (overlay) {
         overlay.remove();
@@ -113,22 +113,28 @@ export function Background() {
       document.body.style.backgroundImage = 'none';
       document.body.style.opacity = ''; // Don't apply opacity to body for non-images
       
-      // Apply background styles to body
-      Object.keys(style).forEach(property => {
-        // Skip opacity for non-image types (it's already in rgba colors)
-        if (property === 'opacity') {
-          return;
-        }
-        
-        if (property === 'backgroundImage' || property === 'backgroundSize' || 
-            property === 'backgroundPosition' || property === 'backgroundRepeat') {
-          document.body.style[property] = style[property];
-        } else if (property === 'background') {
-          document.body.style.background = style[property];
-        } else if (property === 'backgroundColor') {
-          document.body.style.backgroundColor = style[property];
-        }
-      });
+      // For 'theme' type, clear background to let theme colors show through
+      if (backgroundPrefs.preferences.type === 'theme') {
+        document.body.style.background = '';
+        document.body.style.backgroundColor = '';
+      } else {
+        // Apply background styles to body for solid/gradient
+        Object.keys(style).forEach(property => {
+          // Skip opacity for non-image types (it's already in rgba colors)
+          if (property === 'opacity') {
+            return;
+          }
+          
+          if (property === 'backgroundImage' || property === 'backgroundSize' || 
+              property === 'backgroundPosition' || property === 'backgroundRepeat') {
+            document.body.style[property] = style[property];
+          } else if (property === 'background') {
+            document.body.style.background = style[property];
+          } else if (property === 'backgroundColor') {
+            document.body.style.backgroundColor = style[property];
+          }
+        });
+      }
     }
 
     // Cleanup function to remove overlay on unmount
