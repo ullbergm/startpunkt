@@ -99,7 +99,7 @@ export function useBackgroundPreferences() {
       
       case 'image':
         if (preferences.imageUrl && isValidUrl(preferences.imageUrl)) {
-          style.backgroundImage = `url(${CSS.escape(preferences.imageUrl)})`;
+          style.backgroundImage = `url(${encodeURI(preferences.imageUrl)})`;
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
