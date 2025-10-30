@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/preact';
 import { useLayoutPreferences } from './useLayoutPreferences';
 
 // Mock localStorage
-const localStorageMock = (() => {
+const mockLocalStorageMock = (() => {
   let store = {};
   return {
     getItem: (key) => store[key] || null,
@@ -19,12 +19,40 @@ const localStorageMock = (() => {
 })();
 
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+  value: mockLocalStorageMock
+});
+
+// Mock @rehooks/local-storage
+const mockWriteStorage = jest.fn();
+
+jest.mock('@rehooks/local-storage', () => {
+  let mockStorage = {};
+  
+  return {
+    useLocalStorage: (key, defaultValue) => {
+      const [state, setState] = require('preact/hooks').useState(() => {
+        const stored = mockStorage[key];
+        return stored !== undefined ? stored : defaultValue;
+      });
+      
+      const setValue = (value) => {
+        mockStorage[key] = value;
+        setState(value);
+      };
+      
+      return [state, setValue];
+    },
+    writeStorage: (key, value) => {
+      mockStorage[key] = value;
+      mockWriteStorage(key, value);
+    }
+  };
 });
 
 describe('useLayoutPreferences', () => {
   beforeEach(() => {
     localStorage.clear();
+    mockWriteStorage.mockClear();
   });
 
   test('should initialize with default preferences', () => {
@@ -182,5 +210,96 @@ describe('useLayoutPreferences', () => {
     
     const columns = result.current.getGridTemplateColumns();
     expect(columns).toBe('repeat(4, 1fr)');
+  });
+
+  test('should save preset with background settings from localStorage', () => {
+    // Set up background preferences in localStorage
+    const backgroundPrefs = {
+      type: 'gradient',
+      color: '#FF0000',
+      secondaryColor: '#0000FF',
+      opacity: 0.8
+    };
+    localStorage.setItem('startpunkt:background-preferences', JSON.stringify(backgroundPrefs));
+    
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    // First change the spacing
+    act(() => {
+      result.current.updatePreference('spacing', 'wide');
+    });
+    
+    // Then save preset (which will capture current settings including the updated spacing)
+    act(() => {
+      result.current.savePreset('withBackground');
+    });
+    
+    // Verify background settings are included in the preset
+    const savedPreset = result.current.preferences.savedPresets.withBackground;
+    expect(savedPreset).toBeDefined();
+    expect(savedPreset.background).toEqual(backgroundPrefs);
+    // Note: updatePreference clears currentPreset, but savePreset should have the latest values
+    expect(savedPreset.spacing).toBe('wide');
+  });
+
+  test('should load preset with background settings', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    const backgroundPrefs = {
+      type: 'solid',
+      color: '#00FF00',
+      opacity: 1.0
+    };
+    
+    // Save a preset with background settings
+    act(() => {
+      result.current.savePreset('testWithBg', {
+        spacing: 'tight',
+        compactMode: false,
+        background: backgroundPrefs
+      });
+    });
+    
+    // Change settings to something else first
+    act(() => {
+      result.current.updatePreference('spacing', 'wide');
+      result.current.updatePreference('compactMode', true);
+    });
+    
+    // Clear the mock to check only the loadPreset call
+    mockWriteStorage.mockClear();
+    
+    // Load the preset
+    act(() => {
+      result.current.loadPreset('testWithBg');
+    });
+    
+    // Verify layout settings were applied
+    expect(result.current.preferences.spacing).toBe('tight');
+    expect(result.current.preferences.compactMode).toBe(false);
+    
+    // writeStorage should have been called with background preferences
+    expect(mockWriteStorage).toHaveBeenCalledWith('startpunkt:background-preferences', backgroundPrefs);
+  });
+
+  test('should handle presets without background settings', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    // Save a preset without background settings (legacy compatibility)
+    act(() => {
+      result.current.savePreset('legacyPreset', {
+        spacing: 'relaxed',
+        compactMode: true
+      });
+    });
+    
+    // Load the preset
+    act(() => {
+      result.current.loadPreset('legacyPreset');
+    });
+    
+    // Verify layout settings were applied without errors
+    expect(result.current.preferences.spacing).toBe('relaxed');
+    expect(result.current.preferences.compactMode).toBe(true);
   });
 });
