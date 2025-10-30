@@ -150,15 +150,6 @@ export function AccessibilitySettings() {
               <label class="form-label small mb-1">Keyboard Shortcuts</label>
               <ul class="small mb-0" style="list-style: none; padding-left: 0;">
                 <li class="mb-1">
-                  <kbd>Ctrl</kbd> + <kbd>+</kbd> Increase font
-                </li>
-                <li class="mb-1">
-                  <kbd>Ctrl</kbd> + <kbd>-</kbd> Decrease font
-                </li>
-                <li class="mb-1">
-                  <kbd>Ctrl</kbd> + <kbd>0</kbd> Reset font
-                </li>
-                <li class="mb-1">
                   <kbd>/</kbd> Search
                 </li>
                 <li class="mb-1">
