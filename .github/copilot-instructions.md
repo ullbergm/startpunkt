@@ -34,6 +34,19 @@ Startpunkt is a clean start page designed to display links to all self-hosted re
 - Frontend code should be consistent with existing Preact/JSX style; avoid introducing new linting rules without discussion.
 - Keep imports organized and remove unused imports.
 
+## Accessibility Guidelines
+
+- Always add proper ARIA labels and roles to interactive elements (buttons, links, dialogs, etc.).
+- Ensure all UI components are keyboard navigable (Tab, Enter, Space, Arrow keys where applicable).
+- Use semantic HTML elements (header, nav, main, footer, article) with appropriate roles.
+- Include `aria-label`, `aria-labelledby`, `aria-describedby` where needed for screen readers.
+- Add `aria-live` regions for dynamic content updates that should be announced.
+- Provide visible focus indicators with sufficient contrast (min 3px outline).
+- Support high contrast mode through CSS classes applied to body.
+- Ensure color is not the only means of conveying information.
+- Test new features with keyboard-only navigation and consider screen reader users.
+- Maintain proper heading hierarchy (h1 > h2 > h3) for document structure.
+
 ## Commit Conventions
 
 - Follow conventional commit format: `type(scope): description` (e.g., `feat(api): add theme endpoint`, `fix(ui): correct bookmark sorting`).

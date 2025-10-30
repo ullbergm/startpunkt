@@ -39,17 +39,32 @@ export function ApplicationGroup(props) {
         onClick={handleToggle}
         tabIndex={0}
         onKeyDown={handleKeyDown}
+        role="button"
+        aria-expanded={!isCollapsed}
+        aria-controls={`group-${props.group.replace(/\s+/g, '-')}`}
+        aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${props.group} group`}
       >
-        <span style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+        <span 
+          style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+          aria-hidden="true"
+        >
           ▼
         </span>
         {props.group}
       </h3>
 
       {!isCollapsed && (
-        <div class={paddingClass} style={gridStyle}>
+        <div 
+          class={paddingClass} 
+          style={gridStyle}
+          id={`group-${props.group.replace(/\s+/g, '-')}`}
+          role="list"
+          aria-label={`${props.group} applications`}
+        >
           {Array.isArray(props.applications) && props.applications.map((app) => (
-            <Application key={app.name} app={app} layoutPrefs={layoutPrefs} />
+            <div role="listitem" key={app.name}>
+              <Application app={app} layoutPrefs={layoutPrefs} />
+            </div>
           ))}
         </div>
       )}

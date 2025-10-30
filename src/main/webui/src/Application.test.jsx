@@ -34,7 +34,7 @@ describe('Application component', () => {
 
   test('renders link with correct href and target', () => {
     render(<Application app={defaultApp} />);
-    const link = screen.getByRole('link', { name: defaultApp.name });
+    const link = screen.getByRole('link', { name: /Example App/ });
     expect(link).toHaveAttribute('href', defaultApp.url);
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'external noopener noreferrer');
@@ -63,7 +63,7 @@ describe('Application component', () => {
       targetBlank: false,
     };
     render(<Application app={appSelfTarget} />);
-    const link = screen.getByRole('link', { name: appSelfTarget.name });
+    const link = screen.getByRole('link', { name: /Example App/ });
     expect(link).toHaveAttribute('target', '_self');
   });
 
@@ -84,7 +84,7 @@ describe('Application component', () => {
     };
     render(<Application app={minimalApp} />);
     expect(screen.getByText(minimalApp.name)).toBeInTheDocument();
-    const link = screen.getByRole('link', { name: minimalApp.name });
+    const link = screen.getByRole('link', { name: /Minimal App/ });
     expect(link).toHaveAttribute('href', minimalApp.url);
   });
 
@@ -186,7 +186,7 @@ describe('Application component', () => {
       available: false,
     };
     render(<Application app={unavailableApp} />);
-    const link = screen.queryByRole('link', { name: unavailableApp.name });
+    const link = screen.queryByRole('link', { name: /Example App/ });
     expect(link).not.toBeInTheDocument();
   });
 
@@ -196,7 +196,7 @@ describe('Application component', () => {
       available: true,
     };
     render(<Application app={availableApp} />);
-    const link = screen.getByRole('link', { name: availableApp.name });
+    const link = screen.getByRole('link', { name: /Example App/ });
     expect(link).toBeInTheDocument();
   });
 
@@ -226,7 +226,7 @@ describe('Application component', () => {
       available: undefined,
     };
     render(<Application app={appNoAvailability} />);
-    const link = screen.getByRole('link', { name: appNoAvailability.name });
+    const link = screen.getByRole('link', { name: /Example App/ });
     expect(link).toBeInTheDocument();
   });
 });

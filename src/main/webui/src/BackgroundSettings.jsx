@@ -14,7 +14,7 @@ export function BackgroundSettings() {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-background-toggle" style="margin-right: 10rem !important;">
+      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-background-toggle" style="margin-right: 8.25rem !important;">
         <button 
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-background" 
@@ -62,7 +62,7 @@ export function BackgroundSettings() {
                 <div class="btn-group w-100" role="group" aria-label="Theme selection">
                   <button
                     type="button"
-                    class={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    class={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -83,7 +83,7 @@ export function BackgroundSettings() {
                   </button>
                   <button
                     type="button"
-                    class={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    class={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -106,7 +106,7 @@ export function BackgroundSettings() {
                   </button>
                   <button
                     type="button"
-                    class={`btn btn-sm ${theme === 'auto' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    class={`btn btn-sm ${theme === 'auto' ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();

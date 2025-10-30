@@ -32,8 +32,8 @@ describe('ApplicationGroup component', () => {
 
   test('renders group title in uppercase with styling', () => {
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} />);
-    // Match original casing or use case-insensitive regex
-    const heading = screen.getByRole('heading', { level: 3 });
+    // The h3 now has role="button" for accessibility
+    const heading = screen.getByRole('button', { name: /collapse test group/i });
     expect(heading).toBeInTheDocument();
     expect(heading).toHaveClass('pb-2', 'border-bottom', 'text-uppercase');
     expect(heading.textContent).toMatch(/test group/i);
@@ -63,7 +63,7 @@ describe('ApplicationGroup component', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
     
-    const heading = screen.getByRole('heading', { level: 3 });
+    const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.click(heading);
     
     expect(onToggle).toHaveBeenCalledTimes(1);
@@ -73,7 +73,7 @@ describe('ApplicationGroup component', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
     
-    const heading = screen.getByRole('heading', { level: 3 });
+    const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: 'Enter' });
     
     expect(onToggle).toHaveBeenCalledTimes(1);
@@ -83,7 +83,7 @@ describe('ApplicationGroup component', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
     
-    const heading = screen.getByRole('heading', { level: 3 });
+    const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: ' ' });
     
     expect(onToggle).toHaveBeenCalledTimes(1);
@@ -93,7 +93,7 @@ describe('ApplicationGroup component', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
     
-    const heading = screen.getByRole('heading', { level: 3 });
+    const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: 'a' });
     
     expect(onToggle).not.toHaveBeenCalled();
