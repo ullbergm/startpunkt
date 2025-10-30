@@ -51,6 +51,17 @@ export function useBackgroundPreferences() {
     const defaultDarkColor = '#232530';
     const baseColor = preferences.color || (isDarkMode ? defaultDarkColor : defaultLightColor);
     
+    // Helper to validate and sanitize URLs
+    const isValidUrl = (url) => {
+      try {
+        const parsed = new URL(url);
+        // Only allow http and https protocols
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    };
+    
     switch (preferences.type) {
       case 'gradient': {
         const secondaryColor = preferences.secondaryColor || (isDarkMode ? '#1a1b26' : '#FFFFFF');
@@ -60,29 +71,34 @@ export function useBackgroundPreferences() {
       }
       
       case 'image':
-        if (preferences.imageUrl) {
-          style.backgroundImage = `url(${preferences.imageUrl})`;
+        if (preferences.imageUrl && isValidUrl(preferences.imageUrl)) {
+          style.backgroundImage = `url(${CSS.escape(preferences.imageUrl)})`;
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
           if (preferences.blur) {
             style.filter = 'blur(5px)';
-            // Add a pseudo-element layer for content to prevent blur inheritance
           }
         } else {
-          // Fallback to solid color if no image URL
+          // Fallback to solid color if no valid image URL
           style.backgroundColor = baseColor;
         }
         break;
       
       case 'pictureOfDay':
-        // Use Unsplash daily image as fallback
-        style.backgroundImage = `url(https://source.unsplash.com/daily?wallpaper)`;
-        style.backgroundSize = 'cover';
-        style.backgroundPosition = 'center';
-        style.backgroundRepeat = 'no-repeat';
-        if (preferences.blur) {
-          style.filter = 'blur(5px)';
+        // Use Unsplash daily image - consider making this configurable in production
+        const unsplashUrl = 'https://source.unsplash.com/daily?wallpaper';
+        if (isValidUrl(unsplashUrl)) {
+          style.backgroundImage = `url(${CSS.escape(unsplashUrl)})`;
+          style.backgroundSize = 'cover';
+          style.backgroundPosition = 'center';
+          style.backgroundRepeat = 'no-repeat';
+          if (preferences.blur) {
+            style.filter = 'blur(5px)';
+          }
+        } else {
+          // Fallback to solid color
+          style.backgroundColor = baseColor;
         }
         break;
       

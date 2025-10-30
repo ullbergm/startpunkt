@@ -15,6 +15,16 @@ export function Background() {
   // Determine if dark mode is active
   const isDarkMode = theme === 'dark' || (theme === 'auto' && systemPrefersDark);
 
+  // Helper to validate URLs
+  const isValidUrl = (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
     
@@ -28,7 +38,6 @@ export function Background() {
       } else if (property === 'backgroundColor') {
         document.body.style.backgroundColor = style[property];
       }
-      // Note: we don't apply blur or opacity to body as it would affect all children
     });
 
     // Handle blur by creating an overlay if needed
@@ -51,17 +60,20 @@ export function Background() {
         const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
           ? 'https://source.unsplash.com/daily?wallpaper'
           : backgroundPrefs.preferences.imageUrl;
-          
-        overlay.style.backgroundImage = `url(${imageUrl})`;
-        overlay.style.backgroundSize = 'cover';
-        overlay.style.backgroundPosition = 'center';
-        overlay.style.backgroundRepeat = 'no-repeat';
-        overlay.style.filter = 'blur(10px)';
-        overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
         
-        // Clear body background to prevent doubling
-        document.body.style.backgroundImage = 'none';
-        document.body.style.background = 'none';
+        // Validate URL before using
+        if (isValidUrl(imageUrl)) {
+          overlay.style.backgroundImage = `url(${CSS.escape(imageUrl)})`;
+          overlay.style.backgroundSize = 'cover';
+          overlay.style.backgroundPosition = 'center';
+          overlay.style.backgroundRepeat = 'no-repeat';
+          overlay.style.filter = 'blur(10px)';
+          overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
+          
+          // Clear body background to prevent doubling
+          document.body.style.backgroundImage = 'none';
+          document.body.style.background = 'none';
+        }
       } else if (overlay) {
         overlay.remove();
       }
@@ -69,9 +81,12 @@ export function Background() {
       overlay.remove();
     }
 
-    // Cleanup function
+    // Cleanup function to remove overlay on unmount
     return () => {
-      // Optionally clear background styles on unmount
+      const existingOverlay = document.getElementById('background-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
     };
   }, [backgroundPrefs.preferences, isDarkMode]);
 
