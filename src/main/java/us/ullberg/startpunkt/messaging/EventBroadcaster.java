@@ -23,10 +23,10 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
 @ApplicationScoped
 public class EventBroadcaster {
 
-  @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
-  boolean messagingEnabled;
+  @ConfigProperty(name = "startpunkt.realtime.enabled", defaultValue = "true")
+  boolean realtimeEnabled;
 
-  @ConfigProperty(name = "startpunkt.websocket.eventDebounceMs", defaultValue = "500")
+  @ConfigProperty(name = "startpunkt.realtime.eventDebounceMs", defaultValue = "500")
   long eventDebounceMs;
 
   // BroadcastProcessor for broadcasting messages to multiple subscribers
@@ -60,7 +60,7 @@ public class EventBroadcaster {
    * @param <T> the type of the event data
    */
   public <T> void broadcastEvent(WebSocketEventType eventType, T data) {
-    if (!messagingEnabled) {
+    if (!realtimeEnabled) {
       Log.warnf("Event broadcasting is disabled, not broadcasting event: %s", eventType);
       return;
     }

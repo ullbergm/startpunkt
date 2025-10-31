@@ -31,10 +31,10 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
 @Tag(name = "updates")
 public class UpdatesResource {
 
-  @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
-  boolean messagingEnabled;
+  @ConfigProperty(name = "startpunkt.realtime.enabled", defaultValue = "true")
+  boolean realtimeEnabled;
 
-  @ConfigProperty(name = "startpunkt.websocket.heartbeatInterval", defaultValue = "30s")
+  @ConfigProperty(name = "startpunkt.realtime.heartbeatInterval", defaultValue = "30s")
   Duration heartbeatInterval;
 
   private final EventBroadcaster eventBroadcaster;
@@ -56,7 +56,7 @@ public class UpdatesResource {
   @Produces(MediaType.SERVER_SENT_EVENTS)
   @Operation(summary = "Subscribe to real-time updates via Server-Sent Events")
   public void stream(@Context SseEventSink eventSink, @Context Sse sse) {
-    if (!messagingEnabled) {
+    if (!realtimeEnabled) {
       Log.warn("Event streaming is disabled");
       eventSink.close();
       return;

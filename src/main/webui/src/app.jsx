@@ -121,7 +121,7 @@ export function App() {
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const [websocketEnabled, setWebsocketEnabled] = useState(false);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
   
   useEffect(() => {
     var config = fetch('/api/config')
@@ -133,9 +133,9 @@ export function App() {
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
         setRefreshInterval(res.config.web.refreshInterval || 0);
-        const wsEnabled = res.config.websocket?.enabled || false;
-        console.log('WebSocket enabled:', wsEnabled);
-        setWebsocketEnabled(wsEnabled);
+        const rtEnabled = res.config.realtime?.enabled || false;
+        console.log('Real-time updates enabled:', rtEnabled);
+        setRealtimeEnabled(rtEnabled);
       });
 
   }, [])
@@ -184,7 +184,7 @@ export function App() {
   const websocket = useServerSentEvents(
     `${window.location.origin}/api/updates/stream`,
     {
-      enabled: websocketEnabled,
+      enabled: realtimeEnabled,
       onMessage: (message) => {
         console.log('WebSocket message received:', message);
         
@@ -238,9 +238,9 @@ export function App() {
     fetchData();
   }, []);
 
-  // Set up periodic refresh if configured (only when WebSocket is not connected)
+  // Set up periodic refresh if configured (only when real-time updates are not connected)
   useEffect(() => {
-    if (refreshInterval > 0 && (!websocketEnabled || !websocket.isConnected)) {
+    if (refreshInterval > 0 && (!realtimeEnabled || !websocket.isConnected)) {
       const intervalId = setInterval(() => {
         fetchData();
       }, refreshInterval * 1000);
@@ -248,7 +248,7 @@ export function App() {
       // Cleanup function to clear interval on unmount or when refreshInterval changes
       return () => clearInterval(intervalId);
     }
-  }, [refreshInterval, websocketEnabled, websocket.isConnected]);
+  }, [refreshInterval, realtimeEnabled, websocket.isConnected]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&
@@ -338,7 +338,7 @@ export function App() {
           <div>
             <h3 class="float-md-start mb-0">
               <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}
-              {websocketEnabled && (
+              {realtimeEnabled && (
                 <span 
                   class={`badge ms-2 ${websocket.isConnected ? 'bg-success' : websocket.isConnecting ? 'bg-warning' : 'bg-secondary'}`}
                   style="font-size: 0.5rem; vertical-align: middle;"
