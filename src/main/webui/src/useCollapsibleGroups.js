@@ -1,4 +1,37 @@
-import { useState, useCallback, useMemo } from 'preact/hooks';
+import { useState, useCallback, useMemo, useEffect } from 'preact/hooks';
+
+/**
+ * Helper function to safely read from localStorage
+ */
+function readFromStorage(key) {
+  try {
+    const item = window.localStorage.getItem(key);
+    if (!item) return [];
+    
+    const parsed = JSON.parse(item);
+    
+    // Migrate old object format {group1: true} to new array format ["group1"]
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return Object.keys(parsed).filter(key => parsed[key] === true);
+    }
+    
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Error reading from localStorage:', error);
+    return [];
+  }
+}
+
+/**
+ * Helper function to safely write to localStorage
+ */
+function writeToStorage(key, value) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error('Error writing to localStorage:', error);
+  }
+}
 
 /**
  * Custom hook to manage collapsed state of groups.
@@ -10,55 +43,29 @@ import { useState, useCallback, useMemo } from 'preact/hooks';
  */
 export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
   // Initialize state from localStorage as an array
-  const [collapsedGroups, setCollapsedGroups] = useState(() => {
-    try {
-      const item = window.localStorage.getItem(storageKey);
-      if (!item) return [];
-      
-      const parsed = JSON.parse(item);
-      
-      // Migrate old object format {group1: true} to new array format ["group1"]
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const migratedArray = Object.keys(parsed).filter(key => parsed[key] === true);
-        // Save migrated format back to localStorage
-        window.localStorage.setItem(storageKey, JSON.stringify(migratedArray));
-        return migratedArray;
-      }
-      
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.error('Error reading from localStorage:', error);
-      return [];
-    }
-  });
+  const [collapsedGroups, setCollapsedGroups] = useState(() => readFromStorage(storageKey));
 
   // Convert array to Set for O(1) lookups
   const collapsedSet = useMemo(() => new Set(collapsedGroups), [collapsedGroups]);
 
+  // Sync to localStorage whenever state changes
+  useEffect(() => {
+    writeToStorage(storageKey, collapsedGroups);
+  }, [storageKey, collapsedGroups]);
+
   // Toggle a group's collapsed state
   const toggleGroup = useCallback((groupName) => {
     setCollapsedGroups(prev => {
-      const isCurrentlyCollapsed = prev.includes(groupName);
-      let newState;
+      // Use Set for O(1) lookup instead of array.includes
+      const prevSet = new Set(prev);
+      const isCurrentlyCollapsed = prevSet.has(groupName);
       
-      if (isCurrentlyCollapsed) {
-        // Expanding: remove from list
-        newState = prev.filter(name => name !== groupName);
-      } else {
-        // Collapsing: add to list
-        newState = [...prev, groupName];
-      }
-      
-      // Save to localStorage
-      try {
-        window.localStorage.setItem(storageKey, JSON.stringify(newState));
-      } catch (error) {
-        console.error('Error writing to localStorage:', error);
-      }
-      
-      return newState;
+      // Toggle: add if not collapsed, remove if collapsed
+      return isCurrentlyCollapsed
+        ? prev.filter(name => name !== groupName)
+        : [...prev, groupName];
     });
-  }, [storageKey]);
+  }, []);
 
   // Check if a group is collapsed - O(1) lookup with Set
   const isCollapsed = useCallback((groupName) => {
