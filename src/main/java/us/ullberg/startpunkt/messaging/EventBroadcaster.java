@@ -1,41 +1,55 @@
-package us.ullberg.startpunkt.websocket;
+package us.ullberg.startpunkt.messaging;
 
 import io.quarkus.logging.Log;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.websocket.WebSocketEventType;
+import us.ullberg.startpunkt.websocket.WebSocketMessage;
 
 /**
- * Service for broadcasting WebSocket events to connected clients.
+ * Service for broadcasting events to connected clients using Mutiny Multi streams.
  *
  * <p>This service provides methods to broadcast various types of events (application changes,
- * configuration updates, etc.) to all connected WebSocket clients. It includes debouncing logic to
- * prevent flooding clients with rapid updates.
+ * configuration updates, etc.) to all connected clients via Server-Sent Events (SSE). It includes
+ * debouncing logic to prevent flooding clients with rapid updates.
  */
 @ApplicationScoped
-public class WebSocketEventBroadcaster {
-
-  private final WebSocketConnectionManager connectionManager;
+public class EventBroadcaster {
 
   @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
-  boolean websocketEnabled;
+  boolean messagingEnabled;
 
   @ConfigProperty(name = "startpunkt.websocket.eventDebounceMs", defaultValue = "500")
   long eventDebounceMs;
 
+  // BroadcastProcessor for broadcasting messages to multiple subscribers
+  private BroadcastProcessor<WebSocketMessage<?>> processor;
+  private Multi<WebSocketMessage<?>> stream;
+
   // Track last broadcast time for each event type to implement debouncing
   private final Map<String, Instant> lastBroadcastTimes = new ConcurrentHashMap<>();
 
+  @PostConstruct
+  void init() {
+    // Create a broadcast processor that can handle multiple subscribers
+    processor = BroadcastProcessor.create();
+    stream = processor;
+  }
+
   /**
-   * Constructor for WebSocketEventBroadcaster.
+   * Get the Multi stream for subscribing to events.
    *
-   * @param connectionManager the connection manager
+   * @return the Multi stream of WebSocketMessages
    */
-  public WebSocketEventBroadcaster(WebSocketConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
+  public Multi<WebSocketMessage<?>> getStream() {
+    return stream;
   }
 
   /**
@@ -46,14 +60,8 @@ public class WebSocketEventBroadcaster {
    * @param <T> the type of the event data
    */
   public <T> void broadcastEvent(WebSocketEventType eventType, T data) {
-    if (!websocketEnabled) {
-      Log.warnf("WebSocket broadcasting is disabled, not broadcasting event: %s", eventType);
-      return;
-    }
-
-    int connectionCount = connectionManager.getConnectionCount();
-    if (connectionCount == 0) {
-      Log.debugf("No WebSocket connections available, not broadcasting event: %s", eventType);
+    if (!messagingEnabled) {
+      Log.warnf("Event broadcasting is disabled, not broadcasting event: %s", eventType);
       return;
     }
 
@@ -71,10 +79,9 @@ public class WebSocketEventBroadcaster {
 
     // Create and broadcast the message
     var message = new WebSocketMessage<>(eventType, data);
-    connectionManager.broadcast(message);
+    processor.onNext(message);
 
-    Log.infof(
-        "Broadcasted event: %s to %d clients", eventType, connectionManager.getConnectionCount());
+    Log.infof("Broadcasted event: %s", eventType);
   }
 
   /**

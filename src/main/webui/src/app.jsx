@@ -6,7 +6,7 @@ import { writeStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
 import SpotlightSearch from './SpotlightSearch';
-import { useWebSocket } from './useWebSocket';
+import { useServerSentEvents } from './useServerSentEvents';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { LayoutSettings } from './LayoutSettings';
@@ -180,9 +180,9 @@ export function App() {
     window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
   };
 
-  // WebSocket connection for real-time updates
-  const websocket = useWebSocket(
-    `${window.location.origin}/api/ws/updates`,
+  // Server-Sent Events connection for real-time updates
+  const websocket = useServerSentEvents(
+    `${window.location.origin}/api/updates/stream`,
     {
       enabled: websocketEnabled,
       onMessage: (message) => {
@@ -210,10 +210,7 @@ export function App() {
         }
       },
       onOpen: () => {
-        console.log('WebSocket connected for real-time updates');
-      },
-      onClose: () => {
-        console.log('WebSocket disconnected, falling back to HTTP polling');
+        console.log('SSE connected for real-time updates');
       }
     }
   );
