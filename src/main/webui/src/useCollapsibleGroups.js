@@ -4,7 +4,7 @@ import { useState, useEffect } from 'preact/hooks';
  * Custom hook to manage collapsed state of groups
  * @param {string} storageKey - Key to use for localStorage
  * @param {boolean} defaultCollapsed - Default collapsed state for new groups
- * @returns {Object} - Object with collapsedGroups, toggleGroup, expandAll, collapseAll functions
+ * @returns {Object} - Object with collapsedGroups, toggleGroup, and isCollapsed functions
  */
 export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultCollapsed = false) {
   // Initialize state from localStorage
@@ -35,30 +35,18 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
     setCollapsedGroups(prev => {
       const currentState = prev || {};
       const isCurrentlyCollapsed = currentState[groupName] === undefined ? defaultCollapsed : currentState[groupName];
-      return {
-        ...currentState,
-        [groupName]: !isCurrentlyCollapsed
-      };
-    });
-  };
-
-  const expandAll = (groupNames) => {
-    setCollapsedGroups(prev => {
-      const newState = { ...(prev || {}) };
-      groupNames.forEach(name => {
-        newState[name] = false;
-      });
-      return newState;
-    });
-  };
-
-  const collapseAll = (groupNames) => {
-    setCollapsedGroups(prev => {
-      const newState = { ...(prev || {}) };
-      groupNames.forEach(name => {
-        newState[name] = true;
-      });
-      return newState;
+      const newCollapsedState = !isCurrentlyCollapsed;
+      
+      // Only store collapsed groups; remove from storage when expanded
+      if (newCollapsedState) {
+        return {
+          ...currentState,
+          [groupName]: true
+        };
+      } else {
+        const { [groupName]: _, ...rest } = currentState;
+        return rest;
+      }
     });
   };
 
@@ -69,8 +57,6 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
   return {
     collapsedGroups,
     toggleGroup,
-    expandAll,
-    collapseAll,
     isCollapsed
   };
 }

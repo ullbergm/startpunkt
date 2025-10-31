@@ -55,59 +55,6 @@ describe('ApplicationGroupList component', () => {
     expect(container).toHaveClass('container', 'px-4', 'py-5');
   });
 
-  test('renders Expand All and Collapse All buttons when groups exist', () => {
-    render(<ApplicationGroupList groups={groups} />);
-    
-    const expandButton = screen.getByRole('button', { name: /expand all/i });
-    const collapseButton = screen.getByRole('button', { name: /collapse all/i });
-    
-    expect(expandButton).toBeInTheDocument();
-    expect(collapseButton).toBeInTheDocument();
-  });
-
-  test('does not render buttons when groups array is empty', () => {
-    render(<ApplicationGroupList groups={[]} />);
-    
-    const buttons = screen.queryAllByRole('button');
-    expect(buttons).toHaveLength(0);
-  });
-
-  test('Expand All button calls expandAll with group names', () => {
-    const mockExpandAll = jest.fn();
-    const { useCollapsibleGroups } = require('./useCollapsibleGroups');
-    useCollapsibleGroups.mockReturnValue({
-      isCollapsed: jest.fn(() => false),
-      toggleGroup: jest.fn(),
-      expandAll: mockExpandAll,
-      collapseAll: jest.fn(),
-    });
-
-    render(<ApplicationGroupList groups={groups} />);
-    
-    const expandButton = screen.getByRole('button', { name: /expand all/i });
-    fireEvent.click(expandButton);
-    
-    expect(mockExpandAll).toHaveBeenCalledWith(['Group One', 'Group Two']);
-  });
-
-  test('Collapse All button calls collapseAll with group names', () => {
-    const mockCollapseAll = jest.fn();
-    const { useCollapsibleGroups } = require('./useCollapsibleGroups');
-    useCollapsibleGroups.mockReturnValue({
-      isCollapsed: jest.fn(() => false),
-      toggleGroup: jest.fn(),
-      expandAll: jest.fn(),
-      collapseAll: mockCollapseAll,
-    });
-
-    render(<ApplicationGroupList groups={groups} />);
-    
-    const collapseButton = screen.getByRole('button', { name: /collapse all/i });
-    fireEvent.click(collapseButton);
-    
-    expect(mockCollapseAll).toHaveBeenCalledWith(['Group One', 'Group Two']);
-  });
-
   test('renders correct number of ApplicationGroup sections with accessible roles and labels', () => {
     render(<ApplicationGroupList groups={groups} />);
     const renderedGroups = screen.getAllByRole('region');

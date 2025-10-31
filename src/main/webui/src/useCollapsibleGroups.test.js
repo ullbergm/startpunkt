@@ -54,38 +54,8 @@ describe('useCollapsibleGroups', () => {
     act(() => {
       result.current.toggleGroup('group1');
     });
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-  });
-
-  test('expandAll expands all specified groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    act(() => {
-      result.current.collapseAll(['group1', 'group2', 'group3']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true);
-
-    act(() => {
-      result.current.expandAll(['group1', 'group2', 'group3']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-    expect(result.current.collapsedGroups['group2']).toBe(false);
-    expect(result.current.collapsedGroups['group3']).toBe(false);
-  });
-
-  test('collapseAll collapses all specified groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    act(() => {
-      result.current.collapseAll(['group1', 'group2']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
+    // When expanded, the group should be removed from storage
+    expect(result.current.collapsedGroups['group1']).toBeUndefined();
   });
 
   test('isCollapsed returns correct state for a group', () => {
@@ -114,50 +84,7 @@ describe('useCollapsibleGroups', () => {
       result.current.toggleGroup('group1');
     });
 
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-  });
-
-  test('expandAll preserves state of groups not in the list', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    // Set up some initial state
-    act(() => {
-      result.current.toggleGroup('group1');
-      result.current.toggleGroup('group2');
-      result.current.toggleGroup('group3');
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true);
-
-    // Expand only group1 and group2, leaving group3 alone
-    act(() => {
-      result.current.expandAll(['group1', 'group2']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-    expect(result.current.collapsedGroups['group2']).toBe(false);
-    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
-  });
-
-  test('collapseAll preserves state of groups not in the list', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    // Set up initial state with group3 collapsed
-    act(() => {
-      result.current.toggleGroup('group3');
-    });
-
-    expect(result.current.collapsedGroups['group3']).toBe(true);
-
-    // Collapse only group1 and group2, leaving group3 alone
-    act(() => {
-      result.current.collapseAll(['group1', 'group2']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
+    // When expanded, the group should be removed from storage
+    expect(result.current.collapsedGroups['group1']).toBeUndefined();
   });
 });
