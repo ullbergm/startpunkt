@@ -88,7 +88,7 @@ describe('useCollapsibleGroups', () => {
 
     // Check that localStorage was updated
     const stored = JSON.parse(localStorageMock.getItem('test-key'));
-    expect(stored).toEqual({ group1: true });
+    expect(stored).toEqual(['group1']);
   });
 
   test('removes expanded groups from localStorage', () => {
@@ -100,7 +100,7 @@ describe('useCollapsibleGroups', () => {
     });
     
     let stored = JSON.parse(localStorageMock.getItem('test-key'));
-    expect(stored).toEqual({ group1: true });
+    expect(stored).toEqual(['group1']);
 
     // Expand group1
     act(() => {
@@ -108,7 +108,7 @@ describe('useCollapsibleGroups', () => {
     });
 
     stored = JSON.parse(localStorageMock.getItem('test-key'));
-    expect(stored).toEqual({});
+    expect(stored).toEqual([]);
   });
 
   test('handles multiple groups independently', () => {

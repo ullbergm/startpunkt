@@ -12,25 +12,25 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
       const item = window.localStorage.getItem(storageKey);
-      return item ? JSON.parse(item) : {};
+      return item ? JSON.parse(item) : [];
     } catch (error) {
       console.error('Error reading from localStorage:', error);
-      return {};
+      return [];
     }
   });
 
   // Toggle a group's collapsed state
   const toggleGroup = useCallback((groupName) => {
     setCollapsedGroups(prev => {
-      const isCurrentlyCollapsed = prev[groupName] ?? false;
-      const newState = { ...prev };
+      const isCurrentlyCollapsed = prev.includes(groupName);
+      let newState;
       
       if (isCurrentlyCollapsed) {
-        // Expanding: remove from storage (expanded is the default state)
-        delete newState[groupName];
+        // Expanding: remove from list
+        newState = prev.filter(name => name !== groupName);
       } else {
-        // Collapsing: add to storage
-        newState[groupName] = true;
+        // Collapsing: add to list
+        newState = [...prev, groupName];
       }
       
       // Save to localStorage
@@ -46,7 +46,7 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
 
   // Check if a group is collapsed
   const isCollapsed = useCallback((groupName) => {
-    return collapsedGroups[groupName] ?? false;
+    return collapsedGroups.includes(groupName);
   }, [collapsedGroups]);
 
   return {
