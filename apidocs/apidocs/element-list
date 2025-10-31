@@ -3,6 +3,7 @@ us.ullberg.startpunkt.crd.v1alpha2
 us.ullberg.startpunkt.crd.v1alpha3
 us.ullberg.startpunkt.crd.v1alpha4
 us.ullberg.startpunkt.health
+us.ullberg.startpunkt.messaging
 us.ullberg.startpunkt.objects
 us.ullberg.startpunkt.objects.kubernetes
 us.ullberg.startpunkt.rest

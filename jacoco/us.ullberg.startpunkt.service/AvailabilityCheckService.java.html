@@ -23,8 +23,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
-import us.ullberg.startpunkt.websocket.WebSocketEventBroadcaster;
 
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
@@ -40,9 +40,9 @@ public class AvailabilityCheckService {
   private int availabilityTimeout;
 
   /**
-   * Interval for availability checks, injected from configuration.
-   * This field is referenced via annotation expressions (e.g., @Scheduled(every = &quot;{startpunkt.availability.interval}&quot;))
-   * and is retained for documentation and potential future use.
+   * Interval for availability checks, injected from configuration. This field is referenced via
+   * annotation expressions (e.g., @Scheduled(every = &quot;{startpunkt.availability.interval}&quot;)) and is
+   * retained for documentation and potential future use.
    */
   @ConfigProperty(name = &quot;startpunkt.availability.interval&quot;, defaultValue = &quot;60s&quot;)
   private String availabilityCheckInterval;
@@ -53,13 +53,13 @@ public class AvailabilityCheckService {
 <span class="fc" id="L53">  private final Map&lt;String, Boolean&gt; availabilityCache = new ConcurrentHashMap&lt;&gt;();</span>
 <span class="fc" id="L54">  private final Map&lt;String, Boolean&gt; previousAvailabilityCache = new ConcurrentHashMap&lt;&gt;();</span>
   private final HttpClient httpClient;
-  private final WebSocketEventBroadcaster eventBroadcaster;
+  private final EventBroadcaster eventBroadcaster;
 
   /** Constructor that initializes the HTTP client with appropriate timeouts. */
   public AvailabilityCheckService(
       @ConfigProperty(name = &quot;startpunkt.availability.ignoreCertificates&quot;, defaultValue = &quot;false&quot;)
           boolean ignoreCertificates,
-<span class="fc" id="L62">      WebSocketEventBroadcaster eventBroadcaster) {</span>
+<span class="fc" id="L62">      EventBroadcaster eventBroadcaster) {</span>
 <span class="fc" id="L63">    this.eventBroadcaster = eventBroadcaster;</span>
     HttpClient.Builder builder =
 <span class="fc" id="L65">        HttpClient.newBuilder()</span>
