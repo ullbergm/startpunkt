@@ -231,11 +231,11 @@ async function captureScreenshots() {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await waitForStability(page, 500);
     
-    // Set dark theme via local storage
+    // Set dark theme via local storage and reload
     await page.evaluate(() => {
       localStorage.setItem('theme', 'dark');
-      window.location.reload();
     });
+    await page.reload();
     await waitForStability(page, 2000);
     await takeScreenshot(page, '21-dark-theme', { fullPage: true });
     

@@ -202,8 +202,18 @@ jobs:
 
       - name: Start application with sample data
         run: |
+          # Find the uber jar (it will be named something like startpunkt-*-runner.jar)
+          UBER_JAR=$(ls target/*-runner.jar 2>/dev/null | head -1)
+          
+          if [ -z "$UBER_JAR" ]; then
+            echo "Uber jar not found, trying regular quarkus jar..."
+            UBER_JAR="target/quarkus-app/quarkus-run.jar"
+          fi
+          
+          echo "Starting application with jar: $UBER_JAR"
+          
           # Start the application in background
-          java -jar target/quarkus-app/quarkus-run.jar \
+          java -jar "$UBER_JAR" \
             -Dquarkus.http.port=8080 \
             -Dstartpunkt.web.title="Startpunkt Demo" \
             -Dstartpunkt.web.githubLink.enabled=true \
