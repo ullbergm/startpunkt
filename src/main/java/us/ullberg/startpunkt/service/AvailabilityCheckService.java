@@ -23,8 +23,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
-import us.ullberg.startpunkt.websocket.WebSocketEventBroadcaster;
 
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
@@ -40,9 +40,9 @@ public class AvailabilityCheckService {
   private int availabilityTimeout;
 
   /**
-   * Interval for availability checks, injected from configuration.
-   * This field is referenced via annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}"))
-   * and is retained for documentation and potential future use.
+   * Interval for availability checks, injected from configuration. This field is referenced via
+   * annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}")) and is
+   * retained for documentation and potential future use.
    */
   @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60s")
   private String availabilityCheckInterval;
@@ -53,13 +53,13 @@ public class AvailabilityCheckService {
   private final Map<String, Boolean> availabilityCache = new ConcurrentHashMap<>();
   private final Map<String, Boolean> previousAvailabilityCache = new ConcurrentHashMap<>();
   private final HttpClient httpClient;
-  private final WebSocketEventBroadcaster eventBroadcaster;
+  private final EventBroadcaster eventBroadcaster;
 
   /** Constructor that initializes the HTTP client with appropriate timeouts. */
   public AvailabilityCheckService(
       @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
           boolean ignoreCertificates,
-      WebSocketEventBroadcaster eventBroadcaster) {
+      EventBroadcaster eventBroadcaster) {
     this.eventBroadcaster = eventBroadcaster;
     HttpClient.Builder builder =
         HttpClient.newBuilder()

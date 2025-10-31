@@ -139,6 +139,10 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-messaging</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
     </dependency>
     <dependency>
@@ -156,14 +160,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-scheduler</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-websockets</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-websockets-next</artifactId>
     </dependency>
 
     <!-- Quarkus Extensions -->
@@ -565,8 +561,7 @@
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-kubernetes-client</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-websockets</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-websockets-next</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-messaging</ignoredUnusedDeclaredDependency>
 
                 <!-- Quarkiverse -->
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
@@ -578,6 +573,9 @@
 
                 <!-- JUnit -->
                 <ignoredUnusedDeclaredDependency>org.junit.platform:junit-platform-launcher</ignoredUnusedDeclaredDependency>
+
+                <!-- Jackson -->
+                <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-core</ignoredUnusedDeclaredDependency>
 
                 <!-- Explicitly used but Maven misses it -->
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>

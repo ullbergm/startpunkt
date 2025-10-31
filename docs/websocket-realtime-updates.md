@@ -1,10 +1,10 @@
-# WebSocket Real-time Updates
+# Real-time Updates
 
-Startpunkt supports WebSocket-based real-time updates to push changes to clients without requiring periodic HTTP polling.
+Startpunkt supports Server-Sent Events (SSE) based real-time updates to push changes to clients without requiring periodic HTTP polling.
 
 ## Overview
 
-When enabled, WebSocket connections provide instant notifications to clients about:
+When enabled, SSE connections provide instant notifications to clients about:
 - Application changes (additions, removals, updates)
 - Bookmark changes
 - Configuration updates
@@ -12,16 +12,16 @@ When enabled, WebSocket connections provide instant notifications to clients abo
 
 ## Configuration
 
-WebSocket support is configured in `application.yaml`:
+Real-time updates are configured in `application.yaml`:
 
 ```yaml
 startpunkt:
-  websocket:
-    # Enable/disable WebSocket support
+  realtime:
+    # Enable/disable real-time updates via Server-Sent Events
     enabled: true
     
     # Heartbeat interval in seconds to keep connections alive
-    heartbeatInterval: 30
+    heartbeatInterval: 30s
     
     # Debounce time in milliseconds for events to prevent flooding
     eventDebounceMs: 500
@@ -29,13 +29,13 @@ startpunkt:
 
 ### Configuration Options
 
-- **`enabled`** (default: `true`): Master switch for WebSocket functionality
-- **`heartbeatInterval`** (default: `30s`): Seconds between heartbeat messages
+- **`enabled`** (default: `true`): Master switch for real-time update functionality
+- **`heartbeatInterval`** (default: `30s`): Interval between heartbeat messages
 - **`eventDebounceMs`** (default: `500`): Milliseconds to wait before broadcasting rapid events
 
-## WebSocket Endpoint
+## SSE Endpoint
 
-Clients connect to: `ws://your-server/api/ws/updates` (or `wss://` for secure connections)
+Clients connect to: `/api/updates/stream` using the EventSource API
 
 ## Message Protocol
 
@@ -89,7 +89,7 @@ All messages are JSON-formatted with the following structure:
 
 ## Frontend Integration
 
-The frontend automatically connects to the WebSocket endpoint when enabled. A connection status indicator appears in the header:
+The frontend automatically connects to the SSE endpoint when enabled. A connection status indicator appears in the header:
 
 - **● (green)**: Connected, real-time updates active
 - **○ (yellow)**: Connecting...
@@ -97,8 +97,8 @@ The frontend automatically connects to the WebSocket endpoint when enabled. A co
 
 ### Behavior
 
-1. On page load, the frontend fetches the configuration to determine if WebSocket is enabled
-2. If enabled, it establishes a WebSocket connection
+1. On page load, the frontend fetches the configuration to determine if real-time updates are enabled
+2. If enabled, it establishes an SSE connection using EventSource API
 3. When connected, HTTP polling is automatically disabled
 4. If the connection is lost, the client attempts to reconnect with exponential backoff
 5. If reconnection fails, the client falls back to HTTP polling
@@ -106,37 +106,36 @@ The frontend automatically connects to the WebSocket endpoint when enabled. A co
 
 ## Broadcasting Events
 
-Services can broadcast events using the `WebSocketEventBroadcaster`:
+Services can broadcast events using the `EventBroadcaster`:
 
 ```java
 @Inject
-WebSocketEventBroadcaster broadcaster;
+EventBroadcaster broadcaster;
 
 public void notifyApplicationAdded(ApplicationSpec app) {
-    broadcaster.broadcastApplicationAdded(app);
+    broadcaster.broadcastEvent(WebSocketEventType.APPLICATION_ADDED, app);
 }
 ```
 
-### Available Methods
+### Usage Examples
 
-- `broadcastApplicationAdded(Object data)`
-- `broadcastApplicationRemoved(Object data)`
-- `broadcastApplicationUpdated(Object data)`
-- `broadcastBookmarkAdded(Object data)`
-- `broadcastBookmarkRemoved(Object data)`
-- `broadcastBookmarkUpdated(Object data)`
-- `broadcastConfigChanged(Object data)`
-- `broadcastStatusChanged(Object data)`
+Use the `broadcastEvent()` method with the appropriate event type:
+
+```java
+broadcaster.broadcastEvent(WebSocketEventType.APPLICATION_ADDED, data);
+broadcaster.broadcastEvent(WebSocketEventType.STATUS_CHANGED, data);
+broadcaster.broadcastEvent(WebSocketEventType.CONFIG_CHANGED, data);
+```
 
 Events are automatically debounced based on the configured `eventDebounceMs` value.
 
 ## Troubleshooting
 
-### WebSocket Connection Fails
+### SSE Connection Fails
 
-1. Verify WebSocket is enabled in configuration
+1. Verify real-time updates are enabled in configuration
 2. Check browser console for connection errors
-3. Ensure firewall/proxy allows WebSocket connections
+3. Ensure firewall/proxy allows SSE connections (standard HTTP)
 4. Verify the server is accessible at the expected URL
 
 ### No Real-time Updates
@@ -144,7 +143,7 @@ Events are automatically debounced based on the configured `eventDebounceMs` val
 1. Check the connection status indicator in the UI
 2. Verify events are being broadcast on the backend
 3. Check browser developer console for JavaScript errors
-4. Ensure the correct WebSocket endpoint is being used
+4. Ensure the correct SSE endpoint is being used (`/api/updates/stream`)
 
 ### High CPU/Memory Usage
 
@@ -155,7 +154,7 @@ Events are automatically debounced based on the configured `eventDebounceMs` val
 
 ## Performance Considerations
 
-- WebSocket connections use minimal resources when idle
+- SSE connections use minimal resources when idle
 - Heartbeat messages are small and infrequent (every 30s by default)
 - Event debouncing prevents flooding clients with rapid updates
 - Connection cleanup is automatic when clients disconnect
@@ -163,14 +162,14 @@ Events are automatically debounced based on the configured `eventDebounceMs` val
 
 ## Security
 
-- WebSocket connections inherit the same security context as HTTP
-- All WebSocket messages are encrypted when using `wss://`
+- SSE connections inherit the same security context as HTTP
+- All SSE messages are encrypted when using HTTPS
 - Connection management prevents resource exhaustion
 - Event debouncing provides basic rate limiting
 
 ## Backward Compatibility
 
-- HTTP polling remains fully functional when WebSocket is disabled
-- Clients gracefully fall back to HTTP polling if WebSocket fails
+- HTTP polling remains fully functional when real-time updates are disabled
+- Clients gracefully fall back to HTTP polling if SSE connection fails
 - All existing REST endpoints remain unchanged
 - Configuration defaults maintain existing behavior
