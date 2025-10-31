@@ -12,7 +12,7 @@ function readFromStorage(key) {
     
     // Migrate old object format {group1: true} to new array format ["group1"]
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return Object.keys(parsed).filter(key => parsed[key] === true);
+      return Object.keys(parsed).filter(k => parsed[k] === true);
     }
     
     return Array.isArray(parsed) ? parsed : [];
@@ -56,9 +56,8 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
   // Toggle a group's collapsed state
   const toggleGroup = useCallback((groupName) => {
     setCollapsedGroups(prev => {
-      // Use Set for O(1) lookup instead of array.includes
-      const prevSet = new Set(prev);
-      const isCurrentlyCollapsed = prevSet.has(groupName);
+      // For typical group counts, includes() is simpler and performs well
+      const isCurrentlyCollapsed = prev.includes(groupName);
       
       // Toggle: add if not collapsed, remove if collapsed
       return isCurrentlyCollapsed
