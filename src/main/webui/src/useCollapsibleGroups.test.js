@@ -29,12 +29,12 @@ describe('useCollapsibleGroups', () => {
   });
 
   test('initializes with default expanded state', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     expect(result.current.isCollapsed('group1')).toBe(false);
   });
 
   test('toggleGroup collapses a group when it is expanded', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     expect(result.current.isCollapsed('group1')).toBe(false);
     
@@ -46,7 +46,7 @@ describe('useCollapsibleGroups', () => {
   });
 
   test('toggleGroup expands a group when it is collapsed', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     // Collapse the group first
     act(() => {
@@ -62,7 +62,7 @@ describe('useCollapsibleGroups', () => {
   });
 
   test('isCollapsed returns correct state for a group', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     expect(result.current.isCollapsed('group1')).toBe(false);
 
@@ -73,28 +73,14 @@ describe('useCollapsibleGroups', () => {
     expect(result.current.isCollapsed('group1')).toBe(true);
   });
 
-  test('isCollapsed returns defaultCollapsed for undefined groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', true));
+  test('isCollapsed returns false for undefined groups', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
-    expect(result.current.isCollapsed('unknownGroup')).toBe(true);
-  });
-
-  test('respects defaultCollapsed parameter', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', true));
-    
-    // With defaultCollapsed=true, unknown groups should be collapsed
-    expect(result.current.isCollapsed('group1')).toBe(true);
-    
-    // First toggle should expand (opposite of default true)
-    act(() => {
-      result.current.toggleGroup('group1');
-    });
-
-    expect(result.current.isCollapsed('group1')).toBe(false);
+    expect(result.current.isCollapsed('unknownGroup')).toBe(false);
   });
 
   test('persists state to localStorage', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     act(() => {
       result.current.toggleGroup('group1');
@@ -106,7 +92,7 @@ describe('useCollapsibleGroups', () => {
   });
 
   test('removes expanded groups from localStorage', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     // Collapse group1
     act(() => {
@@ -126,7 +112,7 @@ describe('useCollapsibleGroups', () => {
   });
 
   test('handles multiple groups independently', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     // Collapse group1
     act(() => {

@@ -2,7 +2,7 @@ import { ApplicationGroup } from './ApplicationGroup';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 
 export function ApplicationGroupList(props) {
-  const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups', false);
+  const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups');
 
   return (
     <div>

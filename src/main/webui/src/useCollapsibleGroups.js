@@ -5,10 +5,9 @@ import { useState, useCallback } from 'preact/hooks';
  * Only collapsed groups are stored in localStorage (expanded is the default state).
  * 
  * @param {string} storageKey - Key to use for localStorage
- * @param {boolean} defaultCollapsed - Default collapsed state for new groups
  * @returns {Object} - Object with toggleGroup and isCollapsed functions
  */
-export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultCollapsed = false) {
+export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
   // Initialize state from localStorage
   const [collapsedGroups, setCollapsedGroups] = useState(() => {
     try {
@@ -23,23 +22,15 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
   // Toggle a group's collapsed state
   const toggleGroup = useCallback((groupName) => {
     setCollapsedGroups(prev => {
-      const isCurrentlyCollapsed = prev[groupName] ?? defaultCollapsed;
+      const isCurrentlyCollapsed = prev[groupName] ?? false;
       const newState = { ...prev };
       
       if (isCurrentlyCollapsed) {
-        // Expanding: remove from storage if default is collapsed, otherwise mark as expanded
-        if (defaultCollapsed) {
-          newState[groupName] = false;
-        } else {
-          delete newState[groupName];
-        }
+        // Expanding: remove from storage (expanded is the default state)
+        delete newState[groupName];
       } else {
-        // Collapsing: add to storage if default is expanded, otherwise remove
-        if (defaultCollapsed) {
-          delete newState[groupName];
-        } else {
-          newState[groupName] = true;
-        }
+        // Collapsing: add to storage
+        newState[groupName] = true;
       }
       
       // Save to localStorage
@@ -51,12 +42,12 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups', defaultColl
       
       return newState;
     });
-  }, [storageKey, defaultCollapsed]);
+  }, [storageKey]);
 
   // Check if a group is collapsed
   const isCollapsed = useCallback((groupName) => {
-    return collapsedGroups[groupName] ?? defaultCollapsed;
-  }, [collapsedGroups, defaultCollapsed]);
+    return collapsedGroups[groupName] ?? false;
+  }, [collapsedGroups]);
 
   return {
     toggleGroup,

@@ -2,7 +2,7 @@ import { BookmarkGroup } from './BookmarkGroup';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 
 export function BookmarkGroupList(props) {
-  const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedBookmarkGroups', false);
+  const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedBookmarkGroups');
 
   return (
     <div>
