@@ -1,32 +1,22 @@
+import { useMemo } from 'preact/hooks';
 import { ApplicationGroup } from './ApplicationGroup';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 
 export function ApplicationGroupList(props) {
-  const groupNames = Array.isArray(props.groups) ? props.groups.map(g => g.name) : [];
-  const { isCollapsed, toggleGroup, expandAll, collapseAll } = useCollapsibleGroups('collapsedApplicationGroups', false);
+  const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups');
 
-  const hasGroups = groupNames.length > 0;
+  // Memoize toggle handlers to prevent unnecessary re-renders
+  const groupHandlers = useMemo(() => {
+    if (!Array.isArray(props.groups)) return {};
+    
+    return props.groups.reduce((acc, group) => {
+      acc[group.name] = () => toggleGroup(group.name);
+      return acc;
+    }, {});
+  }, [props.groups, toggleGroup]);
 
   return (
     <div>
-      {hasGroups && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button 
-            class="btn btn-sm btn-outline-secondary" 
-            onClick={() => expandAll(groupNames)}
-            aria-label="Expand all groups"
-          >
-            Expand All
-          </button>
-          <button 
-            class="btn btn-sm btn-outline-secondary" 
-            onClick={() => collapseAll(groupNames)}
-            aria-label="Collapse all groups"
-          >
-            Collapse All
-          </button>
-        </div>
-      )}
       <div class="container px-4 py-5" id="icon-grid">
         {Array.isArray(props.groups) && props.groups.map(group => (
           <ApplicationGroup 
@@ -35,7 +25,7 @@ export function ApplicationGroupList(props) {
             applications={group.applications} 
             layoutPrefs={props.layoutPrefs}
             isCollapsed={isCollapsed(group.name)}
-            onToggle={() => toggleGroup(group.name)}
+            onToggle={groupHandlers[group.name]}
           />
         ))}
       </div>

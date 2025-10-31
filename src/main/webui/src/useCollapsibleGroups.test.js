@@ -28,68 +28,60 @@ describe('useCollapsibleGroups', () => {
     localStorageMock.clear();
   });
 
-  test('initializes with empty collapsed groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    expect(result.current.collapsedGroups).toEqual({});
+  test('initializes with default expanded state', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
+    expect(result.current.isCollapsed('group1')).toBe(false);
   });
 
-  test('toggleGroup sets a group to collapsed when not set', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+  test('migrates old object format to new array format', () => {
+    // Set up old format in localStorage
+    localStorageMock.setItem('test-key', JSON.stringify({ group1: true, group2: true, group3: false }));
+    
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
+    
+    // Should only include groups that were set to true
+    expect(result.current.isCollapsed('group1')).toBe(true);
+    expect(result.current.isCollapsed('group2')).toBe(true);
+    expect(result.current.isCollapsed('group3')).toBe(false);
+    
+    // Check that localStorage was migrated to array format
+    const stored = JSON.parse(localStorageMock.getItem('test-key'));
+    expect(Array.isArray(stored)).toBe(true);
+    expect(stored).toContain('group1');
+    expect(stored).toContain('group2');
+    expect(stored).not.toContain('group3');
+  });
+
+  test('toggleGroup collapses a group when it is expanded', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
+    
+    expect(result.current.isCollapsed('group1')).toBe(false);
     
     act(() => {
       result.current.toggleGroup('group1');
     });
 
-    expect(result.current.collapsedGroups['group1']).toBe(true);
+    expect(result.current.isCollapsed('group1')).toBe(true);
   });
 
-  test('toggleGroup toggles existing state', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+  test('toggleGroup expands a group when it is collapsed', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
+    // Collapse the group first
     act(() => {
       result.current.toggleGroup('group1');
     });
-    expect(result.current.collapsedGroups['group1']).toBe(true);
+    expect(result.current.isCollapsed('group1')).toBe(true);
 
+    // Then expand it
     act(() => {
       result.current.toggleGroup('group1');
     });
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-  });
-
-  test('expandAll expands all specified groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    act(() => {
-      result.current.collapseAll(['group1', 'group2', 'group3']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true);
-
-    act(() => {
-      result.current.expandAll(['group1', 'group2', 'group3']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-    expect(result.current.collapsedGroups['group2']).toBe(false);
-    expect(result.current.collapsedGroups['group3']).toBe(false);
-  });
-
-  test('collapseAll collapses all specified groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    act(() => {
-      result.current.collapseAll(['group1', 'group2']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
+    expect(result.current.isCollapsed('group1')).toBe(false);
   });
 
   test('isCollapsed returns correct state for a group', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', false));
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
     expect(result.current.isCollapsed('group1')).toBe(false);
 
@@ -100,64 +92,69 @@ describe('useCollapsibleGroups', () => {
     expect(result.current.isCollapsed('group1')).toBe(true);
   });
 
-  test('isCollapsed returns defaultCollapsed for undefined groups', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', true));
+  test('isCollapsed returns false for undefined groups', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
-    expect(result.current.isCollapsed('unknownGroup')).toBe(true);
+    expect(result.current.isCollapsed('unknownGroup')).toBe(false);
   });
 
-  test('respects defaultCollapsed parameter', () => {
-    const { result } = renderHook(() => useCollapsibleGroups('test-key', true));
+  test('persists state to localStorage', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
-    // First toggle should expand (opposite of default true)
     act(() => {
       result.current.toggleGroup('group1');
     });
 
-    expect(result.current.collapsedGroups['group1']).toBe(false);
+    // Check that localStorage was updated
+    const stored = JSON.parse(localStorageMock.getItem('test-key'));
+    expect(stored).toEqual(['group1']);
   });
 
-  test('expandAll preserves state of groups not in the list', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
+  test('removes expanded groups from localStorage', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
-    // Set up some initial state
+    // Collapse group1
     act(() => {
       result.current.toggleGroup('group1');
+    });
+    
+    let stored = JSON.parse(localStorageMock.getItem('test-key'));
+    expect(stored).toEqual(['group1']);
+
+    // Expand group1
+    act(() => {
+      result.current.toggleGroup('group1');
+    });
+
+    stored = JSON.parse(localStorageMock.getItem('test-key'));
+    expect(stored).toEqual([]);
+  });
+
+  test('handles multiple groups independently', () => {
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
+    
+    // Collapse group1
+    act(() => {
+      result.current.toggleGroup('group1');
+    });
+    
+    expect(result.current.isCollapsed('group1')).toBe(true);
+    expect(result.current.isCollapsed('group2')).toBe(false);
+
+    // Collapse group2
+    act(() => {
       result.current.toggleGroup('group2');
-      result.current.toggleGroup('group3');
     });
 
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true);
+    expect(result.current.isCollapsed('group1')).toBe(true);
+    expect(result.current.isCollapsed('group2')).toBe(true);
 
-    // Expand only group1 and group2, leaving group3 alone
+    // Expand group1
     act(() => {
-      result.current.expandAll(['group1', 'group2']);
+      result.current.toggleGroup('group1');
     });
 
-    expect(result.current.collapsedGroups['group1']).toBe(false);
-    expect(result.current.collapsedGroups['group2']).toBe(false);
-    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
-  });
-
-  test('collapseAll preserves state of groups not in the list', () => {
-    const { result } = renderHook(() => useCollapsibleGroups());
-    
-    // Set up initial state with group3 collapsed
-    act(() => {
-      result.current.toggleGroup('group3');
-    });
-
-    expect(result.current.collapsedGroups['group3']).toBe(true);
-
-    // Collapse only group1 and group2, leaving group3 alone
-    act(() => {
-      result.current.collapseAll(['group1', 'group2']);
-    });
-
-    expect(result.current.collapsedGroups['group1']).toBe(true);
-    expect(result.current.collapsedGroups['group2']).toBe(true);
-    expect(result.current.collapsedGroups['group3']).toBe(true); // Should remain unchanged
+    expect(result.current.isCollapsed('group1')).toBe(false);
+    expect(result.current.isCollapsed('group2')).toBe(true);
   });
 });
