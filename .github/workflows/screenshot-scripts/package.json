@@ -1,0 +1,13 @@
+{
+  "name": "screenshot-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for capturing feature screenshots",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node capture-screenshots.js"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}

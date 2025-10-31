@@ -1,0 +1,275 @@
+name: Capture Feature Screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_screenshots:
+        description: 'Commit screenshots to repository'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  schedule:
+    # Run monthly on the 1st at 2am UTC
+    - cron: '0 2 1 * *'
+
+permissions:
+  contents: write
+
+jobs:
+  capture-screenshots:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/main/webui/package-lock.json
+
+      - name: Install Playwright
+        working-directory: .github/workflows/screenshot-scripts
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Set up KinD (Kubernetes in Docker)
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: startpunkt-demo
+          wait: 30s
+
+      - name: Build application
+        run: |
+          ./mvnw clean package -DskipTests -Dquarkus.package.jar.type=uber-jar
+
+      - name: Create CRDs in cluster
+        run: |
+          kubectl apply -f deploy/kubernetes/charts/startpunkt/templates/crds.yaml
+          sleep 2
+
+      - name: Create sample Kubernetes resources
+        run: |
+          mkdir -p /tmp/k8s-resources
+          cat > /tmp/k8s-resources/sample-applications.yaml << 'EOF'
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: grafana
+            namespace: default
+          spec:
+            name: Grafana
+            group: Monitoring
+            icon: mdi:chart-line
+            url: https://grafana.example.com
+            info: Metrics and dashboards
+            tags: monitoring,metrics
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: prometheus
+            namespace: default
+          spec:
+            name: Prometheus
+            group: Monitoring
+            icon: mdi:database-eye
+            url: https://prometheus.example.com
+            info: Metrics collection
+            tags: monitoring,metrics
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: argocd
+            namespace: default
+          spec:
+            name: ArgoCD
+            group: GitOps
+            icon: mdi:git
+            url: https://argocd.example.com
+            info: GitOps continuous delivery
+            tags: gitops,cd
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: jenkins
+            namespace: default
+          spec:
+            name: Jenkins
+            group: CI/CD
+            icon: mdi:hammer-wrench
+            url: https://jenkins.example.com
+            info: Continuous integration
+            tags: ci,build
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: harbor
+            namespace: default
+          spec:
+            name: Harbor
+            group: Infrastructure
+            icon: mdi:docker
+            url: https://harbor.example.com
+            info: Container registry
+            tags: registry,docker
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: Application
+          metadata:
+            name: vault
+            namespace: default
+          spec:
+            name: Vault
+            group: Security
+            icon: mdi:shield-key
+            url: https://vault.example.com
+            info: Secrets management
+            tags: security,secrets
+          EOF
+          
+          kubectl apply -f /tmp/k8s-resources/sample-applications.yaml
+          
+          cat > /tmp/k8s-resources/sample-bookmarks.yaml << 'EOF'
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: BookmarkGroup
+          metadata:
+            name: documentation
+            namespace: default
+          spec:
+            name: Documentation
+            location: 1
+            bookmarks:
+              - name: Kubernetes Docs
+                url: https://kubernetes.io/docs/
+                icon: mdi:kubernetes
+                info: Official Kubernetes documentation
+              - name: Quarkus Guide
+                url: https://quarkus.io/guides/
+                icon: mdi:language-java
+                info: Quarkus framework guides
+          ---
+          apiVersion: startpunkt.ullberg.us/v1alpha4
+          kind: BookmarkGroup
+          metadata:
+            name: tools
+            namespace: default
+          spec:
+            name: Development Tools
+            location: 2
+            bookmarks:
+              - name: GitHub
+                url: https://github.com
+                icon: mdi:github
+                info: Source code hosting
+              - name: Stack Overflow
+                url: https://stackoverflow.com
+                icon: mdi:stack-overflow
+                info: Developer Q&A
+          EOF
+          
+          kubectl apply -f /tmp/k8s-resources/sample-bookmarks.yaml
+          
+          # Verify resources were created
+          echo "Applications created:"
+          kubectl get applications.startpunkt.ullberg.us -A
+          echo "Bookmark groups created:"
+          kubectl get bookmarkgroups.startpunkt.ullberg.us -A
+
+      - name: Create kubeconfig for application
+        run: |
+          # The application will use the default kubeconfig
+          mkdir -p ~/.kube
+          kind get kubeconfig --name startpunkt-demo > ~/.kube/config
+
+      - name: Start application with sample data
+        run: |
+          # Start the application in background
+          java -jar target/quarkus-app/quarkus-run.jar \
+            -Dquarkus.http.port=8080 \
+            -Dstartpunkt.web.title="Startpunkt Demo" \
+            -Dstartpunkt.web.githubLink.enabled=true \
+            -Dstartpunkt.web.checkForUpdates=false \
+            -Dstartpunkt.availability.enabled=false \
+            -Dstartpunkt.websocket.enabled=false \
+            > /tmp/app.log 2>&1 &
+          
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          
+          # Wait for application to start
+          echo "Waiting for application to start..."
+          for i in {1..60}; do
+            if curl -s http://localhost:8080/q/health/ready > /dev/null 2>&1; then
+              echo "Application is ready!"
+              break
+            fi
+            echo "Waiting... ($i/60)"
+            sleep 2
+          done
+          
+          # Check if app is running
+          if ! curl -s http://localhost:8080/q/health/ready > /dev/null 2>&1; then
+            echo "Application failed to start!"
+            cat /tmp/app.log
+            exit 1
+          fi
+
+      - name: Capture screenshots
+        working-directory: .github/workflows/screenshot-scripts
+        run: |
+          node capture-screenshots.js
+        env:
+          APP_URL: http://localhost:8080
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ ! -z "$APP_PID" ]; then
+            kill $APP_PID || true
+          fi
+
+      - name: Upload screenshots as artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: feature-screenshots
+          path: .github/workflows/screenshot-scripts/screenshots/
+          retention-days: 90
+
+      - name: Commit screenshots to repository
+        if: github.event.inputs.commit_screenshots == 'true' || github.event_name == 'schedule'
+        run: |
+          # Copy screenshots to docs/images/features/
+          mkdir -p docs/images/features
+          cp -r .github/workflows/screenshot-scripts/screenshots/* docs/images/features/
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Commit and push if there are changes
+          git add docs/images/features/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "docs: Update feature screenshots"
+            git push
+          fi
