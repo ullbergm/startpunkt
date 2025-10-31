@@ -142,3 +142,58 @@ To ensure your contributions are properly categorized in the changelog:
 
 The changelog configuration is maintained in `.github/workflows/changelog/configuration.json`.
 
+## Documentation Workflows
+
+### Screenshot Generation
+
+Startpunkt includes an automated workflow for capturing screenshots of all application features for documentation purposes.
+
+**Workflow**: `.github/workflows/capture-screenshots.yml`
+
+The screenshot workflow:
+- Builds the application in JVM mode
+- Sets up a KinD (Kubernetes in Docker) cluster with sample data
+- Uses Playwright to capture 22+ screenshots showing:
+  - Main application views
+  - Spotlight search functionality
+  - Settings panels (layout, background, accessibility)
+  - Theme variations (light/dark)
+  - Accessibility features (high contrast, font scaling)
+  - Responsive views (mobile, tablet, desktop)
+
+**Running the Workflow:**
+
+1. **Manual Trigger**: 
+   - Go to [Actions → Capture Feature Screenshots](https://github.com/ullbergm/startpunkt/actions/workflows/capture-screenshots.yml)
+   - Click "Run workflow"
+   - Choose whether to commit screenshots to the repository
+   - Screenshots are always saved as artifacts (90-day retention)
+
+2. **Scheduled Execution**:
+   - Runs automatically on the 1st of each month at 2am UTC
+   - Screenshots are committed to `docs/images/features/`
+
+**Local Screenshot Capture:**
+
+To capture screenshots locally during development:
+
+```sh
+# Navigate to screenshot scripts directory
+cd .github/workflows/screenshot-scripts
+
+# Install dependencies
+npm install
+
+# Start your Startpunkt application (ensure it's running on port 8080)
+./mvnw quarkus:dev  # In another terminal
+
+# Capture screenshots
+export APP_URL=http://localhost:8080
+node capture-screenshots.js
+```
+
+Screenshots will be saved to `.github/workflows/screenshot-scripts/screenshots/`.
+
+For more details, see the [screenshot scripts README](.github/workflows/screenshot-scripts/README.md).
+
+
