@@ -1,8 +1,19 @@
+import { useMemo } from 'preact/hooks';
 import { ApplicationGroup } from './ApplicationGroup';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 
 export function ApplicationGroupList(props) {
   const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups');
+
+  // Memoize toggle handlers to prevent unnecessary re-renders
+  const groupHandlers = useMemo(() => {
+    if (!Array.isArray(props.groups)) return {};
+    
+    return props.groups.reduce((acc, group) => {
+      acc[group.name] = () => toggleGroup(group.name);
+      return acc;
+    }, {});
+  }, [props.groups, toggleGroup]);
 
   return (
     <div>
@@ -14,7 +25,7 @@ export function ApplicationGroupList(props) {
             applications={group.applications} 
             layoutPrefs={props.layoutPrefs}
             isCollapsed={isCollapsed(group.name)}
-            onToggle={() => toggleGroup(group.name)}
+            onToggle={groupHandlers[group.name]}
           />
         ))}
       </div>

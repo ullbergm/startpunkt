@@ -33,6 +33,25 @@ describe('useCollapsibleGroups', () => {
     expect(result.current.isCollapsed('group1')).toBe(false);
   });
 
+  test('migrates old object format to new array format', () => {
+    // Set up old format in localStorage
+    localStorageMock.setItem('test-key', JSON.stringify({ group1: true, group2: true, group3: false }));
+    
+    const { result } = renderHook(() => useCollapsibleGroups('test-key'));
+    
+    // Should only include groups that were set to true
+    expect(result.current.isCollapsed('group1')).toBe(true);
+    expect(result.current.isCollapsed('group2')).toBe(true);
+    expect(result.current.isCollapsed('group3')).toBe(false);
+    
+    // Check that localStorage was migrated to array format
+    const stored = JSON.parse(localStorageMock.getItem('test-key'));
+    expect(Array.isArray(stored)).toBe(true);
+    expect(stored).toContain('group1');
+    expect(stored).toContain('group2');
+    expect(stored).not.toContain('group3');
+  });
+
   test('toggleGroup collapses a group when it is expanded', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
     
