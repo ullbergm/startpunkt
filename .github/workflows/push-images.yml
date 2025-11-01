@@ -83,6 +83,7 @@ jobs:
         working-directory: .
         run: |
           echo "DOCKERFILE=Dockerfile.native-micro" >> "$GITHUB_ENV"
+          echo "MANDREL_IMAGE_TAG=-amd64" >> "$GITHUB_ENV"
 
       - name: Build native image
         working-directory: .
@@ -91,7 +92,7 @@ jobs:
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
-            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
+            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}${{ env.MANDREL_IMAGE_TAG }} \
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=false
 
