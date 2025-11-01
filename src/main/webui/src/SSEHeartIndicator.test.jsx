@@ -48,7 +48,7 @@ describe('SSEHeartIndicator', () => {
     expect(icon).toHaveStyle({ color: '#198754' });
   });
 
-  it('should render outline heart icon when connecting', () => {
+  it('should render broken heart icon when connecting', () => {
     const websocket = {
       hasError: false,
       isConnected: false,
@@ -60,11 +60,11 @@ describe('SSEHeartIndicator', () => {
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
-    expect(icon).toHaveAttribute('data-icon', 'mdi:heart-outline');
-    expect(icon).toHaveStyle({ color: '#ffc107' });
+    expect(icon).toHaveAttribute('data-icon', 'mdi:heart-broken');
+    expect(icon).toHaveStyle({ color: '#dc3545' });
   });
 
-  it('should render outline heart icon when disconnected', () => {
+  it('should render broken heart icon when disconnected', () => {
     const websocket = {
       hasError: false,
       isConnected: false,
@@ -76,8 +76,8 @@ describe('SSEHeartIndicator', () => {
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
-    expect(icon).toHaveAttribute('data-icon', 'mdi:heart-outline');
-    expect(icon).toHaveStyle({ color: '#6c757d' });
+    expect(icon).toHaveAttribute('data-icon', 'mdi:heart-broken');
+    expect(icon).toHaveStyle({ color: '#dc3545' });
   });
 
   it('should display appropriate title for connected state', () => {

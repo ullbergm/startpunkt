@@ -6,9 +6,8 @@ import './SSEHeartIndicator.scss';
  * SSE Heart Indicator component
  * Displays a heart icon in the bottom left corner to indicate SSE connection status
  * - Beats when heartbeat messages are received
- * - Shows broken heart when connection has errors
- * - Shows regular heart when connected
- * - Grayed out when disconnected or connecting
+ * - Shows green heart only when successfully connected
+ * - Shows broken red heart when connecting, disconnected, or has errors
  */
 export function SSEHeartIndicator({ websocket }) {
   const [isBeating, setIsBeating] = useState(false);
@@ -49,15 +48,8 @@ export function SSEHeartIndicator({ websocket }) {
 
   // Determine which icon to show and its color
   const getHeartState = () => {
-    if (websocket.hasError) {
-      return {
-        icon: 'mdi:heart-broken',
-        color: '#dc3545', // Bootstrap danger color
-        title: 'Connection error - using HTTP polling'
-      };
-    }
-    
-    if (websocket.isConnected) {
+    // Show green heart only when successfully connected
+    if (websocket.isConnected && !websocket.hasError) {
       return {
         icon: 'mdi:heart',
         color: '#198754', // Bootstrap success color
@@ -67,18 +59,15 @@ export function SSEHeartIndicator({ websocket }) {
       };
     }
     
-    if (websocket.isConnecting) {
-      return {
-        icon: 'mdi:heart-outline',
-        color: '#ffc107', // Bootstrap warning color
-        title: 'Connecting to real-time updates...'
-      };
-    }
-    
+    // Show broken heart for all other states (connecting, disconnected, or error)
     return {
-      icon: 'mdi:heart-outline',
-      color: '#6c757d', // Bootstrap secondary color
-      title: 'Real-time updates not connected'
+      icon: 'mdi:heart-broken',
+      color: '#dc3545', // Bootstrap danger color
+      title: websocket.hasError 
+        ? 'Connection error - using HTTP polling'
+        : (websocket.isConnecting 
+            ? 'Connecting to real-time updates...' 
+            : 'Real-time updates not connected')
     };
   };
 
