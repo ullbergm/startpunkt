@@ -4,7 +4,7 @@
 
   <groupId>us.ullberg</groupId>
   <artifactId>startpunkt</artifactId>
-  <version>3.3.0</version>
+  <version>3.4.0-SNAPSHOT</version>
 
   <name>Startpunkt</name>
   <description>Startpunkt is a clean start page to display links to your self-hosted resources in your Kubernetes cluster.</description>
@@ -47,7 +47,7 @@
   <scm>
     <connection>scm:git:https://github.com/ullbergm/startpunkt.git</connection>
     <developerConnection>scm:git:git@github.com:ullbergm/startpunkt.git</developerConnection>
-    <tag>v3.3.0</tag>
+    <tag>v2.1.2</tag>
     <url>https://github.com/ullbergm/startpunkt</url>
   </scm>
   <issueManagement>
@@ -614,7 +614,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence></dependencyConvergence>
+                <dependencyConvergence />
               </rules>
               <fail>true</fail>
             </configuration>
@@ -627,8 +627,8 @@
         <version>3.0.0</version>
         <configuration>
           <java>
-            <googleJavaFormat></googleJavaFormat>
-            <removeUnusedImports></removeUnusedImports>
+            <googleJavaFormat />
+            <removeUnusedImports />
           </java>
         </configuration>
         <executions>
