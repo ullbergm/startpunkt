@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UpdatesResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.rest</a> &gt; <span class="el_source">UpdatesResource.java</span></div><h1>UpdatesResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.GET;
@@ -35,67 +33,55 @@ public class UpdatesResource {
   Duration heartbeatInterval;
 
   private final EventBroadcaster eventBroadcaster;
-  private final ObjectMapper objectMapper;
 
-<span class="nc" id="L40">  public UpdatesResource(EventBroadcaster eventBroadcaster, ObjectMapper objectMapper) {</span>
-<span class="nc" id="L41">    this.eventBroadcaster = eventBroadcaster;</span>
-<span class="nc" id="L42">    this.objectMapper = objectMapper;</span>
-<span class="nc" id="L43">  }</span>
+<span class="nc" id="L37">  public UpdatesResource(EventBroadcaster eventBroadcaster) {</span>
+<span class="nc" id="L38">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="nc" id="L39">  }</span>
 
   /**
    * Server-Sent Events endpoint for real-time updates.
    *
-   * @return a Multi stream of SSE events as JSON strings
+   * @return a Multi stream of SSE events as WebSocketMessage objects
    */
   @GET
   @Path(&quot;/stream&quot;)
   @Produces(MediaType.SERVER_SENT_EVENTS)
   @RestStreamElementType(MediaType.APPLICATION_JSON)
   @Operation(summary = &quot;Subscribe to real-time updates via Server-Sent Events&quot;)
-  public Multi&lt;String&gt; stream() {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (!realtimeEnabled) {</span>
-<span class="nc" id="L57">      Log.warn(&quot;Event streaming is disabled&quot;);</span>
-<span class="nc" id="L58">      return Multi.createFrom().empty();</span>
+  public Multi&lt;WebSocketMessage&lt;?&gt;&gt; stream() {
+<span class="nc bnc" id="L52" title="All 2 branches missed.">    if (!realtimeEnabled) {</span>
+<span class="nc" id="L53">      Log.warn(&quot;Event streaming is disabled&quot;);</span>
+<span class="nc" id="L54">      return Multi.createFrom().empty();</span>
     }
 
-<span class="nc" id="L61">    Log.info(&quot;New SSE client connected&quot;);</span>
+<span class="nc" id="L57">    Log.info(&quot;New SSE client connected&quot;);</span>
 
     // Get the stream from the event broadcaster
-<span class="nc" id="L64">    Multi&lt;WebSocketMessage&lt;?&gt;&gt; updatesStream = eventBroadcaster.getStream();</span>
+<span class="nc" id="L60">    Multi&lt;WebSocketMessage&lt;?&gt;&gt; updatesStream = eventBroadcaster.getStream();</span>
 
     // Create heartbeat stream
     Multi&lt;WebSocketMessage&lt;?&gt;&gt; heartbeat =
-<span class="nc" id="L68">        Multi.createFrom()</span>
-<span class="nc" id="L69">            .ticks()</span>
-<span class="nc" id="L70">            .every(heartbeatInterval)</span>
-<span class="nc" id="L71">            .map(</span>
+<span class="nc" id="L64">        Multi.createFrom()</span>
+<span class="nc" id="L65">            .ticks()</span>
+<span class="nc" id="L66">            .every(heartbeatInterval)</span>
+<span class="nc" id="L67">            .map(</span>
                 tick -&gt;
-<span class="nc" id="L73">                    new WebSocketMessage&lt;&gt;(</span>
+<span class="nc" id="L69">                    new WebSocketMessage&lt;&gt;(</span>
                         WebSocketEventType.HEARTBEAT,
-<span class="nc" id="L75">                        Map.of(&quot;timestamp&quot;, System.currentTimeMillis())));</span>
+<span class="nc" id="L71">                        Map.of(&quot;timestamp&quot;, System.currentTimeMillis())));</span>
 
     // Merge the updates stream with heartbeat
     Multi&lt;WebSocketMessage&lt;?&gt;&gt; combinedStream =
-<span class="nc" id="L79">        Multi.createBy().merging().streams(updatesStream, heartbeat);</span>
+<span class="nc" id="L75">        Multi.createBy().merging().streams(updatesStream, heartbeat);</span>
 
-    // Convert messages to JSON strings
-<span class="nc" id="L82">    return combinedStream</span>
-<span class="nc" id="L83">        .onItem()</span>
-<span class="nc" id="L84">        .transform(</span>
-            message -&gt; {
-              try {
-<span class="nc" id="L87">                return objectMapper.writeValueAsString(message);</span>
-<span class="nc" id="L88">              } catch (JsonProcessingException e) {</span>
-<span class="nc" id="L89">                Log.errorf(e, &quot;Error serializing SSE message: %s&quot;, message);</span>
-<span class="nc" id="L90">                return &quot;{\&quot;type\&quot;:\&quot;ERROR\&quot;,\&quot;data\&quot;:{\&quot;message\&quot;:\&quot;Serialization error\&quot;}}&quot;;</span>
-              }
-            })
-<span class="nc" id="L93">        .onFailure()</span>
-<span class="nc" id="L94">        .invoke(error -&gt; Log.errorf(error, &quot;Error in SSE stream&quot;))</span>
-<span class="nc" id="L95">        .onCancellation()</span>
-<span class="nc" id="L96">        .invoke(() -&gt; Log.info(&quot;SSE client disconnected&quot;))</span>
-<span class="nc" id="L97">        .onCompletion()</span>
-<span class="nc" id="L98">        .invoke(() -&gt; Log.info(&quot;SSE stream completed&quot;));</span>
+    // Return the stream of objects directly - Quarkus will handle JSON serialization
+<span class="nc" id="L78">    return combinedStream</span>
+<span class="nc" id="L79">        .onFailure()</span>
+<span class="nc" id="L80">        .invoke(error -&gt; Log.errorf(error, &quot;Error in SSE stream&quot;))</span>
+<span class="nc" id="L81">        .onCancellation()</span>
+<span class="nc" id="L82">        .invoke(() -&gt; Log.info(&quot;SSE client disconnected&quot;))</span>
+<span class="nc" id="L83">        .onCompletion()</span>
+<span class="nc" id="L84">        .invoke(() -&gt; Log.info(&quot;SSE stream completed&quot;));</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
