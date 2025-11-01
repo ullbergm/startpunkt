@@ -275,7 +275,11 @@
       <groupId>org.eclipse.microprofile.openapi</groupId>
       <artifactId>microprofile-openapi-api</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>.quarkus.resteasy.reactive</groupId>
+      <artifactId>resteasy-reactive-common</artifactId>
+    </dependency>
+    
     <!-- Test Dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -672,5 +676,6 @@
     </profile>
   </profiles>
 </project>
+
 
 
