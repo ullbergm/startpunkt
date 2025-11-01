@@ -26,7 +26,13 @@ class BookmarkV1Alpha1Test {
   void testBookmarkCreationWithParameterizedConstructor() {
     Bookmark bookmark =
         new Bookmark(
-            "Docs", "Development", "mdi:book", "https://docs.example.com", "Documentation", true, 50);
+            "Docs",
+            "Development",
+            "mdi:book",
+            "https://docs.example.com",
+            "Documentation",
+            true,
+            50);
 
     assertNotNull(bookmark.getSpec(), "Spec should be initialized");
     assertEquals("Docs", bookmark.getSpec().getName());
@@ -55,7 +61,8 @@ class BookmarkV1Alpha1Test {
   @Test
   void testBookmarkInequalityDifferentSpec() {
     Bookmark bm1 = createSampleBookmark();
-    Bookmark bm2 = new Bookmark("Different", "Tools", "mdi:wrench", "https://other.com", "Info", false, 10);
+    Bookmark bm2 =
+        new Bookmark("Different", "Tools", "mdi:wrench", "https://other.com", "Info", false, 10);
     bm2.setMetadata(new ObjectMetaBuilder().withName("bm2").withNamespace("default").build());
 
     assertNotEquals(bm1, bm2, "Bookmarks with different specs should not be equal");

@@ -6,10 +6,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
-import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
 
 @QuarkusTest
@@ -29,8 +27,7 @@ class AvailabilityCheckServiceTest {
 
     // Then
     assertNotNull(
-        service.getCachedAvailability("https://example.com"),
-        "URL should be registered in cache");
+        service.getCachedAvailability("https://example.com"), "URL should be registered in cache");
     assertTrue(
         service.getCachedAvailability("https://example.com"),
         "New URL should default to available");

@@ -106,10 +106,8 @@ class UrlFromTest {
 
   @Test
   void testEqualsWithUrlTemplate() {
-    UrlFrom a =
-        new UrlFrom("", "v1", "Service", "svc", "default", "spec.host", "https://{0}/app");
-    UrlFrom b =
-        new UrlFrom("", "v1", "Service", "svc", "default", "spec.host", "https://{0}/app");
+    UrlFrom a = new UrlFrom("", "v1", "Service", "svc", "default", "spec.host", "https://{0}/app");
+    UrlFrom b = new UrlFrom("", "v1", "Service", "svc", "default", "spec.host", "https://{0}/app");
     UrlFrom c = new UrlFrom("", "v1", "Service", "svc", "default", "spec.host", "http://{0}");
 
     assertEquals(a, b);
@@ -147,8 +145,7 @@ class UrlFromTest {
   @Test
   void testToStringWithUrlTemplate() {
     UrlFrom urlFrom =
-        new UrlFrom(
-            "core", "v1", "Service", "web", "prod", "spec.clusterIP", "https://{0}:8080");
+        new UrlFrom("core", "v1", "Service", "web", "prod", "spec.clusterIP", "https://{0}:8080");
     String output = urlFrom.toString();
 
     assertTrue(output.contains("urlTemplate"));

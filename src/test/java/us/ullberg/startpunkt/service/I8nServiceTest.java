@@ -162,8 +162,6 @@ class I8nServiceTest {
     assertNotNull(translation1, "First translation should not be null");
     assertNotNull(translation2, "Second translation should not be null");
     assertEquals(
-        translation1,
-        translation2,
-        "Multiple calls for same language should return same content");
+        translation1, translation2, "Multiple calls for same language should return same content");
   }
 }

@@ -95,7 +95,8 @@ class ApplicationListV1Alpha1Test {
 
   private Application createApplication(String name, String displayName, String group) {
     Application app =
-        new Application(displayName, group, "mdi:test", "blue", "https://test.com", "Info", true, 0, true);
+        new Application(
+            displayName, group, "mdi:test", "blue", "https://test.com", "Info", true, 0, true);
     app.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace("default").build());
     return app;
   }
