@@ -1,6 +1,5 @@
 package us.ullberg.startpunkt.service;
 
-import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.logging.Log;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -54,13 +53,16 @@ public class AvailabilityCheckService {
   private final Map<String, Boolean> previousAvailabilityCache = new ConcurrentHashMap<>();
   private final HttpClient httpClient;
   private final EventBroadcaster eventBroadcaster;
+  private final ApplicationCacheManager cacheManager;
 
   /** Constructor that initializes the HTTP client with appropriate timeouts. */
   public AvailabilityCheckService(
       @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
           boolean ignoreCertificates,
-      EventBroadcaster eventBroadcaster) {
+      EventBroadcaster eventBroadcaster,
+      ApplicationCacheManager cacheManager) {
     this.eventBroadcaster = eventBroadcaster;
+    this.cacheManager = cacheManager;
     HttpClient.Builder builder =
         HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -240,7 +242,7 @@ public class AvailabilityCheckService {
     if (hasChanges) {
       Log.info("Broadcasting STATUS_CHANGED event due to availability changes");
       // Invalidate caches BEFORE broadcasting to ensure fresh data
-      invalidateApplicationCaches();
+      cacheManager.invalidateApplicationCaches();
       eventBroadcaster.broadcastStatusChanged(
           Map.of("timestamp", System.currentTimeMillis(), "reason", "availability_check"));
     }
@@ -271,31 +273,5 @@ public class AvailabilityCheckService {
    */
   public Boolean getCachedAvailability(String url) {
     return availabilityCache.get(url);
-  }
-
-  /**
-   * Invalidates the application caches to force fresh data on next request. Called when
-   * availability status changes to ensure clients get updated data.
-   */
-  public void invalidateApplicationCaches() {
-    invalidateGetAppCache();
-    invalidateGetAppsCache();
-    invalidateGetAppsFilteredCache();
-    Log.debug("Invalidated application caches due to availability changes");
-  }
-
-  @CacheInvalidate(cacheName = "getApp")
-  protected void invalidateGetAppCache() {
-    // No-op: annotation triggers cache invalidation
-  }
-
-  @CacheInvalidate(cacheName = "getApps")
-  protected void invalidateGetAppsCache() {
-    // No-op: annotation triggers cache invalidation
-  }
-
-  @CacheInvalidate(cacheName = "getAppsFiltered")
-  protected void invalidateGetAppsFilteredCache() {
-    // No-op: annotation triggers cache invalidation
   }
 }

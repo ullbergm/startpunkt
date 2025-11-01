@@ -13,8 +13,8 @@ import us.ullberg.startpunkt.messaging.EventBroadcaster;
 /**
  * Integration tests for the SSE UpdatesResource endpoint and EventBroadcaster.
  *
- * <p>Tests event broadcasting functionality. Note: SSE endpoint connectivity is tested manually
- * or via separate integration tests due to long-lived connection nature.
+ * <p>Tests event broadcasting functionality. Note: SSE endpoint connectivity is tested manually or
+ * via separate integration tests due to long-lived connection nature.
  */
 @QuarkusTest
 @TestProfile(UpdatesResourceTest.RealtimeEnabledProfile.class)
@@ -60,4 +60,3 @@ class UpdatesResourceTest {
     assertNotNull(eventBroadcaster.getStream(), "Event stream should not be null");
   }
 }
-

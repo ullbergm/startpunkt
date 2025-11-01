@@ -5,6 +5,11 @@ startpunkt:
   # Default language for the web UI
   defaultLanguage: "en-US"
 
+  # Kubernetes resource watching
+  watch:
+    enabled: true  # If true, watch Kubernetes resources for changes in real-time (recommended)
+    # When disabled, resources are only loaded on-demand when REST endpoints are called
+
   # Application availability checking
   availability:
     enabled: true  # If true, check application availability
