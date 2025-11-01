@@ -23,6 +23,7 @@ import { BookmarkGroupList } from './BookmarkGroupList';
 import { ForkMe } from './ForkMe';
 import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
+import { SSEHeartIndicator } from './SSEHeartIndicator';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -215,24 +216,6 @@ export function App() {
     }
   );
 
-  // Calculate seconds since last heartbeat
-  const [secondsSinceHeartbeat, setSecondsSinceHeartbeat] = useState(null);
-  
-  useEffect(() => {
-    if (!websocket.lastHeartbeat) {
-      setSecondsSinceHeartbeat(null);
-      return;
-    }
-    
-    // Update every second
-    const interval = setInterval(() => {
-      const seconds = Math.floor((Date.now() - websocket.lastHeartbeat) / 1000);
-      setSecondsSinceHeartbeat(seconds);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [websocket.lastHeartbeat]);
-
   // Initial data fetch
   useEffect(() => {
     fetchData();
@@ -332,29 +315,14 @@ export function App() {
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
       <SpotlightSearch />
+      
+      {realtimeEnabled && <SSEHeartIndicator websocket={websocket} />}
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
           <div>
             <h3 class="float-md-start mb-0">
               <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}
-              {realtimeEnabled && (
-                <span 
-                  class={`badge ms-2 ${websocket.isConnected ? 'bg-success' : websocket.isConnecting ? 'bg-warning' : 'bg-secondary'}`}
-                  style="font-size: 0.5rem; vertical-align: middle;"
-                  title={
-                    websocket.isConnected 
-                      ? (secondsSinceHeartbeat !== null 
-                          ? `Real-time updates active (${secondsSinceHeartbeat}s since last heartbeat)` 
-                          : 'Real-time updates active')
-                      : websocket.isConnecting 
-                        ? 'Connecting...' 
-                        : 'Using HTTP polling'
-                  }
-                >
-                  {websocket.isConnected ? '●' : websocket.isConnecting ? '○' : '◌'}
-                </span>
-              )}
             </h3>
             <nav class="nav nav-masthead justify-content-center float-md-end" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
