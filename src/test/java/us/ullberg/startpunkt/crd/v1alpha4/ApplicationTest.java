@@ -193,4 +193,219 @@ class ApplicationTest {
     // Different status instances make applications unequal (ApplicationStatus uses default equals)
     assertNotEquals(app1, app2);
   }
+
+  @Test
+  void testEqualsWithNull() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    assertNotEquals(null, app);
+  }
+
+  @Test
+  void testSetSpecDirectly() {
+    Application app = new Application();
+    ApplicationSpec spec =
+        new ApplicationSpec("DirectApp", "Tools", "mdi:tool", "blue", "https://tool.com", "A tool", true, 3, true);
+    app.setSpec(spec);
+
+    assertEquals("DirectApp", app.getSpec().getName());
+    assertEquals("Tools", app.getSpec().getGroup());
+    assertEquals(3, app.getSpec().getLocation());
+  }
+
+  @Test
+  void testSpecWithNullValues() {
+    Application app = new Application(null, null, null, null, null, null, null, 0, null);
+    ApplicationSpec spec = app.getSpec();
+    
+    assertNotNull(spec);
+    assertNull(spec.getName());
+    assertNull(spec.getGroup());
+    assertNull(spec.getIcon());
+    assertNull(spec.getUrl());
+  }
+
+  @Test
+  void testConstructorWithEmptyStrings() {
+    Application app = new Application("", "", "", "", "", "", false, 0, false);
+    
+    assertEquals("", app.getSpec().getName());
+    assertEquals("", app.getSpec().getGroup());
+    assertEquals("", app.getSpec().getIcon());
+  }
+
+  @Test
+  void testConstructorWithSpecialCharacters() {
+    Application app =
+        new Application(
+            "App/Name",
+            "Group-Name",
+            "mdi:test-icon",
+            "#FF00FF",
+            "https://example.com/path?param=value&other=123",
+            "Info with special chars: <>&\"'",
+            true,
+            0,
+            true);
+
+    assertEquals("App/Name", app.getSpec().getName());
+    assertEquals("Group-Name", app.getSpec().getGroup());
+    assertEquals("#FF00FF", app.getSpec().getIconColor());
+    assertTrue(app.getSpec().getUrl().contains("param=value"));
+  }
+
+  @Test
+  void testConstructorWithMaxLocationValue() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, Integer.MAX_VALUE, true);
+    assertEquals(Integer.MAX_VALUE, app.getSpec().getLocation());
+  }
+
+  @Test
+  void testConstructorWithMinLocationValue() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, Integer.MIN_VALUE, true);
+    assertEquals(Integer.MIN_VALUE, app.getSpec().getLocation());
+  }
+
+  @Test
+  void testHashCodeConsistency() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, 5, true);
+    int hash1 = app.hashCode();
+    int hash2 = app.hashCode();
+    
+    assertEquals(hash1, hash2, "hashCode should be consistent across multiple calls");
+  }
+
+  @Test
+  void testHashCodeChangesWithSpec() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, 5, true);
+    int hash1 = app.hashCode();
+    
+    ApplicationSpec newSpec = new ApplicationSpec("NewApp", "Group", "icon", "red", "url", "info", true, 5, true);
+    app.setSpec(newSpec);
+    int hash2 = app.hashCode();
+    
+    assertNotEquals(hash1, hash2, "hashCode should change when spec changes");
+  }
+
+  @Test
+  void testToStringNotNull() {
+    Application app = new Application();
+    assertNotNull(app.toString());
+  }
+
+  @Test
+  void testConstructorWithRootPathOnly() {
+    Application app =
+        new Application(
+            "PathApp",
+            "Services",
+            "mdi:path",
+            "green",
+            "https://service.com",
+            "Service with path",
+            false,
+            10,
+            true,
+            "/api/v2");
+
+    assertNotNull(app.getSpec());
+    assertEquals("/api/v2", app.getSpec().getRootPath());
+    assertNull(app.getSpec().getTags(), "Tags should be null when not specified");
+  }
+
+  @Test
+  void testConstructorWithEmptyRootPath() {
+    Application app =
+        new Application(
+            "App",
+            "Group",
+            "icon",
+            "color",
+            "url",
+            "info",
+            true,
+            0,
+            true,
+            "");
+
+    assertEquals("", app.getSpec().getRootPath());
+  }
+
+  @Test
+  void testConstructorWithEmptyTags() {
+    Application app =
+        new Application(
+            "App",
+            "Group",
+            "icon",
+            "color",
+            "url",
+            "info",
+            true,
+            0,
+            true,
+            "/path",
+            "");
+
+    assertEquals("", app.getSpec().getTags());
+  }
+
+  @Test
+  void testConstructorWithWhitespaceTags() {
+    Application app =
+        new Application(
+            "App",
+            "Group",
+            "icon",
+            "color",
+            "url",
+            "info",
+            true,
+            0,
+            true,
+            "/path",
+            "  tag1  ,  tag2  ");
+
+    assertEquals("  tag1  ,  tag2  ", app.getSpec().getTags());
+  }
+
+  @Test
+  void testConstructorWithSingleTag() {
+    Application app =
+        new Application(
+            "App",
+            "Group",
+            "icon",
+            "color",
+            "url",
+            "info",
+            true,
+            0,
+            true,
+            "/path",
+            "production");
+
+    assertEquals("production", app.getSpec().getTags());
+  }
+
+  @Test
+  void testToStringIncludesRootPathAndTags() {
+    Application app =
+        new Application(
+            "CompleteApp",
+            "Tools",
+            "mdi:complete",
+            "purple",
+            "https://complete.com",
+            "Complete application",
+            true,
+            20,
+            true,
+            "/dashboard",
+            "monitoring,critical");
+
+    String result = app.toString();
+    assertTrue(result.contains("CompleteApp"));
+    assertTrue(result.contains("/dashboard"));
+    assertTrue(result.contains("monitoring"));
+  }
 }
