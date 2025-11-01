@@ -1,56 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventBroadcaster.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.messaging</a> &gt; <span class="el_source">EventBroadcaster.java</span></div><h1>EventBroadcaster.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.messaging;
 
 import io.quarkus.logging.Log;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.websocket.WebSocketConnectionManager;
 import us.ullberg.startpunkt.websocket.WebSocketEventType;
 import us.ullberg.startpunkt.websocket.WebSocketMessage;
 
 /**
- * Service for broadcasting events to connected clients using Mutiny Multi streams.
+ * Service for broadcasting events to connected clients using WebSocket.
  *
  * &lt;p&gt;This service provides methods to broadcast various types of events (application changes,
- * configuration updates, etc.) to all connected clients via Server-Sent Events (SSE). It includes
- * debouncing logic to prevent flooding clients with rapid updates.
+ * configuration updates, etc.) to all connected clients via WebSocket. It includes debouncing logic
+ * to prevent flooding clients with rapid updates.
  */
 @ApplicationScoped
-<span class="fc" id="L24">public class EventBroadcaster {</span>
+public class EventBroadcaster {
 
-  @ConfigProperty(name = &quot;startpunkt.realtime.enabled&quot;, defaultValue = &quot;true&quot;)
-  boolean realtimeEnabled;
+  private final WebSocketConnectionManager connectionManager;
 
-  @ConfigProperty(name = &quot;startpunkt.realtime.eventDebounceMs&quot;, defaultValue = &quot;500&quot;)
+  @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean websocketEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.websocket.eventDebounceMs&quot;, defaultValue = &quot;500&quot;)
   long eventDebounceMs;
 
-  // BroadcastProcessor for broadcasting messages to multiple subscribers
-  private BroadcastProcessor&lt;WebSocketMessage&lt;?&gt;&gt; processor;
-  private Multi&lt;WebSocketMessage&lt;?&gt;&gt; stream;
-
   // Track last broadcast time for each event type to implement debouncing
-<span class="fc" id="L37">  private final Map&lt;String, Instant&gt; lastBroadcastTimes = new ConcurrentHashMap&lt;&gt;();</span>
-
-  @PostConstruct
-  void init() {
-    // Create a broadcast processor that can handle multiple subscribers
-<span class="fc" id="L42">    processor = BroadcastProcessor.create();</span>
-<span class="fc" id="L43">    stream = processor;</span>
-<span class="fc" id="L44">  }</span>
+<span class="fc" id="L33">  private final Map&lt;String, Instant&gt; lastBroadcastTimes = new ConcurrentHashMap&lt;&gt;();</span>
 
   /**
-   * Get the Multi stream for subscribing to events.
+   * Constructor for EventBroadcaster.
    *
-   * @return the Multi stream of WebSocketMessages
+   * @param connectionManager the WebSocket connection manager
    */
-  public Multi&lt;WebSocketMessage&lt;?&gt;&gt; getStream() {
-<span class="fc" id="L52">    return stream;</span>
-  }
+<span class="fc" id="L40">  public EventBroadcaster(WebSocketConnectionManager connectionManager) {</span>
+<span class="fc" id="L41">    this.connectionManager = connectionManager;</span>
+<span class="fc" id="L42">  }</span>
 
   /**
    * Broadcasts an event to all connected clients with debouncing.
@@ -60,29 +49,29 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param &lt;T&gt; the type of the event data
    */
   public &lt;T&gt; void broadcastEvent(WebSocketEventType eventType, T data) {
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    if (!realtimeEnabled) {</span>
-<span class="nc" id="L64">      Log.warnf(&quot;Event broadcasting is disabled, not broadcasting event: %s&quot;, eventType);</span>
-<span class="nc" id="L65">      return;</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">    if (!websocketEnabled) {</span>
+<span class="nc" id="L53">      Log.warnf(&quot;Event broadcasting is disabled, not broadcasting event: %s&quot;, eventType);</span>
+<span class="nc" id="L54">      return;</span>
     }
 
     // Create a unique key for this event type and data
-<span class="fc" id="L69">    String eventKey = eventType.toString();</span>
+<span class="fc" id="L58">    String eventKey = eventType.toString();</span>
 
     // Check if we should debounce this event
-<span class="fc bfc" id="L72" title="All 2 branches covered.">    if (shouldDebounce(eventKey)) {</span>
-<span class="fc" id="L73">      Log.debugf(&quot;Debouncing event: %s&quot;, eventType);</span>
-<span class="fc" id="L74">      return;</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    if (shouldDebounce(eventKey)) {</span>
+<span class="fc" id="L62">      Log.debugf(&quot;Debouncing event: %s&quot;, eventType);</span>
+<span class="fc" id="L63">      return;</span>
     }
 
     // Update last broadcast time
-<span class="fc" id="L78">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+<span class="fc" id="L67">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
 
     // Create and broadcast the message
-<span class="fc" id="L81">    var message = new WebSocketMessage&lt;&gt;(eventType, data);</span>
-<span class="fc" id="L82">    processor.onNext(message);</span>
+<span class="fc" id="L70">    var message = new WebSocketMessage&lt;&gt;(eventType, data);</span>
+<span class="fc" id="L71">    connectionManager.broadcast(message);</span>
 
-<span class="fc" id="L84">    Log.infof(&quot;Broadcasted event: %s&quot;, eventType);</span>
-<span class="fc" id="L85">  }</span>
+<span class="fc" id="L73">    Log.infof(&quot;Broadcasted event: %s&quot;, eventType);</span>
+<span class="fc" id="L74">  }</span>
 
   /**
    * Checks if an event should be debounced based on the last broadcast time.
@@ -91,13 +80,13 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @return true if the event should be debounced, false otherwise
    */
   private boolean shouldDebounce(String eventKey) {
-<span class="fc" id="L94">    Instant lastBroadcast = lastBroadcastTimes.get(eventKey);</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">    if (lastBroadcast == null) {</span>
-<span class="fc" id="L96">      return false;</span>
+<span class="fc" id="L83">    Instant lastBroadcast = lastBroadcastTimes.get(eventKey);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    if (lastBroadcast == null) {</span>
+<span class="fc" id="L85">      return false;</span>
     }
 
-<span class="fc" id="L99">    Duration timeSinceLastBroadcast = Duration.between(lastBroadcast, Instant.now());</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    return timeSinceLastBroadcast.toMillis() &lt; eventDebounceMs;</span>
+<span class="fc" id="L88">    Duration timeSinceLastBroadcast = Duration.between(lastBroadcast, Instant.now());</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    return timeSinceLastBroadcast.toMillis() &lt; eventDebounceMs;</span>
   }
 
   /**
@@ -106,8 +95,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param applicationData the application data
    */
   public void broadcastApplicationAdded(Object applicationData) {
-<span class="fc" id="L109">    broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);</span>
-<span class="fc" id="L110">  }</span>
+<span class="fc" id="L98">    broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);</span>
+<span class="fc" id="L99">  }</span>
 
   /**
    * Broadcasts an application removed event.
@@ -115,8 +104,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param applicationData the application data
    */
   public void broadcastApplicationRemoved(Object applicationData) {
-<span class="fc" id="L118">    broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);</span>
-<span class="fc" id="L119">  }</span>
+<span class="fc" id="L107">    broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);</span>
+<span class="fc" id="L108">  }</span>
 
   /**
    * Broadcasts an application updated event.
@@ -124,8 +113,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param applicationData the application data
    */
   public void broadcastApplicationUpdated(Object applicationData) {
-<span class="fc" id="L127">    broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);</span>
-<span class="fc" id="L128">  }</span>
+<span class="fc" id="L116">    broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);</span>
+<span class="fc" id="L117">  }</span>
 
   /**
    * Broadcasts a configuration changed event.
@@ -133,8 +122,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param configData the configuration data
    */
   public void broadcastConfigChanged(Object configData) {
-<span class="fc" id="L136">    broadcastEvent(WebSocketEventType.CONFIG_CHANGED, configData);</span>
-<span class="fc" id="L137">  }</span>
+<span class="fc" id="L125">    broadcastEvent(WebSocketEventType.CONFIG_CHANGED, configData);</span>
+<span class="fc" id="L126">  }</span>
 
   /**
    * Broadcasts a status changed event.
@@ -142,8 +131,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param statusData the status data
    */
   public void broadcastStatusChanged(Object statusData) {
-<span class="fc" id="L145">    broadcastEvent(WebSocketEventType.STATUS_CHANGED, statusData);</span>
-<span class="fc" id="L146">  }</span>
+<span class="fc" id="L134">    broadcastEvent(WebSocketEventType.STATUS_CHANGED, statusData);</span>
+<span class="fc" id="L135">  }</span>
 
   /**
    * Broadcasts a bookmark added event.
@@ -151,8 +140,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkAdded(Object bookmarkData) {
-<span class="fc" id="L154">    broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);</span>
-<span class="fc" id="L155">  }</span>
+<span class="fc" id="L143">    broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);</span>
+<span class="fc" id="L144">  }</span>
 
   /**
    * Broadcasts a bookmark removed event.
@@ -160,8 +149,8 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkRemoved(Object bookmarkData) {
-<span class="fc" id="L163">    broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);</span>
-<span class="fc" id="L164">  }</span>
+<span class="fc" id="L152">    broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);</span>
+<span class="fc" id="L153">  }</span>
 
   /**
    * Broadcasts a bookmark updated event.
@@ -169,7 +158,7 @@ import us.ullberg.startpunkt.websocket.WebSocketMessage;
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkUpdated(Object bookmarkData) {
-<span class="fc" id="L172">    broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);</span>
-<span class="fc" id="L173">  }</span>
+<span class="fc" id="L161">    broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);</span>
+<span class="fc" id="L162">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -40,9 +40,9 @@ public class ConfigResource {
   @ConfigProperty(name = &quot;startpunkt.web.refreshInterval&quot;, defaultValue = &quot;300&quot;)
   public int refreshInterval;
 
-  /** Indicates whether real-time updates are enabled. */
-  @ConfigProperty(name = &quot;startpunkt.realtime.enabled&quot;, defaultValue = &quot;true&quot;)
-  public boolean realtimeEnabled;
+  /** Indicates whether WebSocket connections for real-time updates are enabled. */
+  @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
+  public boolean websocketEnabled;
 
   /** Application version, usually set by Quarkus during build. */
   @ConfigProperty(name = &quot;quarkus.application.version&quot;, defaultValue = &quot;0&quot;)
@@ -92,8 +92,8 @@ public class ConfigResource {
                 title,
                 &quot;refreshInterval&quot;,
 <span class="fc" id="L94">                refreshInterval),</span>
-            &quot;realtime&quot;,
-<span class="fc" id="L96">            Map.of(&quot;enabled&quot;, realtimeEnabled)));</span>
+            &quot;websocket&quot;,
+<span class="fc" id="L96">            Map.of(&quot;enabled&quot;, websocketEnabled)));</span>
   }
 
   /**
