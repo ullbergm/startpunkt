@@ -94,7 +94,7 @@ class BookmarkSpecTest {
   void testComparisonByLocation() {
     BookmarkSpec low = new BookmarkSpec("A", "Group", null, "url", null, false, 1);
     BookmarkSpec high = new BookmarkSpec("B", "Group", null, "url", null, false, 10);
-    
+
     assertTrue(low.compareTo(high) < 0);
     assertTrue(high.compareTo(low) > 0);
     assertEquals(0, low.compareTo(low));
@@ -104,7 +104,7 @@ class BookmarkSpecTest {
   void testComparisonByGroupThenLocation() {
     BookmarkSpec groupA = new BookmarkSpec("X", "A", null, "url", null, false, 5);
     BookmarkSpec groupB = new BookmarkSpec("Y", "B", null, "url", null, false, 1);
-    
+
     // Group "A" < "B", regardless of location
     assertTrue(groupA.compareTo(groupB) < 0);
   }
@@ -113,7 +113,7 @@ class BookmarkSpecTest {
   void testComparisonByName() {
     BookmarkSpec alpha = new BookmarkSpec("Alpha", "Group", null, "url", null, false, 1);
     BookmarkSpec beta = new BookmarkSpec("Beta", "Group", null, "url", null, false, 1);
-    
+
     assertTrue(alpha.compareTo(beta) < 0);
     assertTrue(beta.compareTo(alpha) > 0);
   }
@@ -154,7 +154,7 @@ class BookmarkSpecTest {
   @Test
   void testInequalityOnEachField() {
     BookmarkSpec base = new BookmarkSpec("App", "Group", "icon", "url", "info", true, 1);
-    
+
     BookmarkSpec diffName = new BookmarkSpec("Other", "Group", "icon", "url", "info", true, 1);
     BookmarkSpec diffGroup = new BookmarkSpec("App", "Other", "icon", "url", "info", true, 1);
     BookmarkSpec diffIcon = new BookmarkSpec("App", "Group", "other", "url", "info", true, 1);
@@ -162,7 +162,7 @@ class BookmarkSpecTest {
     BookmarkSpec diffInfo = new BookmarkSpec("App", "Group", "icon", "url", "other", true, 1);
     BookmarkSpec diffTarget = new BookmarkSpec("App", "Group", "icon", "url", "info", false, 1);
     BookmarkSpec diffLocation = new BookmarkSpec("App", "Group", "icon", "url", "info", true, 2);
-    
+
     assertNotEquals(base, diffName);
     assertNotEquals(base, diffGroup);
     assertNotEquals(base, diffIcon);
@@ -188,7 +188,8 @@ class BookmarkSpecTest {
 
   @Test
   void testLargeLocation() {
-    BookmarkSpec spec = new BookmarkSpec("App", "Group", null, "url", null, true, Integer.MAX_VALUE);
+    BookmarkSpec spec =
+        new BookmarkSpec("App", "Group", null, "url", null, true, Integer.MAX_VALUE);
     assertEquals(Integer.MAX_VALUE, spec.getLocation());
   }
 

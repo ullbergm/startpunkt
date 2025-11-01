@@ -132,7 +132,8 @@ class ApplicationTest {
     assertNull(app.getSpec());
     assertNull(app.getStatus());
 
-    ApplicationSpec spec = new ApplicationSpec("Test", "Group", null, null, "url", null, true, 0, true);
+    ApplicationSpec spec =
+        new ApplicationSpec("Test", "Group", null, null, "url", null, true, 0, true);
     app.setSpec(spec);
     assertNotNull(app.getSpec());
     assertNull(app.getStatus());
@@ -152,10 +153,10 @@ class ApplicationTest {
   void testEqualsWithStatus() {
     Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
     Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
-    
+
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     app1.setStatus(status1);
     app2.setStatus(status2);
 
@@ -168,9 +169,9 @@ class ApplicationTest {
   void testEqualityWithSameStatus() {
     Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
     Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
-    
+
     ApplicationStatus status = new ApplicationStatus();
-    
+
     app1.setStatus(status);
     app2.setStatus(status); // Same instance
 
@@ -182,10 +183,10 @@ class ApplicationTest {
   void testInequalityDifferentStatus() {
     Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
     Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
-    
+
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     app1.setStatus(status1);
     app2.setStatus(status2);
 

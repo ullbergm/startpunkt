@@ -70,12 +70,7 @@ class ConfigResourceTest {
 
   @Test
   void testPingReturnsTextPlain() {
-    given()
-        .when()
-        .get("/api/config/ping")
-        .then()
-        .statusCode(200)
-        .contentType(MediaType.TEXT_PLAIN);
+    given().when().get("/api/config/ping").then().statusCode(200).contentType(MediaType.TEXT_PLAIN);
   }
 
   @Test
@@ -120,12 +115,7 @@ class ConfigResourceTest {
 
   @Test
   void testGetConfigWebTitleIsString() {
-    given()
-        .when()
-        .get("/api/config")
-        .then()
-        .statusCode(200)
-        .body("config.web.title", anything());
+    given().when().get("/api/config").then().statusCode(200).body("config.web.title", anything());
   }
 
   @Test

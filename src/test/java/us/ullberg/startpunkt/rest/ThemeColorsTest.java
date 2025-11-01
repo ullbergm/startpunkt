@@ -24,8 +24,7 @@ class ThemeColorsTest {
   @Test
   void testParameterizedConstructor() {
     // When
-    ThemeColors colors =
-        new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
+    ThemeColors colors = new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
 
     // Then
     assertNotNull(colors, "ThemeColors should be created");
@@ -133,8 +132,7 @@ class ThemeColorsTest {
   @Test
   void testSetNullValues() {
     // Given
-    ThemeColors colors =
-        new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
+    ThemeColors colors = new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
 
     // When
     colors.setBodyBgColor(null);
@@ -154,8 +152,7 @@ class ThemeColorsTest {
   @Test
   void testReplaceColorValues() {
     // Given
-    ThemeColors colors =
-        new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
+    ThemeColors colors = new ThemeColors("#ffffff", "#000000", "#0066cc", "#333333", "#6699ff");
 
     // When
     colors.setBodyBgColor("#f0f0f0");
@@ -191,9 +188,12 @@ class ThemeColorsTest {
     ThemeColors colors1 = new ThemeColors("#fff", "#000", "#06c", "#333", "#69f");
     ThemeColors colors2 =
         new ThemeColors(
-            "rgb(255,255,255)", "rgb(0,0,0)", "rgb(0,102,204)", "rgb(51,51,51)", "rgb(102,153,255)");
-    ThemeColors colors3 =
-        new ThemeColors("white", "black", "blue", "darkgray", "lightblue");
+            "rgb(255,255,255)",
+            "rgb(0,0,0)",
+            "rgb(0,102,204)",
+            "rgb(51,51,51)",
+            "rgb(102,153,255)");
+    ThemeColors colors3 = new ThemeColors("white", "black", "blue", "darkgray", "lightblue");
 
     // Then - All formats should be accepted (validation is not enforced in the class)
     assertNotNull(colors1);

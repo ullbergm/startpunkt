@@ -52,7 +52,7 @@ class BookmarkServiceTest {
         client.apiextensions().v1().customResourceDefinitions().resource(crd).create();
 
     assertNotNull(createdBookmarkCrd);
-    
+
     // Clean up any existing bookmarks from previous tests
     client.resources(Bookmark.class).inAnyNamespace().delete();
   }
@@ -144,9 +144,11 @@ class BookmarkServiceTest {
 
     // Verify non-zero locations are preserved
     assertTrue(
-        bookmarks.stream().anyMatch(b -> "Location Five".equals(b.getName()) && b.getLocation() == 5));
+        bookmarks.stream()
+            .anyMatch(b -> "Location Five".equals(b.getName()) && b.getLocation() == 5));
     assertTrue(
-        bookmarks.stream().anyMatch(b -> "Location Ten".equals(b.getName()) && b.getLocation() == 10));
+        bookmarks.stream()
+            .anyMatch(b -> "Location Ten".equals(b.getName()) && b.getLocation() == 10));
     assertTrue(
         bookmarks.stream()
             .anyMatch(b -> "Location Hundred".equals(b.getName()) && b.getLocation() == 100));
@@ -155,8 +157,7 @@ class BookmarkServiceTest {
   @Test
   void testLocationNormalization_NegativeLocation() {
     // Create a bookmark with negative location
-    createBookmarkWithLocation(
-        "default", "Negative Location", "Test", "https://negative.com", -5);
+    createBookmarkWithLocation("default", "Negative Location", "Test", "https://negative.com", -5);
 
     List<BookmarkSpec> bookmarks = bookmarkService.retrieveBookmarks();
 
@@ -172,8 +173,7 @@ class BookmarkServiceTest {
   @Test
   void testLocationNormalization_LargeLocation() {
     // Create a bookmark with a large location value
-    createBookmarkWithLocation(
-        "default", "Large Location", "Test", "https://large.com", 999999);
+    createBookmarkWithLocation("default", "Large Location", "Test", "https://large.com", 999999);
 
     List<BookmarkSpec> bookmarks = bookmarkService.retrieveBookmarks();
 
@@ -199,7 +199,8 @@ class BookmarkServiceTest {
 
     // Verify all group names are lowercased
     assertTrue(
-        bookmarks.stream().allMatch(b -> b.getGroup() != null && b.getGroup().equals(b.getGroup().toLowerCase())),
+        bookmarks.stream()
+            .allMatch(b -> b.getGroup() != null && b.getGroup().equals(b.getGroup().toLowerCase())),
         "All group names should be lowercased");
 
     // Verify specific lowercasing
@@ -219,10 +220,7 @@ class BookmarkServiceTest {
 
     Bookmark bookmark = new Bookmark();
     bookmark.setMetadata(
-        new ObjectMetaBuilder()
-            .withName("target-blank-bookmark")
-            .withNamespace("default")
-            .build());
+        new ObjectMetaBuilder().withName("target-blank-bookmark").withNamespace("default").build());
     bookmark.setSpec(spec);
 
     client.resources(Bookmark.class).inNamespace("default").resource(bookmark).create();

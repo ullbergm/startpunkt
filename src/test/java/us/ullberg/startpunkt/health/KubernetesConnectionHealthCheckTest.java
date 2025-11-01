@@ -212,11 +212,12 @@ class KubernetesConnectionHealthCheckTest {
   @Test
   void testCallReturnsDownWhenExceptionOccurs() {
     // Given - Mock server will throw an exception when accessing version
-    // (the mock server behavior for getKubernetesVersion depends on setup, but we can test error path)
-    
+    // (the mock server behavior for getKubernetesVersion depends on setup, but we can test error
+    // path)
+
     // When - Use a client that will fail (null pointer or connection issue)
     // Note: This requires careful setup - simpler to test with actual mock
-    
+
     // For now, verify that the healthcheck handles data correctly in success case
     server
         .expect()
@@ -260,7 +261,8 @@ class KubernetesConnectionHealthCheckTest {
         .expect()
         .get()
         .withPath("/api/v1/namespaces")
-        .andReturn(HttpURLConnection.HTTP_OK, new NamespaceListBuilder().withItems(namespaces).build())
+        .andReturn(
+            HttpURLConnection.HTTP_OK, new NamespaceListBuilder().withItems(namespaces).build())
         .always();
 
     // When
@@ -298,12 +300,15 @@ class KubernetesConnectionHealthCheckTest {
     assertNotNull(response.getName(), "Response should have a name");
     assertNotNull(response.getStatus(), "Response should have a status");
     assertTrue(response.getData().isPresent(), "Response should have data");
-    
+
     var data = response.getData().get();
     // Should have the key metrics: Version, Nodes, Namespaces, plus 6 API group checks
     int expectedMinimumKeys = 9; // version + nodes + namespaces + 6 API groups
-    assertTrue(data.size() >= expectedMinimumKeys, 
-        String.format("Should have at least %d data points (version, nodes, namespaces, and 6 API group checks)", expectedMinimumKeys));
+    assertTrue(
+        data.size() >= expectedMinimumKeys,
+        String.format(
+            "Should have at least %d data points (version, nodes, namespaces, and 6 API group checks)",
+            expectedMinimumKeys));
   }
 
   @Test

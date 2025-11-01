@@ -30,7 +30,8 @@ class ApplicationResourceTagFilteringTest {
     apps.add(createApp("App1", "tag1,tag2"));
     apps.add(createApp("App2", "tag3"));
 
-    ArrayList<ApplicationSpecWithAvailability> result = resource.filterApplicationsByTags(apps, null);
+    ArrayList<ApplicationSpecWithAvailability> result =
+        resource.filterApplicationsByTags(apps, null);
 
     assertEquals(2, result.size(), "Null filter should return all applications");
   }
@@ -69,11 +70,9 @@ class ApplicationResourceTagFilteringTest {
 
     assertEquals(2, result.size(), "Should match apps with 'production' tag");
     assertTrue(
-        result.stream().anyMatch(app -> "App1".equals(app.getName())),
-        "Should include App1");
+        result.stream().anyMatch(app -> "App1".equals(app.getName())), "Should include App1");
     assertTrue(
-        result.stream().anyMatch(app -> "App3".equals(app.getName())),
-        "Should include App3");
+        result.stream().anyMatch(app -> "App3".equals(app.getName())), "Should include App3");
   }
 
   @Test
@@ -153,8 +152,7 @@ class ApplicationResourceTagFilteringTest {
     ArrayList<ApplicationSpecWithAvailability> result =
         resource.filterApplicationsByTags(apps, "prod");
 
-    assertEquals(
-        1, result.size(), "Should match exact tags only, not partial matches");
+    assertEquals(1, result.size(), "Should match exact tags only, not partial matches");
     assertTrue(result.stream().anyMatch(app -> "App1".equals(app.getName())));
   }
 
