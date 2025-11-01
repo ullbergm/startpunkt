@@ -135,11 +135,7 @@ class I8nResourceTest {
   @Test
   void testEmptyLanguageCode() {
     // Empty language path will hit the base /api/i8n endpoint
-    given()
-        .when()
-        .get("/api/i8n/")
-        .then()
-        .statusCode(200); // Base endpoint returns 200
+    given().when().get("/api/i8n/").then().statusCode(200); // Base endpoint returns 200
   }
 
   @Test
@@ -164,20 +160,11 @@ class I8nResourceTest {
 
   @Test
   void testResponseContentType() {
-    given()
-        .when()
-        .get("/api/i8n/en-US")
-        .then()
-        .statusCode(200)
-        .contentType("application/json");
+    given().when().get("/api/i8n/en-US").then().statusCode(200).contentType("application/json");
   }
 
   @Test
   void testValidTwoLetterCode() {
-    given()
-        .when()
-        .get("/api/i8n/de")
-        .then()
-        .statusCode(200);
+    given().when().get("/api/i8n/de").then().statusCode(200);
   }
 }

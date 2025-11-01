@@ -470,42 +470,22 @@ class ApplicationResourceTest {
   // Additional edge case tests
   @Test
   void testApplicationsResponseContentType() {
-    given()
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200)
-        .contentType("application/json");
+    given().when().get("/api/apps").then().statusCode(200).contentType("application/json");
   }
 
   @Test
   void testApplicationsWithNoMatchingTags() {
-    given()
-        .queryParam("tags", "nonexistent-tag")
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200);
+    given().queryParam("tags", "nonexistent-tag").when().get("/api/apps").then().statusCode(200);
   }
 
   @Test
   void testApplicationsWithMultipleTagsQueryParam() {
-    given()
-        .queryParam("tags", "admin,home,extra")
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200);
+    given().queryParam("tags", "admin,home,extra").when().get("/api/apps").then().statusCode(200);
   }
 
   @Test
   void testApplicationsWithEmptyTagsParam() {
-    given()
-        .queryParam("tags", "")
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200);
+    given().queryParam("tags", "").when().get("/api/apps").then().statusCode(200);
   }
 
   @Test
@@ -553,22 +533,14 @@ class ApplicationResourceTest {
   @Test
   void testDisabledApplicationsAreExcluded() {
     // Verify that disabled applications are not returned
-    given()
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200);
+    given().when().get("/api/apps").then().statusCode(200);
     // The disabled K3s application should not appear in results
   }
 
   @Test
   void testApplicationWithRootPath() {
     // Verify applications with rootPath are handled correctly
-    given()
-        .when()
-        .get("/api/apps")
-        .then()
-        .statusCode(200);
+    given().when().get("/api/apps").then().statusCode(200);
   }
 
   /** Test profile for empty namespace configuration in ApplicationResource tests. */

@@ -429,7 +429,7 @@ class ApplicationSpecTest {
   @Test
   void testSetAllFieldsViaSetters() {
     ApplicationSpec spec = new ApplicationSpec();
-    
+
     spec.setName("SetterApp");
     spec.setGroup("SetterGroup");
     spec.setIcon("mdi:setter");
@@ -441,7 +441,7 @@ class ApplicationSpecTest {
     spec.setEnabled(true);
     spec.setRootPath("/setter/path");
     spec.setTags("setter,tags,test");
-    
+
     UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "setter-svc", "default", "spec.host");
     spec.setUrlFrom(urlFrom);
 
@@ -464,7 +464,17 @@ class ApplicationSpecTest {
   void testTagsParsing() {
     ApplicationSpec spec =
         new ApplicationSpec(
-            "App", "Group", null, null, "url", null, true, 0, true, "/path", "production,monitoring,critical");
+            "App",
+            "Group",
+            null,
+            null,
+            "url",
+            null,
+            true,
+            0,
+            true,
+            "/path",
+            "production,monitoring,critical");
 
     String tags = spec.getTags();
     assertNotNull(tags);
@@ -484,7 +494,8 @@ class ApplicationSpecTest {
   @Test
   void testRootPathWithSlashes() {
     ApplicationSpec spec =
-        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true, "/api/v2/resource", null);
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/api/v2/resource", null);
 
     assertEquals("/api/v2/resource", spec.getRootPath());
   }
@@ -499,11 +510,11 @@ class ApplicationSpecTest {
   void testSetUrlFromToNull() {
     ApplicationSpec spec =
         new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
-    
+
     UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "svc", "default", "spec.host");
     spec.setUrlFrom(urlFrom);
     assertNotNull(spec.getUrlFrom());
-    
+
     spec.setUrlFrom(null);
     assertNull(spec.getUrlFrom());
   }
@@ -511,17 +522,21 @@ class ApplicationSpecTest {
   @Test
   void testComplexCompareTo() {
     // Create apps with same group but different locations and names
-    ApplicationSpec app1 = new ApplicationSpec("Charlie", "GroupA", null, null, "url", null, true, 2, true);
-    ApplicationSpec app2 = new ApplicationSpec("Alice", "GroupA", null, null, "url", null, true, 1, true);
-    ApplicationSpec app3 = new ApplicationSpec("Bob", "GroupA", null, null, "url", null, true, 1, true);
-    ApplicationSpec app4 = new ApplicationSpec("David", "GroupB", null, null, "url", null, true, 1, true);
+    ApplicationSpec app1 =
+        new ApplicationSpec("Charlie", "GroupA", null, null, "url", null, true, 2, true);
+    ApplicationSpec app2 =
+        new ApplicationSpec("Alice", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app3 =
+        new ApplicationSpec("Bob", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app4 =
+        new ApplicationSpec("David", "GroupB", null, null, "url", null, true, 1, true);
 
     // app2 and app3 have same location, should sort by name
     assertTrue(app2.compareTo(app3) < 0, "Alice < Bob");
-    
+
     // app2 has lower location than app1
     assertTrue(app2.compareTo(app1) < 0, "Location 1 < Location 2");
-    
+
     // app2 is in GroupA, app4 is in GroupB
     assertTrue(app2.compareTo(app4) < 0, "GroupA < GroupB");
   }
@@ -530,7 +545,7 @@ class ApplicationSpecTest {
   void testEqualsNullFields() {
     ApplicationSpec spec1 = new ApplicationSpec();
     ApplicationSpec spec2 = new ApplicationSpec();
-    
+
     assertEquals(spec1, spec2);
   }
 
@@ -539,10 +554,12 @@ class ApplicationSpecTest {
     UrlFrom urlFrom1 = new UrlFrom("core", "v1", "Service", "svc1", "ns1", "spec.host");
     UrlFrom urlFrom2 = new UrlFrom("core", "v1", "Service", "svc2", "ns2", "spec.host");
 
-    ApplicationSpec spec1 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
     spec1.setUrlFrom(urlFrom1);
 
-    ApplicationSpec spec2 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
     spec2.setUrlFrom(urlFrom2);
 
     assertNotEquals(spec1, spec2);
@@ -580,7 +597,8 @@ class ApplicationSpecTest {
     String longTags = "tag,".repeat(500);
 
     ApplicationSpec spec =
-        new ApplicationSpec(longName, "Group", "icon", "color", longUrl, "info", true, 0, true, "/path", longTags);
+        new ApplicationSpec(
+            longName, "Group", "icon", "color", longUrl, "info", true, 0, true, "/path", longTags);
 
     assertEquals(longName, spec.getName());
     assertEquals(longUrl, spec.getUrl());

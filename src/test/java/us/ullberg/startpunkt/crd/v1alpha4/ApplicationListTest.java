@@ -43,7 +43,7 @@ class ApplicationListTest {
   void testSetNullList() {
     ApplicationList appList = new ApplicationList();
     appList.setItems(null);
-    
+
     // Behavior depends on parent class implementation
     // Just verify it doesn't throw an exception
     assertDoesNotThrow(() -> appList.getItems());
@@ -51,7 +51,8 @@ class ApplicationListTest {
 
   @Test
   void testSingleApplication() {
-    Application app = new Application("SingleApp", "Group", "icon", "blue", "url", "info", true, 0, true);
+    Application app =
+        new Application("SingleApp", "Group", "icon", "blue", "url", "info", true, 0, true);
     ApplicationList appList = new ApplicationList();
     appList.setItems(List.of(app));
 
@@ -63,7 +64,9 @@ class ApplicationListTest {
   void testManyApplications() {
     List<Application> apps = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
-      apps.add(new Application("App" + i, "Group" + i, "icon", "color", "url" + i, "info", true, i, true));
+      apps.add(
+          new Application(
+              "App" + i, "Group" + i, "icon", "color", "url" + i, "info", true, i, true));
     }
 
     ApplicationList appList = new ApplicationList();
@@ -76,9 +79,15 @@ class ApplicationListTest {
 
   @Test
   void testApplicationsWithDifferentSpecs() {
-    Application app1 = new Application("App1", "Group1", "mdi:one", "red", "https://one.com", "First", true, 1, true);
-    Application app2 = new Application("App2", "Group2", "mdi:two", "blue", "https://two.com", "Second", false, 2, false);
-    Application app3 = new Application("App3", "Group3", "mdi:three", "green", "https://three.com", "Third", true, 3, true);
+    Application app1 =
+        new Application(
+            "App1", "Group1", "mdi:one", "red", "https://one.com", "First", true, 1, true);
+    Application app2 =
+        new Application(
+            "App2", "Group2", "mdi:two", "blue", "https://two.com", "Second", false, 2, false);
+    Application app3 =
+        new Application(
+            "App3", "Group3", "mdi:three", "green", "https://three.com", "Third", true, 3, true);
 
     ApplicationList appList = new ApplicationList();
     appList.setItems(List.of(app1, app2, app3));
@@ -91,12 +100,14 @@ class ApplicationListTest {
 
   @Test
   void testApplicationsWithStatus() {
-    Application app1 = new Application("App1", "Group", "icon", "color", "url", "info", true, 0, true);
-    Application app2 = new Application("App2", "Group", "icon", "color", "url", "info", true, 0, true);
-    
+    Application app1 =
+        new Application("App1", "Group", "icon", "color", "url", "info", true, 0, true);
+    Application app2 =
+        new Application("App2", "Group", "icon", "color", "url", "info", true, 0, true);
+
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     app1.setStatus(status1);
     app2.setStatus(status2);
 
@@ -110,14 +121,17 @@ class ApplicationListTest {
 
   @Test
   void testReplaceItems() {
-    Application app1 = new Application("App1", "Group", "icon", "color", "url", "info", true, 0, true);
+    Application app1 =
+        new Application("App1", "Group", "icon", "color", "url", "info", true, 0, true);
     ApplicationList appList = new ApplicationList();
     appList.setItems(List.of(app1));
 
     assertEquals(1, appList.getItems().size());
 
-    Application app2 = new Application("App2", "Group", "icon", "color", "url", "info", true, 0, true);
-    Application app3 = new Application("App3", "Group", "icon", "color", "url", "info", true, 0, true);
+    Application app2 =
+        new Application("App2", "Group", "icon", "color", "url", "info", true, 0, true);
+    Application app3 =
+        new Application("App3", "Group", "icon", "color", "url", "info", true, 0, true);
     appList.setItems(List.of(app2, app3));
 
     assertEquals(2, appList.getItems().size());
@@ -127,8 +141,12 @@ class ApplicationListTest {
 
   @Test
   void testApplicationsWithRootPathAndTags() {
-    Application app1 = new Application("App1", "Group", "icon", "color", "url", "info", true, 0, true, "/api", "tag1");
-    Application app2 = new Application("App2", "Group", "icon", "color", "url", "info", true, 0, true, "/v2", "tag2,tag3");
+    Application app1 =
+        new Application(
+            "App1", "Group", "icon", "color", "url", "info", true, 0, true, "/api", "tag1");
+    Application app2 =
+        new Application(
+            "App2", "Group", "icon", "color", "url", "info", true, 0, true, "/v2", "tag2,tag3");
 
     ApplicationList appList = new ApplicationList();
     appList.setItems(List.of(app1, app2));
@@ -143,16 +161,17 @@ class ApplicationListTest {
   @Test
   void testMultipleSetItems() {
     ApplicationList appList = new ApplicationList();
-    
+
     appList.setItems(List.of(new Application("App1", "G", "i", "c", "u", "i", true, 0, true)));
     assertEquals(1, appList.getItems().size());
-    
+
     appList.setItems(List.of());
     assertEquals(0, appList.getItems().size());
-    
-    appList.setItems(List.of(
-        new Application("App2", "G", "i", "c", "u", "i", true, 0, true),
-        new Application("App3", "G", "i", "c", "u", "i", true, 0, true)));
+
+    appList.setItems(
+        List.of(
+            new Application("App2", "G", "i", "c", "u", "i", true, 0, true),
+            new Application("App3", "G", "i", "c", "u", "i", true, 0, true)));
     assertEquals(2, appList.getItems().size());
   }
 }

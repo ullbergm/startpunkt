@@ -233,12 +233,15 @@ class ApplicationGroupListTest {
   @Test
   void testApplicationSortingWithinGroups() {
     ApplicationGroup group = new ApplicationGroup("TestGroup");
-    
+
     // Add applications with different locations
-    ApplicationSpec app1 = new ApplicationSpec("App1", "TestGroup", null, null, "url1", null, true, 5, true);
-    ApplicationSpec app2 = new ApplicationSpec("App2", "TestGroup", null, null, "url2", null, true, 1, true);
-    ApplicationSpec app3 = new ApplicationSpec("App3", "TestGroup", null, null, "url3", null, true, 3, true);
-    
+    ApplicationSpec app1 =
+        new ApplicationSpec("App1", "TestGroup", null, null, "url1", null, true, 5, true);
+    ApplicationSpec app2 =
+        new ApplicationSpec("App2", "TestGroup", null, null, "url2", null, true, 1, true);
+    ApplicationSpec app3 =
+        new ApplicationSpec("App3", "TestGroup", null, null, "url3", null, true, 3, true);
+
     group.addApplication(app1);
     group.addApplication(app2);
     group.addApplication(app3);
@@ -253,11 +256,14 @@ class ApplicationGroupListTest {
   @Test
   void testMultipleGroupsWithApplications() {
     ApplicationGroup group1 = new ApplicationGroup("Group1");
-    group1.addApplication(new ApplicationSpec("App1A", "Group1", null, null, "url", null, true, 0, true));
-    group1.addApplication(new ApplicationSpec("App1B", "Group1", null, null, "url", null, true, 0, true));
+    group1.addApplication(
+        new ApplicationSpec("App1A", "Group1", null, null, "url", null, true, 0, true));
+    group1.addApplication(
+        new ApplicationSpec("App1B", "Group1", null, null, "url", null, true, 0, true));
 
     ApplicationGroup group2 = new ApplicationGroup("Group2");
-    group2.addApplication(new ApplicationSpec("App2A", "Group2", null, null, "url", null, true, 0, true));
+    group2.addApplication(
+        new ApplicationSpec("App2A", "Group2", null, null, "url", null, true, 0, true));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 
@@ -278,19 +284,33 @@ class ApplicationGroupListTest {
   void testTagFilteringPreservation() {
     // Tests that applications with tags are preserved when added to groups
     ApplicationGroup group = new ApplicationGroup("TaggedGroup");
-    
-    ApplicationSpec appWithTags = new ApplicationSpec(
-        "TaggedApp", "TaggedGroup", "icon", "color", "url", "info", true, 0, true, "/path", "prod,monitoring");
-    ApplicationSpec appWithoutTags = new ApplicationSpec(
-        "UntaggedApp", "TaggedGroup", "icon", "color", "url", "info", true, 0, true);
-    
+
+    ApplicationSpec appWithTags =
+        new ApplicationSpec(
+            "TaggedApp",
+            "TaggedGroup",
+            "icon",
+            "color",
+            "url",
+            "info",
+            true,
+            0,
+            true,
+            "/path",
+            "prod,monitoring");
+    ApplicationSpec appWithoutTags =
+        new ApplicationSpec(
+            "UntaggedApp", "TaggedGroup", "icon", "color", "url", "info", true, 0, true);
+
     group.addApplication(appWithTags);
     group.addApplication(appWithoutTags);
 
     applicationGroupList.setGroups(List.of(group));
 
     assertEquals(2, applicationGroupList.getGroups().get(0).getApplications().size());
-    assertEquals("prod,monitoring", applicationGroupList.getGroups().get(0).getApplications().get(0).getTags());
+    assertEquals(
+        "prod,monitoring",
+        applicationGroupList.getGroups().get(0).getApplications().get(0).getTags());
     assertNull(applicationGroupList.getGroups().get(0).getApplications().get(1).getTags());
   }
 
@@ -298,9 +318,11 @@ class ApplicationGroupListTest {
   void testGroupsWithIdenticalNames() {
     ApplicationGroup group1 = new ApplicationGroup("Duplicate");
     ApplicationGroup group2 = new ApplicationGroup("Duplicate");
-    
-    group1.addApplication(new ApplicationSpec("App1", "Duplicate", null, null, "url1", null, true, 0, true));
-    group2.addApplication(new ApplicationSpec("App2", "Duplicate", null, null, "url2", null, true, 0, true));
+
+    group1.addApplication(
+        new ApplicationSpec("App1", "Duplicate", null, null, "url1", null, true, 0, true));
+    group2.addApplication(
+        new ApplicationSpec("App2", "Duplicate", null, null, "url2", null, true, 0, true));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 
@@ -327,7 +349,8 @@ class ApplicationGroupListTest {
   void testGroupsWithManyApplications() {
     ApplicationGroup group = new ApplicationGroup("BigGroup");
     for (int i = 0; i < 50; i++) {
-      group.addApplication(new ApplicationSpec("App" + i, "BigGroup", null, null, "url" + i, null, true, i, true));
+      group.addApplication(
+          new ApplicationSpec("App" + i, "BigGroup", null, null, "url" + i, null, true, i, true));
     }
 
     applicationGroupList.setGroups(List.of(group));
@@ -349,11 +372,14 @@ class ApplicationGroupListTest {
   @Test
   void testGroupsPreserveApplicationOrder() {
     ApplicationGroup group = new ApplicationGroup("OrderTest");
-    
-    ApplicationSpec first = new ApplicationSpec("First", "OrderTest", null, null, "url", null, true, 0, true);
-    ApplicationSpec second = new ApplicationSpec("Second", "OrderTest", null, null, "url", null, true, 0, true);
-    ApplicationSpec third = new ApplicationSpec("Third", "OrderTest", null, null, "url", null, true, 0, true);
-    
+
+    ApplicationSpec first =
+        new ApplicationSpec("First", "OrderTest", null, null, "url", null, true, 0, true);
+    ApplicationSpec second =
+        new ApplicationSpec("Second", "OrderTest", null, null, "url", null, true, 0, true);
+    ApplicationSpec third =
+        new ApplicationSpec("Third", "OrderTest", null, null, "url", null, true, 0, true);
+
     group.addApplication(first);
     group.addApplication(second);
     group.addApplication(third);
@@ -369,10 +395,14 @@ class ApplicationGroupListTest {
   @Test
   void testToStringWithComplexStructure() {
     ApplicationGroup group1 = new ApplicationGroup("ComplexGroup1");
-    group1.addApplication(new ApplicationSpec("App1", "ComplexGroup1", "icon", "color", "url", "info", true, 0, true));
-    
+    group1.addApplication(
+        new ApplicationSpec(
+            "App1", "ComplexGroup1", "icon", "color", "url", "info", true, 0, true));
+
     ApplicationGroup group2 = new ApplicationGroup("ComplexGroup2");
-    group2.addApplication(new ApplicationSpec("App2", "ComplexGroup2", "icon", "color", "url", "info", true, 0, true));
+    group2.addApplication(
+        new ApplicationSpec(
+            "App2", "ComplexGroup2", "icon", "color", "url", "info", true, 0, true));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 
@@ -384,21 +414,25 @@ class ApplicationGroupListTest {
   @Test
   void testApplicationsWithRootPath() {
     ApplicationGroup group = new ApplicationGroup("PathGroup");
-    ApplicationSpec appWithPath = new ApplicationSpec(
-        "PathApp", "PathGroup", "icon", "color", "url", "info", true, 0, true, "/api/v1");
-    
+    ApplicationSpec appWithPath =
+        new ApplicationSpec(
+            "PathApp", "PathGroup", "icon", "color", "url", "info", true, 0, true, "/api/v1");
+
     group.addApplication(appWithPath);
     applicationGroupList.setGroups(List.of(group));
 
-    assertEquals("/api/v1", applicationGroupList.getGroups().get(0).getApplications().get(0).getRootPath());
+    assertEquals(
+        "/api/v1", applicationGroupList.getGroups().get(0).getApplications().get(0).getRootPath());
   }
 
   @Test
   void testGroupWithDisabledApplications() {
     ApplicationGroup group = new ApplicationGroup("MixedGroup");
-    ApplicationSpec enabled = new ApplicationSpec("Enabled", "MixedGroup", null, null, "url1", null, true, 0, true);
-    ApplicationSpec disabled = new ApplicationSpec("Disabled", "MixedGroup", null, null, "url2", null, true, 0, false);
-    
+    ApplicationSpec enabled =
+        new ApplicationSpec("Enabled", "MixedGroup", null, null, "url1", null, true, 0, true);
+    ApplicationSpec disabled =
+        new ApplicationSpec("Disabled", "MixedGroup", null, null, "url2", null, true, 0, false);
+
     group.addApplication(enabled);
     group.addApplication(disabled);
 

@@ -376,10 +376,10 @@ class AvailabilityCheckServiceTest {
   void testCacheAvailabilityDefaultsToTrue() {
     // Given
     String url = "https://new-url-cache-test.com";
-    
+
     // When
     service.registerUrl(url);
-    
+
     // Then
     Boolean result = service.getCachedAvailability(url);
     assertNotNull(result);
@@ -393,16 +393,17 @@ class AvailabilityCheckServiceTest {
     ApplicationSpec app1 = new ApplicationSpec();
     app1.setName("app1");
     app1.setUrl(sharedUrl);
-    
+
     ApplicationSpec app2 = new ApplicationSpec();
     app2.setName("app2");
     app2.setUrl(sharedUrl);
-    
+
     service.registerUrl(sharedUrl);
-    
+
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(List.of(app1, app2));
-    
+    List<ApplicationSpecWithAvailability> result =
+        service.wrapWithAvailability(List.of(app1, app2));
+
     // Then
     assertEquals(2, result.size());
     assertNotNull(result.get(0).getAvailable());
@@ -412,24 +413,25 @@ class AvailabilityCheckServiceTest {
   @Test
   void testWrapWithAvailabilityPreservesAllFields() {
     // Given
-    ApplicationSpec app = new ApplicationSpec(
-        "TestApp",
-        "TestGroup",
-        "mdi:test",
-        "blue",
-        "https://test-preserve.com",
-        "Test info",
-        true,
-        5,
-        true,
-        "/api",
-        "prod,test");
-    
+    ApplicationSpec app =
+        new ApplicationSpec(
+            "TestApp",
+            "TestGroup",
+            "mdi:test",
+            "blue",
+            "https://test-preserve.com",
+            "Test info",
+            true,
+            5,
+            true,
+            "/api",
+            "prod,test");
+
     service.registerUrl("https://test-preserve.com");
-    
+
     // When
     List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(List.of(app));
-    
+
     // Then
     assertEquals(1, result.size());
     ApplicationSpecWithAvailability wrapped = result.get(0);
@@ -452,7 +454,7 @@ class AvailabilityCheckServiceTest {
     // When
     String urlWithPort = "https://example.com:8443";
     service.registerUrl(urlWithPort);
-    
+
     // Then
     assertNotNull(service.getCachedAvailability(urlWithPort));
   }
@@ -462,7 +464,7 @@ class AvailabilityCheckServiceTest {
     // When
     String urlWithPath = "https://example.com/path/to/resource";
     service.registerUrl(urlWithPath);
-    
+
     // Then
     assertNotNull(service.getCachedAvailability(urlWithPath));
   }
@@ -472,7 +474,7 @@ class AvailabilityCheckServiceTest {
     // When
     String urlWithQuery = "https://example.com/search?q=test&page=1";
     service.registerUrl(urlWithQuery);
-    
+
     // Then
     assertNotNull(service.getCachedAvailability(urlWithQuery));
   }
@@ -482,7 +484,7 @@ class AvailabilityCheckServiceTest {
     // When
     String urlWithFragment = "https://example.com/page#section";
     service.registerUrl(urlWithFragment);
-    
+
     // Then
     assertNotNull(service.getCachedAvailability(urlWithFragment));
   }
@@ -492,12 +494,12 @@ class AvailabilityCheckServiceTest {
     // Given
     String url = "https://consistency-test.com";
     service.registerUrl(url);
-    
+
     // When - Get cached value multiple times
     Boolean first = service.getCachedAvailability(url);
     Boolean second = service.getCachedAvailability(url);
     Boolean third = service.getCachedAvailability(url);
-    
+
     // Then - Should be consistent
     assertEquals(first, second);
     assertEquals(second, third);
@@ -514,10 +516,10 @@ class AvailabilityCheckServiceTest {
       service.registerUrl("https://example" + i + ".com");
       apps.add(app);
     }
-    
+
     // When
     List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
-    
+
     // Then
     assertEquals(100, result.size());
     result.forEach(app -> assertNotNull(app.getAvailable()));
@@ -527,12 +529,12 @@ class AvailabilityCheckServiceTest {
   void testRegisterUrlIdempotency() {
     // Given
     String url = "https://idempotent-test.com";
-    
+
     // When - Register same URL multiple times
     service.registerUrl(url);
     service.registerUrl(url);
     service.registerUrl(url);
-    
+
     // Then - Should still have one cached entry
     assertNotNull(service.getCachedAvailability(url));
     assertTrue(service.getCachedAvailability(url));

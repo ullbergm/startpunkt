@@ -52,7 +52,9 @@ class PingApplicationResourceHealthCheckTest {
   @Test
   void testCallReturnsCorrectName() {
     var response = healthCheck.call();
-    assertEquals("Ping Application REST Endpoint", response.getName(), 
+    assertEquals(
+        "Ping Application REST Endpoint",
+        response.getName(),
         "Health check should have correct name");
   }
 
@@ -60,7 +62,8 @@ class PingApplicationResourceHealthCheckTest {
   void testCallIncludesResponseData() {
     var response = healthCheck.call();
     assertTrue(response.getData().isPresent(), "Health check should include response data");
-    assertTrue(response.getData().get().containsKey("Response"), 
+    assertTrue(
+        response.getData().get().containsKey("Response"),
         "Response data should contain 'Response' key");
   }
 
@@ -68,11 +71,13 @@ class PingApplicationResourceHealthCheckTest {
   void testMultipleCallsReturnConsistentResults() {
     var response1 = healthCheck.call();
     var response2 = healthCheck.call();
-    
-    assertEquals(response1.getStatus(), response2.getStatus(), 
+
+    assertEquals(
+        response1.getStatus(),
+        response2.getStatus(),
         "Multiple calls should return consistent status");
-    assertEquals(response1.getName(), response2.getName(), 
-        "Multiple calls should return same name");
+    assertEquals(
+        response1.getName(), response2.getName(), "Multiple calls should return same name");
   }
 
   @Test
@@ -80,7 +85,7 @@ class PingApplicationResourceHealthCheckTest {
     // Create new instance to ensure clean state
     var resource = new ApplicationResource(null, null);
     var check = new PingApplicationResourceHealthCheck(resource);
-    
+
     var response = check.call();
     assertEquals(Status.UP, response.getStatus());
   }

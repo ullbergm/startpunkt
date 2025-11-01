@@ -203,7 +203,8 @@ class BookmarkSpecTest {
 
   @Test
   void testComplexUrlWithQuery() {
-    String complexUrl = "https://example.com:8080/path/to/resource?param1=value1&param2=value2#anchor";
+    String complexUrl =
+        "https://example.com:8080/path/to/resource?param1=value1&param2=value2#anchor";
     BookmarkSpec spec = new BookmarkSpec("App", "Group", "icon", complexUrl, "info", true, 0);
 
     assertEquals(complexUrl, spec.getUrl());
@@ -247,7 +248,8 @@ class BookmarkSpecTest {
   @Test
   void testMultipleIconFormats() {
     BookmarkSpec mdiSpec = new BookmarkSpec("App1", "Group", "mdi:home", "url", "info", true, 0);
-    BookmarkSpec urlSpec = new BookmarkSpec("App2", "Group", "https://example.com/icon.png", "url", "info", true, 0);
+    BookmarkSpec urlSpec =
+        new BookmarkSpec("App2", "Group", "https://example.com/icon.png", "url", "info", true, 0);
     BookmarkSpec emojiSpec = new BookmarkSpec("App3", "Group", "🏠", "url", "info", true, 0);
 
     assertEquals("mdi:home", mdiSpec.getIcon());

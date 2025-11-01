@@ -67,7 +67,7 @@ class PingI8nResourceHealthCheckTest {
   void testMultipleCallsConsistent() {
     var response1 = healthCheck.call();
     var response2 = healthCheck.call();
-    
+
     assertEquals(response1.getStatus(), response2.getStatus());
     assertEquals(response1.getName(), response2.getName());
   }

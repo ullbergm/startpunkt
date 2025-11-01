@@ -105,7 +105,7 @@ class BookmarkTest {
   @Test
   void testConstructorWithNullValues() {
     Bookmark bookmark = new Bookmark(null, null, null, null, null, null, 0);
-    
+
     assertNotNull(bookmark.getSpec());
     assertNull(bookmark.getSpec().getName());
     assertNull(bookmark.getSpec().getGroup());
@@ -114,21 +114,22 @@ class BookmarkTest {
   @Test
   void testConstructorWithEmptyStrings() {
     Bookmark bookmark = new Bookmark("", "", "", "", "", false, 0);
-    
+
     assertEquals("", bookmark.getSpec().getName());
     assertEquals("", bookmark.getSpec().getGroup());
   }
 
   @Test
   void testConstructorWithSpecialCharacters() {
-    Bookmark bookmark = new Bookmark(
-        "Docs & Tutorials",
-        "Help/Support",
-        "mdi:help-circle",
-        "https://example.com/docs?lang=en&version=1.0",
-        "Help <info>",
-        true,
-        0);
+    Bookmark bookmark =
+        new Bookmark(
+            "Docs & Tutorials",
+            "Help/Support",
+            "mdi:help-circle",
+            "https://example.com/docs?lang=en&version=1.0",
+            "Help <info>",
+            true,
+            0);
 
     assertEquals("Docs & Tutorials", bookmark.getSpec().getName());
     assertEquals("Help/Support", bookmark.getSpec().getGroup());
@@ -137,13 +138,15 @@ class BookmarkTest {
 
   @Test
   void testConstructorWithMaxLocation() {
-    Bookmark bookmark = new Bookmark("Test", "Group", "icon", "url", "info", true, Integer.MAX_VALUE);
+    Bookmark bookmark =
+        new Bookmark("Test", "Group", "icon", "url", "info", true, Integer.MAX_VALUE);
     assertEquals(Integer.MAX_VALUE, bookmark.getSpec().getLocation());
   }
 
   @Test
   void testConstructorWithMinLocation() {
-    Bookmark bookmark = new Bookmark("Test", "Group", "icon", "url", "info", true, Integer.MIN_VALUE);
+    Bookmark bookmark =
+        new Bookmark("Test", "Group", "icon", "url", "info", true, Integer.MIN_VALUE);
     assertEquals(Integer.MIN_VALUE, bookmark.getSpec().getLocation());
   }
 

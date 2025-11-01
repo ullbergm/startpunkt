@@ -241,11 +241,6 @@ class BookmarkResourceTest {
   // Test response content type
   @Test
   void testResponseContentType() {
-    given()
-        .when()
-        .get("/api/bookmarks")
-        .then()
-        .statusCode(200)
-        .contentType("application/json");
+    given().when().get("/api/bookmarks").then().statusCode(200).contentType("application/json");
   }
 }

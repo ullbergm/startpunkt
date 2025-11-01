@@ -53,15 +53,16 @@ class PingBookmarkResourceHealthCheckTest {
   @Test
   void testCallReturnsCorrectName() {
     var response = healthCheck.call();
-    assertEquals("Ping Bookmark REST Endpoint", response.getName(), 
-        "Health check should have correct name");
+    assertEquals(
+        "Ping Bookmark REST Endpoint", response.getName(), "Health check should have correct name");
   }
 
   @Test
   void testCallIncludesResponseData() {
     var response = healthCheck.call();
     assertTrue(response.getData().isPresent(), "Health check should include response data");
-    assertTrue(response.getData().get().containsKey("Response"), 
+    assertTrue(
+        response.getData().get().containsKey("Response"),
         "Response data should contain 'Response' key");
   }
 
@@ -69,7 +70,7 @@ class PingBookmarkResourceHealthCheckTest {
   void testMultipleCallsReturnConsistentResults() {
     var response1 = healthCheck.call();
     var response2 = healthCheck.call();
-    
+
     assertEquals(response1.getStatus(), response2.getStatus());
     assertEquals(response1.getName(), response2.getName());
   }

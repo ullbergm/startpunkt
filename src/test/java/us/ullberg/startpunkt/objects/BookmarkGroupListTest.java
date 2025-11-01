@@ -216,12 +216,14 @@ class BookmarkGroupListTest {
   void testLocationNormalizationZeroToThousand() {
     // Test that bookmarks with location 0 would be normalized to 1000 for Hajimari compatibility
     BookmarkGroup group = new BookmarkGroup("TestGroup");
-    BookmarkSpec bookmarkZero = new BookmarkSpec("Bookmark0", "TestGroup", "icon", "url", "info", true, 0);
-    BookmarkSpec bookmarkNonZero = new BookmarkSpec("Bookmark5", "TestGroup", "icon", "url", "info", true, 5);
-    
+    BookmarkSpec bookmarkZero =
+        new BookmarkSpec("Bookmark0", "TestGroup", "icon", "url", "info", true, 0);
+    BookmarkSpec bookmarkNonZero =
+        new BookmarkSpec("Bookmark5", "TestGroup", "icon", "url", "info", true, 5);
+
     group.addBookmark(bookmarkZero);
     group.addBookmark(bookmarkNonZero);
-    
+
     bookmarkGroupList.setGroups(List.of(group));
 
     // Verify bookmarks are stored with their original locations
@@ -232,17 +234,18 @@ class BookmarkGroupListTest {
   @Test
   void testLocationNormalizationMultipleZeros() {
     BookmarkGroup group = new BookmarkGroup("ZeroGroup");
-    
+
     for (int i = 0; i < 5; i++) {
-      BookmarkSpec bookmark = new BookmarkSpec("Bookmark" + i, "ZeroGroup", "icon", "url" + i, "info", true, 0);
+      BookmarkSpec bookmark =
+          new BookmarkSpec("Bookmark" + i, "ZeroGroup", "icon", "url" + i, "info", true, 0);
       group.addBookmark(bookmark);
     }
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     List<BookmarkSpec> bookmarks = bookmarkGroupList.getGroups().get(0).getBookmarks();
     assertEquals(5, bookmarks.size());
-    
+
     // All should have location 0 before normalization
     for (BookmarkSpec bookmark : bookmarks) {
       assertEquals(0, bookmark.getLocation());
@@ -255,9 +258,9 @@ class BookmarkGroupListTest {
     BookmarkGroup upperCase = new BookmarkGroup("UPPERCASE");
     BookmarkGroup lowerCase = new BookmarkGroup("lowercase");
     BookmarkGroup mixedCase = new BookmarkGroup("MixedCase");
-    
+
     bookmarkGroupList.setGroups(List.of(upperCase, lowerCase, mixedCase));
-    
+
     assertEquals("UPPERCASE", bookmarkGroupList.getGroups().get(0).getName());
     assertEquals("lowercase", bookmarkGroupList.getGroups().get(1).getName());
     assertEquals("MixedCase", bookmarkGroupList.getGroups().get(2).getName());
@@ -267,24 +270,25 @@ class BookmarkGroupListTest {
   void testGroupWithSpecialCharactersInName() {
     BookmarkGroup specialGroup = new BookmarkGroup("Group-With_Special.Chars@123");
     bookmarkGroupList.setGroups(List.of(specialGroup));
-    
+
     assertEquals("Group-With_Special.Chars@123", bookmarkGroupList.getGroups().get(0).getName());
   }
 
   @Test
   void testBookmarkSortingByLocation() {
     BookmarkGroup group = new BookmarkGroup("SortedGroup");
-    
+
     BookmarkSpec bookmark1 = new BookmarkSpec("B1", "SortedGroup", "icon", "url1", "info", true, 5);
     BookmarkSpec bookmark2 = new BookmarkSpec("B2", "SortedGroup", "icon", "url2", "info", true, 1);
-    BookmarkSpec bookmark3 = new BookmarkSpec("B3", "SortedGroup", "icon", "url3", "info", true, 10);
-    
+    BookmarkSpec bookmark3 =
+        new BookmarkSpec("B3", "SortedGroup", "icon", "url3", "info", true, 10);
+
     group.addBookmark(bookmark1);
     group.addBookmark(bookmark2);
     group.addBookmark(bookmark3);
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     // Verify bookmarks are stored in insertion order
     List<BookmarkSpec> bookmarks = bookmarkGroupList.getGroups().get(0).getBookmarks();
     assertEquals("B1", bookmarks.get(0).getName());
@@ -298,9 +302,9 @@ class BookmarkGroupListTest {
     for (int i = 0; i < 100; i++) {
       manyGroups.add(new BookmarkGroup("Group" + i));
     }
-    
+
     bookmarkGroupList.setGroups(manyGroups);
-    
+
     assertEquals(100, bookmarkGroupList.getGroups().size());
     assertEquals("Group0", bookmarkGroupList.getGroups().get(0).getName());
     assertEquals("Group99", bookmarkGroupList.getGroups().get(99).getName());
@@ -309,14 +313,15 @@ class BookmarkGroupListTest {
   @Test
   void testGroupWithManyBookmarks() {
     BookmarkGroup group = new BookmarkGroup("BigGroup");
-    
+
     for (int i = 0; i < 50; i++) {
-      BookmarkSpec bookmark = new BookmarkSpec("Bookmark" + i, "BigGroup", "icon", "url" + i, "info", true, i);
+      BookmarkSpec bookmark =
+          new BookmarkSpec("Bookmark" + i, "BigGroup", "icon", "url" + i, "info", true, i);
       group.addBookmark(bookmark);
     }
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     assertEquals(50, bookmarkGroupList.getGroups().get(0).getBookmarks().size());
   }
 
@@ -325,9 +330,9 @@ class BookmarkGroupListTest {
     BookmarkGroup groupA = new BookmarkGroup("Alpha");
     BookmarkGroup groupB = new BookmarkGroup("Beta");
     BookmarkGroup groupC = new BookmarkGroup("Charlie");
-    
+
     bookmarkGroupList.setGroups(List.of(groupC, groupA, groupB));
-    
+
     // Verify they are stored in the order added, not sorted
     assertEquals("Charlie", bookmarkGroupList.getGroups().get(0).getName());
     assertEquals("Alpha", bookmarkGroupList.getGroups().get(1).getName());
@@ -339,9 +344,9 @@ class BookmarkGroupListTest {
     BookmarkGroup empty1 = new BookmarkGroup("Empty1");
     BookmarkGroup empty2 = new BookmarkGroup("Empty2");
     BookmarkGroup empty3 = new BookmarkGroup("Empty3");
-    
+
     bookmarkGroupList.setGroups(List.of(empty1, empty2, empty3));
-    
+
     assertEquals(3, bookmarkGroupList.getGroups().size());
     assertEquals(0, bookmarkGroupList.getGroups().get(0).getBookmarks().size());
     assertEquals(0, bookmarkGroupList.getGroups().get(1).getBookmarks().size());
@@ -351,17 +356,20 @@ class BookmarkGroupListTest {
   @Test
   void testBookmarkWithTargetBlankVariations() {
     BookmarkGroup group = new BookmarkGroup("TargetBlankGroup");
-    
-    BookmarkSpec blankTrue = new BookmarkSpec("B1", "TargetBlankGroup", "icon", "url1", "info", true, 1);
-    BookmarkSpec blankFalse = new BookmarkSpec("B2", "TargetBlankGroup", "icon", "url2", "info", false, 2);
-    BookmarkSpec blankNull = new BookmarkSpec("B3", "TargetBlankGroup", "icon", "url3", "info", null, 3);
-    
+
+    BookmarkSpec blankTrue =
+        new BookmarkSpec("B1", "TargetBlankGroup", "icon", "url1", "info", true, 1);
+    BookmarkSpec blankFalse =
+        new BookmarkSpec("B2", "TargetBlankGroup", "icon", "url2", "info", false, 2);
+    BookmarkSpec blankNull =
+        new BookmarkSpec("B3", "TargetBlankGroup", "icon", "url3", "info", null, 3);
+
     group.addBookmark(blankTrue);
     group.addBookmark(blankFalse);
     group.addBookmark(blankNull);
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     List<BookmarkSpec> bookmarks = bookmarkGroupList.getGroups().get(0).getBookmarks();
     assertTrue(bookmarks.get(0).getTargetBlank());
     assertFalse(bookmarks.get(1).getTargetBlank());
@@ -371,17 +379,21 @@ class BookmarkGroupListTest {
   @Test
   void testBookmarkUrlVariations() {
     BookmarkGroup group = new BookmarkGroup("UrlGroup");
-    
-    BookmarkSpec httpUrl = new BookmarkSpec("HTTP", "UrlGroup", "icon", "http://example.com", "info", true, 1);
-    BookmarkSpec httpsUrl = new BookmarkSpec("HTTPS", "UrlGroup", "icon", "https://secure.com", "info", true, 2);
-    BookmarkSpec complexUrl = new BookmarkSpec("Complex", "UrlGroup", "icon", "https://example.com:8080/path?q=1", "info", true, 3);
-    
+
+    BookmarkSpec httpUrl =
+        new BookmarkSpec("HTTP", "UrlGroup", "icon", "http://example.com", "info", true, 1);
+    BookmarkSpec httpsUrl =
+        new BookmarkSpec("HTTPS", "UrlGroup", "icon", "https://secure.com", "info", true, 2);
+    BookmarkSpec complexUrl =
+        new BookmarkSpec(
+            "Complex", "UrlGroup", "icon", "https://example.com:8080/path?q=1", "info", true, 3);
+
     group.addBookmark(httpUrl);
     group.addBookmark(httpsUrl);
     group.addBookmark(complexUrl);
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     List<BookmarkSpec> bookmarks = bookmarkGroupList.getGroups().get(0).getBookmarks();
     assertEquals("http://example.com", bookmarks.get(0).getUrl());
     assertEquals("https://secure.com", bookmarks.get(1).getUrl());
@@ -392,12 +404,12 @@ class BookmarkGroupListTest {
   void testGroupsWithIdenticalNames() {
     BookmarkGroup group1 = new BookmarkGroup("Duplicate");
     BookmarkGroup group2 = new BookmarkGroup("Duplicate");
-    
+
     group1.addBookmark(new BookmarkSpec("B1", "Duplicate", "icon", "url1", "info", true, 1));
     group2.addBookmark(new BookmarkSpec("B2", "Duplicate", "icon", "url2", "info", true, 2));
-    
+
     bookmarkGroupList.setGroups(List.of(group1, group2));
-    
+
     assertEquals(2, bookmarkGroupList.getGroups().size());
     assertEquals(1, bookmarkGroupList.getGroups().get(0).getBookmarks().size());
     assertEquals(1, bookmarkGroupList.getGroups().get(1).getBookmarks().size());
@@ -408,10 +420,10 @@ class BookmarkGroupListTest {
     BookmarkGroup initial = new BookmarkGroup("Initial");
     bookmarkGroupList.setGroups(List.of(initial));
     assertEquals(1, bookmarkGroupList.getGroups().size());
-    
+
     bookmarkGroupList.setGroups(List.of());
     assertEquals(0, bookmarkGroupList.getGroups().size());
-    
+
     BookmarkGroup newGroup = new BookmarkGroup("New");
     bookmarkGroupList.setGroups(List.of(newGroup));
     assertEquals(1, bookmarkGroupList.getGroups().size());
@@ -421,17 +433,20 @@ class BookmarkGroupListTest {
   @Test
   void testLocationBoundaryValues() {
     BookmarkGroup group = new BookmarkGroup("BoundaryGroup");
-    
-    BookmarkSpec minLocation = new BookmarkSpec("Min", "BoundaryGroup", "icon", "url1", "info", true, Integer.MIN_VALUE);
-    BookmarkSpec maxLocation = new BookmarkSpec("Max", "BoundaryGroup", "icon", "url2", "info", true, Integer.MAX_VALUE);
-    BookmarkSpec zeroLocation = new BookmarkSpec("Zero", "BoundaryGroup", "icon", "url3", "info", true, 0);
-    
+
+    BookmarkSpec minLocation =
+        new BookmarkSpec("Min", "BoundaryGroup", "icon", "url1", "info", true, Integer.MIN_VALUE);
+    BookmarkSpec maxLocation =
+        new BookmarkSpec("Max", "BoundaryGroup", "icon", "url2", "info", true, Integer.MAX_VALUE);
+    BookmarkSpec zeroLocation =
+        new BookmarkSpec("Zero", "BoundaryGroup", "icon", "url3", "info", true, 0);
+
     group.addBookmark(minLocation);
     group.addBookmark(maxLocation);
     group.addBookmark(zeroLocation);
-    
+
     bookmarkGroupList.setGroups(List.of(group));
-    
+
     List<BookmarkSpec> bookmarks = bookmarkGroupList.getGroups().get(0).getBookmarks();
     assertEquals(Integer.MIN_VALUE, bookmarks.get(0).getLocation());
     assertEquals(Integer.MAX_VALUE, bookmarks.get(1).getLocation());

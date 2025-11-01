@@ -37,7 +37,7 @@ class ApplicationStatusTest {
   void testDifferentInstancesNotEqual() {
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     assertNotEquals(status1, status2, "Different instances should not be equal");
   }
 
@@ -65,7 +65,7 @@ class ApplicationStatusTest {
     ApplicationStatus status = new ApplicationStatus();
     int hash1 = status.hashCode();
     int hash2 = status.hashCode();
-    
+
     assertEquals(hash1, hash2, "hashCode should be consistent across multiple calls");
   }
 
@@ -73,7 +73,7 @@ class ApplicationStatusTest {
   void testHashCodeDifferentForDifferentInstances() {
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     // Hash codes will typically be different for different instances
     // This is not guaranteed by contract but generally expected for Object.hashCode()
     assertNotNull(status1.hashCode());
@@ -84,10 +84,9 @@ class ApplicationStatusTest {
   void testToStringContainsClassName() {
     ApplicationStatus status = new ApplicationStatus();
     String result = status.toString();
-    
+
     assertNotNull(result);
-    assertTrue(result.contains("ApplicationStatus"), 
-        "toString should contain the class name");
+    assertTrue(result.contains("ApplicationStatus"), "toString should contain the class name");
   }
 
   @Test
@@ -95,7 +94,7 @@ class ApplicationStatusTest {
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
     ApplicationStatus status3 = new ApplicationStatus();
-    
+
     assertNotNull(status1);
     assertNotNull(status2);
     assertNotNull(status3);
@@ -108,9 +107,9 @@ class ApplicationStatusTest {
   void testStatusCanBeAssignedToApplication() {
     Application app = new Application();
     ApplicationStatus status = new ApplicationStatus();
-    
+
     app.setStatus(status);
-    
+
     assertNotNull(app.getStatus());
     assertSame(status, app.getStatus());
   }
@@ -120,10 +119,10 @@ class ApplicationStatusTest {
     Application app = new Application();
     ApplicationStatus status1 = new ApplicationStatus();
     ApplicationStatus status2 = new ApplicationStatus();
-    
+
     app.setStatus(status1);
     assertSame(status1, app.getStatus());
-    
+
     app.setStatus(status2);
     assertSame(status2, app.getStatus());
     assertNotSame(status1, app.getStatus());

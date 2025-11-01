@@ -59,7 +59,7 @@ public class WebSocketMessageTest {
   public void testSetTimestamp() {
     var message = new WebSocketMessage<String>();
     Instant customTime = Instant.parse("2024-01-01T12:00:00Z");
-    
+
     message.setTimestamp(customTime);
     assertEquals(customTime, message.getTimestamp());
   }
@@ -78,7 +78,7 @@ public class WebSocketMessageTest {
   @Test
   public void testMessageWithEmptyString() {
     var message = new WebSocketMessage<>(WebSocketEventType.APPLICATION_REMOVED, "");
-    
+
     assertEquals(WebSocketEventType.APPLICATION_REMOVED, message.getType());
     assertEquals("", message.getData());
   }
@@ -86,7 +86,7 @@ public class WebSocketMessageTest {
   @Test
   public void testMessageTypeChanges() {
     var message = new WebSocketMessage<>(WebSocketEventType.HEARTBEAT, "data");
-    
+
     message.setType(WebSocketEventType.CONFIG_CHANGED);
     assertEquals(WebSocketEventType.CONFIG_CHANGED, message.getType());
   }
@@ -94,7 +94,7 @@ public class WebSocketMessageTest {
   @Test
   public void testMessageDataChanges() {
     var message = new WebSocketMessage<>(WebSocketEventType.CONFIG_CHANGED, "initial");
-    
+
     message.setData("updated");
     assertEquals("updated", message.getData());
   }
