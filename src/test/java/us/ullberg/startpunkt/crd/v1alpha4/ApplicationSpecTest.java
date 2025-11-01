@@ -276,4 +276,153 @@ class ApplicationSpecTest {
 
     assertNotEquals(spec1, spec2, "Specs with different urlFrom should not be equal");
   }
+
+  @Test
+  void testCompareToWithNullValues() {
+    ApplicationSpec spec1 = new ApplicationSpec();
+    spec1.setName("A");
+    spec1.setGroup("Group");
+
+    ApplicationSpec spec2 = new ApplicationSpec();
+    spec2.setName("B");
+    spec2.setGroup("Group");
+
+    assertTrue(spec1.compareTo(spec2) < 0);
+  }
+
+  @Test
+  void testHashCodeIncludesAllFields() {
+    ApplicationSpec spec1 =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, true, "/path", "tags");
+    UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "svc", "default", "spec.host");
+    spec1.setUrlFrom(urlFrom);
+
+    ApplicationSpec spec2 =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, true, "/path", "tags");
+    spec2.setUrlFrom(urlFrom);
+
+    assertEquals(spec1.hashCode(), spec2.hashCode());
+  }
+
+  @Test
+  void testEqualsWithDifferentClass() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
+    assertNotEquals(spec, "not a spec");
+    assertNotEquals(spec, Integer.valueOf(42));
+  }
+
+  @Test
+  void testEqualsSameInstance() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
+    assertEquals(spec, spec);
+  }
+
+  @Test
+  void testCompareToEdgeCases() {
+    ApplicationSpec spec1 =
+        new ApplicationSpec("Alpha", "A", null, null, "url", null, true, 1, true);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("Beta", "A", null, null, "url", null, true, 1, true);
+    ApplicationSpec spec3 =
+        new ApplicationSpec("Alpha", "B", null, null, "url", null, true, 1, true);
+
+    assertTrue(spec1.compareTo(spec2) < 0, "Should sort by name when group and location are same");
+    assertTrue(spec1.compareTo(spec3) < 0, "Should sort by group first");
+  }
+
+  @Test
+  void testEqualsWithAllNullFields() {
+    ApplicationSpec spec1 = new ApplicationSpec();
+    ApplicationSpec spec2 = new ApplicationSpec();
+
+    assertEquals(spec1, spec2);
+    assertEquals(spec1.hashCode(), spec2.hashCode());
+  }
+
+  @Test
+  void testEqualsWithPartiallyNullFields() {
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", null, null, null, "url", null, null, 0, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", null, null, null, "url", null, null, 0, null);
+
+    assertEquals(spec1, spec2);
+  }
+
+  @Test
+  void testInequalityOnEachField() {
+    ApplicationSpec base =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, true, "/path", "tags");
+
+    ApplicationSpec diffName =
+        new ApplicationSpec(
+            "Other", "Group", "icon", "color", "url", "info", true, 5, true, "/path", "tags");
+    ApplicationSpec diffGroup =
+        new ApplicationSpec(
+            "App", "Other", "icon", "color", "url", "info", true, 5, true, "/path", "tags");
+    ApplicationSpec diffIcon =
+        new ApplicationSpec(
+            "App", "Group", "other", "color", "url", "info", true, 5, true, "/path", "tags");
+    ApplicationSpec diffColor =
+        new ApplicationSpec(
+            "App", "Group", "icon", "other", "url", "info", true, 5, true, "/path", "tags");
+    ApplicationSpec diffUrl =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "other", "info", true, 5, true, "/path", "tags");
+    ApplicationSpec diffInfo =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "other", true, 5, true, "/path", "tags");
+    ApplicationSpec diffTarget =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", false, 5, true, "/path", "tags");
+    ApplicationSpec diffLocation =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 10, true, "/path", "tags");
+    ApplicationSpec diffEnabled =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, false, "/path", "tags");
+    ApplicationSpec diffPath =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, true, "/other", "tags");
+    ApplicationSpec diffTags =
+        new ApplicationSpec(
+            "App", "Group", "icon", "color", "url", "info", true, 5, true, "/path", "other");
+
+    assertNotEquals(base, diffName);
+    assertNotEquals(base, diffGroup);
+    assertNotEquals(base, diffIcon);
+    assertNotEquals(base, diffColor);
+    assertNotEquals(base, diffUrl);
+    assertNotEquals(base, diffInfo);
+    assertNotEquals(base, diffTarget);
+    assertNotEquals(base, diffLocation);
+    assertNotEquals(base, diffEnabled);
+    assertNotEquals(base, diffPath);
+    assertNotEquals(base, diffTags);
+  }
+
+  @Test
+  void testToStringWithAllFieldsNull() {
+    ApplicationSpec spec = new ApplicationSpec();
+    String output = spec.toString();
+
+    assertNotNull(output);
+    assertTrue(output.contains("ApplicationSpec"));
+  }
+
+  @Test
+  void testLocationNegativeValue() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, -1, true);
+    assertEquals(-1, spec.getLocation());
+
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
+    assertTrue(spec.compareTo(spec2) < 0, "Negative location should sort before zero");
+  }
 }
