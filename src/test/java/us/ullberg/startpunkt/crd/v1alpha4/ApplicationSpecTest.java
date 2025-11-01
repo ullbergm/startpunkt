@@ -117,4 +117,163 @@ class ApplicationSpecTest {
     assertEquals(7, spec.getLocation());
     assertFalse(spec.getEnabled());
   }
+
+  @Test
+  void testRootPathSetterGetter() {
+    ApplicationSpec spec = new ApplicationSpec();
+    assertNull(spec.getRootPath());
+
+    spec.setRootPath("/api/v1");
+    assertEquals("/api/v1", spec.getRootPath());
+  }
+
+  @Test
+  void testTagsSetterGetter() {
+    ApplicationSpec spec = new ApplicationSpec();
+    assertNull(spec.getTags());
+
+    spec.setTags("monitoring,production,critical");
+    assertEquals("monitoring,production,critical", spec.getTags());
+  }
+
+  @Test
+  void testConstructorWithRootPath() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App",
+            "Group",
+            "mdi:icon",
+            "blue",
+            "https://app.example.com",
+            "Info",
+            true,
+            42,
+            true,
+            "/dashboard");
+
+    assertEquals("App", spec.getName());
+    assertEquals("/dashboard", spec.getRootPath());
+    assertNull(spec.getTags());
+  }
+
+  @Test
+  void testConstructorWithRootPathAndTags() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App",
+            "Group",
+            "mdi:icon",
+            "blue",
+            "https://app.example.com",
+            "Info",
+            true,
+            42,
+            true,
+            "/api",
+            "dev,testing");
+
+    assertEquals("App", spec.getName());
+    assertEquals("/api", spec.getRootPath());
+    assertEquals("dev,testing", spec.getTags());
+  }
+
+  @Test
+  void testUrlFromSetterGetter() {
+    ApplicationSpec spec = new ApplicationSpec();
+    assertNull(spec.getUrlFrom());
+
+    UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "my-service", "default", "spec.host");
+    spec.setUrlFrom(urlFrom);
+
+    assertNotNull(spec.getUrlFrom());
+    assertEquals("my-service", spec.getUrlFrom().getName());
+  }
+
+  @Test
+  void testEqualsWithRootPathAndTags() {
+    ApplicationSpec a =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "tag1,tag2");
+    ApplicationSpec b =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "tag1,tag2");
+    ApplicationSpec c =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/other", "tag1,tag2");
+
+    assertEquals(a, b);
+    assertNotEquals(a, c);
+  }
+
+  @Test
+  void testHashCodeWithRootPathAndTags() {
+    ApplicationSpec a =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "tag1");
+    ApplicationSpec b =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "tag1");
+
+    assertEquals(a.hashCode(), b.hashCode());
+  }
+
+  @Test
+  void testToStringIncludesRootPathAndTags() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App",
+            "Group",
+            "mdi:test",
+            "red",
+            "https://url",
+            "Info",
+            false,
+            3,
+            true,
+            "/api",
+            "prod");
+    String output = spec.toString();
+
+    assertTrue(output.contains("/api"));
+    assertTrue(output.contains("prod"));
+  }
+
+  @Test
+  void testCompareToIgnoresRootPathAndTags() {
+    // compareTo should sort by group, location, name - not affected by rootPath/tags
+    ApplicationSpec app1 =
+        new ApplicationSpec(
+            "Alpha", "GroupA", null, null, "url1", null, true, 1, true, "/path1", "tag1");
+    ApplicationSpec app2 =
+        new ApplicationSpec(
+            "Alpha", "GroupA", null, null, "url2", null, true, 1, true, "/path2", "tag2");
+
+    assertEquals(0, app1.compareTo(app2), "Should compare equal despite different rootPath/tags");
+  }
+
+  @Test
+  void testNullSafetyInEquals() {
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
+
+    assertEquals(spec1, spec2);
+  }
+
+  @Test
+  void testUrlFromInEquality() {
+    UrlFrom urlFrom1 = new UrlFrom("core", "v1", "Service", "svc1", "default", "spec.host");
+    UrlFrom urlFrom2 = new UrlFrom("core", "v1", "Service", "svc2", "default", "spec.host");
+
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    spec1.setUrlFrom(urlFrom1);
+
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    spec2.setUrlFrom(urlFrom2);
+
+    assertNotEquals(spec1, spec2, "Specs with different urlFrom should not be equal");
+  }
 }

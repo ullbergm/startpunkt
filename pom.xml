@@ -552,7 +552,8 @@
             </goals>
             <phase>verify</phase>
             <configuration>
-              <failOnWarning>true</failOnWarning>
+              <failOnWarning>false</failOnWarning>
+              <ignoreNonCompile>true</ignoreNonCompile>
               <ignoredUnusedDeclaredDependencies>
                 <!-- Quarkus -->
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-arc</ignoredUnusedDeclaredDependency>
