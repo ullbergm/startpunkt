@@ -56,13 +56,7 @@ jobs:
     needs: init
     if: ${{ needs.init.outputs.run == 'true' }}
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        arch:
-          - amd64
-          # - arm64
-    name: "Build Native images (${{ matrix.arch }})"
+    name: "Build Native images"
     steps:
       - uses: actions/checkout@v5
 
@@ -76,8 +70,7 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
           flavor: |
-            latest=false
-            suffix=-${{ matrix.arch }},onlatest=true
+            latest=auto
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -90,43 +83,34 @@ jobs:
         working-directory: .
         run: |
           echo "DOCKERFILE=Dockerfile.native-micro" >> "$GITHUB_ENV"
-          if [[ ${{ matrix.arch }} != 'arm64' ]]; then
-            echo "MANDREL_IMAGE_TAG=-${{ matrix.arch }}" >> "$GITHUB_ENV"
-          fi
 
-      - name: Build native image (${{ matrix.arch }})
+      - name: Build native image
         working-directory: .
         run: |
           ./mvnw -B clean package -DskipTests -Pnative \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
-            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}${{ env.MANDREL_IMAGE_TAG }} \
+            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=false
-
-      - name: Set up QEMU
-        if: matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           install: true
 
-      - name: Build native image (${{ matrix.arch }})
+      - name: Build native image
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/${{ matrix.arch }}
+          platforms: linux/amd64
           push: false
           load: true
           file: ./src/main/docker/${{ env.DOCKERFILE }}
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Save native Image (${{ matrix.arch }})
+      - name: Save native Image
         uses: ishworkh/container-image-artifact-upload@v2.0.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
@@ -135,20 +119,11 @@ jobs:
     needs:
       - build-native-images
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch:
-          - amd64
-          - arm64
-        kind:
-          - "" # native
-    name: "Push app images (${{ matrix.arch }}${{ matrix.kind }})"
+    name: "Push app images"
     steps:
       - uses: actions/checkout@v5
-        if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
 
       - name: 📝 Extract Docker metadata
-        if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
         id: meta
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
@@ -158,17 +133,14 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
           flavor: |
-            latest=false
-            suffix=${{ matrix.kind }}-${{ matrix.arch }},onlatest=true
+            latest=auto
 
-      - name: Get saved images (${{ matrix.kind }}${{ matrix.arch }})
-        if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
+      - name: Get saved images
         uses: ishworkh/container-image-artifact-download@v2.1.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
 
       - name: 🔑 Log into registry ${{ env.REGISTRY }}
-        if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ${{ env.REGISTRY }}
@@ -176,83 +148,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push images
-        if: (matrix.kind == '-jvm' || matrix.arch == 'amd64') # Process JVM and native amd64 images
         working-directory: .
         run: "docker push -a ${{ env.IMAGE_FULL_NAME }}"
-
-  create-multiarch-native-tags:
-    needs: push-images
-    runs-on: ubuntu-latest
-    outputs:
-      tags: ${{ steps.json.outputs.tags }}
-    name: Create multiarch manifests
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: 📝 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: ${{env.IMAGE_FULL_NAME}}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-          flavor: |
-            latest=auto
-      
-      - name: Convert a list of tags to a JSON array
-        id: json
-        run: echo tags=$(echo '${{ steps.meta.outputs.tags }}' | jq -nRc '[inputs]' | jq -R -s '.') >> $GITHUB_OUTPUT
-
-  create-multiarch-native-manifests:
-    needs: create-multiarch-native-tags
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        tag: ${{ fromJson(fromJson(needs.create-multiarch-native-tags.outputs.tags)) }}
-    name: Create multiarch native manifests (${{ matrix.tag }})
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: 📝 Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-        with:
-          images: ${{env.IMAGE_FULL_NAME}}
-
-      - name: 🔑 Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check if it is a tag build
-        run: echo "TAG=${{ matrix.tag }}" >> $GITHUB_ENV
-
-      - name: Check if it is a tag build
-        if: startsWith(github.ref, 'refs/tags/')
-        run: echo "TAG=${{ env.IMAGE_FULL_NAME }}:${GITHUB_REF##refs/tags/v}" >> $GITHUB_ENV
-
-      - name: Create and push multi-arch native manifests (${{ matrix.tag }})
-        shell: bash
-        run: |
-          docker manifest create ${{ matrix.tag }} \
-            -a ${{ env.TAG }}-amd64
-          docker manifest push ${{ matrix.tag }}
-
-  # cleanup-artifacts:
-  #   needs:
-  #     - create-multiarch-jvm-manifests
-  #     - create-multiarch-native-manifests
-  #   if: always()
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Delete Untagged Images
-  #       uses: dataaxiom/ghcr-cleanup-action@v1
-  #       with:
-  #         token: ${{ secrets.GITHUB_TOKEN }}
