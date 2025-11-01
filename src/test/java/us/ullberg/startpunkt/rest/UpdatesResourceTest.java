@@ -1,20 +1,27 @@
 package us.ullberg.startpunkt.rest;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
+import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 
 /**
  * Integration tests for the SSE UpdatesResource endpoint and EventBroadcaster.
  *
- * <p>Tests event broadcasting functionality. Note: SSE endpoint connectivity is tested manually
- * or via separate integration tests due to long-lived connection nature.
+ * <p>Tests event broadcasting functionality. Note: Full SSE endpoint connectivity is tested
+ * manually or via separate integration tests due to long-lived connection nature.
  */
 @QuarkusTest
 @TestProfile(UpdatesResourceTest.RealtimeEnabledProfile.class)
@@ -59,5 +66,16 @@ class UpdatesResourceTest {
     // Test that the stream is available and not null
     assertNotNull(eventBroadcaster.getStream(), "Event stream should not be null");
   }
-}
 
+  @Test
+  void testSseEndpointReturnsServerSentEvents() {
+    // Test that the SSE endpoint returns the correct content type
+    given()
+        .when()
+        .get("/api/updates/stream")
+        .then()
+        .statusCode(200)
+        .contentType(ContentType.TEXT)
+        .header("Content-Type", containsString("text/event-stream"));
+  }
+}
