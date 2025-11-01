@@ -81,16 +81,8 @@ export function useServerSentEvents(url, options = {}) {
         }
       };
 
-      // Listen for all event types
-      eventSource.current.addEventListener('APPLICATION_ADDED', handleMessage);
-      eventSource.current.addEventListener('APPLICATION_REMOVED', handleMessage);
-      eventSource.current.addEventListener('APPLICATION_UPDATED', handleMessage);
-      eventSource.current.addEventListener('CONFIG_CHANGED', handleMessage);
-      eventSource.current.addEventListener('STATUS_CHANGED', handleMessage);
-      eventSource.current.addEventListener('BOOKMARK_ADDED', handleMessage);
-      eventSource.current.addEventListener('BOOKMARK_REMOVED', handleMessage);
-      eventSource.current.addEventListener('BOOKMARK_UPDATED', handleMessage);
-      eventSource.current.addEventListener('HEARTBEAT', handleMessage);
+      // Listen for the default message event (server sends all messages as 'message' events)
+      eventSource.current.onmessage = handleMessage;
 
       eventSource.current.onerror = (event) => {
         if (!mountedRef.current) return;
