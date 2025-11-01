@@ -9,10 +9,10 @@ if ('serviceWorker' in navigator) {
       .then((registration) => {
         console.log('[PWA] Service Worker registered successfully:', registration.scope);
         
-        // Check for updates periodically
+        // Check for updates periodically (every 5 minutes)
         setInterval(() => {
           registration.update();
-        }, 60000); // Check every minute
+        }, 300000); // 5 minutes
         
         // Handle updates
         registration.addEventListener('updatefound', () => {

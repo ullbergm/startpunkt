@@ -88,7 +88,7 @@ self.addEventListener('fetch', (event) => {
         return fetch(request)
           .then((response) => {
             // Don't cache non-successful responses
-            if (!response || response.status !== 200 || response.type === 'error') {
+            if (!response || !response.ok || response.type === 'error') {
               return response;
             }
 
