@@ -200,4 +200,79 @@ class BookmarkSpecTest {
     assertNotNull(output);
     assertTrue(output.contains("BookmarkSpec"));
   }
+
+  @Test
+  void testComplexUrlWithQuery() {
+    String complexUrl = "https://example.com:8080/path/to/resource?param1=value1&param2=value2#anchor";
+    BookmarkSpec spec = new BookmarkSpec("App", "Group", "icon", complexUrl, "info", true, 0);
+
+    assertEquals(complexUrl, spec.getUrl());
+    assertTrue(spec.getUrl().contains("?"));
+    assertTrue(spec.getUrl().contains("#"));
+  }
+
+  @Test
+  void testUrlWithUnicode() {
+    String unicodeUrl = "https://example.com/路径/資源";
+    BookmarkSpec spec = new BookmarkSpec("App", "Group", "icon", unicodeUrl, "info", true, 0);
+
+    assertEquals(unicodeUrl, spec.getUrl());
+  }
+
+  @Test
+  void testInfoWithNewlines() {
+    String infoWithNewlines = "Line 1\nLine 2\nLine 3";
+    BookmarkSpec spec = new BookmarkSpec("App", "Group", "icon", "url", infoWithNewlines, true, 0);
+
+    assertEquals(infoWithNewlines, spec.getInfo());
+    assertTrue(spec.getInfo().contains("\n"));
+  }
+
+  @Test
+  void testGroupNameCaseSensitivity() {
+    BookmarkSpec specLower = new BookmarkSpec("App", "group", "icon", "url", "info", true, 0);
+    BookmarkSpec specUpper = new BookmarkSpec("App", "GROUP", "icon", "url", "info", true, 0);
+
+    assertNotEquals(specLower, specUpper, "Group names should be case-sensitive");
+  }
+
+  @Test
+  void testNameCaseSensitivity() {
+    BookmarkSpec specLower = new BookmarkSpec("app", "Group", "icon", "url", "info", true, 0);
+    BookmarkSpec specUpper = new BookmarkSpec("APP", "Group", "icon", "url", "info", true, 0);
+
+    assertNotEquals(specLower, specUpper, "Names should be case-sensitive");
+  }
+
+  @Test
+  void testMultipleIconFormats() {
+    BookmarkSpec mdiSpec = new BookmarkSpec("App1", "Group", "mdi:home", "url", "info", true, 0);
+    BookmarkSpec urlSpec = new BookmarkSpec("App2", "Group", "https://example.com/icon.png", "url", "info", true, 0);
+    BookmarkSpec emojiSpec = new BookmarkSpec("App3", "Group", "🏠", "url", "info", true, 0);
+
+    assertEquals("mdi:home", mdiSpec.getIcon());
+    assertEquals("https://example.com/icon.png", urlSpec.getIcon());
+    assertEquals("🏠", emojiSpec.getIcon());
+  }
+
+  @Test
+  void testComparisonConsistency() {
+    BookmarkSpec spec1 = new BookmarkSpec("A", "Group", "icon", "url", "info", true, 1);
+    BookmarkSpec spec2 = new BookmarkSpec("B", "Group", "icon", "url", "info", true, 1);
+    BookmarkSpec spec3 = new BookmarkSpec("C", "Group", "icon", "url", "info", true, 1);
+
+    // Transitivity: if A < B and B < C, then A < C
+    assertTrue(spec1.compareTo(spec2) < 0);
+    assertTrue(spec2.compareTo(spec3) < 0);
+    assertTrue(spec1.compareTo(spec3) < 0);
+  }
+
+  @Test
+  void testHashCodeDifferentForDifferentObjects() {
+    BookmarkSpec spec1 = new BookmarkSpec("App1", "Group", "icon", "url", "info", true, 1);
+    BookmarkSpec spec2 = new BookmarkSpec("App2", "Group", "icon", "url", "info", true, 1);
+
+    // Not required by contract but typically different
+    assertNotEquals(spec1.hashCode(), spec2.hashCode());
+  }
 }

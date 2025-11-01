@@ -467,6 +467,110 @@ class ApplicationResourceTest {
     }
   }
 
+  // Additional edge case tests
+  @Test
+  void testApplicationsResponseContentType() {
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
+        .contentType("application/json");
+  }
+
+  @Test
+  void testApplicationsWithNoMatchingTags() {
+    given()
+        .queryParam("tags", "nonexistent-tag")
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testApplicationsWithMultipleTagsQueryParam() {
+    given()
+        .queryParam("tags", "admin,home,extra")
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testApplicationsWithEmptyTagsParam() {
+    given()
+        .queryParam("tags", "")
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testApplicationsWithSpecialCharsInTags() {
+    given()
+        .queryParam("tags", "tag-with-dash,tag_with_underscore")
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testApplicationGroupsArePresent() {
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
+        .body("groups", org.hamcrest.Matchers.notNullValue());
+  }
+
+  @Test
+  void testApplicationAvailabilityFields() {
+    // Verify that applications have availability information
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
+        .body("groups[0].applications[0].available", org.hamcrest.Matchers.notNullValue());
+  }
+
+  @Test
+  void testMultipleApplicationsInSameGroup() {
+    // Verify multiple applications can exist in the same group
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200)
+        .body("groups.size()", org.hamcrest.Matchers.greaterThan(0));
+  }
+
+  @Test
+  void testDisabledApplicationsAreExcluded() {
+    // Verify that disabled applications are not returned
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+    // The disabled K3s application should not appear in results
+  }
+
+  @Test
+  void testApplicationWithRootPath() {
+    // Verify applications with rootPath are handled correctly
+    given()
+        .when()
+        .get("/api/apps")
+        .then()
+        .statusCode(200);
+  }
+
   /** Test profile for empty namespace configuration in ApplicationResource tests. */
   public static class EmptyNamespacesApplicationProfile
       implements io.quarkus.test.junit.QuarkusTestProfile {

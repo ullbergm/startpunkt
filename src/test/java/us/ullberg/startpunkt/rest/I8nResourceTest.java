@@ -70,4 +70,114 @@ class I8nResourceTest {
         .statusCode(200)
         .body(equalTo(new I8nResource(new I8nService()).ping()));
   }
+
+  // Test malformed language codes
+  @Test
+  void testMalformedCodeWithNumbers() {
+    given()
+        .when()
+        .get("/api/i8n/en123")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testMalformedCodeWithSpecialChars() {
+    given()
+        .when()
+        .get("/api/i8n/en@US")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testInvalidFormatLowercase() {
+    given()
+        .when()
+        .get("/api/i8n/en-us")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testInvalidFormatUppercase() {
+    given()
+        .when()
+        .get("/api/i8n/EN-US")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testMalformedCodeWithExtraHyphens() {
+    given()
+        .when()
+        .get("/api/i8n/en-US-extra")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testMalformedCodeWithUnderscore() {
+    given()
+        .when()
+        .get("/api/i8n/en_US")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testEmptyLanguageCode() {
+    // Empty language path will hit the base /api/i8n endpoint
+    given()
+        .when()
+        .get("/api/i8n/")
+        .then()
+        .statusCode(200); // Base endpoint returns 200
+  }
+
+  @Test
+  void testSingleCharacterCode() {
+    given()
+        .when()
+        .get("/api/i8n/e")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testNumericLanguageCode() {
+    given()
+        .when()
+        .get("/api/i8n/12-34")
+        .then()
+        .statusCode(200)
+        .body("home.applications", equalTo("Applications"));
+  }
+
+  @Test
+  void testResponseContentType() {
+    given()
+        .when()
+        .get("/api/i8n/en-US")
+        .then()
+        .statusCode(200)
+        .contentType("application/json");
+  }
+
+  @Test
+  void testValidTwoLetterCode() {
+    given()
+        .when()
+        .get("/api/i8n/de")
+        .then()
+        .statusCode(200);
+  }
 }

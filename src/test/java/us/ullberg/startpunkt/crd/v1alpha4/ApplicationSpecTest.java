@@ -425,4 +425,181 @@ class ApplicationSpecTest {
         new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
     assertTrue(spec.compareTo(spec2) < 0, "Negative location should sort before zero");
   }
+
+  @Test
+  void testSetAllFieldsViaSetters() {
+    ApplicationSpec spec = new ApplicationSpec();
+    
+    spec.setName("SetterApp");
+    spec.setGroup("SetterGroup");
+    spec.setIcon("mdi:setter");
+    spec.setIconColor("purple");
+    spec.setUrl("https://setter.com");
+    spec.setInfo("Set via setters");
+    spec.setTargetBlank(false);
+    spec.setLocation(99);
+    spec.setEnabled(true);
+    spec.setRootPath("/setter/path");
+    spec.setTags("setter,tags,test");
+    
+    UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "setter-svc", "default", "spec.host");
+    spec.setUrlFrom(urlFrom);
+
+    assertEquals("SetterApp", spec.getName());
+    assertEquals("SetterGroup", spec.getGroup());
+    assertEquals("mdi:setter", spec.getIcon());
+    assertEquals("purple", spec.getIconColor());
+    assertEquals("https://setter.com", spec.getUrl());
+    assertEquals("Set via setters", spec.getInfo());
+    assertFalse(spec.getTargetBlank());
+    assertEquals(99, spec.getLocation());
+    assertTrue(spec.getEnabled());
+    assertEquals("/setter/path", spec.getRootPath());
+    assertEquals("setter,tags,test", spec.getTags());
+    assertNotNull(spec.getUrlFrom());
+    assertEquals("setter-svc", spec.getUrlFrom().getName());
+  }
+
+  @Test
+  void testTagsParsing() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "production,monitoring,critical");
+
+    String tags = spec.getTags();
+    assertNotNull(tags);
+    assertTrue(tags.contains("production"));
+    assertTrue(tags.contains("monitoring"));
+    assertTrue(tags.contains("critical"));
+  }
+
+  @Test
+  void testEmptyRootPath() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true, "", null);
+
+    assertEquals("", spec.getRootPath());
+  }
+
+  @Test
+  void testRootPathWithSlashes() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true, "/api/v2/resource", null);
+
+    assertEquals("/api/v2/resource", spec.getRootPath());
+  }
+
+  @Test
+  void testUrlFromNullByDefault() {
+    ApplicationSpec spec = new ApplicationSpec();
+    assertNull(spec.getUrlFrom());
+  }
+
+  @Test
+  void testSetUrlFromToNull() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
+    
+    UrlFrom urlFrom = new UrlFrom("core", "v1", "Service", "svc", "default", "spec.host");
+    spec.setUrlFrom(urlFrom);
+    assertNotNull(spec.getUrlFrom());
+    
+    spec.setUrlFrom(null);
+    assertNull(spec.getUrlFrom());
+  }
+
+  @Test
+  void testComplexCompareTo() {
+    // Create apps with same group but different locations and names
+    ApplicationSpec app1 = new ApplicationSpec("Charlie", "GroupA", null, null, "url", null, true, 2, true);
+    ApplicationSpec app2 = new ApplicationSpec("Alice", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app3 = new ApplicationSpec("Bob", "GroupA", null, null, "url", null, true, 1, true);
+    ApplicationSpec app4 = new ApplicationSpec("David", "GroupB", null, null, "url", null, true, 1, true);
+
+    // app2 and app3 have same location, should sort by name
+    assertTrue(app2.compareTo(app3) < 0, "Alice < Bob");
+    
+    // app2 has lower location than app1
+    assertTrue(app2.compareTo(app1) < 0, "Location 1 < Location 2");
+    
+    // app2 is in GroupA, app4 is in GroupB
+    assertTrue(app2.compareTo(app4) < 0, "GroupA < GroupB");
+  }
+
+  @Test
+  void testEqualsNullFields() {
+    ApplicationSpec spec1 = new ApplicationSpec();
+    ApplicationSpec spec2 = new ApplicationSpec();
+    
+    assertEquals(spec1, spec2);
+  }
+
+  @Test
+  void testEqualsWithDifferentUrlFrom() {
+    UrlFrom urlFrom1 = new UrlFrom("core", "v1", "Service", "svc1", "ns1", "spec.host");
+    UrlFrom urlFrom2 = new UrlFrom("core", "v1", "Service", "svc2", "ns2", "spec.host");
+
+    ApplicationSpec spec1 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    spec1.setUrlFrom(urlFrom1);
+
+    ApplicationSpec spec2 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    spec2.setUrlFrom(urlFrom2);
+
+    assertNotEquals(spec1, spec2);
+  }
+
+  @Test
+  void testTagsWithSpaces() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App", "Group", null, null, "url", null, true, 0, true, "/path", "tag 1, tag 2, tag 3");
+
+    assertEquals("tag 1, tag 2, tag 3", spec.getTags());
+  }
+
+  @Test
+  void testTargetBlankNull() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, true);
+
+    assertNull(spec.getTargetBlank());
+  }
+
+  @Test
+  void testEnabledNull() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, null);
+
+    assertNull(spec.getEnabled());
+  }
+
+  @Test
+  void testLongStrings() {
+    String longName = "A".repeat(1000);
+    String longUrl = "https://example.com/" + "path/".repeat(100);
+    String longTags = "tag,".repeat(500);
+
+    ApplicationSpec spec =
+        new ApplicationSpec(longName, "Group", "icon", "color", longUrl, "info", true, 0, true, "/path", longTags);
+
+    assertEquals(longName, spec.getName());
+    assertEquals(longUrl, spec.getUrl());
+    assertEquals(longTags, spec.getTags());
+  }
+
+  @Test
+  void testZeroLocation() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
+
+    assertEquals(0, spec.getLocation());
+  }
+
+  @Test
+  void testLargeLocation() {
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, true, 999999, true);
+
+    assertEquals(999999, spec.getLocation());
+  }
 }
