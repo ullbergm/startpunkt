@@ -71,10 +71,8 @@ class WebSocketEventTypeTest {
   @Test
   void testValueOfFromString() {
     assertEquals(
-        WebSocketEventType.APPLICATION_ADDED,
-        WebSocketEventType.valueOf("APPLICATION_ADDED"));
-    assertEquals(
-        WebSocketEventType.CONFIG_CHANGED, WebSocketEventType.valueOf("CONFIG_CHANGED"));
+        WebSocketEventType.APPLICATION_ADDED, WebSocketEventType.valueOf("APPLICATION_ADDED"));
+    assertEquals(WebSocketEventType.CONFIG_CHANGED, WebSocketEventType.valueOf("CONFIG_CHANGED"));
     assertEquals(WebSocketEventType.HEARTBEAT, WebSocketEventType.valueOf("HEARTBEAT"));
   }
 
@@ -111,7 +109,7 @@ class WebSocketEventTypeTest {
   @Test
   void testEnumOrdering() {
     WebSocketEventType[] types = WebSocketEventType.values();
-    
+
     // Verify the first and last elements
     assertEquals(WebSocketEventType.APPLICATION_ADDED, types[0]);
     assertEquals(WebSocketEventType.HEARTBEAT, types[types.length - 1]);

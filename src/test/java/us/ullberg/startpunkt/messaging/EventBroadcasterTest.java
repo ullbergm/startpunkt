@@ -205,7 +205,8 @@ class EventBroadcasterTest {
     String stringData = "Simple string data";
 
     // When/Then - Should handle non-map data
-    assertDoesNotThrow(() -> broadcaster.broadcastEvent(WebSocketEventType.CONFIG_CHANGED, stringData));
+    assertDoesNotThrow(
+        () -> broadcaster.broadcastEvent(WebSocketEventType.CONFIG_CHANGED, stringData));
   }
 
   @Test
@@ -214,7 +215,8 @@ class EventBroadcasterTest {
     Integer numericData = 12345;
 
     // When/Then - Should handle numeric data
-    assertDoesNotThrow(() -> broadcaster.broadcastEvent(WebSocketEventType.STATUS_CHANGED, numericData));
+    assertDoesNotThrow(
+        () -> broadcaster.broadcastEvent(WebSocketEventType.STATUS_CHANGED, numericData));
   }
 
   @Test
