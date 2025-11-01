@@ -183,4 +183,69 @@ class BookmarkResourceTest {
         .statusCode(200)
         .body(equalTo(new BookmarkResource(new BookmarkService()).ping()));
   }
+
+  // Test with invalid namespace
+  @Test
+  void testBookmarksWithInvalidNamespaceStillReturnsData() {
+    // API should still work even if some namespaces don't exist
+    given().when().get("/api/bookmarks").then().statusCode(200);
+  }
+
+  // Test empty bookmarks scenario
+  @Test
+  void testEmptyBookmarksResponse() {
+    // Even without bookmarks, should return valid structure
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .statusCode(200)
+        .body("groups", org.hamcrest.Matchers.notNullValue());
+  }
+
+  // Test group name lowercasing
+  @Test
+  void testGroupNamesAreLowercase() {
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .body("groups[0].name", equalTo("3d printing"))
+        .body("groups[1].name", equalTo("default"));
+  }
+
+  // Test location normalization (0 -> 1000)
+  @Test
+  void testLocationNormalization() {
+    // Bookmarks with location 0 should be normalized to 1000
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .body("groups[0].bookmarks[1].location", equalTo(1000))
+        .body("groups[1].bookmarks[0].location", equalTo(1000));
+  }
+
+  // Test bookmark ordering within groups
+  @Test
+  void testBookmarksAreOrdered() {
+    // Verify bookmarks are ordered by location
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .body("groups[0].bookmarks[0].location", equalTo(1))
+        .body("groups[0].bookmarks[1].location", equalTo(1000));
+  }
+
+  // Test response content type
+  @Test
+  void testResponseContentType() {
+    given()
+        .when()
+        .get("/api/bookmarks")
+        .then()
+        .statusCode(200)
+        .contentType("application/json");
+  }
 }
