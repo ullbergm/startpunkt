@@ -50,7 +50,8 @@ class ApplicationGroupListTest {
 
     assertNotNull(list, "ApplicationGroupList should be created");
     assertNotNull(list.getGroups(), "Groups list should not be null");
-    assertTrue(list.getGroups().isEmpty(), "Groups list should be empty when constructed with null");
+    assertTrue(
+        list.getGroups().isEmpty(), "Groups list should be empty when constructed with null");
   }
 
   @Test
@@ -86,11 +87,9 @@ class ApplicationGroupListTest {
   void testSetGroupsWithNull() {
     applicationGroupList.setGroups(null);
 
-    assertNotNull(
-        applicationGroupList.getGroups(), "Groups should not be null after setting null");
+    assertNotNull(applicationGroupList.getGroups(), "Groups should not be null after setting null");
     assertTrue(
-        applicationGroupList.getGroups().isEmpty(),
-        "Groups should be empty after setting null");
+        applicationGroupList.getGroups().isEmpty(), "Groups should be empty after setting null");
   }
 
   @Test
@@ -103,13 +102,11 @@ class ApplicationGroupListTest {
     ApplicationGroup group3 = new ApplicationGroup("Group3");
     applicationGroupList.setGroups(List.of(group2, group3));
 
-    assertEquals(2, applicationGroupList.getGroups().size(), "Should have 2 groups after replacement");
-    assertTrue(
-        applicationGroupList.getGroups().contains(group2), "Should contain new group2");
-    assertTrue(
-        applicationGroupList.getGroups().contains(group3), "Should contain new group3");
-    assertFalse(
-        applicationGroupList.getGroups().contains(group1), "Should not contain old group1");
+    assertEquals(
+        2, applicationGroupList.getGroups().size(), "Should have 2 groups after replacement");
+    assertTrue(applicationGroupList.getGroups().contains(group2), "Should contain new group2");
+    assertTrue(applicationGroupList.getGroups().contains(group3), "Should contain new group3");
+    assertFalse(applicationGroupList.getGroups().contains(group1), "Should not contain old group1");
   }
 
   @Test

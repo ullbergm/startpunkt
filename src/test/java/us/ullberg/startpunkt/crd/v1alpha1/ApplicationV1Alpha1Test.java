@@ -190,7 +190,8 @@ class ApplicationV1Alpha1Test {
             .build());
 
     assertNotNull(app.getMetadata().getAnnotations());
-    assertEquals("/custom", app.getMetadata().getAnnotations().get("startpunkt.ullberg.us/rootPath"));
+    assertEquals(
+        "/custom", app.getMetadata().getAnnotations().get("startpunkt.ullberg.us/rootPath"));
   }
 
   private Application createSampleApplication() {

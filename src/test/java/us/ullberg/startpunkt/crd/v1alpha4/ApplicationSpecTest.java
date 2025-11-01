@@ -221,7 +221,17 @@ class ApplicationSpecTest {
   void testToStringIncludesRootPathAndTags() {
     ApplicationSpec spec =
         new ApplicationSpec(
-            "App", "Group", "mdi:test", "red", "https://url", "Info", false, 3, true, "/api", "prod");
+            "App",
+            "Group",
+            "mdi:test",
+            "red",
+            "https://url",
+            "Info",
+            false,
+            3,
+            true,
+            "/api",
+            "prod");
     String output = spec.toString();
 
     assertTrue(output.contains("/api"));
@@ -243,8 +253,10 @@ class ApplicationSpecTest {
 
   @Test
   void testNullSafetyInEquals() {
-    ApplicationSpec spec1 = new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
-    ApplicationSpec spec2 = new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
 
     assertEquals(spec1, spec2);
   }
@@ -254,10 +266,12 @@ class ApplicationSpecTest {
     UrlFrom urlFrom1 = new UrlFrom("core", "v1", "Service", "svc1", "default", "spec.host");
     UrlFrom urlFrom2 = new UrlFrom("core", "v1", "Service", "svc2", "default", "spec.host");
 
-    ApplicationSpec spec1 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
     spec1.setUrlFrom(urlFrom1);
 
-    ApplicationSpec spec2 = new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, null, null, true, 0, true);
     spec2.setUrlFrom(urlFrom2);
 
     assertNotEquals(spec1, spec2, "Specs with different urlFrom should not be equal");

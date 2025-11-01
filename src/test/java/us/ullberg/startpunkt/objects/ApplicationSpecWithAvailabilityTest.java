@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
- * Test class for ApplicationSpecWithAvailability. Tests wrapper functionality, availability
- * status, and field copying from ApplicationSpec.
+ * Test class for ApplicationSpecWithAvailability. Tests wrapper functionality, availability status,
+ * and field copying from ApplicationSpec.
  */
 class ApplicationSpecWithAvailabilityTest {
 
@@ -109,7 +109,7 @@ class ApplicationSpecWithAvailabilityTest {
   void testSetAvailableNull() {
     ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
     wrapper.setAvailable(true);
-    
+
     wrapper.setAvailable(null);
 
     assertNull(wrapper.getAvailable(), "Available should be null after setting to null");
@@ -235,9 +235,7 @@ class ApplicationSpecWithAvailabilityTest {
     assertFalse(wrapper2.getAvailable(), "Wrapper2 should not be available");
     // They are independent
     assertNotEquals(
-        wrapper1.getAvailable(),
-        wrapper2.getAvailable(),
-        "Wrappers should be independent");
+        wrapper1.getAvailable(), wrapper2.getAvailable(), "Wrappers should be independent");
   }
 
   @Test

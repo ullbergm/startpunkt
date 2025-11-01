@@ -67,8 +67,10 @@ class ApplicationSpecV1Alpha1Test {
 
   @Test
   void testApplicationSpecCompareToByGroup() {
-    ApplicationSpec spec1 = new ApplicationSpec("App1", "GroupA", null, null, "url1", null, null, 0, null);
-    ApplicationSpec spec2 = new ApplicationSpec("App2", "GroupB", null, null, "url2", null, null, 0, null);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App1", "GroupA", null, null, "url1", null, null, 0, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App2", "GroupB", null, null, "url2", null, null, 0, null);
 
     assertTrue(spec1.compareTo(spec2) < 0, "GroupA should come before GroupB");
     assertTrue(spec2.compareTo(spec1) > 0, "GroupB should come after GroupA");
@@ -76,8 +78,10 @@ class ApplicationSpecV1Alpha1Test {
 
   @Test
   void testApplicationSpecCompareToByLocation() {
-    ApplicationSpec spec1 = new ApplicationSpec("App1", "Group", null, null, "url1", null, null, 10, null);
-    ApplicationSpec spec2 = new ApplicationSpec("App2", "Group", null, null, "url2", null, null, 20, null);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App1", "Group", null, null, "url1", null, null, 10, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App2", "Group", null, null, "url2", null, null, 20, null);
 
     assertTrue(spec1.compareTo(spec2) < 0, "Location 10 should come before 20");
     assertTrue(spec2.compareTo(spec1) > 0, "Location 20 should come after 10");
@@ -85,8 +89,10 @@ class ApplicationSpecV1Alpha1Test {
 
   @Test
   void testApplicationSpecCompareToByName() {
-    ApplicationSpec spec1 = new ApplicationSpec("AppA", "Group", null, null, "url1", null, null, 10, null);
-    ApplicationSpec spec2 = new ApplicationSpec("AppB", "Group", null, null, "url2", null, null, 10, null);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("AppA", "Group", null, null, "url1", null, null, 10, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("AppB", "Group", null, null, "url2", null, null, 10, null);
 
     assertTrue(spec1.compareTo(spec2) < 0, "AppA should come before AppB");
     assertTrue(spec2.compareTo(spec1) > 0, "AppB should come after AppA");
@@ -94,8 +100,10 @@ class ApplicationSpecV1Alpha1Test {
 
   @Test
   void testApplicationSpecCompareToEqual() {
-    ApplicationSpec spec1 = new ApplicationSpec("App", "Group", null, null, "url", null, null, 10, null);
-    ApplicationSpec spec2 = new ApplicationSpec("App", "Group", null, null, "url", null, null, 10, null);
+    ApplicationSpec spec1 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 10, null);
+    ApplicationSpec spec2 =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 10, null);
 
     assertEquals(0, spec1.compareTo(spec2), "Identical specs should compare equal");
   }
@@ -216,7 +224,8 @@ class ApplicationSpecV1Alpha1Test {
 
   @Test
   void testApplicationSpecWithNullOptionalFields() {
-    ApplicationSpec spec = new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
+    ApplicationSpec spec =
+        new ApplicationSpec("App", "Group", null, null, "url", null, null, 0, null);
 
     assertEquals("App", spec.getName());
     assertEquals("Group", spec.getGroup());

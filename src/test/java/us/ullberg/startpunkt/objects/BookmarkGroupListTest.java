@@ -50,7 +50,8 @@ class BookmarkGroupListTest {
 
     assertNotNull(list, "BookmarkGroupList should be created");
     assertNotNull(list.getGroups(), "Groups list should not be null");
-    assertTrue(list.getGroups().isEmpty(), "Groups list should be empty when constructed with null");
+    assertTrue(
+        list.getGroups().isEmpty(), "Groups list should be empty when constructed with null");
   }
 
   @Test
@@ -112,13 +113,7 @@ class BookmarkGroupListTest {
     BookmarkGroup group = new BookmarkGroup("GroupWithBookmarks");
     BookmarkSpec bookmark =
         new BookmarkSpec(
-            "Bookmark1",
-            "GroupWithBookmarks",
-            "icon1",
-            "https://bookmark1.com",
-            "info1",
-            false,
-            0);
+            "Bookmark1", "GroupWithBookmarks", "icon1", "https://bookmark1.com", "info1", false, 0);
     group.addBookmark(bookmark);
 
     bookmarkGroupList.setGroups(List.of(group));

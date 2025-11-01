@@ -70,7 +70,9 @@ class KubernetesConnectionHealthCheckTest {
     // Version may or may not be present in test server
     assertEquals(Long.valueOf(1), Long.valueOf(data.get("Nodes").toString()), "Should have 1 node");
     assertEquals(
-        Long.valueOf(3), Long.valueOf(data.get("Namespaces").toString()), "Should have 3 namespaces");
+        Long.valueOf(3),
+        Long.valueOf(data.get("Namespaces").toString()),
+        "Should have 3 namespaces");
 
     // API groups may or may not be present in test server
     assertNotNull(data.get("Startpunkt API group found"), "Startpunkt API check should exist");
@@ -126,8 +128,7 @@ class KubernetesConnectionHealthCheckTest {
         .get()
         .withPath("/api/v1/nodes")
         .andReturn(
-            HttpURLConnection.HTTP_OK,
-            new NodeListBuilder().withItems(node1, node2, node3).build())
+            HttpURLConnection.HTTP_OK, new NodeListBuilder().withItems(node1, node2, node3).build())
         .always();
 
     Namespace ns = new Namespace();

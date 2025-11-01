@@ -6,7 +6,6 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
@@ -219,8 +218,7 @@ class HajimariApplicationWrapperTest {
     GenericKubernetesResource app1 =
         createMockHajimariApp("app1", "default", "App1", "group1", "https://app1.example.com");
     GenericKubernetesResource app2 =
-        createMockHajimariApp(
-            "app2", "kube-system", "App2", "group2", "https://app2.example.com");
+        createMockHajimariApp("app2", "kube-system", "App2", "group2", "https://app2.example.com");
 
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
     List<GenericKubernetesResource> items = new ArrayList<>();
