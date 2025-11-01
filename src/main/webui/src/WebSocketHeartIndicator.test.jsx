@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/preact';
-import { SSEHeartIndicator } from './SSEHeartIndicator';
+import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
 import '@testing-library/jest-dom';
 
 // Mock the Icon component from @iconify/react
@@ -11,7 +11,7 @@ jest.mock('@iconify/react', () => ({
   ),
 }));
 
-describe('SSEHeartIndicator', () => {
+describe('WebSocketHeartIndicator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -24,7 +24,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: null,
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: Date.now(),
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: null,
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: null,
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: Date.now(),
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', expect.stringContaining('Real-time updates active'));
@@ -102,7 +102,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: null,
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', 'Connection error - using HTTP polling');
@@ -116,7 +116,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: null,
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', 'Connecting to real-time updates...');
@@ -130,7 +130,7 @@ describe('SSEHeartIndicator', () => {
       lastHeartbeat: Date.now(),
     };
 
-    render(<SSEHeartIndicator websocket={websocket} />);
+    render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('aria-label');

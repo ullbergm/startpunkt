@@ -68,9 +68,9 @@ startpunkt:
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
 
-  # Real-time updates configuration
-  realtime:
-    enabled: true  # If true, enable real-time updates via Server-Sent Events (SSE)
+  # WebSocket configuration for real-time updates
+  websocket:
+    enabled: true  # If true, enable WebSocket connections for real-time updates
     heartbeatInterval: 30s  # Heartbeat interval in seconds to keep connections alive (e.g., 60s, 5m, 1h)
     eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
 

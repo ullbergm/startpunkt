@@ -161,6 +161,10 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-scheduler</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-websockets-next</artifactId>
+    </dependency>
 
     <!-- Quarkus Extensions -->
     <dependency>
