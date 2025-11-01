@@ -7,6 +7,97 @@
             "light" : "Ljust",
             "dark" : "Mörkt",
             "auto" : "Auto"
+        },
+        "skipToContent" : "Hoppa till huvudinnehåll",
+        "loading" : "Laddar...",
+        "checkingForItems" : "Kontrollerar konfigurerade program och bokmärken...",
+        "noItemsHelp" : "Om inga hittas kan du lägga till dem för att komma igång.",
+        "noItemsAvailable" : "Inga objekt tillgängliga",
+        "noItemsConfigured" : "Det finns för närvarande inga program eller bokmärken konfigurerade.",
+        "pleaseAddItems" : "Lägg till några program eller bokmärken för att komma igång."
+    },
+    "background" : {
+        "title" : "Bakgrund",
+        "settings" : "Bakgrundsinställningar",
+        "type" : "Bakgrundstyp",
+        "types" : {
+            "theme" : "Tema (Auto ljus/mörk)",
+            "solid" : "Solid färg",
+            "gradient" : "Gradient",
+            "image" : "Anpassad bild",
+            "pictureOfDay" : "Dagens bild",
+            "geopattern" : "Geomönster"
+        },
+        "themeMode" : "Temaläge",
+        "color" : "Färg",
+        "primaryColor" : "Primär färg",
+        "secondaryColor" : "Sekundär färg",
+        "gradientDirection" : "Gradientriktning",
+        "directions" : {
+            "toBottom" : "Topp till botten",
+            "toTop" : "Botten till topp",
+            "toRight" : "Vänster till höger",
+            "toLeft" : "Höger till vänster",
+            "toBottomRight" : "Topp-vänster till botten-höger",
+            "toBottomLeft" : "Topp-höger till botten-vänster"
+        },
+        "imageUrl" : "Bild-URL",
+        "imageUrlPlaceholder" : "https://example.com/bild.jpg",
+        "imageUrlHelp" : "Ange en giltig bild-URL",
+        "patternSeed" : "Mönsterfrö",
+        "patternSeedPlaceholder" : "Ange text för att generera mönster",
+        "patternSeedHelp" : "Ändra texten för att generera olika mönster",
+        "patternColor" : "Mönsterfärg",
+        "blur" : "Sudda bakgrund",
+        "opacity" : "Opacitet",
+        "resetToDefaults" : "Återställ till standard"
+    },
+    "layout" : {
+        "title" : "Layout",
+        "settings" : "Layoutinställningar",
+        "columns" : "Kolumner",
+        "spacing" : "Mellanrum",
+        "spacingTypes" : {
+            "tight" : "Tätt",
+            "normal" : "Normal",
+            "relaxed" : "Avslappnad"
+        },
+        "compactMode" : "Kompakt läge",
+        "showHide" : "Visa/Dölj",
+        "description" : "Beskrivning",
+        "tags" : "Taggar",
+        "statusIndicators" : "Statusindikatorer",
+        "presets" : "Layoutförval",
+        "presetName" : "Förvalnamn",
+        "save" : "Spara",
+        "cancel" : "Avbryt",
+        "delete" : "Ta bort",
+        "saveCurrentPreset" : "+ Spara aktuell som förval",
+        "resetToDefaults" : "Återställ till standard"
+    },
+    "accessibility" : {
+        "title" : "Tillgänglighet",
+        "settings" : "Tillgänglighetsinställningar",
+        "fontSize" : "Textstorlek",
+        "decreaseFontSize" : "Minska textstorlek",
+        "resetFontSize" : "Återställ textstorlek till standard",
+        "increaseFontSize" : "Öka textstorlek",
+        "highContrastMode" : "Högkontrastläge",
+        "highContrastHelp" : "Förbättrar färgkontrast för bättre läsbarhet",
+        "keyboardShortcuts" : "Tangentbordsgenvägar",
+        "shortcut" : {
+            "search" : "Sök",
+            "navigateForward" : "Navigera framåt",
+            "navigateBack" : "Navigera bakåt"
+        }
+    },
+    "search" : {
+        "title" : "Sök program och bokmärken",
+        "placeholder" : "Sök...",
+        "noResults" : "Inga resultat",
+        "resultsBadge" : {
+            "bookmark" : "Bokmärke",
+            "app" : "Program"
         }
     }
 }

@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
+import { Text } from 'preact-i18n';
 import { Document } from 'flexsearch';
 
 import { Icon } from '@iconify/react';
@@ -54,7 +55,7 @@ function TypeBadge({ type }) {
                 padding: '0.1em 0.6em 0.1em 0.4em',
                 fontWeight: 600,
             }}>
-                <Icon icon="mdi:bookmark-outline" width={16} height={16} style={{ verticalAlign: 'middle' }} /> Bookmark
+                <Icon icon="mdi:bookmark-outline" width={16} height={16} style={{ verticalAlign: 'middle' }} /> <Text id="search.resultsBadge.bookmark">Bookmark</Text>
             </span>
         );
     } else if (type === 'app') {
@@ -72,7 +73,7 @@ function TypeBadge({ type }) {
                 padding: '0.1em 0.6em 0.1em 0.4em',
                 fontWeight: 600,
             }}>
-                <Icon icon="mdi:application" width={16} height={16} style={{ verticalAlign: 'middle' }} /> App
+                <Icon icon="mdi:application" width={16} height={16} style={{ verticalAlign: 'middle' }} /> <Text id="search.resultsBadge.app">App</Text>
             </span>
         );
     }
@@ -285,7 +286,7 @@ export default function SpotlightSearch({ testVisible = false }) {
             aria-modal="true"
             aria-labelledby="spotlight-search-label"
         >
-            <h2 id="spotlight-search-label" class="visually-hidden">Search applications and bookmarks</h2>
+            <h2 id="spotlight-search-label" class="visually-hidden"><Text id="search.title">Search applications and bookmarks</Text></h2>
             <input
                 ref={inputRef}
                 type="text"
@@ -329,7 +330,7 @@ export default function SpotlightSearch({ testVisible = false }) {
                 aria-label="Search results"
             >
                 {query.trim() && filtered.length === 0 && (
-                    <li role="status" aria-live="polite" style={{ padding: '0.5rem', color: '#888' }}>No results</li>
+                    <li role="status" aria-live="polite" style={{ padding: '0.5rem', color: '#888' }}><Text id="search.noResults">No results</Text></li>
                 )}
 
                 {filtered.map((app, index) => (

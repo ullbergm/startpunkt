@@ -304,7 +304,7 @@ export function App() {
         class="visually-hidden-focusable position-absolute top-0 start-0 p-3 m-3 bg-primary text-white"
         style="z-index: 9999;"
       >
-        Skip to main content
+        <Text id="home.skipToContent">Skip to main content</Text>
       </a>
 
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
@@ -340,16 +340,16 @@ export function App() {
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
           {currentPage === "loading" && (
             <div class="text-center" role="status" aria-live="polite">
-              <h1 class="display-4">Loading...</h1>
-              <p class="lead">Checking for configured applications and bookmarks...</p>
-              <p>If none are found, you can add them to get started.</p>
+              <h1 class="display-4"><Text id="home.loading">Loading...</Text></h1>
+              <p class="lead"><Text id="home.checkingForItems">Checking for configured applications and bookmarks...</Text></p>
+              <p><Text id="home.noItemsHelp">If none are found, you can add them to get started.</Text></p>
             </div>
           )}
           {currentPage === "empty" && (
             <div class="text-center" role="status">
-              <h1 class="display-4">No Items Available</h1>
-              <p class="lead">There are currently no applications or bookmarks configured.</p>
-              <p>Please add some applications or bookmarks to get started.</p>
+              <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
+              <p class="lead"><Text id="home.noItemsConfigured">There are currently no applications or bookmarks configured.</Text></p>
+              <p><Text id="home.pleaseAddItems">Please add some applications or bookmarks to get started.</Text></p>
             </div>
           )}
         </main>
