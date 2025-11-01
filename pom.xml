@@ -278,6 +278,7 @@
     <dependency>
       <groupId>.quarkus.resteasy.reactive</groupId>
       <artifactId>resteasy-reactive-common</artifactId>
+      <version>3.29.0</version>
     </dependency>
     
     <!-- Test Dependencies -->
@@ -676,6 +677,7 @@
     </profile>
   </profiles>
 </project>
+
 
 
 
