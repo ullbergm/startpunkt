@@ -1,22 +1,19 @@
 package us.ullberg.startpunkt.rest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.subscription.Cancellable;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.sse.Sse;
-import jakarta.ws.rs.sse.SseEventSink;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestStreamElementType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.websocket.WebSocketEventType;
 import us.ullberg.startpunkt.websocket.WebSocketMessage;
@@ -48,18 +45,17 @@ public class UpdatesResource {
   /**
    * Server-Sent Events endpoint for real-time updates.
    *
-   * @param eventSink the SSE event sink
-   * @param sse the SSE context
+   * @return a Multi stream of SSE events as JSON strings
    */
   @GET
   @Path("/stream")
   @Produces(MediaType.SERVER_SENT_EVENTS)
+  @RestStreamElementType(MediaType.APPLICATION_JSON)
   @Operation(summary = "Subscribe to real-time updates via Server-Sent Events")
-  public void stream(@Context SseEventSink eventSink, @Context Sse sse) {
+  public Multi<String> stream() {
     if (!realtimeEnabled) {
       Log.warn("Event streaming is disabled");
-      eventSink.close();
-      return;
+      return Multi.createFrom().empty();
     }
 
     Log.info("New SSE client connected");
@@ -67,7 +63,7 @@ public class UpdatesResource {
     // Get the stream from the event broadcaster
     Multi<WebSocketMessage<?>> updatesStream = eventBroadcaster.getStream();
 
-    // Merge the updates stream with heartbeat
+    // Create heartbeat stream
     Multi<WebSocketMessage<?>> heartbeat =
         Multi.createFrom()
             .ticks()
@@ -78,65 +74,27 @@ public class UpdatesResource {
                         WebSocketEventType.HEARTBEAT,
                         Map.of("timestamp", System.currentTimeMillis())));
 
+    // Merge the updates stream with heartbeat
     Multi<WebSocketMessage<?>> combinedStream =
         Multi.createBy().merging().streams(updatesStream, heartbeat);
 
-    // Subscribe to the combined stream and send events to the client
-    AtomicReference<Cancellable> subscriptionRef = new AtomicReference<>();
-
-    Runnable closeHandler =
-        () -> {
-          Log.info("SSE client connection closed, cancelling subscription");
-          Cancellable subscription = subscriptionRef.get();
-          if (subscription != null) {
-            subscription.cancel();
-          }
-        };
-
-    Cancellable subscription =
-        combinedStream
-            .subscribe()
-            .with(
-                message -> {
-                  // Check if the event sink is still open before sending
-                  if (eventSink.isClosed()) {
-                    Log.debug("SSE client disconnected, skipping event");
-                    closeHandler.run();
-                    return;
-                  }
-
-                  try {
-                    // Serialize message to JSON
-                    String jsonData = objectMapper.writeValueAsString(message);
-                    eventSink.send(
-                        sse.newEventBuilder()
-                            .name(message.getType().toString())
-                            .data(jsonData)
-                            .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                            .build());
-                  } catch (IllegalStateException e) {
-                    // Event sink is closed, cancel the subscription
-                    Log.info("SSE client disconnected");
-                    closeHandler.run();
-                  } catch (Exception e) {
-                    Log.errorf("Error sending SSE event: %s", e.getMessage());
-                  }
-                },
-                error -> {
-                  Log.errorf("Error in SSE stream: %s", error.getMessage());
-                  if (!eventSink.isClosed()) {
-                    eventSink.close();
-                  }
-                  closeHandler.run();
-                },
-                () -> {
-                  Log.info("SSE stream completed");
-                  if (!eventSink.isClosed()) {
-                    eventSink.close();
-                  }
-                  closeHandler.run();
-                });
-
-    subscriptionRef.set(subscription);
+    // Convert messages to JSON strings
+    return combinedStream
+        .onItem()
+        .transform(
+            message -> {
+              try {
+                return objectMapper.writeValueAsString(message);
+              } catch (JsonProcessingException e) {
+                Log.errorf(e, "Error serializing SSE message: %s", message);
+                return "{\"type\":\"ERROR\",\"data\":{\"message\":\"Serialization error\"}}";
+              }
+            })
+        .onFailure()
+        .invoke(error -> Log.errorf(error, "Error in SSE stream"))
+        .onCancellation()
+        .invoke(() -> Log.info("SSE client disconnected"))
+        .onCompletion()
+        .invoke(() -> Log.info("SSE stream completed"));
   }
 }
