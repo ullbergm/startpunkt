@@ -29,7 +29,7 @@ permissions:
 
 # Only process one workflow run at a time
 concurrency:
-  group: "workflow = ${{ github.workflow }}}"
+  group: "${{ github.workflow }}"
   cancel-in-progress: false
 
 jobs:
@@ -79,20 +79,14 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Create env vars
-        working-directory: .
-        run: |
-          echo "DOCKERFILE=Dockerfile.native-micro" >> "$GITHUB_ENV"
-          echo "MANDREL_IMAGE_TAG=-amd64" >> "$GITHUB_ENV"
-
-      - name: Build native image
+      - name: Build native executable with Quarkus
         working-directory: .
         run: |
           ./mvnw -B clean package -DskipTests -Pnative \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
-            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}${{ env.MANDREL_IMAGE_TAG }} \
+            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=false
 
@@ -101,17 +95,17 @@ jobs:
         with:
           install: true
 
-      - name: Build native image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
           push: false
           load: true
-          file: ./src/main/docker/${{ env.DOCKERFILE }}
+          file: ./src/main/docker/Dockerfile.native-micro
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Save native Image
+      - name: Save native image to artifact
         uses: ishworkh/container-image-artifact-upload@v2.0.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
@@ -120,7 +114,7 @@ jobs:
     needs:
       - build-native-images
     runs-on: ubuntu-latest
-    name: "Push app images"
+    name: "Push images to registry"
     steps:
       - uses: actions/checkout@v5
 
@@ -136,7 +130,7 @@ jobs:
           flavor: |
             latest=auto
 
-      - name: Get saved images
+      - name: Retrieve saved image from artifact
         uses: ishworkh/container-image-artifact-download@v2.1.0
         with:
           image: "${{ steps.meta.outputs.tags }}"
@@ -148,6 +142,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push images
+      - name: 📦 Push images to registry
         working-directory: .
         run: "docker push -a ${{ env.IMAGE_FULL_NAME }}"
