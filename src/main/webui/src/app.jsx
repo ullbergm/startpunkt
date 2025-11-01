@@ -6,7 +6,7 @@ import { writeStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
 import SpotlightSearch from './SpotlightSearch';
-import { useServerSentEvents } from './useServerSentEvents';
+import { useWebSocket } from './useWebSocket';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { LayoutSettings } from './LayoutSettings';
@@ -23,7 +23,7 @@ import { BookmarkGroupList } from './BookmarkGroupList';
 import { ForkMe } from './ForkMe';
 import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
-import { SSEHeartIndicator } from './SSEHeartIndicator';
+import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -122,7 +122,7 @@ export function App() {
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
+  const [websocketEnabled, setWebsocketEnabled] = useState(false);
   
   useEffect(() => {
     var config = fetch('/api/config')
@@ -134,9 +134,9 @@ export function App() {
         setVersion(res.config.version);
         setCheckForUpdates(res.config.web.checkForUpdates);
         setRefreshInterval(res.config.web.refreshInterval || 0);
-        const rtEnabled = res.config.realtime?.enabled || false;
-        console.log('Real-time updates enabled:', rtEnabled);
-        setRealtimeEnabled(rtEnabled);
+        const wsEnabled = res.config.websocket?.enabled || false;
+        console.log('WebSocket enabled:', wsEnabled);
+        setWebsocketEnabled(wsEnabled);
       });
 
   }, [])
@@ -181,11 +181,12 @@ export function App() {
     window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
   };
 
-  // Server-Sent Events connection for real-time updates
-  const websocket = useServerSentEvents(
-    `${window.location.origin}/api/updates/stream`,
+  // WebSocket connection for real-time updates
+  // Convert relative path to WebSocket URL
+  const websocket = useWebSocket(
+    `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws/updates`,
     {
-      enabled: realtimeEnabled,
+      enabled: websocketEnabled,
       onMessage: (message) => {
         console.log('WebSocket message received:', message);
         
@@ -211,7 +212,7 @@ export function App() {
         }
       },
       onOpen: () => {
-        console.log('SSE connected for real-time updates');
+        console.log('WebSocket connected for real-time updates');
       }
     }
   );
@@ -221,9 +222,9 @@ export function App() {
     fetchData();
   }, []);
 
-  // Set up periodic refresh if configured (only when real-time updates are not connected)
+  // Set up periodic refresh if configured (only when WebSocket is not connected)
   useEffect(() => {
-    if (refreshInterval > 0 && (!realtimeEnabled || !websocket.isConnected)) {
+    if (refreshInterval > 0 && (!websocketEnabled || !websocket.isConnected)) {
       const intervalId = setInterval(() => {
         fetchData();
       }, refreshInterval * 1000);
@@ -231,7 +232,7 @@ export function App() {
       // Cleanup function to clear interval on unmount or when refreshInterval changes
       return () => clearInterval(intervalId);
     }
-  }, [refreshInterval, realtimeEnabled, websocket.isConnected]);
+  }, [refreshInterval, websocketEnabled, websocket.isConnected]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&
@@ -316,7 +317,7 @@ export function App() {
       <BackgroundSettings />
       <SpotlightSearch />
       
-      {realtimeEnabled && <SSEHeartIndicator websocket={websocket} />}
+      {websocketEnabled && <WebSocketHeartIndicator websocket={websocket} />}
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">

@@ -1,15 +1,15 @@
 import { Icon } from '@iconify/react';
 import { useEffect, useState } from 'preact/hooks';
-import './SSEHeartIndicator.scss';
+import './WebSocketHeartIndicator.scss';
 
 /**
- * SSE Heart Indicator component
- * Displays a heart icon in the bottom left corner to indicate SSE connection status
+ * WebSocket Heart Indicator component
+ * Displays a heart icon in the bottom left corner to indicate WebSocket connection status
  * - Beats when heartbeat messages are received
  * - Shows green heart only when successfully connected
  * - Shows broken red heart when connecting, disconnected, or has errors
  */
-export function SSEHeartIndicator({ websocket }) {
+export function WebSocketHeartIndicator({ websocket }) {
   const [isBeating, setIsBeating] = useState(false);
   const [lastHeartbeatTime, setLastHeartbeatTime] = useState(null);
 
@@ -75,7 +75,7 @@ export function SSEHeartIndicator({ websocket }) {
 
   return (
     <div 
-      className={`sse-heart-indicator ${isBeating ? 'beating' : ''}`}
+      className={`websocket-heart-indicator ${isBeating ? 'beating' : ''}`}
       title={heartState.title}
       role="status"
       aria-label={heartState.title}

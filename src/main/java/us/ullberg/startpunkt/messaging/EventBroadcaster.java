@@ -1,55 +1,44 @@
 package us.ullberg.startpunkt.messaging;
 
 import io.quarkus.logging.Log;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.websocket.WebSocketConnectionManager;
 import us.ullberg.startpunkt.websocket.WebSocketEventType;
 import us.ullberg.startpunkt.websocket.WebSocketMessage;
 
 /**
- * Service for broadcasting events to connected clients using Mutiny Multi streams.
+ * Service for broadcasting events to connected clients using WebSocket.
  *
  * <p>This service provides methods to broadcast various types of events (application changes,
- * configuration updates, etc.) to all connected clients via Server-Sent Events (SSE). It includes
- * debouncing logic to prevent flooding clients with rapid updates.
+ * configuration updates, etc.) to all connected clients via WebSocket. It includes debouncing logic
+ * to prevent flooding clients with rapid updates.
  */
 @ApplicationScoped
 public class EventBroadcaster {
 
-  @ConfigProperty(name = "startpunkt.realtime.enabled", defaultValue = "true")
-  boolean realtimeEnabled;
+  private final WebSocketConnectionManager connectionManager;
 
-  @ConfigProperty(name = "startpunkt.realtime.eventDebounceMs", defaultValue = "500")
+  @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
+  boolean websocketEnabled;
+
+  @ConfigProperty(name = "startpunkt.websocket.eventDebounceMs", defaultValue = "500")
   long eventDebounceMs;
-
-  // BroadcastProcessor for broadcasting messages to multiple subscribers
-  private BroadcastProcessor<WebSocketMessage<?>> processor;
-  private Multi<WebSocketMessage<?>> stream;
 
   // Track last broadcast time for each event type to implement debouncing
   private final Map<String, Instant> lastBroadcastTimes = new ConcurrentHashMap<>();
 
-  @PostConstruct
-  void init() {
-    // Create a broadcast processor that can handle multiple subscribers
-    processor = BroadcastProcessor.create();
-    stream = processor;
-  }
-
   /**
-   * Get the Multi stream for subscribing to events.
+   * Constructor for EventBroadcaster.
    *
-   * @return the Multi stream of WebSocketMessages
+   * @param connectionManager the WebSocket connection manager
    */
-  public Multi<WebSocketMessage<?>> getStream() {
-    return stream;
+  public EventBroadcaster(WebSocketConnectionManager connectionManager) {
+    this.connectionManager = connectionManager;
   }
 
   /**
@@ -60,7 +49,7 @@ public class EventBroadcaster {
    * @param <T> the type of the event data
    */
   public <T> void broadcastEvent(WebSocketEventType eventType, T data) {
-    if (!realtimeEnabled) {
+    if (!websocketEnabled) {
       Log.warnf("Event broadcasting is disabled, not broadcasting event: %s", eventType);
       return;
     }
@@ -79,7 +68,7 @@ public class EventBroadcaster {
 
     // Create and broadcast the message
     var message = new WebSocketMessage<>(eventType, data);
-    processor.onNext(message);
+    connectionManager.broadcast(message);
 
     Log.infof("Broadcasted event: %s", eventType);
   }
