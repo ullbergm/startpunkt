@@ -103,7 +103,7 @@ export function Background() {
         }
       }
     } else {
-      // For solid colors, gradients, and theme - apply directly to body
+      // For solid colors, gradients, theme, timeGradient, meshGradient - apply directly to body
       // Remove overlay if it exists
       if (overlay) {
         overlay.remove();
@@ -117,8 +117,9 @@ export function Background() {
       if (backgroundPrefs.preferences.type === 'theme') {
         document.body.style.background = '';
         document.body.style.backgroundColor = '';
+        document.body.style.animation = '';
       } else {
-        // Apply background styles to body for solid/gradient
+        // Apply background styles to body for solid/gradient/timeGradient/meshGradient
         Object.keys(style).forEach(property => {
           // Skip opacity for non-image types (it's already in rgba colors)
           if (property === 'opacity') {
@@ -132,16 +133,68 @@ export function Background() {
             document.body.style.background = style[property];
           } else if (property === 'backgroundColor') {
             document.body.style.backgroundColor = style[property];
+          } else if (property === 'animation') {
+            // Handle mesh gradient animation
+            document.body.style.animation = style[property];
           }
         });
+        
+        // Add keyframes for mesh gradient animation if needed
+        if (backgroundPrefs.preferences.type === 'meshGradient' && backgroundPrefs.preferences.meshAnimated) {
+          let styleSheet = document.getElementById('background-animation-styles');
+          if (!styleSheet) {
+            styleSheet = document.createElement('style');
+            styleSheet.id = 'background-animation-styles';
+            document.head.appendChild(styleSheet);
+          }
+          styleSheet.textContent = `
+            @keyframes meshGradientAnimation {
+              0% {
+                background-position: 0% 0%;
+              }
+              12% {
+                background-position: 85% 15%;
+              }
+              28% {
+                background-position: 92% 72%;
+              }
+              45% {
+                background-position: 23% 88%;
+              }
+              62% {
+                background-position: 8% 45%;
+              }
+              78% {
+                background-position: 67% 12%;
+              }
+              92% {
+                background-position: 18% 65%;
+              }
+              100% {
+                background-position: 0% 0%;
+              }
+            }
+          `;
+        } else {
+          // Remove animation keyframes if not needed
+          const styleSheet = document.getElementById('background-animation-styles');
+          if (styleSheet) {
+            styleSheet.remove();
+          }
+          document.body.style.animation = '';
+        }
       }
     }
 
-    // Cleanup function to remove overlay on unmount
+    // Cleanup function to remove overlay and animation styles on unmount
     return () => {
       const existingOverlay = document.getElementById('background-overlay');
       if (existingOverlay) {
         existingOverlay.remove();
+      }
+      const styleSheet = document.getElementById('background-animation-styles');
+      if (styleSheet) {
+        styleSheet.remove();
       }
     };
   }, [backgroundPrefs.preferences, isDarkMode]);

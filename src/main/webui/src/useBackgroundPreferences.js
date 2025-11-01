@@ -5,7 +5,7 @@ import GeoPattern from 'geopattern';
  * Custom hook for managing background preferences with localStorage persistence
  * 
  * Background preferences include:
- * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern' | 'theme'
+ * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern' | 'theme' | 'timeGradient' | 'meshGradient'
  * - color: string (hex color)
  * - secondaryColor: string (hex color for gradients)
  * - gradientDirection: string (CSS gradient direction)
@@ -13,6 +13,9 @@ import GeoPattern from 'geopattern';
  * - blur: boolean (whether to blur background)
  * - opacity: number (0.0 to 1.0)
  * - geopatternSeed: string (seed for geopattern generation)
+ * - meshColors: string[] (array of hex colors for mesh gradient)
+ * - meshAnimated: boolean (whether to animate mesh gradient)
+ * - meshComplexity: 'low' | 'medium' | 'high' (complexity of mesh gradient)
  */
 
 const DEFAULT_PREFERENCES = {
@@ -23,7 +26,12 @@ const DEFAULT_PREFERENCES = {
   imageUrl: '',
   blur: false,
   opacity: 1.0,
-  geopatternSeed: 'startpunkt'
+  geopatternSeed: 'startpunkt',
+  meshColors: ['#2d5016', '#f4c430', '#003366'],
+  meshAnimated: true,
+  meshComplexity: 'low',
+  contentOverlay: false,
+  contentOverlayOpacity: 0 // 0 = transparent (default), negative = white, positive = black
 };
 
 export function useBackgroundPreferences() {
@@ -59,6 +67,115 @@ export function useBackgroundPreferences() {
   };
 
   /**
+   * Generate smooth time-based gradient background
+   */
+  const generateTimeBasedGradient = (opacity = 1.0) => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    
+    // Calculate progress through the hour for smooth transitions
+    const timeDecimal = hours + (minutes / 60);
+    
+    // Define color stops for different times of day
+    let colors;
+    let angle = 135; // Default diagonal
+    
+    if (timeDecimal >= 0 && timeDecimal < 6) {
+      // Deep night (midnight to 6 AM)
+      colors = ['#0f2027', '#203a43', '#2c5364'];
+      angle = 180;
+    } else if (timeDecimal >= 6 && timeDecimal < 8) {
+      // Sunrise (6-8 AM)
+      colors = ['#FF9A8B', '#FF6A88', '#FF99AC'];
+      angle = 120;
+    } else if (timeDecimal >= 8 && timeDecimal < 12) {
+      // Morning (8 AM-12 PM)
+      colors = ['#a8edea', '#fed6e3', '#a8edea'];
+      angle = 135;
+    } else if (timeDecimal >= 12 && timeDecimal < 17) {
+      // Afternoon (12-5 PM)
+      colors = ['#89f7fe', '#66a6ff', '#89f7fe'];
+      angle = 90;
+    } else if (timeDecimal >= 17 && timeDecimal < 19) {
+      // Sunset (5-7 PM)
+      colors = ['#fa709a', '#fee140', '#fa709a'];
+      angle = 225;
+    } else {
+      // Evening/Night (7 PM-midnight)
+      colors = ['#0f2027', '#203a43', '#2c5364'];
+      angle = 180;
+    }
+    
+    // Create gradient with opacity support
+    const gradient = opacity !== 1.0
+      ? `linear-gradient(${angle}deg, ${colors.map(c => hexToRgba(c, opacity)).join(', ')})`
+      : `linear-gradient(${angle}deg, ${colors.join(', ')})`;
+    
+    const style = {
+      background: colors[1],
+      backgroundImage: gradient
+    };
+    
+    return style;
+  };
+
+  /**
+   * Generate mesh gradient CSS with opacity support
+   */
+  const generateMeshGradient = (colors, complexity, animated, opacity = 1.0) => {
+    // Ensure we have at least 3 colors
+    const meshColors = colors && colors.length >= 3 ? colors : DEFAULT_PREFERENCES.meshColors;
+    
+    // Define complexity levels
+    const complexityMap = {
+      low: { stops: 2, blur: 80 },
+      medium: { stops: 3, blur: 60 },
+      high: { stops: 4, blur: 40 }
+    };
+    
+    const config = complexityMap[complexity] || complexityMap.medium;
+    
+    // Create multiple radial gradients at different positions for a mesh effect
+    const gradients = [];
+    const positions = [
+      ['0%', '0%'],
+      ['100%', '0%'],
+      ['50%', '50%'],
+      ['0%', '100%'],
+      ['100%', '100%']
+    ];
+    
+    for (let i = 0; i < Math.min(config.stops + 1, meshColors.length); i++) {
+      const color = meshColors[i % meshColors.length];
+      const pos = positions[i % positions.length];
+      // Apply opacity to each gradient color
+      const colorWithOpacity = opacity !== 1.0 ? hexToRgba(color, opacity) : color;
+      gradients.push(
+        `radial-gradient(circle at ${pos[0]} ${pos[1]}, ${colorWithOpacity} 0%, transparent ${config.blur}%)`
+      );
+    }
+    
+    const style = {
+      background: meshColors[0], // Fallback solid color
+      backgroundImage: gradients.join(', '),
+      backgroundRepeat: 'no-repeat'
+    };
+    
+    if (animated) {
+      // For animation, we need larger background size to allow movement
+      style.backgroundSize = '200% 200%';
+      style.backgroundPosition = '0% 0%';
+      style.animation = 'meshGradientAnimation 40s ease-in-out infinite';
+    } else {
+      style.backgroundSize = '100% 100%';
+      style.backgroundPosition = 'center';
+    }
+    
+    return style;
+  };
+
+  /**
    * Get the CSS style for the background based on current preferences
    */
   const getBackgroundStyle = (isDarkMode) => {
@@ -82,6 +199,22 @@ export function useBackgroundPreferences() {
     };
     
     switch (preferences.type) {
+      case 'timeGradient': {
+        const timeStyle = generateTimeBasedGradient(opacity);
+        Object.assign(style, timeStyle);
+        break;
+      }
+      
+      case 'meshGradient': {
+        const meshColors = preferences.meshColors || DEFAULT_PREFERENCES.meshColors;
+        const complexity = preferences.meshComplexity || 'low';
+        const animated = preferences.meshAnimated !== undefined ? preferences.meshAnimated : true;
+        
+        const meshStyle = generateMeshGradient(meshColors, complexity, animated, opacity);
+        Object.assign(style, meshStyle);
+        break;
+      }
+      
       case 'gradient': {
         const secondaryColor = preferences.secondaryColor || (isDarkMode ? '#1a1b26' : '#FFFFFF');
         const direction = preferences.gradientDirection || 'to bottom right';
