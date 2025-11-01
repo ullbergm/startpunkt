@@ -300,8 +300,10 @@ class KubernetesConnectionHealthCheckTest {
     assertTrue(response.getData().isPresent(), "Response should have data");
     
     var data = response.getData().get();
-    // Should have at least the key metrics
-    assertTrue(data.size() >= 8, "Should have version, nodes, namespaces, and 5+ API group checks");
+    // Should have the key metrics: Version, Nodes, Namespaces, plus 6 API group checks
+    int expectedMinimumKeys = 9; // version + nodes + namespaces + 6 API groups
+    assertTrue(data.size() >= expectedMinimumKeys, 
+        String.format("Should have at least %d data points (version, nodes, namespaces, and 6 API group checks)", expectedMinimumKeys));
   }
 
   @Test
