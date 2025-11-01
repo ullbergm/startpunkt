@@ -80,4 +80,116 @@ class ApplicationTest {
     assertNotEquals(app, null);
     assertNotEquals(app, "not an app");
   }
+
+  @Test
+  void testConstructorWithRootPath() {
+    Application app =
+        new Application(
+            "MyApp",
+            "Services",
+            "mdi:app",
+            "green",
+            "https://example.com",
+            "App with rootPath",
+            true,
+            10,
+            true,
+            "/api/v1");
+
+    ApplicationSpec spec = app.getSpec();
+    assertNotNull(spec);
+    assertEquals("MyApp", spec.getName());
+    assertEquals("/api/v1", spec.getRootPath());
+    assertNull(spec.getTags());
+  }
+
+  @Test
+  void testConstructorWithRootPathAndTags() {
+    Application app =
+        new Application(
+            "TaggedApp",
+            "Tools",
+            "mdi:tag",
+            "blue",
+            "https://tagged.com",
+            "App with tags",
+            false,
+            20,
+            true,
+            "/v2",
+            "production,monitoring");
+
+    ApplicationSpec spec = app.getSpec();
+    assertNotNull(spec);
+    assertEquals("TaggedApp", spec.getName());
+    assertEquals("/v2", spec.getRootPath());
+    assertEquals("production,monitoring", spec.getTags());
+  }
+
+  @Test
+  void testSpecAndStatusIndependence() {
+    Application app = new Application();
+    assertNull(app.getSpec());
+    assertNull(app.getStatus());
+
+    ApplicationSpec spec = new ApplicationSpec("Test", "Group", null, null, "url", null, true, 0, true);
+    app.setSpec(spec);
+    assertNotNull(app.getSpec());
+    assertNull(app.getStatus());
+
+    ApplicationStatus status = new ApplicationStatus();
+    app.setStatus(status);
+    assertNotNull(app.getStatus());
+  }
+
+  @Test
+  void testEqualsSameInstance() {
+    Application app = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    assertEquals(app, app);
+  }
+
+  @Test
+  void testEqualsWithStatus() {
+    Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    
+    ApplicationStatus status1 = new ApplicationStatus();
+    ApplicationStatus status2 = new ApplicationStatus();
+    
+    app1.setStatus(status1);
+    app2.setStatus(status2);
+
+    // Status objects are different instances but empty, so applications should still be unequal
+    // because ApplicationStatus doesn't override equals
+    assertNotEquals(app1, app2);
+  }
+
+  @Test
+  void testEqualityWithSameStatus() {
+    Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    
+    ApplicationStatus status = new ApplicationStatus();
+    
+    app1.setStatus(status);
+    app2.setStatus(status); // Same instance
+
+    assertEquals(app1, app2);
+    assertEquals(app1.hashCode(), app2.hashCode());
+  }
+
+  @Test
+  void testInequalityDifferentStatus() {
+    Application app1 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    Application app2 = new Application("App", "Group", "icon", "red", "url", "info", true, 0, true);
+    
+    ApplicationStatus status1 = new ApplicationStatus();
+    ApplicationStatus status2 = new ApplicationStatus();
+    
+    app1.setStatus(status1);
+    app2.setStatus(status2);
+
+    // Different status instances make applications unequal (ApplicationStatus uses default equals)
+    assertNotEquals(app1, app2);
+  }
 }
