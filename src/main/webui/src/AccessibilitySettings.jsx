@@ -1,4 +1,5 @@
 import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
+import { Text } from 'preact-i18n';
 import { useEffect } from 'preact/hooks';
 
 export function AccessibilitySettings() {
@@ -63,7 +64,7 @@ export function AccessibilitySettings() {
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
             <use href="#universal-access"></use>
           </svg>
-          <span class="visually-hidden" id="bd-accessibility-text">Accessibility</span>
+          <span class="visually-hidden" id="bd-accessibility-text"><Text id="accessibility.title">Accessibility</Text></span>
         </button>
         
         <div 
@@ -73,12 +74,12 @@ export function AccessibilitySettings() {
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">
-            <h6 class="mb-3">Accessibility Settings</h6>
+            <h6 class="mb-3"><Text id="accessibility.settings">Accessibility Settings</Text></h6>
             
             {/* Font Size Controls */}
             <div class="mb-3">
               <label class="form-label small mb-2">
-                Font Size: {fontSize}%
+                <Text id="accessibility.fontSize">Font Size</Text>: {fontSize}%
               </label>
               <div class="d-flex gap-2 mb-2">
                 <button 
@@ -96,7 +97,7 @@ export function AccessibilitySettings() {
                   aria-label="Reset font size to default"
                   title="Reset to default (Ctrl + 0)"
                 >
-                  Reset
+                  <Text id="accessibility.resetFontSize">Reset</Text>
                 </button>
                 <button 
                   class="btn btn-sm btn-outline-primary flex-grow-1"
@@ -135,11 +136,11 @@ export function AccessibilitySettings() {
                   aria-describedby="highContrastHelp"
                 />
                 <label class="form-check-label small" for="highContrastMode">
-                  High Contrast Mode
+                  <Text id="accessibility.highContrastMode">High Contrast Mode</Text>
                 </label>
               </div>
               <small id="highContrastHelp" class="form-text text-muted">
-                Enhances color contrast for better readability
+                <Text id="accessibility.highContrastHelp">Enhances color contrast for better readability</Text>
               </small>
             </div>
 
@@ -147,16 +148,16 @@ export function AccessibilitySettings() {
 
             {/* Keyboard Shortcuts Info */}
             <div>
-              <label class="form-label small mb-1">Keyboard Shortcuts</label>
+              <label class="form-label small mb-1"><Text id="accessibility.keyboardShortcuts">Keyboard Shortcuts</Text></label>
               <ul class="small mb-0" style="list-style: none; padding-left: 0;">
                 <li class="mb-1">
-                  <kbd>/</kbd> Search
+                  <kbd>/</kbd> <Text id="accessibility.shortcut.search">Search</Text>
                 </li>
                 <li class="mb-1">
-                  <kbd>Tab</kbd> Navigate forward
+                  <kbd>Tab</kbd> <Text id="accessibility.shortcut.navigateForward">Navigate forward</Text>
                 </li>
                 <li>
-                  <kbd>Shift</kbd> + <kbd>Tab</kbd> Navigate back
+                  <kbd>Shift</kbd> + <kbd>Tab</kbd> <Text id="accessibility.shortcut.navigateBack">Navigate back</Text>
                 </li>
               </ul>
             </div>

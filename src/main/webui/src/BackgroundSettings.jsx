@@ -1,4 +1,5 @@
 import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
+import { Text } from 'preact-i18n';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 
 export function BackgroundSettings() {
@@ -26,7 +27,7 @@ export function BackgroundSettings() {
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
             <use href="#palette"></use>
           </svg>
-          <span class="visually-hidden" id="bd-background-text">Background</span>
+          <span class="visually-hidden" id="bd-background-text"><Text id="background.title">Background</Text></span>
         </button>
         
         <div 
@@ -36,29 +37,29 @@ export function BackgroundSettings() {
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">
-            <h6 class="mb-2">Background Settings</h6>
+            <h6 class="mb-2"><Text id="background.settings">Background Settings</Text></h6>
             
             {/* Background Type */}
             <div class="mb-3">
-              <label class="form-label small mb-1">Background Type</label>
+              <label class="form-label small mb-1"><Text id="background.type">Background Type</Text></label>
               <select 
                 class="form-select form-select-sm"
                 value={preferences.type}
                 onChange={(e) => updatePreference('type', e.target.value)}
               >
-                <option value="theme">Theme (Auto Light/Dark)</option>
-                <option value="solid">Solid Color</option>
-                <option value="gradient">Gradient</option>
-                <option value="image">Custom Image</option>
-                <option value="pictureOfDay">Picture of the Day</option>
-                <option value="geopattern">Geopattern</option>
+                <option value="theme"><Text id="background.types.theme">Theme (Auto Light/Dark)</Text></option>
+                <option value="solid"><Text id="background.types.solid">Solid Color</Text></option>
+                <option value="gradient"><Text id="background.types.gradient">Gradient</Text></option>
+                <option value="image"><Text id="background.types.image">Custom Image</Text></option>
+                <option value="pictureOfDay"><Text id="background.types.pictureOfDay">Picture of the Day</Text></option>
+                <option value="geopattern"><Text id="background.types.geopattern">Geopattern</Text></option>
               </select>
             </div>
 
             {/* Theme Mode Selection - only show when using theme background */}
             {preferences.type === 'theme' && (
               <div class="mb-3">
-                <label class="form-label small mb-1">Theme Mode</label>
+                <label class="form-label small mb-1"><Text id="background.themeMode">Theme Mode</Text></label>
                 <div class="btn-group w-100" role="group" aria-label="Theme selection">
                   <button
                     type="button"
@@ -133,7 +134,7 @@ export function BackgroundSettings() {
             {preferences.type === 'solid' && (
               <div class="mb-3">
                 <label for="bgColor" class="form-label small mb-1">
-                  Color
+                  <Text id="background.color">Color</Text>
                 </label>
                 <input 
                   type="color"
@@ -150,7 +151,7 @@ export function BackgroundSettings() {
               <>
                 <div class="mb-3">
                   <label for="bgColorPrimary" class="form-label small mb-1">
-                    Primary Color
+                    <Text id="background.primaryColor">Primary Color</Text>
                   </label>
                   <input 
                     type="color"
@@ -163,7 +164,7 @@ export function BackgroundSettings() {
                 
                 <div class="mb-3">
                   <label for="bgColorSecondary" class="form-label small mb-1">
-                    Secondary Color
+                    <Text id="background.secondaryColor">Secondary Color</Text>
                   </label>
                   <input 
                     type="color"
@@ -175,18 +176,18 @@ export function BackgroundSettings() {
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label small mb-1">Gradient Direction</label>
+                  <label class="form-label small mb-1"><Text id="background.gradientDirection">Gradient Direction</Text></label>
                   <select 
                     class="form-select form-select-sm"
                     value={preferences.gradientDirection}
                     onChange={(e) => updatePreference('gradientDirection', e.target.value)}
                   >
-                    <option value="to bottom">Top to Bottom</option>
-                    <option value="to top">Bottom to Top</option>
-                    <option value="to right">Left to Right</option>
-                    <option value="to left">Right to Left</option>
-                    <option value="to bottom right">Top-Left to Bottom-Right</option>
-                    <option value="to bottom left">Top-Right to Bottom-Left</option>
+                    <option value="to bottom"><Text id="background.directions.toBottom">Top to Bottom</Text></option>
+                    <option value="to top"><Text id="background.directions.toTop">Bottom to Top</Text></option>
+                    <option value="to right"><Text id="background.directions.toRight">Left to Right</Text></option>
+                    <option value="to left"><Text id="background.directions.toLeft">Right to Left</Text></option>
+                    <option value="to bottom right"><Text id="background.directions.toBottomRight">Top-Left to Bottom-Right</Text></option>
+                    <option value="to bottom left"><Text id="background.directions.toBottomLeft">Top-Right to Bottom-Left</Text></option>
                   </select>
                 </div>
               </>
@@ -196,7 +197,7 @@ export function BackgroundSettings() {
             {preferences.type === 'image' && (
               <div class="mb-3">
                 <label for="bgImageUrl" class="form-label small mb-1">
-                  Image URL
+                  <Text id="background.imageUrl">Image URL</Text>
                 </label>
                 <input 
                   type="text"
@@ -206,7 +207,7 @@ export function BackgroundSettings() {
                   value={preferences.imageUrl}
                   onInput={(e) => updatePreference('imageUrl', e.target.value)}
                 />
-                <small class="form-text text-muted">Enter a valid image URL</small>
+                <small class="form-text text-muted"><Text id="background.imageUrlHelp">Enter a valid image URL</Text></small>
               </div>
             )}
 
@@ -215,7 +216,7 @@ export function BackgroundSettings() {
               <>
                 <div class="mb-3">
                   <label for="geopatternSeed" class="form-label small mb-1">
-                    Pattern Seed
+                    <Text id="background.patternSeed">Pattern Seed</Text>
                   </label>
                   <input 
                     type="text"
@@ -225,12 +226,12 @@ export function BackgroundSettings() {
                     value={preferences.geopatternSeed}
                     onInput={(e) => updatePreference('geopatternSeed', e.target.value)}
                   />
-                  <small class="form-text text-muted">Change the text to generate different patterns</small>
+                  <small class="form-text text-muted"><Text id="background.patternSeedHelp">Change the text to generate different patterns</Text></small>
                 </div>
                 
                 <div class="mb-3">
                   <label for="geopatternColor" class="form-label small mb-1">
-                    Pattern Color
+                    <Text id="background.patternColor">Pattern Color</Text>
                   </label>
                   <input 
                     type="color"
@@ -255,7 +256,7 @@ export function BackgroundSettings() {
                     onChange={(e) => updatePreference('blur', e.target.checked)}
                   />
                   <label class="form-check-label small" for="bgBlur">
-                    Blur Background
+                    <Text id="background.blur">Blur Background</Text>
                   </label>
                 </div>
               </div>
@@ -265,7 +266,7 @@ export function BackgroundSettings() {
             {preferences.type !== 'theme' && (
               <div class="mb-3">
                 <label for="bgOpacity" class="form-label small mb-1">
-                  Opacity: {Math.round(preferences.opacity * 100)}%
+                  <Text id="background.opacity">Opacity</Text>: {Math.round(preferences.opacity * 100)}%
                 </label>
                 <input 
                   type="range"
@@ -299,7 +300,7 @@ export function BackgroundSettings() {
                 }));
               }}
             >
-              Reset to Defaults
+              <Text id="background.resetToDefaults">Reset to Defaults</Text>
             </button>
           </div>
         </div>

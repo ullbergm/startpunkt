@@ -7,6 +7,97 @@
             "light" : "Light",
             "dark" : "Dark",
             "auto" : "Auto"
+        },
+        "skipToContent" : "Skip to main content",
+        "loading" : "Loading...",
+        "checkingForItems" : "Checking for configured applications and bookmarks...",
+        "noItemsHelp" : "If none are found, you can add them to get started.",
+        "noItemsAvailable" : "No Items Available",
+        "noItemsConfigured" : "There are currently no applications or bookmarks configured.",
+        "pleaseAddItems" : "Please add some applications or bookmarks to get started."
+    },
+    "background" : {
+        "title" : "Background",
+        "settings" : "Background Settings",
+        "type" : "Background Type",
+        "types" : {
+            "theme" : "Theme (Auto Light/Dark)",
+            "solid" : "Solid Color",
+            "gradient" : "Gradient",
+            "image" : "Custom Image",
+            "pictureOfDay" : "Picture of the Day",
+            "geopattern" : "Geopattern"
+        },
+        "themeMode" : "Theme Mode",
+        "color" : "Color",
+        "primaryColor" : "Primary Color",
+        "secondaryColor" : "Secondary Color",
+        "gradientDirection" : "Gradient Direction",
+        "directions" : {
+            "toBottom" : "Top to Bottom",
+            "toTop" : "Bottom to Top",
+            "toRight" : "Left to Right",
+            "toLeft" : "Right to Left",
+            "toBottomRight" : "Top-Left to Bottom-Right",
+            "toBottomLeft" : "Top-Right to Bottom-Left"
+        },
+        "imageUrl" : "Image URL",
+        "imageUrlPlaceholder" : "https://example.com/image.jpg",
+        "imageUrlHelp" : "Enter a valid image URL",
+        "patternSeed" : "Pattern Seed",
+        "patternSeedPlaceholder" : "Enter text to generate pattern",
+        "patternSeedHelp" : "Change the text to generate different patterns",
+        "patternColor" : "Pattern Color",
+        "blur" : "Blur Background",
+        "opacity" : "Opacity",
+        "resetToDefaults" : "Reset to Defaults"
+    },
+    "layout" : {
+        "title" : "Layout",
+        "settings" : "Layout Settings",
+        "columns" : "Columns",
+        "spacing" : "Spacing",
+        "spacingTypes" : {
+            "tight" : "Tight",
+            "normal" : "Normal",
+            "relaxed" : "Relaxed"
+        },
+        "compactMode" : "Compact Mode",
+        "showHide" : "Show/Hide",
+        "description" : "Description",
+        "tags" : "Tags",
+        "statusIndicators" : "Status Indicators",
+        "presets" : "Layout Presets",
+        "presetName" : "Preset name",
+        "save" : "Save",
+        "cancel" : "Cancel",
+        "delete" : "Delete",
+        "saveCurrentPreset" : "+ Save Current as Preset",
+        "resetToDefaults" : "Reset to Defaults"
+    },
+    "accessibility" : {
+        "title" : "Accessibility",
+        "settings" : "Accessibility Settings",
+        "fontSize" : "Font Size",
+        "decreaseFontSize" : "Decrease font size",
+        "resetFontSize" : "Reset font size to default",
+        "increaseFontSize" : "Increase font size",
+        "highContrastMode" : "High Contrast Mode",
+        "highContrastHelp" : "Enhances color contrast for better readability",
+        "keyboardShortcuts" : "Keyboard Shortcuts",
+        "shortcut" : {
+            "search" : "Search",
+            "navigateForward" : "Navigate forward",
+            "navigateBack" : "Navigate back"
+        }
+    },
+    "search" : {
+        "title" : "Search applications and bookmarks",
+        "placeholder" : "Search...",
+        "noResults" : "No results",
+        "resultsBadge" : {
+            "bookmark" : "Bookmark",
+            "app" : "App"
         }
     }
 }

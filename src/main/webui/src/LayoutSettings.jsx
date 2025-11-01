@@ -45,7 +45,7 @@ export function LayoutSettings({ layoutPrefs }) {
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
             <use href="#grid-3x3-gap"></use>
           </svg>
-          <span class="visually-hidden" id="bd-layout-text">Layout</span>
+          <span class="visually-hidden" id="bd-layout-text"><Text id="layout.title">Layout</Text></span>
         </button>
         
         <div 
@@ -55,12 +55,12 @@ export function LayoutSettings({ layoutPrefs }) {
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">
-            <h6 class="mb-2">Layout Settings</h6>
+            <h6 class="mb-2"><Text id="layout.settings">Layout Settings</Text></h6>
             
             {/* Column Count */}
             <div class="mb-3">
               <label for="columnCountSlider" class="form-label small mb-1">
-                Columns: {preferences.columnCount}
+                <Text id="layout.columns">Columns</Text>: {preferences.columnCount}
               </label>
               <input 
                 type="range"
@@ -75,7 +75,7 @@ export function LayoutSettings({ layoutPrefs }) {
 
             {/* Spacing */}
             <div class="mb-3">
-              <label class="form-label small mb-1">Spacing</label>
+              <label class="form-label small mb-1"><Text id="layout.spacing">Spacing</Text></label>
               <div class="btn-group w-100" role="group">
                 <input 
                   type="radio" 
@@ -85,7 +85,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   checked={preferences.spacing === 'tight'}
                   onChange={() => updatePreference('spacing', 'tight')}
                 />
-                <label class="btn btn-outline-primary btn-sm" for="spacingTight">Tight</label>
+                <label class="btn btn-outline-primary btn-sm" for="spacingTight"><Text id="layout.spacingTypes.tight">Tight</Text></label>
                 
                 <input 
                   type="radio" 
@@ -95,7 +95,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   checked={preferences.spacing === 'normal'}
                   onChange={() => updatePreference('spacing', 'normal')}
                 />
-                <label class="btn btn-outline-primary btn-sm" for="spacingNormal">Normal</label>
+                <label class="btn btn-outline-primary btn-sm" for="spacingNormal"><Text id="layout.spacingTypes.normal">Normal</Text></label>
                 
                 <input 
                   type="radio" 
@@ -105,7 +105,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   checked={preferences.spacing === 'relaxed'}
                   onChange={() => updatePreference('spacing', 'relaxed')}
                 />
-                <label class="btn btn-outline-primary btn-sm" for="spacingRelaxed">Relaxed</label>
+                <label class="btn btn-outline-primary btn-sm" for="spacingRelaxed"><Text id="layout.spacingTypes.relaxed">Relaxed</Text></label>
               </div>
             </div>
 
@@ -120,14 +120,14 @@ export function LayoutSettings({ layoutPrefs }) {
                   onChange={(e) => updatePreference('compactMode', e.target.checked)}
                 />
                 <label class="form-check-label small" for="compactMode">
-                  Compact Mode
+                  <Text id="layout.compactMode">Compact Mode</Text>
                 </label>
               </div>
             </div>
 
             {/* Card Content Visibility */}
             <div class="mb-3">
-              <label class="form-label small mb-1">Show/Hide</label>
+              <label class="form-label small mb-1"><Text id="layout.showHide">Show/Hide</Text></label>
               <div class="form-check">
                 <input 
                   class="form-check-input" 
@@ -137,7 +137,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   onChange={(e) => updatePreference('showDescription', e.target.checked)}
                 />
                 <label class="form-check-label small" for="showDescription">
-                  Description
+                  <Text id="layout.description">Description</Text>
                 </label>
               </div>
               <div class="form-check">
@@ -149,7 +149,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   onChange={(e) => updatePreference('showTags', e.target.checked)}
                 />
                 <label class="form-check-label small" for="showTags">
-                  Tags
+                  <Text id="layout.tags">Tags</Text>
                 </label>
               </div>
               <div class="form-check">
@@ -161,7 +161,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   onChange={(e) => updatePreference('showStatus', e.target.checked)}
                 />
                 <label class="form-check-label small" for="showStatus">
-                  Status Indicators
+                  <Text id="layout.statusIndicators">Status Indicators</Text>
                 </label>
               </div>
             </div>
@@ -170,7 +170,7 @@ export function LayoutSettings({ layoutPrefs }) {
 
             {/* Presets */}
             <div class="mb-2">
-              <label class="form-label small mb-1">Layout Presets</label>
+              <label class="form-label small mb-1"><Text id="layout.presets">Layout Presets</Text></label>
               
               {presetList.length > 0 && (
                 <div class="mb-2">
@@ -213,7 +213,7 @@ export function LayoutSettings({ layoutPrefs }) {
                     class="btn btn-primary" 
                     onClick={handleSavePreset}
                   >
-                    Save
+                    <Text id="layout.save">Save</Text>
                   </button>
                   <button 
                     class="btn btn-secondary" 
@@ -222,7 +222,7 @@ export function LayoutSettings({ layoutPrefs }) {
                       setPresetName('');
                     }}
                   >
-                    Cancel
+                    <Text id="layout.cancel">Cancel</Text>
                   </button>
                 </div>
               ) : (
@@ -230,7 +230,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   class="btn btn-sm btn-outline-primary w-100"
                   onClick={() => setShowPresetInput(true)}
                 >
-                  + Save Current as Preset
+                  <Text id="layout.saveCurrentPreset">+ Save Current as Preset</Text>
                 </button>
               )}
             </div>
@@ -242,7 +242,7 @@ export function LayoutSettings({ layoutPrefs }) {
               class="btn btn-sm btn-outline-secondary w-100"
               onClick={resetToDefaults}
             >
-              Reset to Defaults
+              <Text id="layout.resetToDefaults">Reset to Defaults</Text>
             </button>
           </div>
         </div>
