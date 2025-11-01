@@ -1,6 +1,8 @@
 # Copilot Setup Steps
-# This file tells GitHub Copilot how to set up the development environment
+# This file tells GitHub Copilot coding agent how to set up the development environment
 # for building and testing code changes in this repository.
+#
+# Documentation: https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot
 
 setup:
   # Verify Java 21 is available (project requires Java 21)
@@ -71,3 +73,13 @@ commands:
     description: Run frontend tests only
     working_directory: src/main/webui
     timeout: 120
+
+  security-check:
+    run: ./mvnw dependency-check:check
+    description: Check dependencies for known vulnerabilities
+    timeout: 180
+
+  package:
+    run: ./mvnw clean package
+    description: Build deployable artifacts (JVM and native)
+    timeout: 600
