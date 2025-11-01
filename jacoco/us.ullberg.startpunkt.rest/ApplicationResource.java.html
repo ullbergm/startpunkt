@@ -334,8 +334,8 @@ public class ApplicationResource {
    */
   ArrayList&lt;ApplicationSpecWithAvailability&gt; filterApplicationsByTags(
       ArrayList&lt;ApplicationSpecWithAvailability&gt; applications, String filterTags) {
-<span class="pc bpc" id="L337" title="2 of 4 branches missed.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
-<span class="nc" id="L338">      return applications;</span>
+<span class="fc bfc" id="L337" title="All 4 branches covered.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
+<span class="fc" id="L338">      return applications;</span>
     }
 
     // Parse filter tags
@@ -354,7 +354,7 @@ public class ApplicationResource {
 
 <span class="fc bfc" id="L355" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
       // Always include applications with no tags
-<span class="pc bpc" id="L357" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="fc bfc" id="L357" title="All 4 branches covered.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
 <span class="fc" id="L358">        filteredApps.add(app);</span>
 <span class="fc" id="L359">        continue;</span>
       }
@@ -389,7 +389,7 @@ public class ApplicationResource {
 
 <span class="fc bfc" id="L390" title="All 2 branches covered.">    for (ApplicationSpecWithAvailability app : applications) {</span>
       // Include only applications with no tags
-<span class="pc bpc" id="L392" title="1 of 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="fc bfc" id="L392" title="All 4 branches covered.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
 <span class="fc" id="L393">        filteredApps.add(app);</span>
       }
 <span class="fc" id="L395">    }</span>
