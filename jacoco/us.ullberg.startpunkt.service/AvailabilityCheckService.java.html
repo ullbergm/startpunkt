@@ -108,7 +108,7 @@ public class AvailabilityCheckService {
    * @return true if availability checking is enabled
    */
   public boolean isEnabled() {
-<span class="nc" id="L111">    return availabilityCheckEnabled;</span>
+<span class="fc" id="L111">    return availabilityCheckEnabled;</span>
   }
 
   /**
@@ -118,13 +118,13 @@ public class AvailabilityCheckService {
    * @return true if the application is available, false otherwise
    */
   public boolean checkAvailability(String url) {
-<span class="nc bnc" id="L121" title="All 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
 <span class="nc" id="L122">      return true; // Default to available if checking is disabled</span>
     }
 
     try {
       HttpRequest request =
-<span class="nc" id="L127">          HttpRequest.newBuilder()</span>
+<span class="fc" id="L127">          HttpRequest.newBuilder()</span>
 <span class="nc" id="L128">              .uri(URI.create(url))</span>
 <span class="nc" id="L129">              .timeout(Duration.ofSeconds(availabilityTimeout))</span>
 <span class="nc" id="L130">              .method(&quot;HEAD&quot;, HttpRequest.BodyPublishers.noBody())</span>
@@ -145,9 +145,9 @@ public class AvailabilityCheckService {
 <span class="nc" id="L145">        Log.warnf(&quot;Availability check for %s returned status code %d&quot;, url, statusCode);</span>
 <span class="nc" id="L146">        return false;</span>
       }
-<span class="nc" id="L148">    } catch (Exception e) {</span>
-<span class="nc" id="L149">      Log.warnf(&quot;Availability check failed for %s: %s&quot;, url, e.getMessage());</span>
-<span class="nc" id="L150">      return false;</span>
+<span class="fc" id="L148">    } catch (Exception e) {</span>
+<span class="fc" id="L149">      Log.warnf(&quot;Availability check failed for %s: %s&quot;, url, e.getMessage());</span>
+<span class="fc" id="L150">      return false;</span>
     }
   }
 
@@ -170,17 +170,17 @@ public class AvailabilityCheckService {
 <span class="nc" id="L170">        wrapped.setAvailable(true);</span>
       } else {
 <span class="fc" id="L172">        String url = app.getUrl();</span>
-<span class="pc bpc" id="L173" title="2 of 4 branches missed.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="fc bfc" id="L173" title="All 4 branches covered.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
           // Check if we have a cached result
 <span class="fc" id="L175">          Boolean cached = availabilityCache.get(url);</span>
-<span class="pc bpc" id="L176" title="1 of 2 branches missed.">          if (cached != null) {</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">          if (cached != null) {</span>
 <span class="fc" id="L177">            wrapped.setAvailable(cached);</span>
           } else {
             // If not cached, default to true to avoid blocking
-<span class="nc" id="L180">            wrapped.setAvailable(true);</span>
+<span class="fc" id="L180">            wrapped.setAvailable(true);</span>
           }
 <span class="fc" id="L182">        } else {</span>
-<span class="nc" id="L183">          wrapped.setAvailable(true); // No URL to check, consider available</span>
+<span class="fc" id="L183">          wrapped.setAvailable(true); // No URL to check, consider available</span>
         }
       }
 
@@ -252,7 +252,7 @@ public class AvailabilityCheckService {
    * @param url the URL to register
    */
   public void registerUrl(String url) {
-<span class="pc bpc" id="L255" title="3 of 6 branches missed.">    if (availabilityCheckEnabled &amp;&amp; url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="pc bpc" id="L255" title="1 of 6 branches missed.">    if (availabilityCheckEnabled &amp;&amp; url != null &amp;&amp; !url.isEmpty()) {</span>
 <span class="fc" id="L256">      boolean wasNew =</span>
 <span class="fc bfc" id="L257" title="All 2 branches covered.">          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked</span>
 <span class="fc bfc" id="L258" title="All 2 branches covered.">      if (wasNew) {</span>
@@ -270,7 +270,7 @@ public class AvailabilityCheckService {
    * @return true if available, false if not, null if not cached
    */
   public Boolean getCachedAvailability(String url) {
-<span class="nc" id="L273">    return availabilityCache.get(url);</span>
+<span class="fc" id="L273">    return availabilityCache.get(url);</span>
   }
 
   /**
@@ -278,25 +278,25 @@ public class AvailabilityCheckService {
    * availability status changes to ensure clients get updated data.
    */
   public void invalidateApplicationCaches() {
-<span class="nc" id="L281">    invalidateGetAppCache();</span>
-<span class="nc" id="L282">    invalidateGetAppsCache();</span>
-<span class="nc" id="L283">    invalidateGetAppsFilteredCache();</span>
-<span class="nc" id="L284">    Log.debug(&quot;Invalidated application caches due to availability changes&quot;);</span>
-<span class="nc" id="L285">  }</span>
+<span class="fc" id="L281">    invalidateGetAppCache();</span>
+<span class="fc" id="L282">    invalidateGetAppsCache();</span>
+<span class="fc" id="L283">    invalidateGetAppsFilteredCache();</span>
+<span class="fc" id="L284">    Log.debug(&quot;Invalidated application caches due to availability changes&quot;);</span>
+<span class="fc" id="L285">  }</span>
 
   @CacheInvalidate(cacheName = &quot;getApp&quot;)
   protected void invalidateGetAppCache() {
     // No-op: annotation triggers cache invalidation
-<span class="nc" id="L290">  }</span>
+<span class="fc" id="L290">  }</span>
 
   @CacheInvalidate(cacheName = &quot;getApps&quot;)
   protected void invalidateGetAppsCache() {
     // No-op: annotation triggers cache invalidation
-<span class="nc" id="L295">  }</span>
+<span class="fc" id="L295">  }</span>
 
   @CacheInvalidate(cacheName = &quot;getAppsFiltered&quot;)
   protected void invalidateGetAppsFilteredCache() {
     // No-op: annotation triggers cache invalidation
-<span class="nc" id="L300">  }</span>
+<span class="fc" id="L300">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -39,7 +39,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the API group string
    */
   public String getGroup() {
-<span class="nc" id="L42">    return group;</span>
+<span class="fc" id="L42">    return group;</span>
   }
 
   /**
@@ -48,7 +48,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the API version string
    */
   public String getVersion() {
-<span class="nc" id="L51">    return version;</span>
+<span class="fc" id="L51">    return version;</span>
   }
 
   /**
@@ -57,7 +57,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the plural kind string
    */
   public String getPluralKind() {
-<span class="nc" id="L60">    return pluralKind;</span>
+<span class="fc" id="L60">    return pluralKind;</span>
   }
 
   /**
@@ -140,18 +140,18 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the ApplicationSpec mapped from the resource
    */
   protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item) {
-<span class="nc" id="L143">    return new ApplicationSpec(</span>
-<span class="nc" id="L144">        getAppName(item),</span>
-<span class="nc" id="L145">        getAppGroup(item),</span>
-<span class="nc" id="L146">        getAppIcon(item),</span>
-<span class="nc" id="L147">        getAppIconColor(item),</span>
-<span class="nc" id="L148">        getAppUrl(item),</span>
-<span class="nc" id="L149">        getAppInfo(item),</span>
-<span class="nc" id="L150">        getAppTargetBlank(item),</span>
-<span class="nc" id="L151">        getAppLocation(item),</span>
-<span class="nc" id="L152">        getAppEnabled(item),</span>
-<span class="nc" id="L153">        getAppRootPath(item),</span>
-<span class="nc" id="L154">        getAppTags(item));</span>
+<span class="fc" id="L143">    return new ApplicationSpec(</span>
+<span class="fc" id="L144">        getAppName(item),</span>
+<span class="fc" id="L145">        getAppGroup(item),</span>
+<span class="fc" id="L146">        getAppIcon(item),</span>
+<span class="fc" id="L147">        getAppIconColor(item),</span>
+<span class="fc" id="L148">        getAppUrl(item),</span>
+<span class="fc" id="L149">        getAppInfo(item),</span>
+<span class="fc" id="L150">        getAppTargetBlank(item),</span>
+<span class="fc" id="L151">        getAppLocation(item),</span>
+<span class="fc" id="L152">        getAppEnabled(item),</span>
+<span class="fc" id="L153">        getAppRootPath(item),</span>
+<span class="fc" id="L154">        getAppTags(item));</span>
   }
 
   /**
@@ -199,7 +199,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return application name
    */
   protected String getAppName(GenericKubernetesResource item) {
-<span class="nc" id="L202">    return item.getMetadata().getName().toLowerCase();</span>
+<span class="fc" id="L202">    return item.getMetadata().getName().toLowerCase();</span>
   }
 
   /**
@@ -219,7 +219,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL string or null if not provided
    */
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="nc" id="L222">    return null;</span>
+<span class="fc" id="L222">    return null;</span>
   }
 
   /**
@@ -291,7 +291,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return protocol string or null if not specified
    */
   protected String getAppProtocol(GenericKubernetesResource item) {
-<span class="nc" id="L294">    return null;</span>
+<span class="fc" id="L294">    return null;</span>
   }
 
   /**
@@ -350,9 +350,9 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   protected Integer getOptionalSpecInteger(
       GenericKubernetesResource item, String key, Integer fallback) {
 <span class="fc" id="L352">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L353" title="2 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="pc bpc" id="L353" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
 <span class="fc" id="L354">        ? Integer.parseInt(spec.get(key).toString())</span>
-<span class="nc" id="L355">        : fallback;</span>
+<span class="fc" id="L355">        : fallback;</span>
   }
 
   /**
@@ -377,8 +377,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL with rootPath appended or original URL if no rootPath
    */
   protected String appendRootPath(String url, GenericKubernetesResource item) {
-<span class="pc bpc" id="L380" title="1 of 2 branches missed.">    if (url == null) {</span>
-<span class="nc" id="L381">      return null;</span>
+<span class="fc bfc" id="L380" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L381">      return null;</span>
     }
 
 <span class="fc" id="L384">    String rootPath = getAppRootPath(item);</span>

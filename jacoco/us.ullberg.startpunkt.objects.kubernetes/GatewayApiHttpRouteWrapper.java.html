@@ -40,24 +40,24 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="nc" id="L43">    var spec = getSpec(item);</span>
+<span class="fc" id="L43">    var spec = getSpec(item);</span>
 
-<span class="nc" id="L45">    String protocol = getAppProtocol(item);</span>
-<span class="nc bnc" id="L46" title="All 2 branches missed.">    if (protocol == null) {</span>
-<span class="nc" id="L47">      protocol = defaultProtocol;</span>
+<span class="fc" id="L45">    String protocol = getAppProtocol(item);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    if (protocol == null) {</span>
+<span class="fc" id="L47">      protocol = defaultProtocol;</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     ArrayList&lt;String&gt; hosts =
-<span class="nc bnc" id="L52" title="All 2 branches missed.">        spec.containsKey(&quot;hostnames&quot;)</span>
-<span class="nc" id="L53">            ? (ArrayList&lt;String&gt;) spec.get(&quot;hostnames&quot;)</span>
-<span class="nc" id="L54">            : new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (hosts.isEmpty()) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        spec.containsKey(&quot;hostnames&quot;)</span>
+<span class="fc" id="L53">            ? (ArrayList&lt;String&gt;) spec.get(&quot;hostnames&quot;)</span>
+<span class="pc" id="L54">            : new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (hosts.isEmpty()) {</span>
 <span class="nc" id="L56">      hosts.add(&quot;localhost&quot;);</span>
     }
 
-<span class="nc" id="L59">    String baseUrl = protocol + &quot;://&quot; + hosts.get(0);</span>
-<span class="nc" id="L60">    return appendRootPath(baseUrl, item);</span>
+<span class="fc" id="L59">    String baseUrl = protocol + &quot;://&quot; + hosts.get(0);</span>
+<span class="fc" id="L60">    return appendRootPath(baseUrl, item);</span>
   }
 
   /**
@@ -74,7 +74,7 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
 <span class="fc" id="L75">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
 
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

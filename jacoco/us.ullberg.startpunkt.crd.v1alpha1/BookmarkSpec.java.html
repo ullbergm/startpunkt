@@ -53,7 +53,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
   private int location;
 
   /** Default no-argument constructor. */
-<span class="nc" id="L56">  public BookmarkSpec() {}</span>
+<span class="fc" id="L56">  public BookmarkSpec() {}</span>
 
   /**
    * Constructs a BookmarkSpec with all properties.
@@ -73,15 +73,15 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
       String url,
       String info,
       Boolean targetBlank,
-<span class="nc" id="L76">      int location) {</span>
-<span class="nc" id="L77">    this.name = name;</span>
-<span class="nc" id="L78">    this.group = group;</span>
-<span class="nc" id="L79">    this.icon = icon;</span>
-<span class="nc" id="L80">    this.url = url;</span>
-<span class="nc" id="L81">    this.info = info;</span>
-<span class="nc" id="L82">    this.targetBlank = targetBlank;</span>
-<span class="nc" id="L83">    this.location = location;</span>
-<span class="nc" id="L84">  }</span>
+<span class="fc" id="L76">      int location) {</span>
+<span class="fc" id="L77">    this.name = name;</span>
+<span class="fc" id="L78">    this.group = group;</span>
+<span class="fc" id="L79">    this.icon = icon;</span>
+<span class="fc" id="L80">    this.url = url;</span>
+<span class="fc" id="L81">    this.info = info;</span>
+<span class="fc" id="L82">    this.targetBlank = targetBlank;</span>
+<span class="fc" id="L83">    this.location = location;</span>
+<span class="fc" id="L84">  }</span>
 
   /**
    * Get the bookmark name.
@@ -89,7 +89,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark name
    */
   public String getName() {
-<span class="nc" id="L92">    return name;</span>
+<span class="fc" id="L92">    return name;</span>
   }
 
   /**
@@ -98,8 +98,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param name the bookmark name to set
    */
   public void setName(String name) {
-<span class="nc" id="L101">    this.name = name;</span>
-<span class="nc" id="L102">  }</span>
+<span class="fc" id="L101">    this.name = name;</span>
+<span class="fc" id="L102">  }</span>
 
   /**
    * Get the bookmark group.
@@ -107,7 +107,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark group
    */
   public String getGroup() {
-<span class="nc" id="L110">    return group;</span>
+<span class="fc" id="L110">    return group;</span>
   }
 
   /**
@@ -116,8 +116,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param group the bookmark group to set
    */
   public void setGroup(String group) {
-<span class="nc" id="L119">    this.group = group;</span>
-<span class="nc" id="L120">  }</span>
+<span class="fc" id="L119">    this.group = group;</span>
+<span class="fc" id="L120">  }</span>
 
   /**
    * Get the bookmark icon.
@@ -125,7 +125,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark icon
    */
   public String getIcon() {
-<span class="nc" id="L128">    return icon;</span>
+<span class="fc" id="L128">    return icon;</span>
   }
 
   /**
@@ -134,8 +134,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param icon the bookmark icon to set
    */
   public void setIcon(String icon) {
-<span class="nc" id="L137">    this.icon = icon;</span>
-<span class="nc" id="L138">  }</span>
+<span class="fc" id="L137">    this.icon = icon;</span>
+<span class="fc" id="L138">  }</span>
 
   /**
    * Get the bookmark url.
@@ -143,7 +143,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark URL
    */
   public String getUrl() {
-<span class="nc" id="L146">    return url;</span>
+<span class="fc" id="L146">    return url;</span>
   }
 
   /**
@@ -152,8 +152,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param url the bookmark URL to set
    */
   public void setUrl(String url) {
-<span class="nc" id="L155">    this.url = url;</span>
-<span class="nc" id="L156">  }</span>
+<span class="fc" id="L155">    this.url = url;</span>
+<span class="fc" id="L156">  }</span>
 
   /**
    * Get the bookmark info.
@@ -161,7 +161,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the bookmark info/description
    */
   public String getInfo() {
-<span class="nc" id="L164">    return info;</span>
+<span class="fc" id="L164">    return info;</span>
   }
 
   /**
@@ -170,8 +170,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param info the bookmark info to set
    */
   public void setInfo(String info) {
-<span class="nc" id="L173">    this.info = info;</span>
-<span class="nc" id="L174">  }</span>
+<span class="fc" id="L173">    this.info = info;</span>
+<span class="fc" id="L174">  }</span>
 
   /**
    * Get whether the url should open in a new tab.
@@ -179,7 +179,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return whether the URL should open in a new tab
    */
   public Boolean getTargetBlank() {
-<span class="nc" id="L182">    return targetBlank;</span>
+<span class="fc" id="L182">    return targetBlank;</span>
   }
 
   /**
@@ -188,8 +188,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param targetBlank the targetBlank flag to set
    */
   public void setTargetBlank(Boolean targetBlank) {
-<span class="nc" id="L191">    this.targetBlank = targetBlank;</span>
-<span class="nc" id="L192">  }</span>
+<span class="fc" id="L191">    this.targetBlank = targetBlank;</span>
+<span class="fc" id="L192">  }</span>
 
   /**
    * Get the sorting location.
@@ -197,7 +197,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @return the sorting location of the bookmark
    */
   public int getLocation() {
-<span class="nc" id="L200">    return location;</span>
+<span class="fc" id="L200">    return location;</span>
   }
 
   /**
@@ -206,8 +206,8 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    * @param location the sorting location to set
    */
   public void setLocation(int location) {
-<span class="nc" id="L209">    this.location = location;</span>
-<span class="nc" id="L210">  }</span>
+<span class="fc" id="L209">    this.location = location;</span>
+<span class="fc" id="L210">  }</span>
 
   /**
    * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
@@ -218,66 +218,66 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
    */
   @Override
   public int compareTo(BookmarkSpec other) {
-<span class="nc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
-<span class="nc" id="L223">      return groupCompare;</span>
+<span class="fc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
+<span class="fc" id="L223">      return groupCompare;</span>
     }
 
-<span class="nc" id="L226">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
-<span class="nc" id="L228">      return locationCompare;</span>
+<span class="fc" id="L226">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">    if (locationCompare != 0) {</span>
+<span class="fc" id="L228">      return locationCompare;</span>
     }
 
-<span class="nc" id="L231">    return this.getName().compareTo(other.getName());</span>
+<span class="fc" id="L231">    return this.getName().compareTo(other.getName());</span>
   }
 
   @Override
   public boolean equals(Object other) {
-<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (this == other) {</span>
-<span class="nc" id="L237">      return true;</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">    if (this == other) {</span>
+<span class="fc" id="L237">      return true;</span>
     }
-<span class="nc bnc" id="L239" title="All 4 branches missed.">    if (other == null || getClass() != other.getClass()) {</span>
-<span class="nc" id="L240">      return false;</span>
+<span class="fc bfc" id="L239" title="All 4 branches covered.">    if (other == null || getClass() != other.getClass()) {</span>
+<span class="fc" id="L240">      return false;</span>
     }
-<span class="nc" id="L242">    BookmarkSpec otherSpec = (BookmarkSpec) other;</span>
-<span class="nc bnc" id="L243" title="All 2 branches missed.">    if (location != otherSpec.location) {</span>
-<span class="nc" id="L244">      return false;</span>
+<span class="fc" id="L242">    BookmarkSpec otherSpec = (BookmarkSpec) other;</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">    if (location != otherSpec.location) {</span>
+<span class="fc" id="L244">      return false;</span>
     }
-<span class="nc bnc" id="L246" title="All 6 branches missed.">    if (name != null ? !name.equals(otherSpec.name) : otherSpec.name != null) {</span>
-<span class="nc" id="L247">      return false;</span>
+<span class="pc bpc" id="L246" title="3 of 6 branches missed.">    if (name != null ? !name.equals(otherSpec.name) : otherSpec.name != null) {</span>
+<span class="fc" id="L247">      return false;</span>
     }
-<span class="nc bnc" id="L249" title="All 6 branches missed.">    if (group != null ? !group.equals(otherSpec.group) : otherSpec.group != null) {</span>
-<span class="nc" id="L250">      return false;</span>
+<span class="pc bpc" id="L249" title="3 of 6 branches missed.">    if (group != null ? !group.equals(otherSpec.group) : otherSpec.group != null) {</span>
+<span class="fc" id="L250">      return false;</span>
     }
-<span class="nc bnc" id="L252" title="All 6 branches missed.">    if (icon != null ? !icon.equals(otherSpec.icon) : otherSpec.icon != null) {</span>
+<span class="pc bpc" id="L252" title="4 of 6 branches missed.">    if (icon != null ? !icon.equals(otherSpec.icon) : otherSpec.icon != null) {</span>
 <span class="nc" id="L253">      return false;</span>
     }
-<span class="nc bnc" id="L255" title="All 6 branches missed.">    if (url != null ? !url.equals(otherSpec.url) : otherSpec.url != null) {</span>
+<span class="pc bpc" id="L255" title="4 of 6 branches missed.">    if (url != null ? !url.equals(otherSpec.url) : otherSpec.url != null) {</span>
 <span class="nc" id="L256">      return false;</span>
     }
-<span class="nc bnc" id="L258" title="All 6 branches missed.">    if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {</span>
+<span class="pc bpc" id="L258" title="4 of 6 branches missed.">    if (info != null ? !info.equals(otherSpec.info) : otherSpec.info != null) {</span>
 <span class="nc" id="L259">      return false;</span>
     }
-<span class="nc bnc" id="L261" title="All 2 branches missed.">    return targetBlank != null</span>
-<span class="nc" id="L262">        ? targetBlank.equals(otherSpec.targetBlank)</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">    return targetBlank != null</span>
+<span class="fc" id="L262">        ? targetBlank.equals(otherSpec.targetBlank)</span>
 <span class="nc bnc" id="L263" title="All 2 branches missed.">        : otherSpec.targetBlank == null;</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc bnc" id="L268" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
-<span class="nc bnc" id="L269" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
-<span class="nc bnc" id="L270" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
-<span class="nc bnc" id="L273" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
-<span class="nc" id="L274">    result = 31 * result + location;</span>
-<span class="nc" id="L275">    return result;</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="fc" id="L274">    result = 31 * result + location;</span>
+<span class="fc" id="L275">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L280">    return &quot;BookmarkSpec{&quot;</span>
+<span class="fc" id="L280">    return &quot;BookmarkSpec{&quot;</span>
         + &quot;name='&quot;
         + name
         + '\''

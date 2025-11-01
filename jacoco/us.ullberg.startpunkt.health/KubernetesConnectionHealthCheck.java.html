@@ -15,8 +15,8 @@ import org.eclipse.microprofile.health.Readiness;
  */
 @Readiness
 public class KubernetesConnectionHealthCheck implements HealthCheck {
-<span class="nc" id="L18">  private static final Logger LOGGER =</span>
-<span class="nc" id="L19">      Logger.getLogger(KubernetesConnectionHealthCheck.class.getName());</span>
+<span class="fc" id="L18">  private static final Logger LOGGER =</span>
+<span class="fc" id="L19">      Logger.getLogger(KubernetesConnectionHealthCheck.class.getName());</span>
   private final KubernetesClient client;
 
   /**
@@ -24,9 +24,9 @@ public class KubernetesConnectionHealthCheck implements HealthCheck {
    *
    * @param client the Kubernetes client to use for health checks
    */
-<span class="nc" id="L27">  public KubernetesConnectionHealthCheck(KubernetesClient client) {</span>
-<span class="nc" id="L28">    this.client = client;</span>
-<span class="nc" id="L29">  }</span>
+<span class="fc" id="L27">  public KubernetesConnectionHealthCheck(KubernetesClient client) {</span>
+<span class="fc" id="L28">    this.client = client;</span>
+<span class="fc" id="L29">  }</span>
 
   /**
    * Performs the health check by querying Kubernetes cluster details and API group availability.
@@ -35,31 +35,31 @@ public class KubernetesConnectionHealthCheck implements HealthCheck {
    */
   @Override
   public HealthCheckResponse call() {
-<span class="nc" id="L38">    HealthCheckResponseBuilder responseBuilder =</span>
-<span class="nc" id="L39">        HealthCheckResponse.named(&quot;Kubernetes connection health check&quot;);</span>
+<span class="fc" id="L38">    HealthCheckResponseBuilder responseBuilder =</span>
+<span class="fc" id="L39">        HealthCheckResponse.named(&quot;Kubernetes connection health check&quot;);</span>
 
     try {
-<span class="nc" id="L42">      responseBuilder.withData(&quot;Version&quot;, client.getKubernetesVersion().getGitVersion());</span>
-<span class="nc" id="L43">      responseBuilder.withData(&quot;Nodes&quot;, client.nodes().list().getItems().size());</span>
-<span class="nc" id="L44">      responseBuilder.withData(&quot;Namespaces&quot;, client.namespaces().list().getItems().size());</span>
-<span class="nc" id="L45">      responseBuilder.withData(</span>
-<span class="nc" id="L46">          &quot;Startpunkt API group found&quot;, client.hasApiGroup(&quot;startpunkt.ullberg.us&quot;, true));</span>
-<span class="nc" id="L47">      responseBuilder.withData(</span>
-<span class="nc" id="L48">          &quot;OpenShift Route API group found&quot;, client.hasApiGroup(&quot;route.openshift.io&quot;, true));</span>
-<span class="nc" id="L49">      responseBuilder.withData(&quot;Hajimari API group found&quot;, client.hasApiGroup(&quot;hajimari.io&quot;, true));</span>
-<span class="nc" id="L50">      responseBuilder.withData(</span>
-<span class="nc" id="L51">          &quot;ForeCastle API group found&quot;, client.hasApiGroup(&quot;forecastle.stakater.com&quot;, true));</span>
-<span class="nc" id="L52">      responseBuilder.withData(&quot;Traefik API group found&quot;, client.hasApiGroup(&quot;traefik.io&quot;, true));</span>
-<span class="nc" id="L53">      responseBuilder.withData(</span>
-<span class="nc" id="L54">          &quot;Gateway API group found&quot;, client.hasApiGroup(&quot;gateway.networking.k8s.io&quot;, true));</span>
+<span class="fc" id="L42">      responseBuilder.withData(&quot;Version&quot;, client.getKubernetesVersion().getGitVersion());</span>
+<span class="fc" id="L43">      responseBuilder.withData(&quot;Nodes&quot;, client.nodes().list().getItems().size());</span>
+<span class="fc" id="L44">      responseBuilder.withData(&quot;Namespaces&quot;, client.namespaces().list().getItems().size());</span>
+<span class="fc" id="L45">      responseBuilder.withData(</span>
+<span class="fc" id="L46">          &quot;Startpunkt API group found&quot;, client.hasApiGroup(&quot;startpunkt.ullberg.us&quot;, true));</span>
+<span class="fc" id="L47">      responseBuilder.withData(</span>
+<span class="fc" id="L48">          &quot;OpenShift Route API group found&quot;, client.hasApiGroup(&quot;route.openshift.io&quot;, true));</span>
+<span class="fc" id="L49">      responseBuilder.withData(&quot;Hajimari API group found&quot;, client.hasApiGroup(&quot;hajimari.io&quot;, true));</span>
+<span class="fc" id="L50">      responseBuilder.withData(</span>
+<span class="fc" id="L51">          &quot;ForeCastle API group found&quot;, client.hasApiGroup(&quot;forecastle.stakater.com&quot;, true));</span>
+<span class="fc" id="L52">      responseBuilder.withData(&quot;Traefik API group found&quot;, client.hasApiGroup(&quot;traefik.io&quot;, true));</span>
+<span class="fc" id="L53">      responseBuilder.withData(</span>
+<span class="fc" id="L54">          &quot;Gateway API group found&quot;, client.hasApiGroup(&quot;gateway.networking.k8s.io&quot;, true));</span>
 
-<span class="nc" id="L56">      responseBuilder.up();</span>
+<span class="fc" id="L56">      responseBuilder.up();</span>
 <span class="nc" id="L57">    } catch (Exception e) {</span>
 <span class="nc" id="L58">      LOGGER.severe(&quot;Kubernetes health check failed: &quot; + e.getMessage());</span>
 <span class="nc" id="L59">      responseBuilder.down().withData(&quot;error&quot;, e.getMessage());</span>
-<span class="nc" id="L60">    }</span>
+<span class="fc" id="L60">    }</span>
 
-<span class="nc" id="L62">    return responseBuilder.build();</span>
+<span class="fc" id="L62">    return responseBuilder.build();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

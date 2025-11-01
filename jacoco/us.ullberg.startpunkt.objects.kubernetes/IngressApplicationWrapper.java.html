@@ -40,12 +40,12 @@ public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
 
     // If onlyAnnotated is true, filter the list to include only enabled
     // applications
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">    if (onlyAnnotated) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">    if (onlyAnnotated) {</span>
 <span class="fc" id="L44">      return filterEnabled(applicationSpecs);</span>
     }
 
     // If onlyAnnotated is false, return the full list of application specs
-<span class="nc" id="L48">    return applicationSpecs;</span>
+<span class="fc" id="L48">    return applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
