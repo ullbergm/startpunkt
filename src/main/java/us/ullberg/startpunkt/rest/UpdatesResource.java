@@ -11,6 +11,7 @@ import java.util.Map;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.NoCache;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.websocket.WebSocketEventType;
@@ -41,12 +42,20 @@ public class UpdatesResource {
   /**
    * Server-Sent Events endpoint for real-time updates.
    *
+   * <p>This endpoint provides a stream of events to clients for real-time updates. The stream
+   * includes both application/bookmark changes and periodic heartbeats to keep the connection alive
+   * through proxies and load balancers.
+   *
+   * <p>The @NoCache annotation prevents proxies from buffering SSE responses, which is critical for
+   * real-time delivery in production environments behind reverse proxies or load balancers.
+   *
    * @return a Multi stream of SSE events as WebSocketMessage objects
    */
   @GET
   @Path("/stream")
   @Produces(MediaType.SERVER_SENT_EVENTS)
   @RestStreamElementType(MediaType.APPLICATION_JSON)
+  @NoCache
   @Operation(summary = "Subscribe to real-time updates via Server-Sent Events")
   public Multi<WebSocketMessage<?>> stream() {
     if (!realtimeEnabled) {

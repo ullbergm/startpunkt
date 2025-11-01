@@ -67,6 +67,12 @@ export function useServerSentEvents(url, options = {}) {
     try {
       setStatus('connecting');
       
+      console.log('Creating EventSource:', {
+        url: urlRef.current,
+        absoluteUrl: new URL(urlRef.current, window.location.href).href,
+        timestamp: new Date().toISOString()
+      });
+      
       eventSource.current = new EventSource(urlRef.current);
 
       eventSource.current.onopen = (event) => {
@@ -87,12 +93,26 @@ export function useServerSentEvents(url, options = {}) {
       eventSource.current.onerror = (event) => {
         if (!mountedRef.current) return;
         
-        console.error('SSE error:', event);
+        // Log detailed error information
+        const readyState = eventSource.current ? eventSource.current.readyState : 'null';
+        console.error('SSE error:', {
+          readyState,
+          url: urlRef.current,
+          event,
+          timestamp: new Date().toISOString()
+        });
+        
         setStatus('error');
         
         if (callbacksRef.current.onError) {
           callbacksRef.current.onError(event);
         }
+
+        // Only attempt to reconnect if we're not already closed/closing
+        // readyState: 0 = CONNECTING, 1 = OPEN, 2 = CLOSED
+        const shouldAttemptReconnect = shouldReconnect.current && 
+                                       eventSource.current && 
+                                       eventSource.current.readyState !== 2;
 
         // Close and attempt to reconnect
         if (eventSource.current) {
@@ -100,7 +120,7 @@ export function useServerSentEvents(url, options = {}) {
           eventSource.current = null;
         }
 
-        if (shouldReconnect.current) {
+        if (shouldAttemptReconnect) {
           const delay = getReconnectDelayRef.current();
           console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current + 1})`);
           

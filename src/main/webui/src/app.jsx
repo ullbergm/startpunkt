@@ -182,8 +182,9 @@ export function App() {
   };
 
   // Server-Sent Events connection for real-time updates
+  // Use relative path to avoid issues with proxies and base paths in production
   const websocket = useServerSentEvents(
-    `${window.location.origin}/api/updates/stream`,
+    '/api/updates/stream',
     {
       enabled: realtimeEnabled,
       onMessage: (message) => {
