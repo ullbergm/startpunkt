@@ -1,16 +1,35 @@
 {
     "categories": [
         {
-            "title": "## 🚀 Features",
-            "labels": [
-                "feature",
-                "feat"
+            "title": "## 🚨 BREAKING CHANGES",
+            "labels": [],
+            "rules": [
+                {
+                    "pattern": ".*!:.*",
+                    "on_property": "title"
+                }
             ]
         },
         {
-            "title": "## 🐛 Fixes",
+            "title": "## 📦 Enhancements",
             "labels": [
-                "fix"
+                "feat",
+                "fix",
+                "refactor",
+                "perf",
+                "enhancement"
+            ]
+        },
+        {
+            "title": "## 📦 Dependencies",
+            "labels": [
+                "chore",
+                "renovate/container",
+                "renovate/github-action",
+                "renovate/github-release",
+                "renovate/helm",
+                "renovate/js",
+                "renovate/go"
             ]
         },
         {
@@ -20,26 +39,15 @@
             ]
         },
         {
-            "title": "## 🔨 Refactoring",
-            "labels": [
-                "refactor"
-            ]
-        },
-        {
             "title": "## 🧪 Tests",
             "labels": [
                 "test"
             ]
         },
         {
-            "title": "## 📦 Dependencies",
+            "title": "## 🔧 Build & CI",
             "labels": [
-                "chore"
-            ]
-        },
-        {
-            "title": "## ⚙️ CI/CD",
-            "labels": [
+                "build",
                 "ci"
             ]
         },
@@ -50,15 +58,9 @@
             ]
         },
         {
-            "title": "## ⚡ Performance",
+            "title": "## 🐛 Bug Fixes",
             "labels": [
-                "perf"
-            ]
-        },
-        {
-            "title": "## 🔧 Build",
-            "labels": [
-                "build"
+                "bug"
             ]
         },
         {
@@ -87,7 +89,7 @@
         "on_property": "mergedAt"
     },
     "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
-    "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
+    "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
     "empty_template": "- no changes",
     "transformers": [
         {
