@@ -280,7 +280,7 @@
       <artifactId>resteasy-reactive-common</artifactId>
       <version>3.29.0</version>
     </dependency>
-    
+
     <!-- Test Dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -678,8 +678,3 @@
     </profile>
   </profiles>
 </project>
-
-
-
-
-

@@ -1,7 +1,5 @@
 package us.ullberg.startpunkt.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.GET;
@@ -35,24 +33,22 @@ public class UpdatesResource {
   Duration heartbeatInterval;
 
   private final EventBroadcaster eventBroadcaster;
-  private final ObjectMapper objectMapper;
 
-  public UpdatesResource(EventBroadcaster eventBroadcaster, ObjectMapper objectMapper) {
+  public UpdatesResource(EventBroadcaster eventBroadcaster) {
     this.eventBroadcaster = eventBroadcaster;
-    this.objectMapper = objectMapper;
   }
 
   /**
    * Server-Sent Events endpoint for real-time updates.
    *
-   * @return a Multi stream of SSE events as JSON strings
+   * @return a Multi stream of SSE events as WebSocketMessage objects
    */
   @GET
   @Path("/stream")
   @Produces(MediaType.SERVER_SENT_EVENTS)
   @RestStreamElementType(MediaType.APPLICATION_JSON)
   @Operation(summary = "Subscribe to real-time updates via Server-Sent Events")
-  public Multi<String> stream() {
+  public Multi<WebSocketMessage<?>> stream() {
     if (!realtimeEnabled) {
       Log.warn("Event streaming is disabled");
       return Multi.createFrom().empty();
@@ -78,18 +74,8 @@ public class UpdatesResource {
     Multi<WebSocketMessage<?>> combinedStream =
         Multi.createBy().merging().streams(updatesStream, heartbeat);
 
-    // Convert messages to JSON strings
+    // Return the stream of objects directly - Quarkus will handle JSON serialization
     return combinedStream
-        .onItem()
-        .transform(
-            message -> {
-              try {
-                return objectMapper.writeValueAsString(message);
-              } catch (JsonProcessingException e) {
-                Log.errorf(e, "Error serializing SSE message: %s", message);
-                return "{\"type\":\"ERROR\",\"data\":{\"message\":\"Serialization error\"}}";
-              }
-            })
         .onFailure()
         .invoke(error -> Log.errorf(error, "Error in SSE stream"))
         .onCancellation()
