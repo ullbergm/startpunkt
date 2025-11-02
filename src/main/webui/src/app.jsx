@@ -341,11 +341,11 @@ export function App() {
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
-          <div>
-            <h3 class="float-md-start mb-0">
+          <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
+            <h3 class="mb-2 mb-md-0 me-md-auto">
               <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}
             </h3>
-            <nav class="nav nav-masthead justify-content-center float-md-end" role="navigation" aria-label="Main navigation">
+            <nav class="nav nav-masthead justify-content-center mt-2 mt-md-0" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
                 <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
               )}

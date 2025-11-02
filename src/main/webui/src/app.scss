@@ -16,6 +16,132 @@ body {
   height: auto;
   letter-spacing: -0.012em;
   width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+}
+
+/* Responsive container for mobile devices */
+.cover-container {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+
+  .cover-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Reduce padding on mobile */
+  .cover-container {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Make navigation more mobile-friendly */
+  .nav-masthead {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-masthead .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+  }
+
+  .nav-masthead .nav-link + .nav-link {
+    margin-left: 0.25rem;
+  }
+
+  /* Header adjustments for mobile */
+  header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  header img {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Make dropdown buttons more touch-friendly */
+  .bd-layout-toggle .btn,
+  .bd-background-toggle .btn,
+  .bd-mode-toggle .btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem;
+  }
+
+  /* Position fixed buttons for mobile */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-mode-toggle {
+    margin-bottom: 0.5rem !important;
+    margin-right: 0.5rem !important;
+  }
+
+  /* Stack fixed position buttons on mobile */
+  .bd-background-toggle {
+    bottom: 0;
+    right: 0;
+  }
+
+  .bd-layout-toggle {
+    bottom: 0;
+    right: 0;
+  }
+
+  /* Adjust dropdown menu width on mobile */
+  .dropdown-menu {
+    max-width: 90vw !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  html,
+  body {
+    font-size: 13.5px;
+  }
+
+  .cover-container {
+    max-width: 95%;
+  }
+}
+
+/* Touch-friendly interactions for all mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase tap target sizes */
+  a, button, .nav-link, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Make clickable cards easier to tap */
+  .stretched-link {
+    z-index: 1;
+  }
+
+  /* Ensure adequate spacing for touch targets */
+  .form-check-input {
+    width: 1.5em;
+    height: 1.5em;
+  }
 }
 
 .logo {
