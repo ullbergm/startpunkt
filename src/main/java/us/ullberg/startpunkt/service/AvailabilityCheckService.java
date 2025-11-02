@@ -55,7 +55,12 @@ public class AvailabilityCheckService {
   private final HttpClient httpClient;
   private final EventBroadcaster eventBroadcaster;
 
-  /** Constructor that initializes the HTTP client with appropriate timeouts. */
+  /**
+   * Constructor that initializes the HTTP client with appropriate timeouts.
+   *
+   * @param ignoreCertificates whether to ignore SSL certificate validation
+   * @param eventBroadcaster the event broadcaster for sending availability change events
+   */
   public AvailabilityCheckService(
       @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
           boolean ignoreCertificates,
@@ -315,16 +320,19 @@ public class AvailabilityCheckService {
     Log.debug("Invalidated application caches due to availability changes");
   }
 
+  /** Invalidates the getApp cache. */
   @CacheInvalidate(cacheName = "getApp")
   protected void invalidateGetAppCache() {
     // No-op: annotation triggers cache invalidation
   }
 
+  /** Invalidates the getApps cache. */
   @CacheInvalidate(cacheName = "getApps")
   protected void invalidateGetAppsCache() {
     // No-op: annotation triggers cache invalidation
   }
 
+  /** Invalidates the getAppsFiltered cache. */
   @CacheInvalidate(cacheName = "getAppsFiltered")
   protected void invalidateGetAppsFilteredCache() {
     // No-op: annotation triggers cache invalidation
