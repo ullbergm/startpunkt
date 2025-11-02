@@ -181,7 +181,7 @@ class BookmarkResourceTest {
         .get("/api/bookmarks/ping")
         .then()
         .statusCode(200)
-        .body(equalTo(new BookmarkResource(new BookmarkService()).ping()));
+        .body(equalTo(new BookmarkResource(new BookmarkService(), null).ping()));
   }
 
   // Test with invalid namespace
