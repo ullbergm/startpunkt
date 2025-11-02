@@ -82,6 +82,10 @@
   - Visible focus indicators
   - Skip-to-content link
   - See [docs/accessibility.md](docs/accessibility.md) for details
+- 🔌 **GraphQL API**. Modern GraphQL API for flexible data querying (REST API still available during migration)
+  - Query applications, bookmarks, config, themes, and translations
+  - Explore interactively with GraphiQL UI (dev mode)
+  - See [docs/graphql-examples.md](docs/graphql-examples.md) and [docs/graphql-migration-guide.md](docs/graphql-migration-guide.md)
 
 ---
 
