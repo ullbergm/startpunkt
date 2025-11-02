@@ -17,7 +17,7 @@ export function ApplicationGroupList(props) {
 
   return (
     <div>
-      <div class="container px-4 py-5" id="icon-grid">
+      <div class="container px-4" id="icon-grid">
         {Array.isArray(props.groups) && props.groups.map(group => (
           <ApplicationGroup 
             key={group.name} 
