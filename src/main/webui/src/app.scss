@@ -228,6 +228,33 @@ body {
   }
 }
 
+/* Settings buttons with white background */
+.bd-layout-toggle .btn,
+.bd-background-toggle .btn,
+.bd-mode-toggle .btn,
+.bd-accessibility-toggle .btn {
+  background-color: white !important;
+  color: #712cf9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.bd-layout-toggle .btn:hover,
+.bd-background-toggle .btn:hover,
+.bd-mode-toggle .btn:hover,
+.bd-accessibility-toggle .btn:hover {
+  background-color: #f8f9fa !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.bd-layout-toggle .btn:focus,
+.bd-background-toggle .btn:focus,
+.bd-mode-toggle .btn:focus,
+.bd-accessibility-toggle .btn:focus {
+  background-color: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(113, 44, 249, 0.25) !important;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
