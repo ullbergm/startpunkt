@@ -26,8 +26,8 @@ body {
   padding-right: 1rem;
 }
 
-/* Mobile-specific adjustments */
-@media (max-width: 768px) {
+/* Mobile portrait - single column for narrow screens */
+@media (max-width: 576px) {
   html,
   body {
     font-size: 13px;
@@ -125,10 +125,71 @@ body {
     right: var(--mobile-button-gap) !important;
   }
 
-  /* Force single column layout on mobile for grids */
+  /* Single column layout for portrait mobile */
   .application-grid,
   .bookmark-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Hide settings buttons on mobile */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-accessibility-toggle {
+    display: none !important;
+  }
+}
+
+/* Mobile landscape - 2 columns for landscape phones */
+@media (min-width: 577px) and (max-width: 1320px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+
+  .cover-container {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Make navigation more mobile-friendly */
+  .nav-masthead {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-masthead .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+  }
+
+  /* Header adjustments */
+  header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  header img {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* 2 columns for landscape mobile */
+  .application-grid,
+  .bookmark-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Hide settings buttons on mobile landscape */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-accessibility-toggle {
+    display: none !important;
+  }
+
+  /* Adjust dropdown menu width and position */
+  .dropdown-menu-end {
+    max-width: 90vw !important;
   }
 }
 
