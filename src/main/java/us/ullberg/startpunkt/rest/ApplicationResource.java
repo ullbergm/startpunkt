@@ -2,13 +2,19 @@ package us.ullberg.startpunkt.rest;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -22,6 +28,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
@@ -33,6 +40,7 @@ import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
+import us.ullberg.startpunkt.service.ApplicationService;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
 
 /**
@@ -86,16 +94,23 @@ public class ApplicationResource {
   // Inject the availability check service
   private final AvailabilityCheckService availabilityCheckService;
 
+  // Inject the application service for CRUD operations
+  private final ApplicationService applicationService;
+
   /**
-   * Creates an ApplicationResource with the injected Kubernetes client and availability service.
+   * Creates an ApplicationResource with the injected Kubernetes client and services.
    *
    * @param kubernetesClient the managed Kubernetes client
    * @param availabilityCheckService the availability check service
+   * @param applicationService the application service for CRUD operations
    */
   public ApplicationResource(
-      KubernetesClient kubernetesClient, AvailabilityCheckService availabilityCheckService) {
+      KubernetesClient kubernetesClient,
+      AvailabilityCheckService availabilityCheckService,
+      ApplicationService applicationService) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
+    this.applicationService = applicationService;
   }
 
   // Method to retrieve the list of applications
@@ -395,6 +410,185 @@ public class ApplicationResource {
     }
 
     return filteredApps;
+  }
+
+  /**
+   * POST endpoint to create a new Application custom resource.
+   *
+   * @param namespace namespace to create the application in
+   * @param name name for the application resource
+   * @param spec application specification
+   * @return HTTP 201 with created application or 400/500 on error
+   */
+  @POST
+  @Path("/manage")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Create a new application")
+  @APIResponse(
+      responseCode = "201",
+      description = "Application created",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Application.class)))
+  @APIResponse(responseCode = "400", description = "Invalid input")
+  @APIResponse(responseCode = "500", description = "Server error")
+  @Timed(value = "startpunkt.api.createapp", description = "Create an application")
+  @CacheInvalidate(cacheName = "getApps")
+  @CacheInvalidate(cacheName = "getAppsFiltered")
+  @CacheInvalidate(cacheName = "getApp")
+  public Response createApplication(
+      @QueryParam("namespace") String namespace,
+      @QueryParam("name") String name,
+      ApplicationSpec spec) {
+    try {
+      if (namespace == null || namespace.isEmpty()) {
+        return Response.status(400, "Namespace is required").build();
+      }
+      if (name == null || name.isEmpty()) {
+        return Response.status(400, "Name is required").build();
+      }
+      if (spec == null) {
+        return Response.status(400, "Application spec is required").build();
+      }
+
+      Application created = applicationService.createApplication(namespace, name, spec);
+      return Response.status(201).entity(created).build();
+    } catch (Exception e) {
+      Log.error("Error creating application", e);
+      return Response.status(500, "Error creating application: " + e.getMessage()).build();
+    }
+  }
+
+  /**
+   * PUT endpoint to update an existing Application custom resource.
+   *
+   * @param namespace namespace of the application
+   * @param name name of the application resource
+   * @param spec updated application specification
+   * @return HTTP 200 with updated application or 400/404/500 on error
+   */
+  @PUT
+  @Path("/manage")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Update an existing application")
+  @APIResponse(
+      responseCode = "200",
+      description = "Application updated",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Application.class)))
+  @APIResponse(responseCode = "400", description = "Invalid input")
+  @APIResponse(responseCode = "404", description = "Application not found")
+  @APIResponse(responseCode = "500", description = "Server error")
+  @Timed(value = "startpunkt.api.updateapp", description = "Update an application")
+  @CacheInvalidate(cacheName = "getApps")
+  @CacheInvalidate(cacheName = "getAppsFiltered")
+  @CacheInvalidate(cacheName = "getApp")
+  public Response updateApplication(
+      @QueryParam("namespace") String namespace,
+      @QueryParam("name") String name,
+      ApplicationSpec spec) {
+    try {
+      if (namespace == null || namespace.isEmpty()) {
+        return Response.status(400, "Namespace is required").build();
+      }
+      if (name == null || name.isEmpty()) {
+        return Response.status(400, "Name is required").build();
+      }
+      if (spec == null) {
+        return Response.status(400, "Application spec is required").build();
+      }
+
+      Application updated = applicationService.updateApplication(namespace, name, spec);
+      return Response.ok(updated).build();
+    } catch (IllegalArgumentException e) {
+      return Response.status(404, e.getMessage()).build();
+    } catch (Exception e) {
+      Log.error("Error updating application", e);
+      return Response.status(500, "Error updating application: " + e.getMessage()).build();
+    }
+  }
+
+  /**
+   * DELETE endpoint to delete an Application custom resource.
+   *
+   * @param namespace namespace of the application
+   * @param name name of the application resource
+   * @return HTTP 204 if deleted, 404 if not found, 500 on error
+   */
+  @DELETE
+  @Path("/manage")
+  @Operation(summary = "Delete an application")
+  @APIResponse(responseCode = "204", description = "Application deleted")
+  @APIResponse(responseCode = "404", description = "Application not found")
+  @APIResponse(responseCode = "500", description = "Server error")
+  @Timed(value = "startpunkt.api.deleteapp", description = "Delete an application")
+  @CacheInvalidate(cacheName = "getApps")
+  @CacheInvalidate(cacheName = "getAppsFiltered")
+  @CacheInvalidate(cacheName = "getApp")
+  public Response deleteApplication(
+      @QueryParam("namespace") String namespace, @QueryParam("name") String name) {
+    try {
+      if (namespace == null || namespace.isEmpty()) {
+        return Response.status(400, "Namespace is required").build();
+      }
+      if (name == null || name.isEmpty()) {
+        return Response.status(400, "Name is required").build();
+      }
+
+      boolean deleted = applicationService.deleteApplication(namespace, name);
+      if (deleted) {
+        return Response.status(204).build();
+      } else {
+        return Response.status(404, "Application not found").build();
+      }
+    } catch (Exception e) {
+      Log.error("Error deleting application", e);
+      return Response.status(500, "Error deleting application: " + e.getMessage()).build();
+    }
+  }
+
+  /**
+   * GET endpoint to retrieve a single Application custom resource with ownership info.
+   *
+   * @param namespace namespace of the application
+   * @param name name of the application resource
+   * @return HTTP 200 with application and ownership info or 404 if not found
+   */
+  @GET
+  @Path("/manage")
+  @Operation(summary = "Get an application resource with ownership info")
+  @APIResponse(
+      responseCode = "200",
+      description = "Application retrieved",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Application.class)))
+  @APIResponse(responseCode = "404", description = "Application not found")
+  @Timed(value = "startpunkt.api.getappresource", description = "Get application resource")
+  public Response getApplicationResource(
+      @QueryParam("namespace") String namespace, @QueryParam("name") String name) {
+    try {
+      if (namespace == null || namespace.isEmpty()) {
+        return Response.status(400, "Namespace is required").build();
+      }
+      if (name == null || name.isEmpty()) {
+        return Response.status(400, "Name is required").build();
+      }
+
+      Application app = applicationService.getApplication(namespace, name);
+      if (app == null) {
+        return Response.status(404, "Application not found").build();
+      }
+
+      return Response.ok(app).build();
+    } catch (Exception e) {
+      Log.error("Error getting application", e);
+      return Response.status(500, "Error getting application: " + e.getMessage()).build();
+    }
   }
 
   /**
