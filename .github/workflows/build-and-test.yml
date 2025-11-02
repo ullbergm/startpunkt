@@ -19,7 +19,6 @@ on:
       - deploy/**
       - docs/**
       - '**/*.md'
-      - .github/**
       - renovate.json
     branches:
       - main
@@ -35,7 +34,6 @@ on:
       - deploy/**
       - docs/**
       - '**/*.md'
-      - .github/**
       - renovate.json
   workflow_dispatch: null
 
