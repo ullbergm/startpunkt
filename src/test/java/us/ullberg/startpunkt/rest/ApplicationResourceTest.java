@@ -555,9 +555,7 @@ class ApplicationResourceTest {
     }
   }
 
-  /**
-   * Test class for multiple Kubernetes resource types (Hajimari, Routes, Ingresses, Forecastle)
-   */
+  /** Test class for multiple Kubernetes resource types (Hajimari, Routes, Ingresses, Forecastle) */
   @QuarkusTest
   @WithKubernetesTestServer
   @io.quarkus.test.junit.TestProfile(AllResourceTypesApplicationProfile.class)
@@ -815,13 +813,27 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.icon", equalTo("mdi:chart-line"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.info", equalTo("Monitoring dashboards"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank", equalTo(true))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location", equalTo(100))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled", equalTo(true))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.rootPath", equalTo("/dashboards"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url", equalTo("https://grafana.example.com/dashboards"));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.icon",
+              equalTo("mdi:chart-line"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.info",
+              equalTo("Monitoring dashboards"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location",
+              equalTo(100))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.rootPath",
+              equalTo("/dashboards"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url",
+              equalTo("https://grafana.example.com/dashboards"));
     }
 
     @Test
@@ -832,10 +844,18 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.icon", equalTo("mdi:database"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.info", equalTo("metrics database"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", equalTo("https://prometheus.example.com/metrics"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled", equalTo(true));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.icon",
+              equalTo("mdi:database"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.info",
+              equalTo("metrics database"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url",
+              equalTo("https://prometheus.example.com/metrics"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled",
+              equalTo(true));
     }
 
     @Test
@@ -846,10 +866,18 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon", equalTo("mdi:bell"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.info", equalTo("alert management"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.url", equalTo("https://alertmanager.example.com"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled", equalTo(true));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon",
+              equalTo("mdi:bell"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.info",
+              equalTo("alert management"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.url",
+              equalTo("https://alertmanager.example.com"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled",
+              equalTo(true));
     }
 
     @Test
@@ -860,10 +888,18 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.icon", equalTo("https://example.com/kibana.png"))
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url", equalTo("https://kibana.example.com"))
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled", equalTo(true))
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.location", equalTo(1000));
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.icon",
+              equalTo("https://example.com/kibana.png"))
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url",
+              equalTo("https://kibana.example.com"))
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.location",
+              equalTo(1000));
     }
 
     // ---- Grouping and Organization Tests ----
@@ -915,7 +951,9 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", org.hamcrest.Matchers.startsWith("https://"));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url",
+              org.hamcrest.Matchers.startsWith("https://"));
     }
 
     @Test
@@ -926,7 +964,9 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url", org.hamcrest.Matchers.endsWith("/dashboards"));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url",
+              org.hamcrest.Matchers.endsWith("/dashboards"));
     }
 
     @Test
@@ -937,7 +977,9 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", org.hamcrest.Matchers.containsString("/metrics"));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url",
+              org.hamcrest.Matchers.containsString("/metrics"));
     }
 
     // ---- Annotation Style Compatibility Tests ----
@@ -950,8 +992,12 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.group", equalTo("monitoring"))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon", equalTo("mdi:bell"));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.group",
+              equalTo("monitoring"))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon",
+              equalTo("mdi:bell"));
     }
 
     @Test
@@ -962,8 +1008,12 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank", equalTo(true))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location", equalTo(100));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location",
+              equalTo(100));
     }
 
     @Test
@@ -974,8 +1024,12 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.group", equalTo("logging"))
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url", equalTo("https://kibana.example.com"));
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.group",
+              equalTo("logging"))
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url",
+              equalTo("https://kibana.example.com"));
     }
 
     // ---- Individual Application Retrieval Tests ----
@@ -1055,7 +1109,9 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.available", org.hamcrest.Matchers.isA(Boolean.class));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.available",
+              org.hamcrest.Matchers.isA(Boolean.class));
     }
 
     // ---- Resource Type Mix Tests ----
@@ -1069,9 +1125,15 @@ class ApplicationResourceTest {
           .then()
           .statusCode(200)
           .body("groups.find { it.name == 'monitoring' }.applications.size()", equalTo(3))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }", org.hamcrest.Matchers.notNullValue())
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }", org.hamcrest.Matchers.notNullValue())
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }", org.hamcrest.Matchers.notNullValue());
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }",
+              org.hamcrest.Matchers.notNullValue())
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }",
+              org.hamcrest.Matchers.notNullValue())
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }",
+              org.hamcrest.Matchers.notNullValue());
     }
 
     @Test
@@ -1082,10 +1144,18 @@ class ApplicationResourceTest {
           .get("/api/apps")
           .then()
           .statusCode(200)
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled", equalTo(true))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled", equalTo(true))
-          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled", equalTo(true))
-          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled", equalTo(true));
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled",
+              equalTo(true))
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled",
+              equalTo(true));
     }
 
     // ---- Response Structure Tests ----
@@ -1133,21 +1203,13 @@ class ApplicationResourceTest {
     @Test
     void testNonExistentApplication() {
       // Verify 404 is returned for non-existent applications
-      given()
-          .when()
-          .get("/api/apps/monitoring/nonexistent")
-          .then()
-          .statusCode(404);
+      given().when().get("/api/apps/monitoring/nonexistent").then().statusCode(404);
     }
 
     @Test
     void testNonExistentGroup() {
       // Verify 404 is returned for non-existent group
-      given()
-          .when()
-          .get("/api/apps/nonexistentgroup/app")
-          .then()
-          .statusCode(404);
+      given().when().get("/api/apps/nonexistentgroup/app").then().statusCode(404);
     }
 
     @Test
