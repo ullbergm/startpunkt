@@ -4,17 +4,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.LinkedList;
 import java.util.List;
-import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.Type;
 
 /**
  * Represents a group of applications, each group identified by a name and containing a list of
- * {@link ApplicationSpec} objects.
+ * {@link ApplicationResponse} objects.
  */
+@Type("ApplicationGroup")
+@Description("A group of applications, organized by namespace or custom grouping")
 @RegisterForReflection(registerFullHierarchy = true)
 public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   private String name;
-  private LinkedList<ApplicationSpec> applications;
+  private LinkedList<ApplicationResponse> applications;
 
   /** Default constructor for deserialization purposes. */
   public ApplicationGroup() {
@@ -38,7 +42,7 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    * @param applications the list of applications; if null, initialized to an empty list
    * @throws IllegalArgumentException if name is null or blank
    */
-  public ApplicationGroup(String name, List<ApplicationSpec> applications) {
+  public ApplicationGroup(String name, List<ApplicationResponse> applications) {
     if (name == null || name.isBlank()) {
       throw new IllegalArgumentException("ApplicationGroup name cannot be null or empty");
     }
@@ -51,6 +55,8 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    *
    * @return the group name
    */
+  @NonNull
+  @Description("The name of the application group")
   @JsonProperty("name")
   public String getName() {
     return name;
@@ -70,8 +76,10 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    *
    * @return list of applications in this group
    */
+  @NonNull
+  @Description("List of applications in this group")
   @JsonProperty("applications")
-  public List<ApplicationSpec> getApplications() {
+  public List<ApplicationResponse> getApplications() {
     return List.copyOf(applications);
   }
 
@@ -80,7 +88,7 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    *
    * @param applications the new list of applications; if null, resets to empty list
    */
-  public void setApplications(List<ApplicationSpec> applications) {
+  public void setApplications(List<ApplicationResponse> applications) {
     this.applications = applications != null ? new LinkedList<>(applications) : new LinkedList<>();
   }
 
@@ -123,7 +131,7 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    * @param app the application to add; must not be null
    * @throws IllegalArgumentException if app is null
    */
-  public void addApplication(ApplicationSpec app) {
+  public void addApplication(ApplicationResponse app) {
     if (app == null) {
       throw new IllegalArgumentException("Application cannot be null");
     }
