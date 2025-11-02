@@ -34,14 +34,7 @@ body {
   }
 
   .cover-container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-
-  /* Reduce padding on mobile */
-  .cover-container {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
+    padding: 1rem 0.75rem !important;
   }
 
   /* Make navigation more mobile-friendly */
@@ -91,47 +84,45 @@ body {
     margin-right: 0.5rem !important;
   }
 
-  /* Stack buttons vertically on mobile from bottom */
+  /* Stack buttons vertically on mobile from bottom using CSS variables */
+  :root {
+    --mobile-button-size: 44px;
+    --mobile-button-gap: 0.5rem;
+  }
+
   .bd-accessibility-toggle {
-    bottom: 0 !important;
+    bottom: var(--mobile-button-gap) !important;
     right: 0 !important;
-    margin-right: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
   }
 
   .bd-mode-toggle {
-    bottom: 0 !important;
+    bottom: calc(var(--mobile-button-size) + var(--mobile-button-gap) * 2) !important;
     right: 0 !important;
-    margin-right: 0.5rem !important;
-    margin-bottom: 4rem !important; /* Stack above accessibility */
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
   }
 
   .bd-background-toggle {
-    bottom: 0 !important;
+    bottom: calc(var(--mobile-button-size) * 2 + var(--mobile-button-gap) * 3) !important;
     right: 0 !important;
-    margin-right: 0.5rem !important;
-    margin-bottom: 7.5rem !important; /* Stack above mode toggle */
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
   }
 
   .bd-layout-toggle {
-    bottom: 0 !important;
+    bottom: calc(var(--mobile-button-size) * 3 + var(--mobile-button-gap) * 4) !important;
     right: 0 !important;
-    margin-right: 0.5rem !important;
-    margin-bottom: 11rem !important; /* Stack above background toggle */
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
   }
 
   /* Adjust dropdown menu width and position on mobile */
-  .dropdown-menu {
+  .dropdown-menu-end {
     max-width: 90vw !important;
     left: auto !important;
-    right: 0.5rem !important;
-    transform: none !important;
-  }
-
-  /* Ensure dropdowns fit on screen */
-  .dropdown-menu-end {
-    right: 0.5rem !important;
-    left: auto !important;
+    right: var(--mobile-button-gap) !important;
   }
 }
 
