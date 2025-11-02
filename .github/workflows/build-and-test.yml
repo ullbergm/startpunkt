@@ -44,10 +44,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  jvm-build-test:
+  jvm-sonarcloud-test:
     runs-on: ubuntu-latest
-    if: github.repository == 'ullbergm/startpunkt'
-    name: jvm-build-test
+    if: github.repository == 'ullbergm/startpunkt' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: jvm-sonarcloud-test
     steps:
       - uses: actions/checkout@v5
         with:
@@ -72,7 +72,6 @@ jobs:
           ./mvnw -B clean verify -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
 
       - name: Analyze with SonarCloud
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
