@@ -47,4 +47,29 @@ public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
     // If onlyAnnotated is false, return the full list of application specs
     return applicationSpecs;
   }
+
+  /**
+   * Retrieves application specs with metadata from Kubernetes Ingress resources, filtering them
+   * based on the onlyAnnotated flag.
+   *
+   * @param client Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames specific namespaces to include in the search
+   * @return list of {@link us.ullberg.startpunkt.objects.ApplicationResponse} extracted from
+   *     Ingress resources with metadata
+   */
+  @Override
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    // Get the application specs with metadata from the parent class
+    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);
+
+    // If onlyAnnotated is true, filter the list to include only enabled applications
+    if (onlyAnnotated) {
+      return filterEnabledWithMetadata(applicationSpecs);
+    }
+
+    // If onlyAnnotated is false, return the full list of application specs
+    return applicationSpecs;
+  }
 }

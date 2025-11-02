@@ -5,12 +5,15 @@ import { useLocalStorage } from '@rehooks/local-storage';
 import { writeStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
+import { Icon } from '@iconify/react';
 import SpotlightSearch from './SpotlightSearch';
 import { useWebSocket } from './useWebSocket';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
+import { ApplicationEditor } from './ApplicationEditor';
+import { BookmarkEditor } from './BookmarkEditor';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -124,6 +127,13 @@ export function App() {
   // Initialize layout preferences hook
   const layoutPrefs = useLayoutPreferences();
 
+  // Editor states
+  const [showAppEditor, setShowAppEditor] = useState(false);
+  const [showBookmarkEditor, setShowBookmarkEditor] = useState(false);
+  const [editingApp, setEditingApp] = useState(null);
+  const [editingBookmark, setEditingBookmark] = useState(null);
+  const [editorMode, setEditorMode] = useState('create');
+
   useEffect(() => {
     var lang = navigator.language;
     console.log("switching language to " + lang);
@@ -224,7 +234,11 @@ export function App() {
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {
           // Refresh bookmarks when changes occur
-          fetchData();
+          console.log('Refreshing bookmarks due to:', message.type);
+          // Add a small delay to ensure backend cache is fully updated
+          setTimeout(() => {
+            fetchData();
+          }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'CONFIG_CHANGED') {
           // Reload config and data when configuration changes
           window.location.reload();
@@ -316,6 +330,142 @@ export function App() {
     }
   }, [version, checkForUpdates]);
 
+  // Application editor handlers
+  const handleCreateApp = () => {
+    setEditingApp(null);
+    setEditorMode('create');
+    setShowAppEditor(true);
+  };
+
+  const handleEditApp = async (app) => {
+    // Fetch the full application resource from the API using namespace and resourceName
+    try {
+      const namespace = app.namespace || 'default';
+      const resourceName = app.resourceName || app.name;
+      const response = await fetch(`/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
+      if (response.ok) {
+        const fullApp = await response.json();
+        setEditingApp(fullApp);
+        setEditorMode('edit');
+        setShowAppEditor(true);
+      } else {
+        console.error('Failed to fetch application details');
+      }
+    } catch (error) {
+      console.error('Error fetching application:', error);
+    }
+  };
+
+  const handleSaveApp = async (namespace, name, spec) => {
+    const endpoint = editorMode === 'create' 
+      ? `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
+      : `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
+    
+    const method = editorMode === 'create' ? 'POST' : 'PUT';
+    
+    const response = await fetch(endpoint, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(spec),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to save application');
+    }
+
+    setShowAppEditor(false);
+    setEditingApp(null);
+    // Refresh data
+    setTimeout(() => fetchData(), 500);
+  };
+
+  const handleDeleteApp = async (namespace, name) => {
+    const endpoint = `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
+    
+    const response = await fetch(endpoint, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to delete application');
+    }
+
+    setShowAppEditor(false);
+    setEditingApp(null);
+    // Refresh data
+    setTimeout(() => fetchData(), 500);
+  };
+
+  // Bookmark editor handlers
+  const handleCreateBookmark = () => {
+    setEditingBookmark(null);
+    setEditorMode('create');
+    setShowBookmarkEditor(true);
+  };
+
+  const handleEditBookmark = async (bookmark) => {
+    // Fetch the full bookmark resource from the API using namespace and resourceName
+    try {
+      const namespace = bookmark.namespace || 'default';
+      const resourceName = bookmark.resourceName || bookmark.name;
+      const response = await fetch(`/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
+      if (response.ok) {
+        const fullBookmark = await response.json();
+        setEditingBookmark(fullBookmark);
+        setEditorMode('edit');
+        setShowBookmarkEditor(true);
+      } else {
+        console.error('Failed to fetch bookmark details');
+      }
+    } catch (error) {
+      console.error('Error fetching bookmark:', error);
+    }
+  };
+
+  const handleSaveBookmark = async (namespace, name, spec) => {
+    const endpoint = editorMode === 'create' 
+      ? `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
+      : `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
+    
+    const method = editorMode === 'create' ? 'POST' : 'PUT';
+    
+    const response = await fetch(endpoint, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(spec),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to save bookmark');
+    }
+
+    setShowBookmarkEditor(false);
+    setEditingBookmark(null);
+    // Refresh data
+    setTimeout(() => fetchData(), 500);
+  };
+
+  const handleDeleteBookmark = async (namespace, name) => {
+    const endpoint = `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
+    
+    const response = await fetch(endpoint, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Failed to delete bookmark');
+    }
+
+    setShowBookmarkEditor(false);
+    setEditingBookmark(null);
+    // Refresh data
+    setTimeout(() => fetchData(), 500);
+  };
+
   return (
     <IntlProvider definition={definition}>
       {/* Skip to content link for screen readers */}
@@ -357,8 +507,8 @@ export function App() {
         </header>
 
         <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
-          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} />}
-          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
+          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
           {currentPage === "loading" && (
             <div class="text-center" role="status" aria-live="polite">
               <h1 class="display-4"><Text id="home.loading">Loading...</Text></h1>
@@ -379,6 +529,71 @@ export function App() {
           <p><a href="https://github.com/ullbergm/startpunkt" class="text-white-50" target="_blank" rel="noopener noreferrer">Startpunkt</a> v{version}, by <a href="https://ullberg.us" class="text-white-50" target="_blank" rel="noopener noreferrer">Magnus Ullberg</a>.</p>
         </footer>
       </div>
+
+      {/* Floating action buttons for adding items - only visible in edit mode */}
+      {layoutPrefs?.preferences.editMode && currentPage === 'applications' && (
+        <button
+          class="btn btn-primary rounded-circle"
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '56px',
+            height: '56px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            zIndex: 1000
+          }}
+          onClick={handleCreateApp}
+          aria-label="Add new application"
+          title="Add new application"
+        >
+          <Icon icon="mdi:plus" width="24" height="24" />
+        </button>
+      )}
+      
+      {layoutPrefs?.preferences.editMode && currentPage === 'bookmarks' && (
+        <button
+          class="btn btn-primary rounded-circle"
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '56px',
+            height: '56px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+            zIndex: 1000
+          }}
+          onClick={handleCreateBookmark}
+          aria-label="Add new bookmark"
+          title="Add new bookmark"
+        >
+          <Icon icon="mdi:plus" width="24" height="24" />
+        </button>
+      )}
+
+      {/* Application Editor Modal */}
+      {showAppEditor && (
+        <ApplicationEditor
+          application={editingApp}
+          onSave={handleSaveApp}
+          onCancel={() => { setShowAppEditor(false); setEditingApp(null); }}
+          onDelete={handleDeleteApp}
+          mode={editorMode}
+        />
+      )}
+
+      {/* Bookmark Editor Modal */}
+      {showBookmarkEditor && (
+        <BookmarkEditor
+          bookmark={editingBookmark}
+          onSave={handleSaveBookmark}
+          onCancel={() => { setShowBookmarkEditor(false); setEditingBookmark(null); }}
+          onDelete={handleDeleteBookmark}
+          mode={editorMode}
+        />
+      )}
     </IntlProvider>
   )
 }

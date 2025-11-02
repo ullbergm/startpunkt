@@ -1,7 +1,7 @@
 import { Application } from './Application';
 
 export function ApplicationGroup(props) {
-  const { layoutPrefs, isCollapsed, onToggle } = props;
+  const { layoutPrefs, isCollapsed, onToggle, onEditApp } = props;
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
@@ -63,7 +63,7 @@ export function ApplicationGroup(props) {
         >
           {Array.isArray(props.applications) && props.applications.map((app) => (
             <div role="listitem" key={app.name}>
-              <Application app={app} layoutPrefs={layoutPrefs} />
+              <Application app={app} layoutPrefs={layoutPrefs} onEdit={onEditApp} />
             </div>
           ))}
         </div>

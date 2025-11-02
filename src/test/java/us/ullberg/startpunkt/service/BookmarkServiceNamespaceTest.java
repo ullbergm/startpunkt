@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /** Test class for {@link BookmarkService} with specific namespace configuration. */
 @QuarkusTest
@@ -84,7 +85,7 @@ class BookmarkServiceNamespaceTest {
     createBookmark("other", "Other Bookmark", "Test", "https://other.com");
 
     // With matchNames = ["default", "startpunkt"], should only retrieve from those namespaces
-    List<BookmarkSpec> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(2, bookmarks.size());

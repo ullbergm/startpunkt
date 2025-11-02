@@ -79,6 +79,8 @@
             "relaxed" : "Relaxed"
         },
         "compactMode" : "Compact Mode",
+        "editMode" : "Edit Mode",
+        "editModeHelp" : "Enable to add/edit applications and bookmarks",
         "showHide" : "Show/Hide",
         "description" : "Description",
         "tags" : "Tags",
@@ -89,7 +91,9 @@
         "cancel" : "Cancel",
         "delete" : "Delete",
         "saveCurrentPreset" : "+ Save Current as Preset",
-        "resetToDefaults" : "Reset to Defaults"
+        "resetToDefaults" : "Reset to Defaults",
+        "cannotEdit" : "Cannot Edit",
+        "managedExternally" : "Managed by external system"
     },
     "accessibility" : {
         "title" : "Accessibility",

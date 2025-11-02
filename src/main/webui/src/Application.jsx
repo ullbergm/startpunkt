@@ -1,4 +1,5 @@
 import { Icon } from '@iconify/react';
+import { Text } from 'preact-i18n';
 
 function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
   const opacity = isUnavailable ? 0.4 : 1;
@@ -13,8 +14,10 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs } = props;
+  const { layoutPrefs, onEdit } = props;
   const isUnavailable = props.app.available === false;
+  const isEditable = !props.app.hasOwnerReferences;
+  const editMode = layoutPrefs?.preferences.editMode;
   
   // Get preferences with defaults
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
@@ -32,13 +35,36 @@ export function Application(props) {
   const containerStyle = {
     transform: 'rotate(0)',
     padding: padding,
-    ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' })
+    ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' }),
+    ...(editMode && isEditable && { 
+      outline: '2px solid rgba(13, 110, 253, 0.5)',
+      outlineOffset: '2px',
+      borderRadius: '4px',
+      backgroundColor: 'rgba(13, 110, 253, 0.05)'
+    }),
+    ...(editMode && !isEditable && { 
+      opacity: '0.6'
+    }),
+    position: 'relative'
+  };
+  
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit && isEditable) {
+      onEdit(props.app);
+    }
   };
   
   // Standard card layout
   return (
-    <div class={containerClass} style={containerStyle} role="article" aria-label={`Application: ${props.app.name}`}>
-      {!isUnavailable && (
+    <div 
+      class={containerClass} 
+      style={containerStyle} 
+      role="article" 
+      aria-label={`Application: ${props.app.name}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
+    >
+      {!isUnavailable && !editMode && (
         <a
           href={props.app.url}
           target={props.app.targetBlank ? '_blank' : '_self'}
@@ -48,7 +74,7 @@ export function Application(props) {
         />
       )}
       {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
-      <div class="px-2" style={{ fontSize: '0.875rem' }}>
+      <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
         <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
           {props.app.name}
         </h4>
@@ -67,7 +93,24 @@ export function Application(props) {
         {showStatus && isUnavailable && (
           <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
         )}
+        {editMode && !isEditable && (
+          <span class="badge bg-secondary mt-1" style={{ fontSize: '0.65rem' }} role="status" title="Managed by external system">
+            <Icon icon="mdi:lock" width="10" height="10" class="me-1" />
+            <Text id="layout.cannotEdit">Cannot Edit</Text>
+          </span>
+        )}
       </div>
+      {editMode && isEditable && onEdit && (
+        <button
+          onClick={handleEdit}
+          class="btn btn-sm btn-primary ms-2"
+          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
+          aria-label={`Edit ${props.app.name}`}
+          title={`Edit ${props.app.name}`}
+        >
+          <Icon icon="mdi:pencil" width="16" height="16" />
+        </button>
+      )}
     </div>
   );
 }

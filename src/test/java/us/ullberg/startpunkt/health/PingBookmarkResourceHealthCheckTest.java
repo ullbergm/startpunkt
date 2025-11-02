@@ -18,7 +18,7 @@ class PingBookmarkResourceHealthCheckTest {
 
   @BeforeEach
   void setUp() {
-    bookmarkResource = new BookmarkResource(new BookmarkService());
+    bookmarkResource = new BookmarkResource(new BookmarkService(), null, null, null);
     healthCheck = new PingBookmarkResourceHealthCheck(bookmarkResource);
   }
 

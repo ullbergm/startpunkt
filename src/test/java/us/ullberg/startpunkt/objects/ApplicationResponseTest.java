@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
- * Test class for ApplicationSpecWithAvailability. Tests wrapper functionality, availability status,
- * and field copying from ApplicationSpec.
+ * Test class for ApplicationResponse. Tests wrapper functionality, availability status, and field
+ * copying from ApplicationSpec.
  */
-class ApplicationSpecWithAvailabilityTest {
+class ApplicationResponseTest {
 
   private ApplicationSpec baseSpec;
 
@@ -33,7 +33,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testDefaultConstructor() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability();
+    ApplicationResponse wrapper = new ApplicationResponse();
 
     assertNotNull(wrapper, "Wrapper should be created");
     assertNull(wrapper.getName(), "Name should be null in default constructor");
@@ -42,7 +42,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testConstructorWithApplicationSpec() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     assertNotNull(wrapper, "Wrapper should be created");
     assertEquals("TestApp", wrapper.getName(), "Name should be copied");
@@ -74,7 +74,7 @@ class ApplicationSpecWithAvailabilityTest {
             null // enabled
             );
 
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(specWithNulls);
+    ApplicationResponse wrapper = new ApplicationResponse(specWithNulls);
 
     assertEquals("MinimalApp", wrapper.getName(), "Name should be copied");
     assertNull(wrapper.getGroup(), "Null group should be copied as null");
@@ -89,7 +89,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testSetAvailableTrue() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     wrapper.setAvailable(true);
 
@@ -98,7 +98,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testSetAvailableFalse() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     wrapper.setAvailable(false);
 
@@ -107,7 +107,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testSetAvailableNull() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
     wrapper.setAvailable(true);
 
     wrapper.setAvailable(null);
@@ -117,14 +117,14 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testGetAvailableWhenNotSet() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     assertNull(wrapper.getAvailable(), "Available should be null when not set");
   }
 
   @Test
   void testAvailabilityToggle() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     wrapper.setAvailable(true);
     assertTrue(wrapper.getAvailable(), "Should be true after setting to true");
@@ -138,7 +138,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testInheritsFromApplicationSpec() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     // Verify inheritance by using ApplicationSpec methods
     assertTrue(wrapper instanceof ApplicationSpec, "Should be instance of ApplicationSpec");
@@ -146,7 +146,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testModifyingWrapperDoesNotAffectOriginalSpec() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     wrapper.setName("ModifiedName");
     wrapper.setAvailable(true);
@@ -170,7 +170,7 @@ class ApplicationSpecWithAvailabilityTest {
             false // enabled
             );
 
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(disabledSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(disabledSpec);
 
     assertFalse(wrapper.getEnabled(), "Enabled should be false");
     assertNull(wrapper.getAvailable(), "Available should be null by default");
@@ -193,7 +193,7 @@ class ApplicationSpecWithAvailabilityTest {
             0,
             true);
 
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(specNoTarget);
+    ApplicationResponse wrapper = new ApplicationResponse(specNoTarget);
 
     assertFalse(wrapper.getTargetBlank(), "TargetBlank should be false");
     wrapper.setAvailable(true);
@@ -216,7 +216,7 @@ class ApplicationSpecWithAvailabilityTest {
     fullSpec.setRootPath("/api/v1");
     fullSpec.setTags("production,critical");
 
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(fullSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(fullSpec);
 
     assertEquals("/api/v1", wrapper.getRootPath(), "RootPath should be preserved");
     assertEquals("production,critical", wrapper.getTags(), "Tags should be preserved");
@@ -225,8 +225,8 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testMultipleWrappersFromSameSpec() {
-    ApplicationSpecWithAvailability wrapper1 = new ApplicationSpecWithAvailability(baseSpec);
-    ApplicationSpecWithAvailability wrapper2 = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper1 = new ApplicationResponse(baseSpec);
+    ApplicationResponse wrapper2 = new ApplicationResponse(baseSpec);
 
     wrapper1.setAvailable(true);
     wrapper2.setAvailable(false);
@@ -240,7 +240,7 @@ class ApplicationSpecWithAvailabilityTest {
 
   @Test
   void testSetAvailableMultipleTimes() {
-    ApplicationSpecWithAvailability wrapper = new ApplicationSpecWithAvailability(baseSpec);
+    ApplicationResponse wrapper = new ApplicationResponse(baseSpec);
 
     wrapper.setAvailable(true);
     wrapper.setAvailable(true);
