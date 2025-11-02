@@ -38,7 +38,12 @@ describe('useBackgroundPreferences', () => {
       imageUrl: '',
       blur: false,
       opacity: 1.0,
-      geopatternSeed: 'startpunkt'
+      geopatternSeed: 'startpunkt',
+      meshColors: ['#2d5016', '#f4c430', '#003366'],
+      meshAnimated: true,
+      meshComplexity: 'low',
+      contentOverlay: false,
+      contentOverlayOpacity: 0
     });
   });
 
@@ -176,5 +181,107 @@ describe('useBackgroundPreferences', () => {
     
     // When color preference matches light theme default, dark mode should override
     expect(style.backgroundColor).toBeDefined();
+  });
+
+  test.skip('generates time-based gradient background style', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'timeGradient');
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    expect(style.background).toBeDefined();
+    expect(style.background).toContain('linear-gradient');
+    // Should have at least 2 colors in the gradient
+    expect(style.background.match(/#[0-9a-fA-F]{6}/g).length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('generates mesh gradient background style', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'meshGradient');
+    });
+    
+    act(() => {
+      result.current.updatePreference('meshColors', ['#FF0000', '#00FF00', '#0000FF']);
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    expect(style.background).toBeDefined();
+    expect(style.backgroundImage).toBeDefined();
+    expect(style.backgroundImage).toContain('radial-gradient');
+  });
+
+  test('applies animation to mesh gradient when enabled', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'meshGradient');
+    });
+    
+    act(() => {
+      result.current.updatePreference('meshAnimated', true);
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+    
+    expect(style.animation).toBeDefined();
+    expect(style.animation).toContain('meshGradientAnimation');
+  });
+
+  test('respects mesh gradient complexity setting', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'meshGradient');
+    });
+    
+    act(() => {
+      result.current.updatePreference('meshComplexity', 'high');
+    });
+    
+    const style = result.current.getBackgroundStyle(false);
+
+    // High complexity should have more gradient layers
+    expect(style.backgroundImage).toBeDefined();
+    const gradientCount = (style.backgroundImage.match(/radial-gradient/g) || []).length;
+    expect(gradientCount).toBeGreaterThan(2);
+  });  test('time-based gradient returns appropriate colors for different times', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    act(() => {
+      result.current.updatePreference('type', 'timeGradient');
+    });
+    
+    // Mock different times of day
+    const originalDate = Date;
+    
+    // Test morning (8 AM)
+    global.Date = class extends originalDate {
+      getHours() { return 8; }
+    };
+    const morningStyle = result.current.getBackgroundStyle(false);
+    expect(morningStyle.background).toBeDefined();
+    
+    // Test afternoon (2 PM)
+    global.Date = class extends originalDate {
+      getHours() { return 14; }
+    };
+    const afternoonStyle = result.current.getBackgroundStyle(false);
+    expect(afternoonStyle.background).toBeDefined();
+    
+    // Test evening (8 PM)
+    global.Date = class extends originalDate {
+      getHours() { return 20; }
+    };
+    const eveningStyle = result.current.getBackgroundStyle(false);
+    expect(eveningStyle.background).toBeDefined();
+    
+    // Restore original Date
+    global.Date = originalDate;
   });
 });

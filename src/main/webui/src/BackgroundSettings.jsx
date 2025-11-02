@@ -50,6 +50,8 @@ export function BackgroundSettings() {
                 <option value="theme"><Text id="background.types.theme">Theme (Auto Light/Dark)</Text></option>
                 <option value="solid"><Text id="background.types.solid">Solid Color</Text></option>
                 <option value="gradient"><Text id="background.types.gradient">Gradient</Text></option>
+                <option value="timeGradient"><Text id="background.types.timeGradient">Time-Based Gradient</Text></option>
+                <option value="meshGradient"><Text id="background.types.meshGradient">Mesh Gradient</Text></option>
                 <option value="image"><Text id="background.types.image">Custom Image</Text></option>
                 <option value="pictureOfDay"><Text id="background.types.pictureOfDay">Picture of the Day</Text></option>
                 <option value="geopattern"><Text id="background.types.geopattern">Geopattern</Text></option>
@@ -244,6 +246,110 @@ export function BackgroundSettings() {
               </>
             )}
 
+            {/* Time-Based Gradient Info */}
+            {preferences.type === 'timeGradient' && (
+              <div class="mb-3">
+                <div class="alert alert-info small py-2 px-3" role="alert">
+                  <Text id="background.timeGradientInfo">
+                    Colors automatically change based on time of day: warm tones in morning/evening, bright colors in afternoon, deep colors at night.
+                  </Text>
+                </div>
+              </div>
+            )}
+
+            {/* Mesh Gradient Settings */}
+            {preferences.type === 'meshGradient' && (
+              <>
+                <div class="mb-3">
+                  <label class="form-label small mb-1"><Text id="background.meshColors">Mesh Colors (3-5)</Text></label>
+                  <div class="d-flex gap-2 flex-wrap align-items-center">
+                    {(preferences.meshColors || ['#2d5016', '#f4c430', '#003366']).map((color, index) => (
+                      <div key={index} class="d-flex align-items-center gap-1">
+                        <input 
+                          type="color"
+                          class="form-control form-control-color"
+                          style="width: 3rem; height: 2rem;"
+                          value={color}
+                          onChange={(e) => {
+                            const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                            newColors[index] = e.target.value;
+                            updatePreference('meshColors', newColors);
+                          }}
+                          title={`Color ${index + 1}`}
+                        />
+                        {(preferences.meshColors || []).length > 3 && (
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger p-0"
+                            style="width: 1.5rem; height: 1.5rem; line-height: 1;"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                              newColors.splice(index, 1);
+                              updatePreference('meshColors', newColors);
+                            }}
+                            title="Remove color"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {(preferences.meshColors || []).length < 5 && (
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        style="width: 3rem; height: 2rem;"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                          // Add a random color
+                          const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                          newColors.push(randomColor);
+                          updatePreference('meshColors', newColors);
+                        }}
+                        title="Add color"
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
+                  <small class="form-text text-muted"><Text id="background.meshColorsHelp">Choose 3-5 colors for the mesh effect</Text></small>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label small mb-1"><Text id="background.meshComplexity">Complexity</Text></label>
+                  <select 
+                    class="form-select form-select-sm"
+                    value={preferences.meshComplexity || 'low'}
+                    onChange={(e) => updatePreference('meshComplexity', e.target.value)}
+                  >
+                    <option value="low"><Text id="background.complexity.low">Low (Subtle)</Text></option>
+                    <option value="medium"><Text id="background.complexity.medium">Medium (Balanced)</Text></option>
+                    <option value="high"><Text id="background.complexity.high">High (Intense)</Text></option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      id="meshAnimated"
+                      checked={preferences.meshAnimated !== undefined ? preferences.meshAnimated : true}
+                      onChange={(e) => updatePreference('meshAnimated', e.target.checked)}
+                    />
+                    <label class="form-check-label small" for="meshAnimated">
+                      <Text id="background.meshAnimated">Animate Mesh</Text>
+                    </label>
+                  </div>
+                  <small class="form-text text-muted"><Text id="background.meshAnimatedHelp">Slowly animate the mesh gradient</Text></small>
+                </div>
+              </>
+            )}
+
             {/* Blur Option for Images */}
             {(preferences.type === 'image' || preferences.type === 'pictureOfDay') && (
               <div class="mb-3">
@@ -263,7 +369,7 @@ export function BackgroundSettings() {
             )}
 
             {/* Opacity - hide for theme type */}
-            {preferences.type !== 'theme' && (
+            {preferences.type !== 'theme' && preferences.type !== 'timeGradient' && (
               <div class="mb-3">
                 <label for="bgOpacity" class="form-label small mb-1">
                   <Text id="background.opacity">Opacity</Text>: {Math.round(preferences.opacity * 100)}%
@@ -278,6 +384,40 @@ export function BackgroundSettings() {
                   value={preferences.opacity}
                   onChange={(e) => updatePreference('opacity', parseFloat(e.target.value))}
                 />
+              </div>
+            )}
+
+            {/* Content Overlay Opacity - hide for theme background type */}
+            {preferences.type !== 'theme' && (
+              <div class="mb-3">
+                <label for="contentOverlayOpacity" class="form-label small mb-1">
+                  <Text id="background.overlayOpacity">Overlay Opacity</Text>: 
+                  {preferences.contentOverlayOpacity === 0 ? ' Transparent' : 
+                   preferences.contentOverlayOpacity < 0 ? ` White ${Math.round(Math.abs(preferences.contentOverlayOpacity) * 100)}%` :
+                   ` Black ${Math.round(preferences.contentOverlayOpacity * 100)}%`}
+                </label>
+                <input 
+                  type="range"
+                  class="form-range"
+                  id="contentOverlayOpacity"
+                  min="-1"
+                  max="1"
+                  step="0.05"
+                  value={preferences.contentOverlayOpacity || 0}
+                  onChange={(e) => {
+                    let value = parseFloat(e.target.value);
+                    // Snap to center (0) when within 0.1 of center
+                    if (Math.abs(value) < 0.1) {
+                      value = 0;
+                    }
+                    updatePreference('contentOverlayOpacity', value);
+                  }}
+                />
+                <div class="d-flex justify-content-between">
+                  <small class="text-muted">White</small>
+                  <small class="text-muted">Transparent</small>
+                  <small class="text-muted">Black</small>
+                </div>
               </div>
             )}
 

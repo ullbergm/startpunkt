@@ -24,6 +24,8 @@
             "theme" : "Theme (Auto Light/Dark)",
             "solid" : "Solid Color",
             "gradient" : "Gradient",
+            "timeGradient" : "Time of Day",
+            "meshGradient" : "Mesh Gradient",
             "image" : "Custom Image",
             "pictureOfDay" : "Picture of the Day",
             "geopattern" : "Geopattern"
@@ -50,6 +52,20 @@
         "patternColor" : "Pattern Color",
         "blur" : "Blur Background",
         "opacity" : "Opacity",
+        "timeGradientInfo" : "A beautiful gradient that smoothly transitions throughout the day: deep blues at night, warm pinks at sunrise, fresh pastels in morning, bright blues in afternoon, golden sunset, and back to night.",
+        "meshColors" : "Mesh Colors",
+        "meshColorsHelp" : "Choose 3-5 colors for the mesh effect",
+        "meshComplexity" : "Complexity",
+        "complexity" : {
+            "low" : "Low (Subtle)",
+            "medium" : "Medium (Balanced)",
+            "high" : "High (Intense)"
+        },
+        "meshAnimated" : "Animate Mesh",
+        "meshAnimatedHelp" : "Slowly animate the mesh gradient",
+        "contentOverlay" : "Content Background Overlay",
+        "contentOverlayHelp" : "Improves readability on busy backgrounds",
+        "overlayOpacity" : "Overlay Opacity",
         "resetToDefaults" : "Reset to Defaults"
     },
     "layout" : {

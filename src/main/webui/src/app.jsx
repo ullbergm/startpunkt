@@ -23,6 +23,7 @@ import { BookmarkGroupList } from './BookmarkGroupList';
 import { ForkMe } from './ForkMe';
 import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
+import { ContentOverlay } from './ContentOverlay';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
 
 /**
@@ -62,15 +63,33 @@ export function ThemeApplier() {
   // Read the background type to determine if we should override the theme
   const { preferences: backgroundPrefs } = useBackgroundPreferences();
 
+  // Listen for overlay theme hints
+  const [overlayThemeHint, setOverlayThemeHint] = useState(null);
+
+  useEffect(() => {
+    const handleOverlayThemeHint = (e) => {
+      setOverlayThemeHint(e.detail.theme);
+    };
+    
+    window.addEventListener('overlay-theme-hint', handleOverlayThemeHint);
+    return () => window.removeEventListener('overlay-theme-hint', handleOverlayThemeHint);
+  }, []);
+
   // Read the system prefers-color-scheme and set the theme
   const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, undefined);
 
   // Apply the theme colors as CSS variables
   useEffect(() => {
-    // For non-theme backgrounds, always use light theme for UI visibility
-    // This doesn't change the user's theme preference, just the applied theme
-    const shouldUseDark = backgroundPrefs.type === 'theme' && 
-                          (theme === 'dark' || (theme === 'auto' && systemPrefersDark));
+    // Overlay theme hint takes priority when content overlay is active
+    let shouldUseDark;
+    if (overlayThemeHint) {
+      shouldUseDark = overlayThemeHint === 'dark';
+    } else {
+      // For non-theme backgrounds, always use light theme for UI visibility
+      // This doesn't change the user's theme preference, just the applied theme
+      shouldUseDark = backgroundPrefs.type === 'theme' && 
+                            (theme === 'dark' || (theme === 'auto' && systemPrefersDark));
+    }
     
     if (shouldUseDark) {
       document.body.style.setProperty('--bs-body-bg', themes.dark.bodyBgColor);
@@ -93,7 +112,7 @@ export function ThemeApplier() {
       document.body.style.setProperty('--bs-secondary-bg', '#e9ecef');
       document.body.style.setProperty('--bs-secondary-color', '#6c757d');
     }
-  }, [theme, themes, systemPrefersDark, backgroundPrefs.type]);
+  }, [theme, themes, systemPrefersDark, backgroundPrefs.type, overlayThemeHint]);
 
   // This component doesn't render anything - it just applies theme logic
   return null;
@@ -312,6 +331,7 @@ export function App() {
 
       <ThemeApplier />
       <Background />
+      <ContentOverlay />
       <AccessibilitySettings />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />

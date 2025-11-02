@@ -24,6 +24,8 @@
             "theme" : "Tema (Auto ljus/mörk)",
             "solid" : "Solid färg",
             "gradient" : "Gradient",
+            "timeGradient" : "Tid på dagen",
+            "meshGradient" : "Mesh-gradient",
             "image" : "Anpassad bild",
             "pictureOfDay" : "Dagens bild",
             "geopattern" : "Geomönster"
@@ -50,6 +52,20 @@
         "patternColor" : "Mönsterfärg",
         "blur" : "Sudda bakgrund",
         "opacity" : "Opacitet",
+        "timeGradientInfo" : "En vacker gradient som smidigt övergår under dagen: djupa blå på natten, varma rosa vid soluppgången, friska pastellfärger på morgonen, ljusa blå på eftermiddagen, gyllene solnedgång och tillbaka till natten.",
+        "meshColors" : "Mesh-färger",
+        "meshColorsHelp" : "Välj 3-5 färger för mesh-effekten",
+        "meshComplexity" : "Komplexitet",
+        "complexity" : {
+            "low" : "Låg (Subtil)",
+            "medium" : "Medel (Balanserad)",
+            "high" : "Hög (Intensiv)"
+        },
+        "meshAnimated" : "Animera mesh",
+        "meshAnimatedHelp" : "Animera mesh-gradienten långsamt",
+        "contentOverlay" : "Innehållsbakgrund överlägg",
+        "contentOverlayHelp" : "Förbättrar läsbarheten på upptagna bakgrunder",
+        "overlayOpacity" : "Överläggets opacitet",
         "resetToDefaults" : "Återställ till standard"
     },
     "layout" : {
