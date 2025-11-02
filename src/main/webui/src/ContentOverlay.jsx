@@ -34,7 +34,7 @@ export function ContentOverlay({ children }) {
       return;
     }
 
-    const opacity = preferences.contentOverlayOpacity || 0;
+    const opacity = preferences.contentOverlayOpacity !== undefined ? preferences.contentOverlayOpacity : -0.6;
     
     // Middle position (0) = disabled, no overlay at all
     if (opacity === 0) {

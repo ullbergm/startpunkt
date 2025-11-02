@@ -111,7 +111,7 @@ describe('ContentOverlay', () => {
     });
   });
 
-  it('uses default opacity if not specified (disabled)', async () => {
+  it('uses default opacity if not specified (60% white overlay)', async () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient'
@@ -121,8 +121,8 @@ describe('ContentOverlay', () => {
     render(<ContentOverlay />);
 
     await waitFor(() => {
-      // Default opacity is 0, which means disabled (no overlay)
-      expect(mainElement.style.backgroundColor).toBe('');
+      // Default opacity is -0.6, which means 60% white overlay
+      expect(mainElement.style.backgroundColor).toBe('rgba(255, 255, 255, 0.6)');
     });
   });
 
