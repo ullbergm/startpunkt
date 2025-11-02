@@ -2,6 +2,8 @@ package us.ullberg.startpunkt.graphql;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheManager;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
@@ -11,10 +13,17 @@ import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.graphql.input.CreateApplicationInput;
+import us.ullberg.startpunkt.graphql.input.UpdateApplicationInput;
 import us.ullberg.startpunkt.graphql.types.ApplicationGroupType;
 import us.ullberg.startpunkt.graphql.types.ApplicationType;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
@@ -24,6 +33,7 @@ import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
+import us.ullberg.startpunkt.service.ApplicationService;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
 
 /**
@@ -36,6 +46,9 @@ public class ApplicationGraphQLResource {
 
   final KubernetesClient kubernetesClient;
   final AvailabilityCheckService availabilityCheckService;
+  final ApplicationService applicationService;
+  final EventBroadcaster eventBroadcaster;
+  final CacheManager cacheManager;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -78,11 +91,21 @@ public class ApplicationGraphQLResource {
    *
    * @param kubernetesClient the Kubernetes client
    * @param availabilityCheckService the availability check service
+   * @param applicationService the application service for CRUD operations
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
    */
   public ApplicationGraphQLResource(
-      KubernetesClient kubernetesClient, AvailabilityCheckService availabilityCheckService) {
+      KubernetesClient kubernetesClient,
+      AvailabilityCheckService availabilityCheckService,
+      ApplicationService applicationService,
+      EventBroadcaster eventBroadcaster,
+      CacheManager cacheManager) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
+    this.applicationService = applicationService;
+    this.eventBroadcaster = eventBroadcaster;
+    this.cacheManager = cacheManager;
   }
 
   /**
@@ -271,5 +294,141 @@ public class ApplicationGraphQLResource {
     }
 
     return filteredApps;
+  }
+
+  /**
+   * Create a new application.
+   *
+   * @param input the application creation input
+   * @return the created application
+   */
+  @Mutation("createApplication")
+  @Description("Create a new application")
+  @Timed(value = "graphql.mutation.createApplication")
+  public ApplicationType createApplication(@NonNull @Name("input") CreateApplicationInput input) {
+    Log.debugf("GraphQL mutation: createApplication in namespace=%s, name=%s", input.namespace, input.resourceName);
+
+    // Create ApplicationSpec from input
+    ApplicationSpec spec = new ApplicationSpec();
+    spec.name = input.name;
+    spec.setGroup(input.group);
+    spec.setIcon(input.icon);
+    spec.setIconColor(input.iconColor);
+    spec.setUrl(input.url);
+    spec.setInfo(input.info);
+    spec.setTargetBlank(input.targetBlank);
+    spec.setLocation(input.location != null ? input.location : 1000);
+    spec.setEnabled(input.enabled != null ? input.enabled : true);
+    spec.setRootPath(input.rootPath);
+    spec.setTags(input.tags);
+
+    // Create application via service
+    Application created = applicationService.createApplication(input.namespace, input.resourceName, spec);
+
+    // Invalidate cache
+    invalidateApplicationCaches();
+
+    // Broadcast event
+    eventBroadcaster.broadcastApplicationAdded(created);
+
+    // Convert to GraphQL type
+    ApplicationResponse response = new ApplicationResponse(spec);
+    response.setNamespace(input.namespace);
+    response.setResourceName(input.resourceName);
+    return ApplicationType.fromResponse(response);
+  }
+
+  /**
+   * Update an existing application.
+   *
+   * @param input the application update input
+   * @return the updated application
+   */
+  @Mutation("updateApplication")
+  @Description("Update an existing application")
+  @Timed(value = "graphql.mutation.updateApplication")
+  public ApplicationType updateApplication(@NonNull @Name("input") UpdateApplicationInput input) {
+    Log.debugf("GraphQL mutation: updateApplication in namespace=%s, name=%s", input.namespace, input.resourceName);
+
+    // Create ApplicationSpec from input
+    ApplicationSpec spec = new ApplicationSpec();
+    spec.name = input.name;
+    spec.setGroup(input.group);
+    spec.setIcon(input.icon);
+    spec.setIconColor(input.iconColor);
+    spec.setUrl(input.url);
+    spec.setInfo(input.info);
+    spec.setTargetBlank(input.targetBlank);
+    spec.setLocation(input.location != null ? input.location : 1000);
+    spec.setEnabled(input.enabled != null ? input.enabled : true);
+    spec.setRootPath(input.rootPath);
+    spec.setTags(input.tags);
+
+    // Update application via service
+    Application updated = applicationService.updateApplication(input.namespace, input.resourceName, spec);
+
+    // Invalidate cache
+    invalidateApplicationCaches();
+
+    // Broadcast event
+    eventBroadcaster.broadcastApplicationUpdated(updated);
+
+    // Convert to GraphQL type
+    ApplicationResponse response = new ApplicationResponse(spec);
+    response.setNamespace(input.namespace);
+    response.setResourceName(input.resourceName);
+    return ApplicationType.fromResponse(response);
+  }
+
+  /**
+   * Delete an application.
+   *
+   * @param namespace the namespace of the application
+   * @param name the name of the application resource
+   * @return true if deleted successfully
+   */
+  @Mutation("deleteApplication")
+  @Description("Delete an application")
+  @Timed(value = "graphql.mutation.deleteApplication")
+  public Boolean deleteApplication(
+      @NonNull @Name("namespace") String namespace,
+      @NonNull @Name("name") String name) {
+    Log.debugf("GraphQL mutation: deleteApplication in namespace=%s, name=%s", namespace, name);
+
+    // Delete application via service
+    boolean deleted = applicationService.deleteApplication(namespace, name);
+
+    if (deleted) {
+      // Invalidate cache
+      invalidateApplicationCaches();
+
+      // Broadcast event
+      var deletedData = new java.util.HashMap<String, String>();
+      deletedData.put("namespace", namespace);
+      deletedData.put("name", name);
+      eventBroadcaster.broadcastApplicationRemoved(deletedData);
+    }
+
+    return deleted;
+  }
+
+  /**
+   * Invalidates the application caches.
+   */
+  private void invalidateApplicationCaches() {
+    Cache cache = cacheManager.getCache("getApps").orElse(null);
+    if (cache != null) {
+      cache.invalidateAll().await().indefinitely();
+    }
+    
+    cache = cacheManager.getCache("getAppsFiltered").orElse(null);
+    if (cache != null) {
+      cache.invalidateAll().await().indefinitely();
+    }
+    
+    cache = cacheManager.getCache("getApp").orElse(null);
+    if (cache != null) {
+      cache.invalidateAll().await().indefinitely();
+    }
   }
 }
