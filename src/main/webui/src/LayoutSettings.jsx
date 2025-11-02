@@ -35,7 +35,7 @@ export function LayoutSettings({ layoutPrefs }) {
 
       <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-layout-toggle" style="margin-right: 4.5rem !important;">
         <button 
-          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
+          class="btn btn-settings-control py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-layout" 
           type="button"
           aria-expanded="false"

@@ -68,4 +68,10 @@ describe('AccessibilitySettings component', () => {
     const button = screen.getByRole('button', { name: /accessibility settings/i });
     expect(button).toHaveAttribute('aria-label', 'Accessibility settings');
   });
+
+  test('button has improved visibility styling', () => {
+    render(<AccessibilitySettings />);
+    const button = screen.getByRole('button', { name: /accessibility settings/i });
+    expect(button).toHaveClass('btn-settings-control');
+  });
 });

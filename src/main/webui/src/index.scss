@@ -205,6 +205,38 @@ body.high-contrast *:focus-visible {
   --bs-btn-active-border-color: #5a23c8;
 }
 
+/* Settings control buttons with improved visibility */
+.btn-settings-control {
+  --bs-btn-font-weight: 600;
+  --bs-btn-color: #212529;
+  --bs-btn-bg: rgba(255, 255, 255, 0.95);
+  --bs-btn-border-color: rgba(0, 0, 0, 0.1);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: rgba(255, 255, 255, 1);
+  --bs-btn-hover-border-color: rgba(0, 0, 0, 0.2);
+  --bs-btn-focus-shadow-rgb: 0, 0, 0;
+  --bs-btn-active-color: #000;
+  --bs-btn-active-bg: rgba(240, 240, 240, 1);
+  --bs-btn-active-border-color: rgba(0, 0, 0, 0.25);
+  
+  /* Add shadow for better depth and visibility */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-settings-control:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-settings-control:focus,
+.btn-settings-control:focus-visible {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Ensure proper contrast for the icon inside */
+.btn-settings-control svg {
+  color: #212529 !important;
+}
+
 .bd-mode-toggle {
   z-index: 1500;
 }

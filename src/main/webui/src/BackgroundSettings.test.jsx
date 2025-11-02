@@ -194,4 +194,15 @@ describe('BackgroundSettings', () => {
     fireEvent.click(screen.getByTitle('Dark mode'));
     expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');
   });
+
+  test('button has improved visibility styling', () => {
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Background settings');
+    expect(button).toHaveClass('btn-settings-control');
+  });
 });

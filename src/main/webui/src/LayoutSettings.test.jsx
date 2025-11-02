@@ -245,4 +245,15 @@ describe('LayoutSettings', () => {
     
     expect(mockLayoutPrefs.resetToDefaults).toHaveBeenCalled();
   });
+
+  test('button has improved visibility styling', () => {
+    render(
+      <IntlProvider definition={{}}>
+        <LayoutSettings layoutPrefs={mockLayoutPrefs} />
+      </IntlProvider>
+    );
+    
+    const button = screen.getByLabelText('Layout settings');
+    expect(button).toHaveClass('btn-settings-control');
+  });
 });
