@@ -42,6 +42,7 @@ Startpunkt is a clean start page designed to display links to all self-hosted re
 - Generated artefacts under `target/` and `src/main/webui/node_modules/` should never be committed.
 - Renovate manages dependency bumps; when adding libraries, pin versions explicitly in `pom.xml` or the web UI `package.json` and run the full verify task.
 - Tests are split between fast unit tests (`*Test.java`, `.test.jsx`) and Quarkus native/IT (`*IT.java`); keep new coverage consistent with this naming so Surefire/Failsafe execute them correctly.
+- When refining issues, refer to the instructions/issue-refinement.instructions.md file for best practices.
 
 ## Code Style & Formatting
 
