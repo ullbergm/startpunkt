@@ -209,27 +209,27 @@ body.high-contrast *:focus-visible {
 .btn-settings-control {
   --bs-btn-font-weight: 600;
   --bs-btn-color: #212529;
-  --bs-btn-bg: rgba(255, 255, 255, 0.95);
-  --bs-btn-border-color: rgba(0, 0, 0, 0.1);
+  --bs-btn-bg: rgba(200, 200, 200, 0.9);
+  --bs-btn-border-color: rgba(0, 0, 0, 0.15);
   --bs-btn-hover-color: #000;
-  --bs-btn-hover-bg: rgba(255, 255, 255, 1);
+  --bs-btn-hover-bg: rgba(220, 220, 220, 0.95);
   --bs-btn-hover-border-color: rgba(0, 0, 0, 0.2);
   --bs-btn-focus-shadow-rgb: 0, 0, 0;
   --bs-btn-active-color: #000;
-  --bs-btn-active-bg: rgba(240, 240, 240, 1);
+  --bs-btn-active-bg: rgba(180, 180, 180, 1);
   --bs-btn-active-border-color: rgba(0, 0, 0, 0.25);
   
   /* Add shadow for better depth and visibility */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-settings-control:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .btn-settings-control:focus,
 .btn-settings-control:focus-visible {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Ensure proper contrast for the icon inside */
