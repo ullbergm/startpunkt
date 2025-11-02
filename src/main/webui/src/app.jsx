@@ -494,8 +494,8 @@ export function App() {
           class="btn btn-primary rounded-circle"
           style={{
             position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
+            bottom: '1.5rem',
+            left: '1.5rem',
             width: '56px',
             height: '56px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
@@ -514,8 +514,8 @@ export function App() {
           class="btn btn-primary rounded-circle"
           style={{
             position: 'fixed',
-            bottom: '2rem',
-            right: '2rem',
+            bottom: '1.5rem',
+            left: '1.5rem',
             width: '56px',
             height: '56px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
