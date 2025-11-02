@@ -106,9 +106,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Save native image to artifact
-        uses: ishworkh/container-image-artifact-upload@v2.0.0
+        uses: ishworkh/container-image-artifact-upload@v2.0.2
         with:
           image: "${{ steps.meta.outputs.tags }}"
+          retention_days: 1
 
   push-images:
     needs:
@@ -131,7 +132,7 @@ jobs:
             latest=auto
 
       - name: Retrieve saved image from artifact
-        uses: ishworkh/container-image-artifact-download@v2.1.0
+        uses: ishworkh/container-image-artifact-download@v2.1.1
         with:
           image: "${{ steps.meta.outputs.tags }}"
 
