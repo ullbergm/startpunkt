@@ -16,6 +16,243 @@ body {
   height: auto;
   letter-spacing: -0.012em;
   width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling on mobile */
+}
+
+/* Responsive container for mobile devices */
+.cover-container {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Mobile portrait - single column for narrow screens */
+@media (max-width: 576px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+
+  .cover-container {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Make navigation more mobile-friendly */
+  .nav-masthead {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-masthead .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+  }
+
+  .nav-masthead .nav-link + .nav-link {
+    margin-left: 0.25rem;
+  }
+
+  /* Header adjustments for mobile */
+  header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  header img {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Make dropdown buttons more touch-friendly */
+  .bd-layout-toggle .btn,
+  .bd-background-toggle .btn,
+  .bd-mode-toggle .btn,
+  .bd-accessibility-toggle .btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem;
+  }
+
+  /* Position and stack fixed buttons for mobile */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-mode-toggle,
+  .bd-accessibility-toggle {
+    margin-bottom: 0.5rem !important;
+    margin-right: 0.5rem !important;
+  }
+
+  /* Stack buttons vertically on mobile from bottom using CSS variables */
+  :root {
+    --mobile-button-size: 44px;
+    --mobile-button-gap: 0.5rem;
+  }
+
+  .bd-accessibility-toggle {
+    bottom: var(--mobile-button-gap) !important;
+    right: 0 !important;
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
+  }
+
+  .bd-mode-toggle {
+    bottom: calc(var(--mobile-button-size) + var(--mobile-button-gap) * 2) !important;
+    right: 0 !important;
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
+  }
+
+  .bd-background-toggle {
+    bottom: calc(var(--mobile-button-size) * 2 + var(--mobile-button-gap) * 3) !important;
+    right: 0 !important;
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
+  }
+
+  .bd-layout-toggle {
+    bottom: calc(var(--mobile-button-size) * 3 + var(--mobile-button-gap) * 4) !important;
+    right: 0 !important;
+    margin-right: var(--mobile-button-gap) !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Adjust dropdown menu width and position on mobile */
+  .dropdown-menu-end {
+    max-width: 90vw !important;
+    left: auto !important;
+    right: var(--mobile-button-gap) !important;
+  }
+
+  /* Single column layout for portrait mobile */
+  .application-grid,
+  .bookmark-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Hide settings buttons on mobile */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-accessibility-toggle {
+    display: none !important;
+  }
+}
+
+/* Mobile landscape - 2 columns for landscape phones */
+@media (min-width: 577px) and (max-width: 1320px) {
+  html,
+  body {
+    font-size: 13px;
+  }
+
+  .cover-container {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Make navigation more mobile-friendly */
+  .nav-masthead {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-masthead .nav-link {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.25rem;
+  }
+
+  /* Header adjustments */
+  header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  header img {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* 2 columns for landscape mobile */
+  .application-grid,
+  .bookmark-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Hide settings buttons on mobile landscape */
+  .bd-layout-toggle,
+  .bd-background-toggle,
+  .bd-accessibility-toggle {
+    display: none !important;
+  }
+
+  /* Adjust dropdown menu width and position */
+  .dropdown-menu-end {
+    max-width: 90vw !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  html,
+  body {
+    font-size: 13.5px;
+  }
+
+  .cover-container {
+    max-width: 95%;
+  }
+}
+
+/* Touch-friendly interactions for all mobile devices */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase tap target sizes */
+  a, button, .nav-link, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Make clickable cards easier to tap */
+  .stretched-link {
+    z-index: 1;
+  }
+
+  /* Ensure adequate spacing for touch targets */
+  .form-check-input {
+    width: 1.5em;
+    height: 1.5em;
+  }
+}
+
+/* Settings buttons with white background */
+.bd-layout-toggle .btn,
+.bd-background-toggle .btn,
+.bd-mode-toggle .btn,
+.bd-accessibility-toggle .btn {
+  background-color: white !important;
+  color: #712cf9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.bd-layout-toggle .btn:hover,
+.bd-background-toggle .btn:hover,
+.bd-mode-toggle .btn:hover,
+.bd-accessibility-toggle .btn:hover {
+  background-color: #f8f9fa !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.bd-layout-toggle .btn:focus,
+.bd-background-toggle .btn:focus,
+.bd-mode-toggle .btn:focus,
+.bd-accessibility-toggle .btn:focus {
+  background-color: white !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(113, 44, 249, 0.25) !important;
 }
 
 .logo {

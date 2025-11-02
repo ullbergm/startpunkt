@@ -376,7 +376,8 @@ const overlayStyle = {
     left: '50%',
     transform: 'translateX(-50%)',
     background: 'white',
-    width: '500px',
+    width: '90vw',
+    maxWidth: '500px',
     padding: '1rem',
     boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
     zIndex: 1000,
@@ -385,10 +386,11 @@ const overlayStyle = {
 
 const inputStyle = {
     width: '100%',
-    padding: '0.5rem',
+    padding: '0.75rem',
     fontSize: '1rem',
     border: '1px solid #ccc',
     borderRadius: '4px',
+    minHeight: '44px', // Touch-friendly height
 };
 
 const resultsStyle = {
@@ -400,7 +402,10 @@ const resultsStyle = {
 };
 
 const itemStyle = {
-    padding: '0.5rem',
+    padding: '0.75rem',
     cursor: 'pointer',
     borderBottom: '1px solid #eee',
+    minHeight: '44px', // Touch-friendly height
+    display: 'flex',
+    alignItems: 'center',
 };

@@ -161,8 +161,8 @@ export function useLayoutPreferences() {
   };
 
   // Get grid template columns based on column count
+  // Mobile responsiveness is handled via CSS media queries in components
   const getGridTemplateColumns = () => {
-    // Fixed column count
     return `repeat(${preferences.columnCount}, 1fr)`;
   };
 

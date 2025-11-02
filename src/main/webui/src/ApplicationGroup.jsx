@@ -5,12 +5,13 @@ export function ApplicationGroup(props) {
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
-  const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(auto-fill, minmax(280px, 1fr))';
+  const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(5, 1fr)';
   
   // Determine padding class based on compact mode
   const paddingClass = layoutPrefs?.preferences.compactMode ? 'py-3' : 'py-5';
   
-  // Use CSS Grid with dynamic columns instead of Bootstrap's row-cols
+  // Use CSS Grid with responsive columns
+  // The gridTemplateColumns will be overridden by CSS media queries for mobile
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: gridTemplate,
@@ -55,7 +56,7 @@ export function ApplicationGroup(props) {
 
       {!isCollapsed && (
         <div 
-          class={paddingClass} 
+          class={`${paddingClass} application-grid`}
           style={gridStyle}
           id={`group-${props.group.replace(/\s+/g, '-')}`}
           role="list"
