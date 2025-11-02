@@ -91,12 +91,6 @@
     "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
     "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
     "empty_template": "- no changes",
-    "transformers": [
-        {
-            "pattern": "[\\-\\*] (\\[(...|TEST|CI|SKIP)\\])( )?(.+?)\n(.+?[\\-\\*] )(.+)",
-            "target": "- $4\n  - $6"
-        }
-    ],
     "trim_values": false,
     "max_tags_to_fetch": 200,
     "max_pull_requests": 200,
