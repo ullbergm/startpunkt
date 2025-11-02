@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/preact';
 import { App } from './app';
 
 // ---- MOCKS ----
@@ -76,8 +76,14 @@ describe('App', () => {
     render(<App />);
     const allStartpunkt = await screen.findAllByText(/startpunkt/i);
     expect(allStartpunkt.length).toBeGreaterThan(1);
-    expect(screen.getByText(/applications/i)).toBeInTheDocument();
-    expect(screen.getByText(/bookmarks/i)).toBeInTheDocument();
+    // Wait for data to load first
+    await waitFor(() => {
+      expect(screen.getByTestId('app-groups')).toBeInTheDocument();
+    });
+    // Find nav links specifically
+    const nav = screen.getByRole('navigation', { name: /main navigation/i });
+    expect(nav).toHaveTextContent(/applications/i);
+    expect(nav).toHaveTextContent(/bookmarks/i);
     expect(screen.getByText(/Magnus Ullberg/i)).toBeInTheDocument();
   });
 
@@ -92,11 +98,15 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('app-groups')).toHaveTextContent('2');
     });
-    fireEvent.click(screen.getByText(/bookmarks/i));
+    // Click on the navigation link
+    const nav = screen.getByRole('navigation', { name: /main navigation/i });
+    const bookmarksLink = within(nav).getAllByText(/bookmarks/i)[0];
+    fireEvent.click(bookmarksLink);
     await waitFor(() => {
       expect(screen.getByTestId('bookmark-groups')).toHaveTextContent('1');
     });
-    fireEvent.click(screen.getByText(/applications/i));
+    const applicationsLink = within(nav).getAllByText(/applications/i)[0];
+    fireEvent.click(applicationsLink);
     await waitFor(() => {
       expect(screen.getByTestId('app-groups')).toHaveTextContent('2');
     });

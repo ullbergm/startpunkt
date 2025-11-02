@@ -2,7 +2,9 @@ package us.ullberg.startpunkt.rest;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheManager;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
@@ -30,6 +32,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationGroupList;
 import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
@@ -97,24 +100,54 @@ public class ApplicationResource {
   // Inject the application service for CRUD operations
   private final ApplicationService applicationService;
 
+  // Inject the event broadcaster for WebSocket notifications
+  private final EventBroadcaster eventBroadcaster;
+
+  // Inject the cache manager for manual cache invalidation
+  private final CacheManager cacheManager;
+
   /**
    * Creates an ApplicationResource with the injected Kubernetes client and services.
    *
    * @param kubernetesClient the managed Kubernetes client
    * @param availabilityCheckService the availability check service
    * @param applicationService the application service for CRUD operations
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
    */
   public ApplicationResource(
       KubernetesClient kubernetesClient,
       AvailabilityCheckService availabilityCheckService,
-      ApplicationService applicationService) {
+      ApplicationService applicationService,
+      EventBroadcaster eventBroadcaster,
+      CacheManager cacheManager) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
     this.applicationService = applicationService;
+    this.eventBroadcaster = eventBroadcaster;
+    this.cacheManager = cacheManager;
+  }
+
+  /** Helper method to manually invalidate all application caches synchronously. */
+  private void invalidateApplicationCaches() {
+    Cache appsCache = cacheManager.getCache("getApps").orElse(null);
+    if (appsCache != null) {
+      appsCache.invalidateAll().await().indefinitely();
+    }
+
+    Cache appsFilteredCache = cacheManager.getCache("getAppsFiltered").orElse(null);
+    if (appsFilteredCache != null) {
+      appsFilteredCache.invalidateAll().await().indefinitely();
+    }
+
+    Cache appCache = cacheManager.getCache("getApp").orElse(null);
+    if (appCache != null) {
+      appCache.invalidateAll().await().indefinitely();
+    }
   }
 
   // Method to retrieve the list of applications
-  private ArrayList<ApplicationSpec> retrieveApps() {
+  private ArrayList<ApplicationSpecWithAvailability> retrieveApps() {
     Log.debug("Retrieving applications from Kubernetes");
     // Check if the client is available
     if (kubernetesClient == null) {
@@ -156,8 +189,8 @@ public class ApplicationResource {
           new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
     }
 
-    // Create a list of applications
-    var apps = new ArrayList<ApplicationSpec>();
+    // Create a list of applications with metadata
+    var apps = new ArrayList<ApplicationSpecWithAvailability>();
 
     try {
       // Retrieve the applications from the application wrappers using the injected client
@@ -166,7 +199,7 @@ public class ApplicationResource {
             "Retrieving applications using wrapper: %s",
             applicationWrapper.getClass().getSimpleName());
         var wrapperApps =
-            applicationWrapper.getApplicationSpecs(
+            applicationWrapper.getApplicationSpecsWithMetadata(
                 kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
         Log.debugf(
             "Retrieved %d applications from %s",
@@ -184,7 +217,7 @@ public class ApplicationResource {
     Log.debugf("Total applications retrieved: %d", apps.size());
 
     // Register URLs for availability checking
-    for (ApplicationSpec app : apps) {
+    for (ApplicationSpecWithAvailability app : apps) {
       if (app.getUrl() != null && !app.getUrl().isEmpty()) {
         availabilityCheckService.registerUrl(app.getUrl());
       }
@@ -196,8 +229,8 @@ public class ApplicationResource {
 
   // Method to retrieve applications and wrap them with availability status
   private ArrayList<ApplicationSpecWithAvailability> retrieveAppsWithAvailability() {
-    ArrayList<ApplicationSpec> apps = retrieveApps();
-    return new ArrayList<>(availabilityCheckService.wrapWithAvailability(apps));
+    ArrayList<ApplicationSpecWithAvailability> apps = retrieveApps();
+    return new ArrayList<>(availabilityCheckService.enrichWithAvailability(apps));
   }
 
   /**
@@ -453,6 +486,13 @@ public class ApplicationResource {
       }
 
       Application created = applicationService.createApplication(namespace, name, spec);
+
+      // Manually invalidate caches synchronously before broadcasting
+      invalidateApplicationCaches();
+
+      // Broadcast event to connected clients after cache is invalidated
+      eventBroadcaster.broadcastApplicationAdded(created);
+
       return Response.status(201).entity(created).build();
     } catch (Exception e) {
       Log.error("Error creating application", e);
@@ -483,9 +523,6 @@ public class ApplicationResource {
   @APIResponse(responseCode = "404", description = "Application not found")
   @APIResponse(responseCode = "500", description = "Server error")
   @Timed(value = "startpunkt.api.updateapp", description = "Update an application")
-  @CacheInvalidate(cacheName = "getApps")
-  @CacheInvalidate(cacheName = "getAppsFiltered")
-  @CacheInvalidate(cacheName = "getApp")
   public Response updateApplication(
       @QueryParam("namespace") String namespace,
       @QueryParam("name") String name,
@@ -502,6 +539,13 @@ public class ApplicationResource {
       }
 
       Application updated = applicationService.updateApplication(namespace, name, spec);
+
+      // Invalidate all application caches synchronously before broadcasting
+      invalidateApplicationCaches();
+
+      // Broadcast event to connected clients
+      eventBroadcaster.broadcastApplicationUpdated(updated);
+
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
       return Response.status(404, e.getMessage()).build();
@@ -525,9 +569,6 @@ public class ApplicationResource {
   @APIResponse(responseCode = "404", description = "Application not found")
   @APIResponse(responseCode = "500", description = "Server error")
   @Timed(value = "startpunkt.api.deleteapp", description = "Delete an application")
-  @CacheInvalidate(cacheName = "getApps")
-  @CacheInvalidate(cacheName = "getAppsFiltered")
-  @CacheInvalidate(cacheName = "getApp")
   public Response deleteApplication(
       @QueryParam("namespace") String namespace, @QueryParam("name") String name) {
     try {
@@ -540,6 +581,15 @@ public class ApplicationResource {
 
       boolean deleted = applicationService.deleteApplication(namespace, name);
       if (deleted) {
+        // Invalidate all application caches synchronously before broadcasting
+        invalidateApplicationCaches();
+
+        // Broadcast event to connected clients
+        var deletedData = new java.util.HashMap<String, String>();
+        deletedData.put("namespace", namespace);
+        deletedData.put("name", name);
+        eventBroadcaster.broadcastApplicationRemoved(deletedData);
+
         return Response.status(204).build();
       } else {
         return Response.status(404, "Application not found").build();

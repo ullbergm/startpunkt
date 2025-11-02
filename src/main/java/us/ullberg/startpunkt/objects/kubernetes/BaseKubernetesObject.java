@@ -134,24 +134,122 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   }
 
   /**
+   * Retrieves application specifications with metadata by mapping Kubernetes generic resources.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @return list of ApplicationSpecWithAvailability instances with metadata populated
+   */
+  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
+      getApplicationSpecsWithMetadata(
+          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()
+        .map(this::mapToApplicationSpecWithMetadata)
+        .toList();
+  }
+
+  /**
+   * Maps a GenericKubernetesResource to an ApplicationSpecWithAvailability instance with metadata.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the ApplicationSpecWithAvailability with metadata populated
+   */
+  protected us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability
+      mapToApplicationSpecWithMetadata(GenericKubernetesResource item) {
+    ApplicationSpec spec = mapToApplicationSpec(item);
+    us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability withMetadata =
+        new us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability(spec);
+
+    // Populate metadata fields
+    withMetadata.setNamespace(getResourceNamespace(item));
+    withMetadata.setResourceName(getResourceMetadataName(item));
+    withMetadata.setHasOwnerReferences(hasOwnerReferences(item));
+
+    return withMetadata;
+  }
+
+  /**
    * Maps a GenericKubernetesResource to an ApplicationSpec instance.
    *
    * @param item the Kubernetes generic resource
    * @return the ApplicationSpec mapped from the resource
    */
   protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item) {
-    return new ApplicationSpec(
-        getAppName(item),
-        getAppGroup(item),
-        getAppIcon(item),
-        getAppIconColor(item),
-        getAppUrl(item),
-        getAppInfo(item),
-        getAppTargetBlank(item),
-        getAppLocation(item),
-        getAppEnabled(item),
-        getAppRootPath(item),
-        getAppTags(item));
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            getAppName(item),
+            getAppGroup(item),
+            getAppIcon(item),
+            getAppIconColor(item),
+            getAppUrl(item),
+            getAppInfo(item),
+            getAppTargetBlank(item),
+            getAppLocation(item),
+            getAppEnabled(item),
+            getAppRootPath(item),
+            getAppTags(item));
+
+    // Note: Metadata fields (namespace, resourceName, hasOwnerReferences) are set
+    // by ApplicationResource when wrapping in ApplicationSpecWithAvailability
+    return spec;
+  }
+
+  /**
+   * Checks whether a Kubernetes resource has owner references or is managed by ArgoCD.
+   *
+   * @param item the Kubernetes generic resource
+   * @return true if the resource has owner references or is managed by ArgoCD, false otherwise
+   */
+  protected boolean hasOwnerReferences(GenericKubernetesResource item) {
+    if (item.getMetadata() == null) {
+      return false;
+    }
+
+    // Check for owner references
+    var ownerRefs = item.getMetadata().getOwnerReferences();
+    if (ownerRefs != null && !ownerRefs.isEmpty()) {
+      return true;
+    }
+
+    // Check for ArgoCD management in managed fields
+    var managedFields = item.getMetadata().getManagedFields();
+    if (managedFields != null && !managedFields.isEmpty()) {
+      return managedFields.stream()
+          .anyMatch(
+              field -> {
+                var manager = field.getManager();
+                return manager != null && manager.contains("argocd");
+              });
+    }
+
+    return false;
+  }
+
+  /**
+   * Gets the namespace of a Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the namespace, or null if metadata is not present
+   */
+  protected String getResourceNamespace(GenericKubernetesResource item) {
+    if (item.getMetadata() == null) {
+      return null;
+    }
+    return item.getMetadata().getNamespace();
+  }
+
+  /**
+   * Gets the metadata name of a Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the resource name (metadata.name), or null if metadata is not present
+   */
+  protected String getResourceMetadataName(GenericKubernetesResource item) {
+    if (item.getMetadata() == null) {
+      return null;
+    }
+    return item.getMetadata().getName();
   }
 
   /**

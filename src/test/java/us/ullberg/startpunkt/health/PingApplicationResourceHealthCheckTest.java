@@ -19,7 +19,7 @@ class PingApplicationResourceHealthCheckTest {
   void setUp() {
     // For ping test, we don't need a real client or availability service, so we can pass null
     // The ping method doesn't use the KubernetesClient or AvailabilityCheckService
-    applicationResource = new ApplicationResource(null, null, null);
+    applicationResource = new ApplicationResource(null, null, null, null, null);
     healthCheck = new PingApplicationResourceHealthCheck(applicationResource);
   }
 
@@ -83,7 +83,7 @@ class PingApplicationResourceHealthCheckTest {
   @Test
   void testHealthCheckWithValidResource() {
     // Create new instance to ensure clean state
-    var resource = new ApplicationResource(null, null, null);
+    var resource = new ApplicationResource(null, null, null, null, null);
     var check = new PingApplicationResourceHealthCheck(resource);
 
     var response = check.call();

@@ -28,7 +28,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
 
   useEffect(() => {
     // Check if application has owner references (read-only)
-    if (application?.metadata?.ownerReferences?.length > 0) {
+    if (application?.hasOwnerReferences === true) {
       setIsReadOnly(true);
     }
   }, [application]);
@@ -127,8 +127,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
             <div class="modal-body">
               {isReadOnly && (
                 <div class="alert alert-warning" role="alert">
-                  <strong>Read-only:</strong> This application is managed by another system and cannot be edited here.
-                  {application?.metadata?.ownerReferences?.[0] && ` (Owned by: ${application.metadata.ownerReferences[0].kind})`}
+                  <strong>Read-only:</strong> This application is managed by another system (such as ArgoCD) and cannot be edited here.
                 </div>
               )}
 

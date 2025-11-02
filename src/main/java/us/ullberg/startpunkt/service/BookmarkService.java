@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
-import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
+import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
 
 /**
  * Service class for managing bookmarks retrieved from Kubernetes Custom Resources. Supports
@@ -39,10 +39,10 @@ public class BookmarkService {
   /**
    * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces.
    *
-   * @return list of {@link BookmarkSpec} representing the bookmarks
+   * @return list of {@link BookmarkSpecWithMetadata} representing the bookmarks
    */
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
-  public List<BookmarkSpec> retrieveBookmarks() {
+  public List<BookmarkSpecWithMetadata> retrieveBookmarks() {
     Log.debug("Retrieving Startpunkt bookmarks from Kubernetes");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext ctx =
@@ -54,7 +54,7 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, ctx);
-      List<BookmarkSpec> bookmarks = mapResourcesToBookmarks(list);
+      List<BookmarkSpecWithMetadata> bookmarks = mapResourcesToBookmarks(list);
       Log.debugf("Retrieved %d Startpunkt bookmarks", bookmarks.size());
       return bookmarks;
     } catch (Exception e) {
@@ -89,12 +89,14 @@ public class BookmarkService {
   }
 
   /**
-   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkSpec} objects.
+   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkSpecWithMetadata}
+   * objects.
    *
    * @param list Kubernetes resource list to map
-   * @return list of {@link BookmarkSpec}
+   * @return list of {@link BookmarkSpecWithMetadata}
    */
-  private List<BookmarkSpec> mapResourcesToBookmarks(GenericKubernetesResourceList list) {
+  private List<BookmarkSpecWithMetadata> mapResourcesToBookmarks(
+      GenericKubernetesResourceList list) {
     return list.getItems().stream()
         .map(
             item -> {
@@ -120,7 +122,29 @@ public class BookmarkService {
                 location = 1000;
               }
 
-              return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
+              BookmarkSpec baseSpec =
+                  new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
+              BookmarkSpecWithMetadata withMetadata = new BookmarkSpecWithMetadata(baseSpec);
+
+              // Populate metadata fields
+              withMetadata.setNamespace(item.getMetadata().getNamespace());
+              withMetadata.setResourceName(item.getMetadata().getName());
+
+              // Check if resource has owner references or is managed by ArgoCD
+              boolean hasOwnerRefs =
+                  item.getMetadata().getOwnerReferences() != null
+                      && !item.getMetadata().getOwnerReferences().isEmpty();
+              boolean managedByArgocd =
+                  item.getMetadata().getManagedFields() != null
+                      && item.getMetadata().getManagedFields().stream()
+                          .anyMatch(
+                              field -> {
+                                var manager = field.getManager();
+                                return manager != null && manager.contains("argocd");
+                              });
+              withMetadata.setHasOwnerReferences(hasOwnerRefs || managedByArgocd);
+
+              return withMetadata;
             })
         .toList();
   }
@@ -128,9 +152,9 @@ public class BookmarkService {
   /**
    * Retrieves bookmarks from the "hajimari.io" group namespace.
    *
-   * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
+   * @return list of {@link BookmarkSpecWithMetadata} representing Hajimari bookmarks
    */
-  public List<BookmarkSpec> retrieveHajimariBookmarks() {
+  public List<BookmarkSpecWithMetadata> retrieveHajimariBookmarks() {
     Log.debug("Retrieving Hajimari bookmarks");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext resourceDefinitionContext =
@@ -142,7 +166,7 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
-      List<BookmarkSpec> bookmarks = mapResourcesToBookmarks(list);
+      List<BookmarkSpecWithMetadata> bookmarks = mapResourcesToBookmarks(list);
       Log.debugf("Retrieved %d Hajimari bookmarks", bookmarks.size());
 
       return bookmarks;
@@ -158,12 +182,12 @@ public class BookmarkService {
    * @param bookmarklist list of bookmarks to group
    * @return list of {@link BookmarkGroup} containing grouped bookmarks
    */
-  public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpec> bookmarklist) {
+  public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpecWithMetadata> bookmarklist) {
     Log.debugf("Generating bookmark groups from %d bookmarks", bookmarklist.size());
     var groups = new LinkedList<BookmarkGroup>();
 
     // Group the bookmarks by their group property
-    for (BookmarkSpec bookmark : bookmarklist) {
+    for (BookmarkSpecWithMetadata bookmark : bookmarklist) {
       // Find the existing group
       BookmarkGroup group = null;
       for (BookmarkGroup g : groups) {
@@ -201,123 +225,5 @@ public class BookmarkService {
     @SuppressWarnings("unchecked")
     Map<String, Object> spec = (Map<String, Object>) props.get("spec");
     return spec != null ? spec : Map.of();
-  }
-
-  /**
-   * Gets the URL of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return URL string or null if not present
-   */
-  private String getUrl(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    if (spec.containsKey("url")) {
-      return spec.get("url").toString();
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the icon of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return icon string or null if not present
-   */
-  private String getIcon(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    if (spec.containsKey("icon")) {
-      return spec.get("icon").toString();
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the info/description of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return info string or null if not present
-   */
-  private String getInfo(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    if (spec.containsKey("info")) {
-      return spec.get("info").toString();
-    }
-
-    return null;
-  }
-
-  /**
-   * Gets the group name of the bookmark from the Kubernetes resource. Falls back to the resource's
-   * namespace if group is not specified.
-   *
-   * @param item Kubernetes resource item
-   * @return group name string in lowercase
-   */
-  private String getGroup(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    return (spec.containsKey("group")
-            ? spec.get("group").toString()
-            : item.getMetadata().getNamespace())
-        .toLowerCase();
-  }
-
-  /**
-   * Gets the bookmark name from the Kubernetes resource. Falls back to resource metadata name if
-   * not specified.
-   *
-   * @param item Kubernetes resource item
-   * @return bookmark name string in lowercase
-   */
-  private String getBookmarkName(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    if (spec.containsKey("name")) {
-      return spec.get("name").toString();
-    }
-
-    return item.getMetadata().getName().toLowerCase();
-  }
-
-  /**
-   * Gets whether the bookmark URL should open in a new tab.
-   *
-   * @param item Kubernetes resource item
-   * @return Boolean true/false or null if not specified
-   */
-  @Nullable
-  private Boolean getTargetBlank(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    if (spec.containsKey("targetBlank")) {
-      return Boolean.parseBoolean(spec.get("targetBlank").toString());
-    }
-    return null;
-  }
-
-  /**
-   * Gets the location (sorting order) of the bookmark. Treats 0 as 1000 for backwards
-   * compatibility.
-   *
-   * @param item Kubernetes resource item
-   * @return location integer
-   */
-  private int getLocation(GenericKubernetesResource item) {
-    Map<String, Object> spec = getSpec(item);
-
-    var location =
-        spec.containsKey("location") ? Integer.parseInt(spec.get("location").toString()) : 1000;
-
-    // This is for backwards compatibility with Hajimari, 0 is the same as blank
-    if (location == 0) {
-      return 1000;
-    }
-
-    return location;
   }
 }

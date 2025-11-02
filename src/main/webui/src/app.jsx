@@ -234,7 +234,11 @@ export function App() {
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {
           // Refresh bookmarks when changes occur
-          fetchData();
+          console.log('Refreshing bookmarks due to:', message.type);
+          // Add a small delay to ensure backend cache is fully updated
+          setTimeout(() => {
+            fetchData();
+          }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'CONFIG_CHANGED') {
           // Reload config and data when configuration changes
           window.location.reload();
@@ -334,9 +338,11 @@ export function App() {
   };
 
   const handleEditApp = async (app) => {
-    // Fetch the full application resource from the API
+    // Fetch the full application resource from the API using namespace and resourceName
     try {
-      const response = await fetch(`/api/apps/manage?namespace=${app.namespace || 'default'}&name=${app.name}`);
+      const namespace = app.namespace || 'default';
+      const resourceName = app.resourceName || app.name;
+      const response = await fetch(`/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
       if (response.ok) {
         const fullApp = await response.json();
         setEditingApp(fullApp);
@@ -400,9 +406,11 @@ export function App() {
   };
 
   const handleEditBookmark = async (bookmark) => {
-    // Fetch the full bookmark resource from the API
+    // Fetch the full bookmark resource from the API using namespace and resourceName
     try {
-      const response = await fetch(`/api/bookmarks/manage?namespace=${bookmark.namespace || 'default'}&name=${bookmark.name}`);
+      const namespace = bookmark.namespace || 'default';
+      const resourceName = bookmark.resourceName || bookmark.name;
+      const response = await fetch(`/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
       if (response.ok) {
         const fullBookmark = await response.json();
         setEditingBookmark(fullBookmark);
@@ -522,8 +530,8 @@ export function App() {
         </footer>
       </div>
 
-      {/* Floating action buttons for adding items */}
-      {currentPage === 'applications' && (
+      {/* Floating action buttons for adding items - only visible in edit mode */}
+      {layoutPrefs?.preferences.editMode && currentPage === 'applications' && (
         <button
           class="btn btn-primary rounded-circle"
           style={{
@@ -544,7 +552,7 @@ export function App() {
         </button>
       )}
       
-      {currentPage === 'bookmarks' && (
+      {layoutPrefs?.preferences.editMode && currentPage === 'bookmarks' && (
         <button
           class="btn btn-primary rounded-circle"
           style={{

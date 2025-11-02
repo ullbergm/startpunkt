@@ -1,5 +1,5 @@
 import { Icon } from '@iconify/react';
-import { useState, useEffect, useRef } from 'preact/hooks';
+import { Text } from 'preact-i18n';
 
 function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
   const opacity = isUnavailable ? 0.4 : 1;
@@ -16,8 +16,8 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 export function Application(props) {
   const { layoutPrefs, onEdit } = props;
   const isUnavailable = props.app.available === false;
-  const [showEditButton, setShowEditButton] = useState(false);
-  const hoverTimeoutRef = useRef(null);
+  const isEditable = !props.app.hasOwnerReferences;
+  const editMode = layoutPrefs?.preferences.editMode;
   
   // Get preferences with defaults
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
@@ -36,37 +36,22 @@ export function Application(props) {
     transform: 'rotate(0)',
     padding: padding,
     ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' }),
+    ...(editMode && isEditable && { 
+      outline: '2px solid rgba(13, 110, 253, 0.5)',
+      outlineOffset: '2px',
+      borderRadius: '4px',
+      backgroundColor: 'rgba(13, 110, 253, 0.05)'
+    }),
+    ...(editMode && !isEditable && { 
+      opacity: '0.6'
+    }),
     position: 'relative'
   };
-  
-  const handleMouseEnter = () => {
-    if (onEdit) {
-      hoverTimeoutRef.current = setTimeout(() => {
-        setShowEditButton(true);
-      }, 2000);
-    }
-  };
-  
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    setShowEditButton(false);
-  };
-  
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
   
   const handleEdit = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onEdit) {
+    if (onEdit && isEditable) {
       onEdit(props.app);
     }
   };
@@ -77,11 +62,9 @@ export function Application(props) {
       class={containerClass} 
       style={containerStyle} 
       role="article" 
-      aria-label={`Application: ${props.app.name}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      aria-label={`Application: ${props.app.name}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
     >
-      {!isUnavailable && (
+      {!isUnavailable && !editMode && (
         <a
           href={props.app.url}
           target={props.app.targetBlank ? '_blank' : '_self'}
@@ -110,11 +93,17 @@ export function Application(props) {
         {showStatus && isUnavailable && (
           <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
         )}
+        {editMode && !isEditable && (
+          <span class="badge bg-secondary mt-1" style={{ fontSize: '0.65rem' }} role="status" title="Managed by external system">
+            <Icon icon="mdi:lock" width="10" height="10" class="me-1" />
+            <Text id="layout.cannotEdit">Cannot Edit</Text>
+          </span>
+        )}
       </div>
-      {onEdit && showEditButton && (
+      {editMode && isEditable && onEdit && (
         <button
           onClick={handleEdit}
-          class="btn btn-sm btn-outline-secondary ms-2"
+          class="btn btn-sm btn-primary ms-2"
           style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
           aria-label={`Edit ${props.app.name}`}
           title={`Edit ${props.app.name}`}

@@ -1,7 +1,9 @@
 package us.ullberg.startpunkt.rest;
 
 import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheManager;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
@@ -27,8 +29,10 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
+import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
 import us.ullberg.startpunkt.service.BookmarkManagementService;
 import us.ullberg.startpunkt.service.BookmarkService;
 
@@ -46,6 +50,12 @@ public class BookmarkResource {
   // Inject the BookmarkManagementService for CRUD operations
   private final BookmarkManagementService bookmarkManagementService;
 
+  // Inject the event broadcaster for WebSocket notifications
+  private final EventBroadcaster eventBroadcaster;
+
+  // Inject the cache manager for manual cache invalidation
+  private final CacheManager cacheManager;
+
   // Configuration property to enable or disable Hajimari bookmarks
   @ConfigProperty(name = "startpunkt.hajimari.enabled")
   private boolean hajimariEnabled = true;
@@ -55,21 +65,28 @@ public class BookmarkResource {
    *
    * @param bookmarkService service to manage bookmark operations
    * @param bookmarkManagementService service for CRUD operations on bookmarks
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
    */
   public BookmarkResource(
-      BookmarkService bookmarkService, BookmarkManagementService bookmarkManagementService) {
+      BookmarkService bookmarkService,
+      BookmarkManagementService bookmarkManagementService,
+      EventBroadcaster eventBroadcaster,
+      CacheManager cacheManager) {
     this.bookmarkService = bookmarkService;
     this.bookmarkManagementService = bookmarkManagementService;
+    this.eventBroadcaster = eventBroadcaster;
+    this.cacheManager = cacheManager;
   }
 
   /**
    * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
    * alphabetically.
    *
-   * @return sorted list of BookmarkSpec objects
+   * @return sorted list of BookmarkSpecWithMetadata objects
    */
-  private ArrayList<BookmarkSpec> retrieveBookmarks() {
-    var bookmarks = new ArrayList<BookmarkSpec>();
+  private ArrayList<BookmarkSpecWithMetadata> retrieveBookmarks() {
+    var bookmarks = new ArrayList<BookmarkSpecWithMetadata>();
     bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
     if (hajimariEnabled) {
@@ -99,7 +116,7 @@ public class BookmarkResource {
   @CacheResult(cacheName = "getBookmarks")
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-    List<BookmarkSpec> bookmarklist = retrieveBookmarks();
+    List<BookmarkSpecWithMetadata> bookmarklist = retrieveBookmarks();
 
     // Create a list to store bookmark groups
     List<BookmarkGroup> groups = bookmarkService.generateBookmarkGroups(bookmarklist);
@@ -151,6 +168,16 @@ public class BookmarkResource {
       }
 
       Bookmark created = bookmarkManagementService.createBookmark(namespace, name, spec);
+
+      // Manually invalidate cache synchronously before broadcasting
+      Cache cache = cacheManager.getCache("getBookmarks").orElse(null);
+      if (cache != null) {
+        cache.invalidateAll().await().indefinitely();
+      }
+
+      // Broadcast event to connected clients after cache is invalidated
+      eventBroadcaster.broadcastBookmarkAdded(created);
+
       return Response.status(201).entity(created).build();
     } catch (Exception e) {
       Log.error("Error creating bookmark", e);
@@ -198,6 +225,16 @@ public class BookmarkResource {
       }
 
       Bookmark updated = bookmarkManagementService.updateBookmark(namespace, name, spec);
+
+      // Manually invalidate cache synchronously before broadcasting
+      Cache cache = cacheManager.getCache("getBookmarks").orElse(null);
+      if (cache != null) {
+        cache.invalidateAll().await().indefinitely();
+      }
+
+      // Broadcast event to connected clients after cache is invalidated
+      eventBroadcaster.broadcastBookmarkUpdated(updated);
+
       return Response.ok(updated).build();
     } catch (IllegalArgumentException e) {
       return Response.status(404, e.getMessage()).build();
@@ -234,6 +271,18 @@ public class BookmarkResource {
 
       boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);
       if (deleted) {
+        // Manually invalidate cache synchronously before broadcasting
+        Cache cache = cacheManager.getCache("getBookmarks").orElse(null);
+        if (cache != null) {
+          cache.invalidateAll().await().indefinitely();
+        }
+
+        // Broadcast event to connected clients after cache is invalidated
+        var deletedData = new java.util.HashMap<String, String>();
+        deletedData.put("namespace", namespace);
+        deletedData.put("name", name);
+        eventBroadcaster.broadcastBookmarkRemoved(deletedData);
+
         return Response.status(204).build();
       } else {
         return Response.status(404, "Bookmark not found").build();

@@ -152,11 +152,10 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Wraps ApplicationSpec objects with availability information. This method checks all URLs and
-   * caches the results.
+   * Wraps a list of ApplicationSpec objects with availability status.
    *
-   * @param applications list of applications to wrap
-   * @return list of wrapped applications with availability status
+   * @param applications list of ApplicationSpec to wrap
+   * @return list of ApplicationSpecWithAvailability with availability status set
    */
   public List<ApplicationSpecWithAvailability> wrapWithAvailability(
       List<ApplicationSpec> applications) {
@@ -188,6 +187,40 @@ public class AvailabilityCheckService {
     }
 
     return wrappedApps;
+  }
+
+  /**
+   * Enriches a list of ApplicationSpecWithAvailability objects with availability status. Unlike
+   * wrapWithAvailability, this method works with already-wrapped objects that may have metadata
+   * fields populated.
+   *
+   * @param applications list of ApplicationSpecWithAvailability to enrich
+   * @return the same list with availability status updated
+   */
+  public List<ApplicationSpecWithAvailability> enrichWithAvailability(
+      List<ApplicationSpecWithAvailability> applications) {
+    for (ApplicationSpecWithAvailability app : applications) {
+      if (!availabilityCheckEnabled) {
+        // Set all applications as available if checking is disabled
+        app.setAvailable(true);
+      } else {
+        String url = app.getUrl();
+        if (url != null && !url.isEmpty()) {
+          // Check if we have a cached result
+          Boolean cached = availabilityCache.get(url);
+          if (cached != null) {
+            app.setAvailable(cached);
+          } else {
+            // If not cached, default to true to avoid blocking
+            app.setAvailable(true);
+          }
+        } else {
+          app.setAvailable(true); // No URL to check, consider available
+        }
+      }
+    }
+
+    return applications;
   }
 
   /**

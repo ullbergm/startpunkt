@@ -24,7 +24,7 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
 
   useEffect(() => {
     // Check if bookmark has owner references (read-only)
-    if (bookmark?.metadata?.ownerReferences?.length > 0) {
+    if (bookmark?.hasOwnerReferences === true) {
       setIsReadOnly(true);
     }
   }, [bookmark]);
@@ -119,8 +119,7 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
             <div class="modal-body">
               {isReadOnly && (
                 <div class="alert alert-warning" role="alert">
-                  <strong>Read-only:</strong> This bookmark is managed by another system and cannot be edited here.
-                  {bookmark?.metadata?.ownerReferences?.[0] && ` (Owned by: ${bookmark.metadata.ownerReferences[0].kind})`}
+                  <strong>Read-only:</strong> This bookmark is managed by another system (such as ArgoCD) and cannot be edited here.
                 </div>
               )}
 

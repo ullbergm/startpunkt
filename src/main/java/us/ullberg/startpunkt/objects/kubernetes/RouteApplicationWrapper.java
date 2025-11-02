@@ -58,4 +58,22 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
     var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);
     return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
+
+  /**
+   * Retrieves a list of ApplicationSpecWithAvailability objects from OpenShift Route resources.
+   * Applies filtering based on annotation settings.
+   *
+   * @param client the Kubernetes client
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames a list of route names to match
+   * @return a list of ApplicationSpecWithAvailability objects, possibly filtered to only annotated
+   *     ones
+   */
+  @Override
+  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
+      getApplicationSpecsWithMetadata(
+          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);
+    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;
+  }
 }

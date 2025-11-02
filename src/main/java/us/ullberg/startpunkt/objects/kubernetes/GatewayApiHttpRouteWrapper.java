@@ -76,4 +76,23 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
 
     return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
+
+  /**
+   * Retrieves a list of ApplicationSpecWithAvailability objects for matching HTTPRoute resources.
+   * If the wrapper is configured to only include annotated resources, filters the result
+   * accordingly.
+   *
+   * @param client Kubernetes client to query resources
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of resource names to match
+   * @return filtered or unfiltered list of ApplicationSpecWithAvailability instances
+   */
+  @Override
+  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
+      getApplicationSpecsWithMetadata(
+          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);
+
+    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;
+  }
 }

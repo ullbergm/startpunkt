@@ -125,6 +125,25 @@ export function LayoutSettings({ layoutPrefs }) {
               </div>
             </div>
 
+            {/* Edit Mode */}
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="editMode"
+                  checked={preferences.editMode}
+                  onChange={(e) => updatePreference('editMode', e.target.checked)}
+                />
+                <label class="form-check-label small" for="editMode">
+                  <Text id="layout.editMode">Edit Mode</Text>
+                </label>
+              </div>
+              <small class="form-text text-muted">
+                <Text id="layout.editModeHelp">Enable to add/edit applications and bookmarks</Text>
+              </small>
+            </div>
+
             {/* Card Content Visibility */}
             <div class="mb-3">
               <label class="form-label small mb-1"><Text id="layout.showHide">Show/Hide</Text></label>

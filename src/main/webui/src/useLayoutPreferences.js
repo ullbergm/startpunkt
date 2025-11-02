@@ -10,6 +10,7 @@ import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
  * - showTags: boolean
  * - showStatus: boolean
  * - spacing: 'tight' | 'normal' | 'relaxed'
+ * - editMode: boolean (enables editing of applications and bookmarks)
  * - currentPreset: string | null
  * - savedPresets: object (each preset can include both layout and background settings)
  */
@@ -21,6 +22,7 @@ const DEFAULT_PREFERENCES = {
   showTags: false,
   showStatus: true,
   spacing: 'normal',
+  editMode: false,
   currentPreset: null,
   savedPresets: {}
 };
@@ -72,6 +74,7 @@ export function useLayoutPreferences() {
       showTags: preferences.showTags,
       showStatus: preferences.showStatus,
       spacing: preferences.spacing,
+      editMode: preferences.editMode,
       // Background settings (if available)
       background: backgroundPrefs || undefined
     };
