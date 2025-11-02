@@ -157,17 +157,10 @@ export function useLayoutPreferences() {
     return vars;
   };
 
-  // Get grid template columns based on column count with responsive behavior
+  // Get grid template columns based on column count
+  // Mobile responsiveness is handled via CSS media queries in components
   const getGridTemplateColumns = () => {
-    // Use CSS minmax with responsive minimum to ensure mobile-friendly layout
-    // This creates a responsive grid that adapts to screen size
-    const minCardWidth = '280px';
-    return `repeat(auto-fit, minmax(min(${minCardWidth}, 100%), 1fr))`;
-  };
-
-  // Get maximum columns for responsive grid
-  const getMaxColumns = () => {
-    return preferences.columnCount;
+    return `repeat(${preferences.columnCount}, 1fr)`;
   };
 
   return {
@@ -178,8 +171,7 @@ export function useLayoutPreferences() {
     deletePreset,
     resetToDefaults,
     getCSSVariables,
-    getGridTemplateColumns,
-    getMaxColumns
+    getGridTemplateColumns
   };
 }
 

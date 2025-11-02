@@ -5,20 +5,17 @@ export function BookmarkGroup(props) {
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
-  const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))';
-  const maxColumns = layoutPrefs ? layoutPrefs.getMaxColumns() : 5;
+  const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(5, 1fr)';
   
   // Determine padding class based on compact mode
   const paddingClass = layoutPrefs?.preferences.compactMode ? 'py-3' : 'py-5';
   
-  // Use CSS Grid with responsive columns and max-columns constraint
+  // Use CSS Grid with responsive columns
+  // The gridTemplateColumns will be overridden by CSS media queries for mobile
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: gridTemplate,
     gap: cssVars['--card-gap'] || '1rem',
-    // Apply max columns constraint through custom property
-    maxWidth: `calc(${maxColumns} * (280px + ${cssVars['--card-gap'] || '1rem'}))`,
-    margin: '0 auto',
     ...cssVars
   };
 
@@ -59,7 +56,7 @@ export function BookmarkGroup(props) {
 
       {!isCollapsed && (
         <div 
-          class={paddingClass} 
+          class={`${paddingClass} bookmark-grid`}
           style={gridStyle}
           id={`bookmark-group-${props.group.replace(/\s+/g, '-')}`}
           role="list"

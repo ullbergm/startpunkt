@@ -202,7 +202,7 @@ describe('useLayoutPreferences', () => {
     expect(vars['--group-spacing']).toBe('1rem');
   });
 
-  test('should generate responsive grid template columns', () => {
+  test('should generate grid template columns for fixed column count', () => {
     const { result } = renderHook(() => useLayoutPreferences());
     
     act(() => {
@@ -210,12 +210,7 @@ describe('useLayoutPreferences', () => {
     });
     
     const columns = result.current.getGridTemplateColumns();
-    // The grid is now responsive with auto-fit
-    expect(columns).toBe('repeat(auto-fit, minmax(min(280px, 100%), 1fr))');
-    
-    // Verify max columns is set correctly
-    const maxColumns = result.current.getMaxColumns();
-    expect(maxColumns).toBe(4);
+    expect(columns).toBe('repeat(4, 1fr)');
   });
 
   test('should save preset with background settings from localStorage', () => {

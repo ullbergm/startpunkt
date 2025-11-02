@@ -124,6 +124,12 @@ body {
     left: auto !important;
     right: var(--mobile-button-gap) !important;
   }
+
+  /* Force single column layout on mobile for grids */
+  .application-grid,
+  .bookmark-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Tablet adjustments */
