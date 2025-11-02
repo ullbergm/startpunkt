@@ -55,52 +55,57 @@ public class AvailabilityCheckService {
   private final HttpClient httpClient;
   private final EventBroadcaster eventBroadcaster;
 
-  /** Constructor that initializes the HTTP client with appropriate timeouts. */
+  /**
+   * Constructor that initializes the HTTP client with appropriate timeouts.
+   *
+   * @param ignoreCertificates whether to ignore SSL certificate validation
+   * @param eventBroadcaster the event broadcaster for sending availability change events
+   */
   public AvailabilityCheckService(
       @ConfigProperty(name = &quot;startpunkt.availability.ignoreCertificates&quot;, defaultValue = &quot;false&quot;)
           boolean ignoreCertificates,
-<span class="fc" id="L62">      EventBroadcaster eventBroadcaster) {</span>
-<span class="fc" id="L63">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="fc" id="L67">      EventBroadcaster eventBroadcaster) {</span>
+<span class="fc" id="L68">    this.eventBroadcaster = eventBroadcaster;</span>
     HttpClient.Builder builder =
-<span class="fc" id="L65">        HttpClient.newBuilder()</span>
-<span class="fc" id="L66">            .connectTimeout(Duration.ofSeconds(5))</span>
-<span class="fc" id="L67">            .followRedirects(HttpClient.Redirect.NORMAL);</span>
+<span class="fc" id="L70">        HttpClient.newBuilder()</span>
+<span class="fc" id="L71">            .connectTimeout(Duration.ofSeconds(5))</span>
+<span class="fc" id="L72">            .followRedirects(HttpClient.Redirect.NORMAL);</span>
 
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (ignoreCertificates) {</span>
-<span class="nc" id="L70">      Log.warn(</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (ignoreCertificates) {</span>
+<span class="nc" id="L75">      Log.warn(</span>
           &quot;SSL certificate validation and hostname verification are disabled for availability checks. &quot;
               + &quot;This is insecure and should only be used in development environments.&quot;);
       try {
         // Create a trust manager that accepts all certificates
-<span class="nc" id="L75">        TrustManager[] trustAllCerts =</span>
+<span class="nc" id="L80">        TrustManager[] trustAllCerts =</span>
             new TrustManager[] {
-<span class="nc" id="L77">              new X509TrustManager() {</span>
+<span class="nc" id="L82">              new X509TrustManager() {</span>
                 public X509Certificate[] getAcceptedIssuers() {
-<span class="nc" id="L79">                  return new X509Certificate[0];</span>
+<span class="nc" id="L84">                  return new X509Certificate[0];</span>
                 }
 
-<span class="nc" id="L82">                public void checkClientTrusted(X509Certificate[] certs, String authType) {}</span>
+<span class="nc" id="L87">                public void checkClientTrusted(X509Certificate[] certs, String authType) {}</span>
 
-<span class="nc" id="L84">                public void checkServerTrusted(X509Certificate[] certs, String authType) {}</span>
+<span class="nc" id="L89">                public void checkServerTrusted(X509Certificate[] certs, String authType) {}</span>
               }
             };
 
         // Install the all-trusting trust manager
-<span class="nc" id="L89">        SSLContext sslContext = SSLContext.getInstance(&quot;TLS&quot;);</span>
-<span class="nc" id="L90">        sslContext.init(null, trustAllCerts, new SecureRandom());</span>
+<span class="nc" id="L94">        SSLContext sslContext = SSLContext.getInstance(&quot;TLS&quot;);</span>
+<span class="nc" id="L95">        sslContext.init(null, trustAllCerts, new SecureRandom());</span>
 
         // Create SSL parameters that disable hostname verification
-<span class="nc" id="L93">        SSLParameters sslParameters = new SSLParameters();</span>
-<span class="nc" id="L94">        sslParameters.setEndpointIdentificationAlgorithm(null);</span>
+<span class="nc" id="L98">        SSLParameters sslParameters = new SSLParameters();</span>
+<span class="nc" id="L99">        sslParameters.setEndpointIdentificationAlgorithm(null);</span>
 
-<span class="nc" id="L96">        builder.sslContext(sslContext).sslParameters(sslParameters);</span>
-<span class="nc" id="L97">      } catch (NoSuchAlgorithmException | KeyManagementException e) {</span>
-<span class="nc" id="L98">        Log.error(&quot;Failed to configure SSL context to ignore certificates&quot;, e);</span>
-<span class="nc" id="L99">      }</span>
+<span class="nc" id="L101">        builder.sslContext(sslContext).sslParameters(sslParameters);</span>
+<span class="nc" id="L102">      } catch (NoSuchAlgorithmException | KeyManagementException e) {</span>
+<span class="nc" id="L103">        Log.error(&quot;Failed to configure SSL context to ignore certificates&quot;, e);</span>
+<span class="nc" id="L104">      }</span>
     }
 
-<span class="fc" id="L102">    this.httpClient = builder.build();</span>
-<span class="fc" id="L103">  }</span>
+<span class="fc" id="L107">    this.httpClient = builder.build();</span>
+<span class="fc" id="L108">  }</span>
 
   /**
    * Checks if availability checking is enabled.
@@ -108,7 +113,7 @@ public class AvailabilityCheckService {
    * @return true if availability checking is enabled
    */
   public boolean isEnabled() {
-<span class="fc" id="L111">    return availabilityCheckEnabled;</span>
+<span class="fc" id="L116">    return availabilityCheckEnabled;</span>
   }
 
   /**
@@ -118,36 +123,36 @@ public class AvailabilityCheckService {
    * @return true if the application is available, false otherwise
    */
   public boolean checkAvailability(String url) {
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
-<span class="nc" id="L122">      return true; // Default to available if checking is disabled</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
+<span class="nc" id="L127">      return true; // Default to available if checking is disabled</span>
     }
 
     try {
       HttpRequest request =
-<span class="fc" id="L127">          HttpRequest.newBuilder()</span>
-<span class="nc" id="L128">              .uri(URI.create(url))</span>
-<span class="nc" id="L129">              .timeout(Duration.ofSeconds(availabilityTimeout))</span>
-<span class="nc" id="L130">              .method(&quot;HEAD&quot;, HttpRequest.BodyPublishers.noBody())</span>
-<span class="nc" id="L131">              .build();</span>
+<span class="fc" id="L132">          HttpRequest.newBuilder()</span>
+<span class="nc" id="L133">              .uri(URI.create(url))</span>
+<span class="nc" id="L134">              .timeout(Duration.ofSeconds(availabilityTimeout))</span>
+<span class="nc" id="L135">              .method(&quot;HEAD&quot;, HttpRequest.BodyPublishers.noBody())</span>
+<span class="nc" id="L136">              .build();</span>
 
-<span class="nc" id="L133">      HttpResponse&lt;Void&gt; response =</span>
-<span class="nc" id="L134">          httpClient.send(request, HttpResponse.BodyHandlers.discarding());</span>
+<span class="nc" id="L138">      HttpResponse&lt;Void&gt; response =</span>
+<span class="nc" id="L139">          httpClient.send(request, HttpResponse.BodyHandlers.discarding());</span>
 
       // Consider 2xx and 3xx status codes as available
       // 404 Not Found should count as unavailable (resource doesn't exist)
       // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting our request
       // 5xx server errors indicate the service is actually unavailable
-<span class="nc" id="L140">      int statusCode = response.statusCode();</span>
-<span class="nc bnc" id="L141" title="All 10 branches missed.">      if ((statusCode &gt;= 200 &amp;&amp; statusCode &lt; 400)</span>
+<span class="nc" id="L145">      int statusCode = response.statusCode();</span>
+<span class="nc bnc" id="L146" title="All 10 branches missed.">      if ((statusCode &gt;= 200 &amp;&amp; statusCode &lt; 400)</span>
           || (statusCode &gt;= 400 &amp;&amp; statusCode &lt; 500 &amp;&amp; statusCode != 404)) {
-<span class="nc" id="L143">        return true;</span>
+<span class="nc" id="L148">        return true;</span>
       } else {
-<span class="nc" id="L145">        Log.warnf(&quot;Availability check for %s returned status code %d&quot;, url, statusCode);</span>
-<span class="nc" id="L146">        return false;</span>
+<span class="nc" id="L150">        Log.warnf(&quot;Availability check for %s returned status code %d&quot;, url, statusCode);</span>
+<span class="nc" id="L151">        return false;</span>
       }
-<span class="fc" id="L148">    } catch (Exception e) {</span>
-<span class="fc" id="L149">      Log.warnf(&quot;Availability check failed for %s: %s&quot;, url, e.getMessage());</span>
-<span class="fc" id="L150">      return false;</span>
+<span class="fc" id="L153">    } catch (Exception e) {</span>
+<span class="fc" id="L154">      Log.warnf(&quot;Availability check failed for %s: %s&quot;, url, e.getMessage());</span>
+<span class="fc" id="L155">      return false;</span>
     }
   }
 
@@ -158,34 +163,34 @@ public class AvailabilityCheckService {
    * @return list of ApplicationResponse with availability status set
    */
   public List&lt;ApplicationResponse&gt; wrapWithAvailability(List&lt;ApplicationSpec&gt; applications) {
-<span class="fc" id="L161">    List&lt;ApplicationResponse&gt; wrappedApps = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L166">    List&lt;ApplicationResponse&gt; wrappedApps = new ArrayList&lt;&gt;();</span>
 
-<span class="fc bfc" id="L163" title="All 2 branches covered.">    for (ApplicationSpec app : applications) {</span>
-<span class="fc" id="L164">      ApplicationResponse wrapped = new ApplicationResponse(app);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">    for (ApplicationSpec app : applications) {</span>
+<span class="fc" id="L169">      ApplicationResponse wrapped = new ApplicationResponse(app);</span>
 
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
         // Set all applications as available if checking is disabled
-<span class="nc" id="L168">        wrapped.setAvailable(true);</span>
+<span class="nc" id="L173">        wrapped.setAvailable(true);</span>
       } else {
-<span class="fc" id="L170">        String url = app.getUrl();</span>
-<span class="fc bfc" id="L171" title="All 4 branches covered.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="fc" id="L175">        String url = app.getUrl();</span>
+<span class="fc bfc" id="L176" title="All 4 branches covered.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
           // Check if we have a cached result
-<span class="fc" id="L173">          Boolean cached = availabilityCache.get(url);</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">          if (cached != null) {</span>
-<span class="fc" id="L175">            wrapped.setAvailable(cached);</span>
+<span class="fc" id="L178">          Boolean cached = availabilityCache.get(url);</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">          if (cached != null) {</span>
+<span class="fc" id="L180">            wrapped.setAvailable(cached);</span>
           } else {
             // If not cached, default to true to avoid blocking
-<span class="fc" id="L178">            wrapped.setAvailable(true);</span>
+<span class="fc" id="L183">            wrapped.setAvailable(true);</span>
           }
-<span class="fc" id="L180">        } else {</span>
-<span class="fc" id="L181">          wrapped.setAvailable(true); // No URL to check, consider available</span>
+<span class="fc" id="L185">        } else {</span>
+<span class="fc" id="L186">          wrapped.setAvailable(true); // No URL to check, consider available</span>
         }
       }
 
-<span class="fc" id="L185">      wrappedApps.add(wrapped);</span>
-<span class="fc" id="L186">    }</span>
+<span class="fc" id="L190">      wrappedApps.add(wrapped);</span>
+<span class="fc" id="L191">    }</span>
 
-<span class="fc" id="L188">    return wrappedApps;</span>
+<span class="fc" id="L193">    return wrappedApps;</span>
   }
 
   /**
@@ -197,28 +202,28 @@ public class AvailabilityCheckService {
    * @return the same list with availability status updated
    */
   public List&lt;ApplicationResponse&gt; enrichWithAvailability(List&lt;ApplicationResponse&gt; applications) {
-<span class="fc bfc" id="L200" title="All 2 branches covered.">    for (ApplicationResponse app : applications) {</span>
-<span class="pc bpc" id="L201" title="1 of 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">    for (ApplicationResponse app : applications) {</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
         // Set all applications as available if checking is disabled
-<span class="nc" id="L203">        app.setAvailable(true);</span>
+<span class="nc" id="L208">        app.setAvailable(true);</span>
       } else {
-<span class="fc" id="L205">        String url = app.getUrl();</span>
-<span class="pc bpc" id="L206" title="2 of 4 branches missed.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="fc" id="L210">        String url = app.getUrl();</span>
+<span class="pc bpc" id="L211" title="2 of 4 branches missed.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
           // Check if we have a cached result
-<span class="fc" id="L208">          Boolean cached = availabilityCache.get(url);</span>
-<span class="pc bpc" id="L209" title="1 of 2 branches missed.">          if (cached != null) {</span>
-<span class="fc" id="L210">            app.setAvailable(cached);</span>
+<span class="fc" id="L213">          Boolean cached = availabilityCache.get(url);</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">          if (cached != null) {</span>
+<span class="fc" id="L215">            app.setAvailable(cached);</span>
           } else {
             // If not cached, default to true to avoid blocking
-<span class="nc" id="L213">            app.setAvailable(true);</span>
+<span class="nc" id="L218">            app.setAvailable(true);</span>
           }
-<span class="fc" id="L215">        } else {</span>
-<span class="nc" id="L216">          app.setAvailable(true); // No URL to check, consider available</span>
+<span class="fc" id="L220">        } else {</span>
+<span class="nc" id="L221">          app.setAvailable(true); // No URL to check, consider available</span>
         }
       }
-<span class="fc" id="L219">    }</span>
+<span class="fc" id="L224">    }</span>
 
-<span class="fc" id="L221">    return applications;</span>
+<span class="fc" id="L226">    return applications;</span>
   }
 
   /**
@@ -227,55 +232,55 @@ public class AvailabilityCheckService {
    */
   @Scheduled(every = &quot;{startpunkt.availability.interval}&quot;, delayed = &quot;5s&quot;)
   void refreshAvailability() {
-<span class="nc bnc" id="L230" title="All 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
-<span class="nc" id="L231">      return;</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
+<span class="nc" id="L236">      return;</span>
     }
 
-<span class="nc" id="L234">    Log.info(&quot;Running background availability checks for &quot; + availabilityCache.size() + &quot; URLs&quot;);</span>
+<span class="nc" id="L239">    Log.info(&quot;Running background availability checks for &quot; + availabilityCache.size() + &quot; URLs&quot;);</span>
 
-<span class="nc" id="L236">    boolean hasChanges = false;</span>
+<span class="nc" id="L241">    boolean hasChanges = false;</span>
 
     // Get all unique URLs from the cache keys
-<span class="nc bnc" id="L239" title="All 2 branches missed.">    for (String url : availabilityCache.keySet()) {</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">    for (String url : availabilityCache.keySet()) {</span>
       try {
-<span class="nc" id="L241">        boolean isAvailable = checkAvailability(url);</span>
-<span class="nc" id="L242">        Boolean previousValue = previousAvailabilityCache.get(url);</span>
+<span class="nc" id="L246">        boolean isAvailable = checkAvailability(url);</span>
+<span class="nc" id="L247">        Boolean previousValue = previousAvailabilityCache.get(url);</span>
 
-<span class="nc" id="L244">        availabilityCache.put(url, isAvailable);</span>
+<span class="nc" id="L249">        availabilityCache.put(url, isAvailable);</span>
 
         // Track if availability changed
-<span class="nc bnc" id="L247" title="All 4 branches missed.">        if (previousValue == null || previousValue != isAvailable) {</span>
-<span class="nc" id="L248">          Log.infof(&quot;Availability changed for %s: %s -&gt; %s&quot;, url, previousValue, isAvailable);</span>
-<span class="nc" id="L249">          hasChanges = true;</span>
+<span class="nc bnc" id="L252" title="All 4 branches missed.">        if (previousValue == null || previousValue != isAvailable) {</span>
+<span class="nc" id="L253">          Log.infof(&quot;Availability changed for %s: %s -&gt; %s&quot;, url, previousValue, isAvailable);</span>
+<span class="nc" id="L254">          hasChanges = true;</span>
         }
 
-<span class="nc" id="L252">        previousAvailabilityCache.put(url, isAvailable);</span>
-<span class="nc" id="L253">        Log.tracef(&quot;Availability check for %s: %s&quot;, url, isAvailable);</span>
-<span class="nc" id="L254">      } catch (Exception e) {</span>
-<span class="nc" id="L255">        Log.debugf(&quot;Error checking availability for %s: %s&quot;, url, e.getMessage());</span>
-<span class="nc" id="L256">        Boolean previousValue = previousAvailabilityCache.get(url);</span>
+<span class="nc" id="L257">        previousAvailabilityCache.put(url, isAvailable);</span>
+<span class="nc" id="L258">        Log.tracef(&quot;Availability check for %s: %s&quot;, url, isAvailable);</span>
+<span class="nc" id="L259">      } catch (Exception e) {</span>
+<span class="nc" id="L260">        Log.debugf(&quot;Error checking availability for %s: %s&quot;, url, e.getMessage());</span>
+<span class="nc" id="L261">        Boolean previousValue = previousAvailabilityCache.get(url);</span>
 
-<span class="nc" id="L258">        availabilityCache.put(url, false);</span>
+<span class="nc" id="L263">        availabilityCache.put(url, false);</span>
 
         // Track if availability changed to false due to error
-<span class="nc bnc" id="L261" title="All 4 branches missed.">        if (previousValue == null || previousValue) {</span>
-<span class="nc" id="L262">          Log.infof(&quot;Availability changed for %s to false due to error: %s&quot;, url, e.getMessage());</span>
-<span class="nc" id="L263">          hasChanges = true;</span>
+<span class="nc bnc" id="L266" title="All 4 branches missed.">        if (previousValue == null || previousValue) {</span>
+<span class="nc" id="L267">          Log.infof(&quot;Availability changed for %s to false due to error: %s&quot;, url, e.getMessage());</span>
+<span class="nc" id="L268">          hasChanges = true;</span>
         }
 
-<span class="nc" id="L266">        previousAvailabilityCache.put(url, false);</span>
-<span class="nc" id="L267">      }</span>
-<span class="nc" id="L268">    }</span>
+<span class="nc" id="L271">        previousAvailabilityCache.put(url, false);</span>
+<span class="nc" id="L272">      }</span>
+<span class="nc" id="L273">    }</span>
 
     // Broadcast status changed event if any availability changed
-<span class="nc bnc" id="L271" title="All 2 branches missed.">    if (hasChanges) {</span>
-<span class="nc" id="L272">      Log.info(&quot;Broadcasting STATUS_CHANGED event due to availability changes&quot;);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">    if (hasChanges) {</span>
+<span class="nc" id="L277">      Log.info(&quot;Broadcasting STATUS_CHANGED event due to availability changes&quot;);</span>
       // Invalidate caches BEFORE broadcasting to ensure fresh data
-<span class="nc" id="L274">      invalidateApplicationCaches();</span>
-<span class="nc" id="L275">      eventBroadcaster.broadcastStatusChanged(</span>
-<span class="nc" id="L276">          Map.of(&quot;timestamp&quot;, System.currentTimeMillis(), &quot;reason&quot;, &quot;availability_check&quot;));</span>
+<span class="nc" id="L279">      invalidateApplicationCaches();</span>
+<span class="nc" id="L280">      eventBroadcaster.broadcastStatusChanged(</span>
+<span class="nc" id="L281">          Map.of(&quot;timestamp&quot;, System.currentTimeMillis(), &quot;reason&quot;, &quot;availability_check&quot;));</span>
     }
-<span class="nc" id="L278">  }</span>
+<span class="nc" id="L283">  }</span>
 
   /**
    * Registers a URL for periodic availability checking.
@@ -283,16 +288,16 @@ public class AvailabilityCheckService {
    * @param url the URL to register
    */
   public void registerUrl(String url) {
-<span class="pc bpc" id="L286" title="1 of 6 branches missed.">    if (availabilityCheckEnabled &amp;&amp; url != null &amp;&amp; !url.isEmpty()) {</span>
-<span class="fc" id="L287">      boolean wasNew =</span>
-<span class="fc bfc" id="L288" title="All 2 branches covered.">          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked</span>
-<span class="fc bfc" id="L289" title="All 2 branches covered.">      if (wasNew) {</span>
-<span class="fc" id="L290">        Log.infof(</span>
+<span class="pc bpc" id="L291" title="1 of 6 branches missed.">    if (availabilityCheckEnabled &amp;&amp; url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="fc" id="L292">      boolean wasNew =</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked</span>
+<span class="fc bfc" id="L294" title="All 2 branches covered.">      if (wasNew) {</span>
+<span class="fc" id="L295">        Log.infof(</span>
             &quot;Registered URL for availability checking: %s (total: %d)&quot;,
-<span class="fc" id="L292">            url, availabilityCache.size());</span>
+<span class="fc" id="L297">            url, availabilityCache.size());</span>
       }
     }
-<span class="fc" id="L295">  }</span>
+<span class="fc" id="L300">  }</span>
 
   /**
    * Gets the cached availability status for a URL.
@@ -301,7 +306,7 @@ public class AvailabilityCheckService {
    * @return true if available, false if not, null if not cached
    */
   public Boolean getCachedAvailability(String url) {
-<span class="fc" id="L304">    return availabilityCache.get(url);</span>
+<span class="fc" id="L309">    return availabilityCache.get(url);</span>
   }
 
   /**
@@ -309,25 +314,28 @@ public class AvailabilityCheckService {
    * availability status changes to ensure clients get updated data.
    */
   public void invalidateApplicationCaches() {
-<span class="fc" id="L312">    invalidateGetAppCache();</span>
-<span class="fc" id="L313">    invalidateGetAppsCache();</span>
-<span class="fc" id="L314">    invalidateGetAppsFilteredCache();</span>
-<span class="fc" id="L315">    Log.debug(&quot;Invalidated application caches due to availability changes&quot;);</span>
-<span class="fc" id="L316">  }</span>
+<span class="fc" id="L317">    invalidateGetAppCache();</span>
+<span class="fc" id="L318">    invalidateGetAppsCache();</span>
+<span class="fc" id="L319">    invalidateGetAppsFilteredCache();</span>
+<span class="fc" id="L320">    Log.debug(&quot;Invalidated application caches due to availability changes&quot;);</span>
+<span class="fc" id="L321">  }</span>
 
+  /** Invalidates the getApp cache. */
   @CacheInvalidate(cacheName = &quot;getApp&quot;)
   protected void invalidateGetAppCache() {
     // No-op: annotation triggers cache invalidation
-<span class="fc" id="L321">  }</span>
+<span class="fc" id="L327">  }</span>
 
+  /** Invalidates the getApps cache. */
   @CacheInvalidate(cacheName = &quot;getApps&quot;)
   protected void invalidateGetAppsCache() {
     // No-op: annotation triggers cache invalidation
-<span class="fc" id="L326">  }</span>
+<span class="fc" id="L333">  }</span>
 
+  /** Invalidates the getAppsFiltered cache. */
   @CacheInvalidate(cacheName = &quot;getAppsFiltered&quot;)
   protected void invalidateGetAppsFilteredCache() {
     // No-op: annotation triggers cache invalidation
-<span class="fc" id="L331">  }</span>
+<span class="fc" id="L339">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
