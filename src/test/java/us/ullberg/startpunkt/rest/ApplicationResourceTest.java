@@ -554,4 +554,270 @@ class ApplicationResourceTest {
           );
     }
   }
+
+  /**
+   * Test class for multiple Kubernetes resource types (Hajimari, Routes, Ingresses, Forecastle)
+   */
+  @QuarkusTest
+  @WithKubernetesTestServer
+  @io.quarkus.test.junit.TestProfile(AllResourceTypesApplicationProfile.class)
+  static class AllResourceTypesApplicationTest {
+
+    @KubernetesTestServer KubernetesServer server;
+    private NamespacedKubernetesClient client;
+
+    @BeforeEach
+    public void before() {
+      client = server.getClient();
+
+      // Create CRD for Startpunkt Application
+      CustomResourceDefinition applicationCrd =
+          CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+      server
+          .expect()
+          .post()
+          .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+          .andReturn(HttpURLConnection.HTTP_OK, applicationCrd)
+          .once();
+      CustomResourceDefinition createdApplicationCrd =
+          client.apiextensions().v1().customResourceDefinitions().resource(applicationCrd).create();
+      assertNotNull(createdApplicationCrd);
+
+      // Create mock Hajimari Application resources
+      setupMockHajimariResources();
+
+      // Create mock OpenShift Route resources
+      setupMockRouteResources();
+
+      // Create mock Kubernetes Ingress resources (includes Forecastle annotations)
+      setupMockIngressResources();
+    }
+
+    /** Setup mock Hajimari Application resources */
+    private void setupMockHajimariResources() {
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource hajimariApp =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      hajimariApp.setApiVersion("hajimari.io/v1alpha1");
+      hajimariApp.setKind("Application");
+      hajimariApp.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("grafana-hajimari")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/rootPath", "/dashboards")
+              .build());
+
+      java.util.Map<String, Object> hajimariSpec = new java.util.HashMap<>();
+      hajimariSpec.put("name", "Grafana");
+      hajimariSpec.put("group", "Monitoring");
+      hajimariSpec.put("url", "https://grafana.example.com");
+      hajimariSpec.put("icon", "mdi:chart-line");
+      hajimariSpec.put("info", "Monitoring dashboards");
+      hajimariSpec.put("targetBlank", true);
+      hajimariSpec.put("enabled", true);
+      hajimariSpec.put("location", 100);
+
+      java.util.Map<String, Object> additionalProps = new java.util.HashMap<>();
+      additionalProps.put("spec", hajimariSpec);
+      hajimariApp.setAdditionalProperties(additionalProps);
+
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList hajimariList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      hajimariList.setItems(java.util.List.of(hajimariApp));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/hajimari.io/v1alpha1/applications")
+          .andReturn(HttpURLConnection.HTTP_OK, hajimariList)
+          .always();
+    }
+
+    /** Setup mock OpenShift Route resources */
+    private void setupMockRouteResources() {
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource route =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      route.setApiVersion("route.openshift.io/v1");
+      route.setKind("Route");
+      route.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("prometheus-route")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/enable", "true")
+              .addToAnnotations("startpunkt.ullberg.us/appName", "Prometheus")
+              .addToAnnotations("startpunkt.ullberg.us/group", "Monitoring")
+              .addToAnnotations("startpunkt.ullberg.us/icon", "mdi:database")
+              .addToAnnotations("startpunkt.ullberg.us/info", "Metrics database")
+              .build());
+
+      java.util.Map<String, Object> routeSpec = new java.util.HashMap<>();
+      routeSpec.put("host", "prometheus.example.com");
+      routeSpec.put("path", "/metrics");
+      java.util.Map<String, Object> tls = new java.util.HashMap<>();
+      tls.put("termination", "edge");
+      routeSpec.put("tls", tls);
+
+      java.util.Map<String, Object> additionalProps = new java.util.HashMap<>();
+      additionalProps.put("spec", routeSpec);
+      route.setAdditionalProperties(additionalProps);
+
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList routeList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      routeList.setItems(java.util.List.of(route));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/route.openshift.io/v1/routes")
+          .andReturn(HttpURLConnection.HTTP_OK, routeList)
+          .always();
+    }
+
+    /** Setup mock Kubernetes Ingress resources */
+    private void setupMockIngressResources() {
+      // Create AlertManager Ingress
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource alertmanagerIngress =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      alertmanagerIngress.setApiVersion("networking.k8s.io/v1");
+      alertmanagerIngress.setKind("Ingress");
+      alertmanagerIngress.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("alertmanager-ingress")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/enable", "true")
+              .addToAnnotations("startpunkt.ullberg.us/appName", "AlertManager")
+              .addToAnnotations("startpunkt.ullberg.us/group", "Monitoring")
+              .addToAnnotations("startpunkt.ullberg.us/icon", "mdi:bell")
+              .addToAnnotations("startpunkt.ullberg.us/info", "Alert management")
+              .addToAnnotations("startpunkt.ullberg.us/url", "https://alertmanager.example.com")
+              .build());
+
+      java.util.Map<String, Object> alertmanagerSpec = new java.util.HashMap<>();
+      java.util.List<java.util.Map<String, Object>> alertmanagerRules = new java.util.ArrayList<>();
+      java.util.Map<String, Object> alertmanagerRule = new java.util.HashMap<>();
+      alertmanagerRule.put("host", "alertmanager.example.com");
+      alertmanagerRules.add(alertmanagerRule);
+      alertmanagerSpec.put("rules", alertmanagerRules);
+
+      java.util.Map<String, Object> alertmanagerAdditionalProps = new java.util.HashMap<>();
+      alertmanagerAdditionalProps.put("spec", alertmanagerSpec);
+      alertmanagerIngress.setAdditionalProperties(alertmanagerAdditionalProps);
+
+      // Create Kibana Ingress with Forecastle annotations
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource kibanaIngress =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      kibanaIngress.setApiVersion("networking.k8s.io/v1");
+      kibanaIngress.setKind("Ingress");
+      kibanaIngress.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("kibana-ingress")
+              .withNamespace("default")
+              .addToAnnotations("forecastle.stakater.com/expose", "true")
+              .addToAnnotations("forecastle.stakater.com/appName", "Kibana")
+              .addToAnnotations("forecastle.stakater.com/group", "Logging")
+              .addToAnnotations("forecastle.stakater.com/icon", "https://example.com/kibana.png")
+              .addToAnnotations("forecastle.stakater.com/url", "https://kibana.example.com")
+              .build());
+
+      java.util.Map<String, Object> kibanaSpec = new java.util.HashMap<>();
+      java.util.List<java.util.Map<String, Object>> kibanaRules = new java.util.ArrayList<>();
+      java.util.Map<String, Object> kibanaRule = new java.util.HashMap<>();
+      kibanaRule.put("host", "kibana.example.com");
+      kibanaRules.add(kibanaRule);
+      kibanaSpec.put("rules", kibanaRules);
+
+      java.util.Map<String, Object> kibanaAdditionalProps = new java.util.HashMap<>();
+      kibanaAdditionalProps.put("spec", kibanaSpec);
+      kibanaIngress.setAdditionalProperties(kibanaAdditionalProps);
+
+      // Combine both ingresses into a single list
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList ingressList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      ingressList.setItems(java.util.List.of(alertmanagerIngress, kibanaIngress));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/networking.k8s.io/v1/ingresses")
+          .andReturn(HttpURLConnection.HTTP_OK, ingressList)
+          .always();
+    }
+
+    @Test
+    void testRetrieveApplicationsFromMultipleResourceTypes() {
+      // Should retrieve apps from Hajimari, Routes, and Ingresses
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.size()", org.hamcrest.Matchers.greaterThan(0));
+    }
+
+    @Test
+    void testHajimariApplicationIsRetrieved() {
+      // Verify Hajimari application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testRouteApplicationIsRetrieved() {
+      // Verify OpenShift Route application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testIngressApplicationIsRetrieved() {
+      // Verify Ingress application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testForecastleAnnotationsAreProcessed() {
+      // Verify Forecastle-annotated Ingress is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+  }
+
+  /** Test profile that enables all resource types for comprehensive testing */
+  public static class AllResourceTypesApplicationProfile
+      implements io.quarkus.test.junit.QuarkusTestProfile {
+    @Override
+    public java.util.Map<String, String> getConfigOverrides() {
+      return java.util.Map.of(
+          "startpunkt.namespaceSelector.any", "true",
+          "startpunkt.hajimari.enabled", "true",
+          "startpunkt.openshift.enabled", "true",
+          "startpunkt.openshift.onlyAnnotated", "true",
+          "startpunkt.ingress.enabled", "true",
+          "startpunkt.ingress.onlyAnnotated", "true");
+    }
+  }
 }
