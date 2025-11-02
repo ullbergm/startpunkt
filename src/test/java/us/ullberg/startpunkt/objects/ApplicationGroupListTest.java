@@ -192,16 +192,17 @@ class ApplicationGroupListTest {
     ApplicationGroup emptyGroup = new ApplicationGroup("EmptyGroup");
     ApplicationGroup populatedGroup = new ApplicationGroup("PopulatedGroup");
     populatedGroup.addApplication(
-        new ApplicationResponse(new ApplicationSpec(
-            "App",
-            "PopulatedGroup",
-            "mdi:icon",
-            "red",
-            "https://example.com",
-            "Info",
-            true,
-            5,
-            false)));
+        new ApplicationResponse(
+            new ApplicationSpec(
+                "App",
+                "PopulatedGroup",
+                "mdi:icon",
+                "red",
+                "https://example.com",
+                "Info",
+                true,
+                5,
+                false)));
 
     applicationGroupList.setGroups(List.of(emptyGroup, populatedGroup));
 
@@ -257,13 +258,16 @@ class ApplicationGroupListTest {
   void testMultipleGroupsWithApplications() {
     ApplicationGroup group1 = new ApplicationGroup("Group1");
     group1.addApplication(
-        new ApplicationResponse(new ApplicationSpec("App1A", "Group1", null, null, "url", null, true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec("App1A", "Group1", null, null, "url", null, true, 0, true)));
     group1.addApplication(
-        new ApplicationResponse(new ApplicationSpec("App1B", "Group1", null, null, "url", null, true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec("App1B", "Group1", null, null, "url", null, true, 0, true)));
 
     ApplicationGroup group2 = new ApplicationGroup("Group2");
     group2.addApplication(
-        new ApplicationResponse(new ApplicationSpec("App2A", "Group2", null, null, "url", null, true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec("App2A", "Group2", null, null, "url", null, true, 0, true)));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 
@@ -320,9 +324,11 @@ class ApplicationGroupListTest {
     ApplicationGroup group2 = new ApplicationGroup("Duplicate");
 
     group1.addApplication(
-        new ApplicationResponse(new ApplicationSpec("App1", "Duplicate", null, null, "url1", null, true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec("App1", "Duplicate", null, null, "url1", null, true, 0, true)));
     group2.addApplication(
-        new ApplicationResponse(new ApplicationSpec("App2", "Duplicate", null, null, "url2", null, true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec("App2", "Duplicate", null, null, "url2", null, true, 0, true)));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 
@@ -350,7 +356,9 @@ class ApplicationGroupListTest {
     ApplicationGroup group = new ApplicationGroup("BigGroup");
     for (int i = 0; i < 50; i++) {
       group.addApplication(
-          new ApplicationResponse(new ApplicationSpec("App" + i, "BigGroup", null, null, "url" + i, null, true, i, true)));
+          new ApplicationResponse(
+              new ApplicationSpec(
+                  "App" + i, "BigGroup", null, null, "url" + i, null, true, i, true)));
     }
 
     applicationGroupList.setGroups(List.of(group));
@@ -396,13 +404,15 @@ class ApplicationGroupListTest {
   void testToStringWithComplexStructure() {
     ApplicationGroup group1 = new ApplicationGroup("ComplexGroup1");
     group1.addApplication(
-        new ApplicationResponse(new ApplicationSpec(
-            "App1", "ComplexGroup1", "icon", "color", "url", "info", true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec(
+                "App1", "ComplexGroup1", "icon", "color", "url", "info", true, 0, true)));
 
     ApplicationGroup group2 = new ApplicationGroup("ComplexGroup2");
     group2.addApplication(
-        new ApplicationResponse(new ApplicationSpec(
-            "App2", "ComplexGroup2", "icon", "color", "url", "info", true, 0, true)));
+        new ApplicationResponse(
+            new ApplicationSpec(
+                "App2", "ComplexGroup2", "icon", "color", "url", "info", true, 0, true)));
 
     applicationGroupList.setGroups(List.of(group1, group2));
 

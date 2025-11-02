@@ -7,15 +7,14 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integration tests for the GraphQL API.
- * Tests basic GraphQL query execution using REST Assured.
+ * Integration tests for the GraphQL API. Tests basic GraphQL query execution using REST Assured.
  */
 @QuarkusTest
 class ApplicationGraphQLResourceTest {
 
   /**
-   * Helper method to format GraphQL query for REST Assured.
-   * Escapes quotes and removes newlines for JSON body.
+   * Helper method to format GraphQL query for REST Assured. Escapes quotes and removes newlines for
+   * JSON body.
    */
   private String formatGraphQLQuery(String query) {
     return "{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}";
@@ -23,7 +22,8 @@ class ApplicationGraphQLResourceTest {
 
   @Test
   void testApplicationGroupsQuery() {
-    String query = """
+    String query =
+        """
         {
           applicationGroups {
             name
@@ -48,7 +48,8 @@ class ApplicationGraphQLResourceTest {
 
   @Test
   void testApplicationGroupsQueryWithTags() {
-    String query = """
+    String query =
+        """
         {
           applicationGroups(tags: ["admin"]) {
             name
@@ -73,7 +74,8 @@ class ApplicationGraphQLResourceTest {
   @Test
   void testGraphQLSchemaIntrospection() {
     // Test that GraphQL schema introspection works
-    String query = """
+    String query =
+        """
         {
           __schema {
             queryType {

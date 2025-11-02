@@ -1,5 +1,6 @@
 package us.ullberg.startpunkt.graphql;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,11 +23,10 @@ import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWr
 import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
-import io.fabric8.kubernetes.client.KubernetesClient;
 
 /**
- * GraphQL API resource for applications. Provides queries for retrieving applications
- * with optional tag filtering and grouping.
+ * GraphQL API resource for applications. Provides queries for retrieving applications with optional
+ * tag filtering and grouping.
  */
 @GraphQLApi
 @ApplicationScoped
@@ -78,8 +78,7 @@ public class ApplicationGraphQLResource {
    * @param availabilityCheckService the availability check service
    */
   public ApplicationGraphQLResource(
-      KubernetesClient kubernetesClient,
-      AvailabilityCheckService availabilityCheckService) {
+      KubernetesClient kubernetesClient, AvailabilityCheckService availabilityCheckService) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
   }
@@ -96,10 +95,10 @@ public class ApplicationGraphQLResource {
   public List<ApplicationGroup> getApplicationGroups(
       @Name("tags") @Description("Optional tags to filter applications") List<String> tags) {
     Log.debugf("GraphQL query: applicationGroups with tags: %s", tags);
-    
+
     // Retrieve applications
     ArrayList<ApplicationResponse> applist = retrieveAppsWithAvailability();
-    
+
     // Apply tag filtering
     if (tags != null && !tags.isEmpty()) {
       String tagsStr = String.join(",", tags);
@@ -107,7 +106,7 @@ public class ApplicationGraphQLResource {
     } else {
       applist = filterApplicationsWithoutTags(applist);
     }
-    
+
     // Group applications
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
     for (ApplicationResponse a : applist) {
@@ -118,15 +117,15 @@ public class ApplicationGraphQLResource {
           break;
         }
       }
-      
+
       if (group == null) {
         group = new ApplicationGroup(a.getGroup());
         groups.add(group);
       }
-      
+
       group.addApplication(a);
     }
-    
+
     return groups;
   }
 
@@ -144,13 +143,13 @@ public class ApplicationGraphQLResource {
       @Name("groupName") @Description("The group name of the application") String groupName,
       @Name("appName") @Description("The name of the application") String appName) {
     Log.debugf("GraphQL query: application with groupName=%s, appName=%s", groupName, appName);
-    
+
     for (ApplicationResponse a : retrieveAppsWithAvailability()) {
       if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
         return a;
       }
     }
-    
+
     return null;
   }
 
