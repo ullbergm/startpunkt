@@ -134,7 +134,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 <span class="fc" id="L134">    var spec = getSpec(item);</span>
 
     // Check if urlFrom is specified
-<span class="pc bpc" id="L137" title="1 of 4 branches missed.">    if (spec.containsKey(&quot;urlFrom&quot;) &amp;&amp; spec.get(&quot;urlFrom&quot;) != null) {</span>
+<span class="pc bpc" id="L137" title="2 of 4 branches missed.">    if (spec.containsKey(&quot;urlFrom&quot;) &amp;&amp; spec.get(&quot;urlFrom&quot;) != null) {</span>
 <span class="fc" id="L138">      String resolvedUrl = resolveUrlFromReference(item, client);</span>
 <span class="fc bfc" id="L139" title="All 2 branches covered.">      if (resolvedUrl != null) {</span>
 <span class="fc" id="L140">        String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>

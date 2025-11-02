@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects</a> &gt; <span class="el_source">ApplicationResponse.java</span></div><h1>ApplicationResponse.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+
+/**
+ * Response DTO for Application resources that enriches the base ApplicationSpec with runtime
+ * availability status and Kubernetes metadata. This class is used for API responses only and does
+ * not modify the CRD. The availability status is computed at runtime by the
+ * AvailabilityCheckService, and the metadata fields enable the edit interface.
+ */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@RegisterForReflection(registerFullHierarchy = true)
+public class ApplicationResponse extends ApplicationSpec {
+
+  /** Whether the application is currently available (reachable). */
+  @JsonProperty(&quot;available&quot;)
+  private Boolean available;
+
+  /** The Kubernetes namespace of the underlying resource. */
+  @JsonProperty(&quot;namespace&quot;)
+  private String namespace;
+
+  /** The Kubernetes metadata.name (resource name) of the underlying object. */
+  @JsonProperty(&quot;resourceName&quot;)
+  private String resourceName;
+
+  /** Whether the resource has owner references (true means it's managed by another resource). */
+  @JsonProperty(&quot;hasOwnerReferences&quot;)
+  private Boolean hasOwnerReferences;
+
+  /** Default constructor. */
+  public ApplicationResponse() {
+<span class="nc" id="L36">    super();</span>
+<span class="nc" id="L37">  }</span>
+
+  /**
+   * Creates a response DTO from an existing ApplicationSpec, copying all fields.
+   *
+   * @param spec the ApplicationSpec to wrap
+   */
+<span class="fc" id="L44">  public ApplicationResponse(ApplicationSpec spec) {</span>
+<span class="fc" id="L45">    this.name = spec.getName();</span>
+<span class="fc" id="L46">    this.setGroup(spec.getGroup());</span>
+<span class="fc" id="L47">    this.setIcon(spec.getIcon());</span>
+<span class="fc" id="L48">    this.setIconColor(spec.getIconColor());</span>
+<span class="fc" id="L49">    this.setUrl(spec.getUrl());</span>
+<span class="fc" id="L50">    this.setUrlFrom(spec.getUrlFrom());</span>
+<span class="fc" id="L51">    this.setInfo(spec.getInfo());</span>
+<span class="fc" id="L52">    this.setTargetBlank(spec.getTargetBlank());</span>
+<span class="fc" id="L53">    this.setLocation(spec.getLocation());</span>
+<span class="fc" id="L54">    this.setEnabled(spec.getEnabled());</span>
+<span class="fc" id="L55">    this.setRootPath(spec.getRootPath());</span>
+<span class="fc" id="L56">    this.setTags(spec.getTags());</span>
+<span class="fc" id="L57">  }</span>
+
+  /**
+   * Gets whether the application is currently available.
+   *
+   * @return true if the application is available, null if not yet checked
+   */
+  public Boolean getAvailable() {
+<span class="fc" id="L65">    return available;</span>
+  }
+
+  /**
+   * Sets whether the application is currently available.
+   *
+   * @param available whether the application is available
+   */
+  public void setAvailable(Boolean available) {
+<span class="fc" id="L74">    this.available = available;</span>
+<span class="fc" id="L75">  }</span>
+
+  /**
+   * Gets the Kubernetes namespace of the underlying resource.
+   *
+   * @return the namespace
+   */
+  public String getNamespace() {
+<span class="fc" id="L83">    return namespace;</span>
+  }
+
+  /**
+   * Sets the Kubernetes namespace of the underlying resource.
+   *
+   * @param namespace the namespace to set
+   */
+  public void setNamespace(String namespace) {
+<span class="fc" id="L92">    this.namespace = namespace;</span>
+<span class="fc" id="L93">  }</span>
+
+  /**
+   * Gets the Kubernetes resource name (metadata.name) of the underlying object.
+   *
+   * @return the resource name
+   */
+  public String getResourceName() {
+<span class="fc" id="L101">    return resourceName;</span>
+  }
+
+  /**
+   * Sets the Kubernetes resource name (metadata.name) of the underlying object.
+   *
+   * @param resourceName the resource name to set
+   */
+  public void setResourceName(String resourceName) {
+<span class="fc" id="L110">    this.resourceName = resourceName;</span>
+<span class="fc" id="L111">  }</span>
+
+  /**
+   * Gets whether the resource has owner references.
+   *
+   * @return true if the resource has owner references, false otherwise
+   */
+  public Boolean getHasOwnerReferences() {
+<span class="fc" id="L119">    return hasOwnerReferences;</span>
+  }
+
+  /**
+   * Sets whether the resource has owner references.
+   *
+   * @param hasOwnerReferences true if the resource has owner references
+   */
+  public void setHasOwnerReferences(Boolean hasOwnerReferences) {
+<span class="fc" id="L128">    this.hasOwnerReferences = hasOwnerReferences;</span>
+<span class="fc" id="L129">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

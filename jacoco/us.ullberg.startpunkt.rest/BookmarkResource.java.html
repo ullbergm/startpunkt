@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.rest</a> &gt; <span class="el_source">BookmarkResource.java</span></div><h1>BookmarkResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.rest;
 
 import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheManager;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.NonBlocking;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -19,9 +27,13 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
+import us.ullberg.startpunkt.service.BookmarkManagementService;
 import us.ullberg.startpunkt.service.BookmarkService;
 
 /**
@@ -33,37 +45,56 @@ import us.ullberg.startpunkt.service.BookmarkService;
 @Produces(MediaType.APPLICATION_JSON)
 public class BookmarkResource {
   // Inject the BookmarkService to manage bookmark-related operations
-  BookmarkService bookmarkService;
+  private final BookmarkService bookmarkService;
+
+  // Inject the BookmarkManagementService for CRUD operations
+  private final BookmarkManagementService bookmarkManagementService;
+
+  // Inject the event broadcaster for WebSocket notifications
+  private final EventBroadcaster eventBroadcaster;
+
+  // Inject the cache manager for manual cache invalidation
+  private final CacheManager cacheManager;
 
   // Configuration property to enable or disable Hajimari bookmarks
-<span class="fc" id="L39">  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;)</span>
+<span class="fc" id="L60">  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;)</span>
   private boolean hajimariEnabled = true;
 
   /**
-   * Constructs the BookmarkResource with the given BookmarkService.
+   * Constructs the BookmarkResource with the given services.
    *
    * @param bookmarkService service to manage bookmark operations
+   * @param bookmarkManagementService service for CRUD operations on bookmarks
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
    */
-<span class="fc" id="L47">  public BookmarkResource(BookmarkService bookmarkService) {</span>
-<span class="fc" id="L48">    this.bookmarkService = bookmarkService;</span>
-<span class="fc" id="L49">  }</span>
+  public BookmarkResource(
+      BookmarkService bookmarkService,
+      BookmarkManagementService bookmarkManagementService,
+      EventBroadcaster eventBroadcaster,
+<span class="fc" id="L75">      CacheManager cacheManager) {</span>
+<span class="fc" id="L76">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L77">    this.bookmarkManagementService = bookmarkManagementService;</span>
+<span class="fc" id="L78">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="fc" id="L79">    this.cacheManager = cacheManager;</span>
+<span class="fc" id="L80">  }</span>
 
   /**
    * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
    * alphabetically.
    *
-   * @return sorted list of BookmarkSpec objects
+   * @return sorted list of BookmarkResponse objects
    */
-  private ArrayList&lt;BookmarkSpec&gt; retrieveBookmarks() {
-<span class="fc" id="L58">    var bookmarks = new ArrayList&lt;BookmarkSpec&gt;();</span>
-<span class="fc" id="L59">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
+  private ArrayList&lt;BookmarkResponse&gt; retrieveBookmarks() {
+<span class="fc" id="L89">    var bookmarks = new ArrayList&lt;BookmarkResponse&gt;();</span>
+<span class="fc" id="L90">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
 
-<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="fc" id="L62">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L93">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
     }
 
-<span class="fc" id="L65">    Collections.sort(bookmarks);</span>
-<span class="fc" id="L66">    return bookmarks;</span>
+<span class="fc" id="L96">    Collections.sort(bookmarks);</span>
+<span class="fc" id="L97">    return bookmarks;</span>
   }
 
   /**
@@ -85,17 +116,222 @@ public class BookmarkResource {
   @CacheResult(cacheName = &quot;getBookmarks&quot;)
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-<span class="fc" id="L88">    List&lt;BookmarkSpec&gt; bookmarklist = retrieveBookmarks();</span>
+<span class="fc" id="L119">    List&lt;BookmarkResponse&gt; bookmarklist = retrieveBookmarks();</span>
 
     // Create a list to store bookmark groups
-<span class="fc" id="L91">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarklist);</span>
+<span class="fc" id="L122">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarklist);</span>
 
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
-<span class="nc" id="L94">      return Response.status(404, &quot;No bookmarks found&quot;).build();</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">    if (groups.isEmpty()) {</span>
+<span class="nc" id="L125">      return Response.status(404, &quot;No bookmarks found&quot;).build();</span>
     }
 
     // Return the list of bookmark groups
-<span class="fc" id="L98">    return Response.ok(new BookmarkGroupList(groups)).build();</span>
+<span class="fc" id="L129">    return Response.ok(new BookmarkGroupList(groups)).build();</span>
+  }
+
+  /**
+   * POST endpoint to create a new Bookmark custom resource.
+   *
+   * @param namespace namespace to create the bookmark in
+   * @param name name for the bookmark resource
+   * @param spec bookmark specification
+   * @return HTTP 201 with created bookmark or 400/500 on error
+   */
+  @POST
+  @Path(&quot;/manage&quot;)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(summary = &quot;Create a new bookmark&quot;)
+  @APIResponse(
+      responseCode = &quot;201&quot;,
+      description = &quot;Bookmark created&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Bookmark.class)))
+  @APIResponse(responseCode = &quot;400&quot;, description = &quot;Invalid input&quot;)
+  @APIResponse(responseCode = &quot;500&quot;, description = &quot;Server error&quot;)
+  @Timed(value = &quot;startpunkt.api.createbookmark&quot;, description = &quot;Create a bookmark&quot;)
+  @CacheInvalidate(cacheName = &quot;getBookmarks&quot;)
+  public Response createBookmark(
+      @QueryParam(&quot;namespace&quot;) String namespace,
+      @QueryParam(&quot;name&quot;) String name,
+      BookmarkSpec spec) {
+    try {
+<span class="nc bnc" id="L160" title="All 4 branches missed.">      if (namespace == null || namespace.isEmpty()) {</span>
+<span class="nc" id="L161">        return Response.status(400, &quot;Namespace is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L163" title="All 4 branches missed.">      if (name == null || name.isEmpty()) {</span>
+<span class="nc" id="L164">        return Response.status(400, &quot;Name is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L166" title="All 2 branches missed.">      if (spec == null) {</span>
+<span class="nc" id="L167">        return Response.status(400, &quot;Bookmark spec is required&quot;).build();</span>
+      }
+
+<span class="nc" id="L170">      Bookmark created = bookmarkManagementService.createBookmark(namespace, name, spec);</span>
+
+      // Manually invalidate cache synchronously before broadcasting
+<span class="nc" id="L173">      Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">      if (cache != null) {</span>
+<span class="nc" id="L175">        cache.invalidateAll().await().indefinitely();</span>
+      }
+
+      // Broadcast event to connected clients after cache is invalidated
+<span class="nc" id="L179">      eventBroadcaster.broadcastBookmarkAdded(created);</span>
+
+<span class="nc" id="L181">      return Response.status(201).entity(created).build();</span>
+<span class="nc" id="L182">    } catch (Exception e) {</span>
+<span class="nc" id="L183">      Log.error(&quot;Error creating bookmark&quot;, e);</span>
+<span class="nc" id="L184">      return Response.status(500, &quot;Error creating bookmark: &quot; + e.getMessage()).build();</span>
+    }
+  }
+
+  /**
+   * PUT endpoint to update an existing Bookmark custom resource.
+   *
+   * @param namespace namespace of the bookmark
+   * @param name name of the bookmark resource
+   * @param spec updated bookmark specification
+   * @return HTTP 200 with updated bookmark or 400/404/500 on error
+   */
+  @PUT
+  @Path(&quot;/manage&quot;)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Operation(summary = &quot;Update an existing bookmark&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Bookmark updated&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Bookmark.class)))
+  @APIResponse(responseCode = &quot;400&quot;, description = &quot;Invalid input&quot;)
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;Bookmark not found&quot;)
+  @APIResponse(responseCode = &quot;500&quot;, description = &quot;Server error&quot;)
+  @Timed(value = &quot;startpunkt.api.updatebookmark&quot;, description = &quot;Update a bookmark&quot;)
+  @CacheInvalidate(cacheName = &quot;getBookmarks&quot;)
+  public Response updateBookmark(
+      @QueryParam(&quot;namespace&quot;) String namespace,
+      @QueryParam(&quot;name&quot;) String name,
+      BookmarkSpec spec) {
+    try {
+<span class="nc bnc" id="L217" title="All 4 branches missed.">      if (namespace == null || namespace.isEmpty()) {</span>
+<span class="nc" id="L218">        return Response.status(400, &quot;Namespace is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L220" title="All 4 branches missed.">      if (name == null || name.isEmpty()) {</span>
+<span class="nc" id="L221">        return Response.status(400, &quot;Name is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L223" title="All 2 branches missed.">      if (spec == null) {</span>
+<span class="nc" id="L224">        return Response.status(400, &quot;Bookmark spec is required&quot;).build();</span>
+      }
+
+<span class="nc" id="L227">      Bookmark updated = bookmarkManagementService.updateBookmark(namespace, name, spec);</span>
+
+      // Manually invalidate cache synchronously before broadcasting
+<span class="nc" id="L230">      Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">      if (cache != null) {</span>
+<span class="nc" id="L232">        cache.invalidateAll().await().indefinitely();</span>
+      }
+
+      // Broadcast event to connected clients after cache is invalidated
+<span class="nc" id="L236">      eventBroadcaster.broadcastBookmarkUpdated(updated);</span>
+
+<span class="nc" id="L238">      return Response.ok(updated).build();</span>
+<span class="nc" id="L239">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L240">      return Response.status(404, e.getMessage()).build();</span>
+<span class="nc" id="L241">    } catch (Exception e) {</span>
+<span class="nc" id="L242">      Log.error(&quot;Error updating bookmark&quot;, e);</span>
+<span class="nc" id="L243">      return Response.status(500, &quot;Error updating bookmark: &quot; + e.getMessage()).build();</span>
+    }
+  }
+
+  /**
+   * DELETE endpoint to delete a Bookmark custom resource.
+   *
+   * @param namespace namespace of the bookmark
+   * @param name name of the bookmark resource
+   * @return HTTP 204 if deleted, 404 if not found, 500 on error
+   */
+  @DELETE
+  @Path(&quot;/manage&quot;)
+  @Operation(summary = &quot;Delete a bookmark&quot;)
+  @APIResponse(responseCode = &quot;204&quot;, description = &quot;Bookmark deleted&quot;)
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;Bookmark not found&quot;)
+  @APIResponse(responseCode = &quot;500&quot;, description = &quot;Server error&quot;)
+  @Timed(value = &quot;startpunkt.api.deletebookmark&quot;, description = &quot;Delete a bookmark&quot;)
+  @CacheInvalidate(cacheName = &quot;getBookmarks&quot;)
+  public Response deleteBookmark(
+      @QueryParam(&quot;namespace&quot;) String namespace, @QueryParam(&quot;name&quot;) String name) {
+    try {
+<span class="nc bnc" id="L265" title="All 4 branches missed.">      if (namespace == null || namespace.isEmpty()) {</span>
+<span class="nc" id="L266">        return Response.status(400, &quot;Namespace is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L268" title="All 4 branches missed.">      if (name == null || name.isEmpty()) {</span>
+<span class="nc" id="L269">        return Response.status(400, &quot;Name is required&quot;).build();</span>
+      }
+
+<span class="nc" id="L272">      boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">      if (deleted) {</span>
+        // Manually invalidate cache synchronously before broadcasting
+<span class="nc" id="L275">        Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (cache != null) {</span>
+<span class="nc" id="L277">          cache.invalidateAll().await().indefinitely();</span>
+        }
+
+        // Broadcast event to connected clients after cache is invalidated
+<span class="nc" id="L281">        var deletedData = new java.util.HashMap&lt;String, String&gt;();</span>
+<span class="nc" id="L282">        deletedData.put(&quot;namespace&quot;, namespace);</span>
+<span class="nc" id="L283">        deletedData.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L284">        eventBroadcaster.broadcastBookmarkRemoved(deletedData);</span>
+
+<span class="nc" id="L286">        return Response.status(204).build();</span>
+      } else {
+<span class="nc" id="L288">        return Response.status(404, &quot;Bookmark not found&quot;).build();</span>
+      }
+<span class="nc" id="L290">    } catch (Exception e) {</span>
+<span class="nc" id="L291">      Log.error(&quot;Error deleting bookmark&quot;, e);</span>
+<span class="nc" id="L292">      return Response.status(500, &quot;Error deleting bookmark: &quot; + e.getMessage()).build();</span>
+    }
+  }
+
+  /**
+   * GET endpoint to retrieve a single Bookmark custom resource with ownership info.
+   *
+   * @param namespace namespace of the bookmark
+   * @param name name of the bookmark resource
+   * @return HTTP 200 with bookmark and ownership info or 404 if not found
+   */
+  @GET
+  @Path(&quot;/manage&quot;)
+  @Operation(summary = &quot;Get a bookmark resource with ownership info&quot;)
+  @APIResponse(
+      responseCode = &quot;200&quot;,
+      description = &quot;Bookmark retrieved&quot;,
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = Bookmark.class)))
+  @APIResponse(responseCode = &quot;404&quot;, description = &quot;Bookmark not found&quot;)
+  @Timed(value = &quot;startpunkt.api.getbookmarkresource&quot;, description = &quot;Get bookmark resource&quot;)
+  public Response getBookmarkResource(
+      @QueryParam(&quot;namespace&quot;) String namespace, @QueryParam(&quot;name&quot;) String name) {
+    try {
+<span class="nc bnc" id="L318" title="All 4 branches missed.">      if (namespace == null || namespace.isEmpty()) {</span>
+<span class="nc" id="L319">        return Response.status(400, &quot;Namespace is required&quot;).build();</span>
+      }
+<span class="nc bnc" id="L321" title="All 4 branches missed.">      if (name == null || name.isEmpty()) {</span>
+<span class="nc" id="L322">        return Response.status(400, &quot;Name is required&quot;).build();</span>
+      }
+
+<span class="nc" id="L325">      Bookmark bookmark = bookmarkManagementService.getBookmark(namespace, name);</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">      if (bookmark == null) {</span>
+<span class="nc" id="L327">        return Response.status(404, &quot;Bookmark not found&quot;).build();</span>
+      }
+
+<span class="nc" id="L330">      return Response.ok(bookmark).build();</span>
+<span class="nc" id="L331">    } catch (Exception e) {</span>
+<span class="nc" id="L332">      Log.error(&quot;Error getting bookmark&quot;, e);</span>
+<span class="nc" id="L333">      return Response.status(500, &quot;Error getting bookmark: &quot; + e.getMessage()).build();</span>
+    }
   }
 
   /**
@@ -111,8 +347,8 @@ public class BookmarkResource {
   @APIResponse(responseCode = &quot;200&quot;, description = &quot;Ping&quot;)
   @NonBlocking
   public String ping() {
-<span class="fc" id="L114">    Log.debug(&quot;Ping Bookmark Resource&quot;);</span>
-<span class="fc" id="L115">    return &quot;Pong from Bookmark Resource&quot;;</span>
+<span class="fc" id="L350">    Log.debug(&quot;Ping Bookmark Resource&quot;);</span>
+<span class="fc" id="L351">    return &quot;Pong from Bookmark Resource&quot;;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">ApplicationService.java</span></div><h1>ApplicationService.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
+import java.util.Optional;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+
+/**
+ * Service class for managing Application custom resources in Kubernetes. Provides CRUD operations
+ * for Application CRDs.
+ */
+@ApplicationScoped
+public class ApplicationService {
+
+  private final KubernetesClient kubernetesClient;
+
+  /**
+   * Constructor with injected Kubernetes client.
+   *
+   * @param kubernetesClient the Kubernetes client
+   */
+<span class="fc" id="L27">  public ApplicationService(KubernetesClient kubernetesClient) {</span>
+<span class="fc" id="L28">    this.kubernetesClient = kubernetesClient;</span>
+<span class="fc" id="L29">  }</span>
+
+  /**
+   * Creates a new Application custom resource in the specified namespace.
+   *
+   * @param namespace the namespace to create the application in
+   * @param name the name for the application resource
+   * @param spec the application specification
+   * @return the created Application resource
+   */
+  public Application createApplication(String namespace, String name, ApplicationSpec spec) {
+<span class="fc" id="L40">    Log.debugf(&quot;Creating application %s in namespace %s&quot;, name, namespace);</span>
+
+<span class="fc" id="L42">    Application app = new Application();</span>
+<span class="fc" id="L43">    app.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());</span>
+<span class="fc" id="L44">    app.setSpec(spec);</span>
+
+<span class="fc" id="L46">    Application created =</span>
+<span class="fc" id="L47">        kubernetesClient.resources(Application.class).inNamespace(namespace).resource(app).create();</span>
+
+<span class="fc" id="L49">    Log.infof(&quot;Created application %s in namespace %s&quot;, name, namespace);</span>
+<span class="fc" id="L50">    return created;</span>
+  }
+
+  /**
+   * Updates an existing Application custom resource.
+   *
+   * @param namespace the namespace of the application
+   * @param name the name of the application resource
+   * @param spec the updated application specification
+   * @return the updated Application resource
+   */
+  public Application updateApplication(String namespace, String name, ApplicationSpec spec) {
+<span class="fc" id="L62">    Log.debugf(&quot;Updating application %s in namespace %s&quot;, name, namespace);</span>
+
+<span class="fc" id="L64">    Application app =</span>
+<span class="fc" id="L65">        kubernetesClient.resources(Application.class).inNamespace(namespace).withName(name).get();</span>
+
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    if (app == null) {</span>
+<span class="fc" id="L68">      throw new IllegalArgumentException(</span>
+          &quot;Application not found: &quot; + name + &quot; in namespace &quot; + namespace);
+    }
+
+<span class="fc" id="L72">    app.setSpec(spec);</span>
+
+<span class="fc" id="L74">    Application updated =</span>
+<span class="fc" id="L75">        kubernetesClient.resources(Application.class).inNamespace(namespace).resource(app).update();</span>
+
+<span class="fc" id="L77">    Log.infof(&quot;Updated application %s in namespace %s&quot;, name, namespace);</span>
+<span class="fc" id="L78">    return updated;</span>
+  }
+
+  /**
+   * Deletes an Application custom resource.
+   *
+   * @param namespace the namespace of the application
+   * @param name the name of the application resource
+   * @return true if deleted successfully
+   */
+  public boolean deleteApplication(String namespace, String name) {
+<span class="fc" id="L89">    Log.debugf(&quot;Deleting application %s in namespace %s&quot;, name, namespace);</span>
+
+<span class="fc" id="L91">    List&lt;io.fabric8.kubernetes.api.model.StatusDetails&gt; deleted =</span>
+        kubernetesClient
+<span class="fc" id="L93">            .resources(Application.class)</span>
+<span class="fc" id="L94">            .inNamespace(namespace)</span>
+<span class="fc" id="L95">            .withName(name)</span>
+<span class="fc" id="L96">            .delete();</span>
+
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">    boolean success = deleted != null &amp;&amp; !deleted.isEmpty();</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (success) {</span>
+<span class="fc" id="L100">      Log.infof(&quot;Deleted application %s in namespace %s&quot;, name, namespace);</span>
+    } else {
+<span class="fc" id="L102">      Log.warnf(&quot;Application not found or already deleted: %s in namespace %s&quot;, name, namespace);</span>
+    }
+<span class="fc" id="L104">    return success;</span>
+  }
+
+  /**
+   * Gets an Application custom resource.
+   *
+   * @param namespace the namespace of the application
+   * @param name the name of the application resource
+   * @return the Application resource or null if not found
+   */
+  public Application getApplication(String namespace, String name) {
+<span class="fc" id="L115">    return kubernetesClient</span>
+<span class="fc" id="L116">        .resources(Application.class)</span>
+<span class="fc" id="L117">        .inNamespace(namespace)</span>
+<span class="fc" id="L118">        .withName(name)</span>
+<span class="fc" id="L119">        .get();</span>
+  }
+
+  /**
+   * Checks if an Application is owned by another resource (read-only).
+   *
+   * @param application the application to check
+   * @return true if the application has owner references
+   */
+  public boolean isReadOnly(Application application) {
+<span class="pc bpc" id="L129" title="2 of 4 branches missed.">    if (application == null || application.getMetadata() == null) {</span>
+<span class="nc" id="L130">      return false;</span>
+    }
+<span class="fc" id="L132">    List&lt;OwnerReference&gt; owners = application.getMetadata().getOwnerReferences();</span>
+<span class="pc bpc" id="L133" title="1 of 4 branches missed.">    return owners != null &amp;&amp; !owners.isEmpty();</span>
+  }
+
+  /**
+   * Gets the first owner reference for an application.
+   *
+   * @param application the application to check
+   * @return Optional containing the first owner reference if present
+   */
+  public Optional&lt;OwnerReference&gt; getOwner(Application application) {
+<span class="pc bpc" id="L143" title="2 of 4 branches missed.">    if (application == null || application.getMetadata() == null) {</span>
+<span class="nc" id="L144">      return Optional.empty();</span>
+    }
+<span class="fc" id="L146">    List&lt;OwnerReference&gt; owners = application.getMetadata().getOwnerReferences();</span>
+<span class="pc bpc" id="L147" title="1 of 4 branches missed.">    if (owners != null &amp;&amp; !owners.isEmpty()) {</span>
+<span class="fc" id="L148">      return Optional.of(owners.get(0));</span>
+    }
+<span class="fc" id="L150">    return Optional.empty();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

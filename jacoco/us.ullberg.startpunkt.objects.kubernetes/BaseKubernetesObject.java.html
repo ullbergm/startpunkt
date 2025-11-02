@@ -134,24 +134,121 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   }
 
   /**
+   * Retrieves application specifications with metadata by mapping Kubernetes generic resources.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @return list of ApplicationResponse instances with metadata populated
+   */
+  public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
+<span class="fc" id="L146">    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()</span>
+<span class="fc" id="L147">        .map(this::mapToApplicationSpecWithMetadata)</span>
+<span class="fc" id="L148">        .toList();</span>
+  }
+
+  /**
+   * Maps a GenericKubernetesResource to an ApplicationResponse instance with metadata.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the ApplicationResponse with metadata populated
+   */
+  protected us.ullberg.startpunkt.objects.ApplicationResponse mapToApplicationSpecWithMetadata(
+      GenericKubernetesResource item) {
+<span class="fc" id="L159">    ApplicationSpec spec = mapToApplicationSpec(item);</span>
+<span class="fc" id="L160">    us.ullberg.startpunkt.objects.ApplicationResponse withMetadata =</span>
+        new us.ullberg.startpunkt.objects.ApplicationResponse(spec);
+
+    // Populate metadata fields
+<span class="fc" id="L164">    withMetadata.setNamespace(getResourceNamespace(item));</span>
+<span class="fc" id="L165">    withMetadata.setResourceName(getResourceMetadataName(item));</span>
+<span class="fc" id="L166">    withMetadata.setHasOwnerReferences(hasOwnerReferences(item));</span>
+
+<span class="fc" id="L168">    return withMetadata;</span>
+  }
+
+  /**
    * Maps a GenericKubernetesResource to an ApplicationSpec instance.
    *
    * @param item the Kubernetes generic resource
    * @return the ApplicationSpec mapped from the resource
    */
   protected ApplicationSpec mapToApplicationSpec(GenericKubernetesResource item) {
-<span class="fc" id="L143">    return new ApplicationSpec(</span>
-<span class="fc" id="L144">        getAppName(item),</span>
-<span class="fc" id="L145">        getAppGroup(item),</span>
-<span class="fc" id="L146">        getAppIcon(item),</span>
-<span class="fc" id="L147">        getAppIconColor(item),</span>
-<span class="fc" id="L148">        getAppUrl(item),</span>
-<span class="fc" id="L149">        getAppInfo(item),</span>
-<span class="fc" id="L150">        getAppTargetBlank(item),</span>
-<span class="fc" id="L151">        getAppLocation(item),</span>
-<span class="fc" id="L152">        getAppEnabled(item),</span>
-<span class="fc" id="L153">        getAppRootPath(item),</span>
-<span class="fc" id="L154">        getAppTags(item));</span>
+<span class="fc" id="L178">    ApplicationSpec spec =</span>
+        new ApplicationSpec(
+<span class="fc" id="L180">            getAppName(item),</span>
+<span class="fc" id="L181">            getAppGroup(item),</span>
+<span class="fc" id="L182">            getAppIcon(item),</span>
+<span class="fc" id="L183">            getAppIconColor(item),</span>
+<span class="fc" id="L184">            getAppUrl(item),</span>
+<span class="fc" id="L185">            getAppInfo(item),</span>
+<span class="fc" id="L186">            getAppTargetBlank(item),</span>
+<span class="fc" id="L187">            getAppLocation(item),</span>
+<span class="fc" id="L188">            getAppEnabled(item),</span>
+<span class="fc" id="L189">            getAppRootPath(item),</span>
+<span class="fc" id="L190">            getAppTags(item));</span>
+
+    // Note: Metadata fields (namespace, resourceName, hasOwnerReferences) are set
+    // by ApplicationResource when wrapping in ApplicationResponse
+<span class="fc" id="L194">    return spec;</span>
+  }
+
+  /**
+   * Checks whether a Kubernetes resource has owner references or is managed by ArgoCD.
+   *
+   * @param item the Kubernetes generic resource
+   * @return true if the resource has owner references or is managed by ArgoCD, false otherwise
+   */
+  protected boolean hasOwnerReferences(GenericKubernetesResource item) {
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc" id="L205">      return false;</span>
+    }
+
+    // Check for owner references
+<span class="fc" id="L209">    var ownerRefs = item.getMetadata().getOwnerReferences();</span>
+<span class="pc bpc" id="L210" title="2 of 4 branches missed.">    if (ownerRefs != null &amp;&amp; !ownerRefs.isEmpty()) {</span>
+<span class="nc" id="L211">      return true;</span>
+    }
+
+    // Check for ArgoCD management in managed fields
+<span class="fc" id="L215">    var managedFields = item.getMetadata().getManagedFields();</span>
+<span class="pc bpc" id="L216" title="2 of 4 branches missed.">    if (managedFields != null &amp;&amp; !managedFields.isEmpty()) {</span>
+<span class="nc" id="L217">      return managedFields.stream()</span>
+<span class="nc" id="L218">          .anyMatch(</span>
+              field -&gt; {
+<span class="nc" id="L220">                var manager = field.getManager();</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">                return manager != null &amp;&amp; manager.contains(&quot;argocd&quot;);</span>
+              });
+    }
+
+<span class="fc" id="L225">    return false;</span>
+  }
+
+  /**
+   * Gets the namespace of a Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the namespace, or null if metadata is not present
+   */
+  protected String getResourceNamespace(GenericKubernetesResource item) {
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc" id="L236">      return null;</span>
+    }
+<span class="fc" id="L238">    return item.getMetadata().getNamespace();</span>
+  }
+
+  /**
+   * Gets the metadata name of a Kubernetes resource.
+   *
+   * @param item the Kubernetes generic resource
+   * @return the resource name (metadata.name), or null if metadata is not present
+   */
+  protected String getResourceMetadataName(GenericKubernetesResource item) {
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc" id="L249">      return null;</span>
+    }
+<span class="fc" id="L251">    return item.getMetadata().getName();</span>
   }
 
   /**
@@ -161,10 +258,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return map of annotations or null if none present
    */
   protected Map&lt;String, String&gt; getAnnotations(GenericKubernetesResource item) {
-<span class="pc bpc" id="L164" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
-<span class="nc" id="L165">      return null;</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc" id="L262">      return null;</span>
     }
-<span class="fc" id="L167">    return item.getMetadata().getAnnotations();</span>
+<span class="fc" id="L264">    return item.getMetadata().getAnnotations();</span>
   }
 
   /**
@@ -175,11 +272,11 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   @SuppressWarnings(&quot;unchecked&quot;)
   protected Map&lt;String, Object&gt; getSpec(GenericKubernetesResource item) {
-<span class="fc" id="L178">    Map&lt;String, Object&gt; props = getProps(item);</span>
-<span class="pc bpc" id="L179" title="1 of 2 branches missed.">    if (props == null) {</span>
-<span class="nc" id="L180">      return Map.of();</span>
+<span class="fc" id="L275">    Map&lt;String, Object&gt; props = getProps(item);</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">    if (props == null) {</span>
+<span class="nc" id="L277">      return Map.of();</span>
     }
-<span class="fc" id="L182">    return (Map&lt;String, Object&gt;) props.get(&quot;spec&quot;);</span>
+<span class="fc" id="L279">    return (Map&lt;String, Object&gt;) props.get(&quot;spec&quot;);</span>
   }
 
   /**
@@ -189,7 +286,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return map of additional properties or null if none present
    */
   protected Map&lt;String, Object&gt; getProps(GenericKubernetesResource item) {
-<span class="fc" id="L192">    return item.getAdditionalProperties();</span>
+<span class="fc" id="L289">    return item.getAdditionalProperties();</span>
   }
 
   /**
@@ -199,7 +296,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return application name
    */
   protected String getAppName(GenericKubernetesResource item) {
-<span class="fc" id="L202">    return item.getMetadata().getName().toLowerCase();</span>
+<span class="fc" id="L299">    return item.getMetadata().getName().toLowerCase();</span>
   }
 
   /**
@@ -209,7 +306,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return application group
    */
   protected String getAppGroup(GenericKubernetesResource item) {
-<span class="fc" id="L212">    return item.getMetadata().getNamespace().toLowerCase();</span>
+<span class="fc" id="L309">    return item.getMetadata().getNamespace().toLowerCase();</span>
   }
 
   /**
@@ -219,7 +316,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL string or null if not provided
    */
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L222">    return null;</span>
+<span class="fc" id="L319">    return null;</span>
   }
 
   /**
@@ -229,7 +326,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return icon string or null if not provided
    */
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="fc" id="L232">    return null;</span>
+<span class="fc" id="L329">    return null;</span>
   }
 
   /**
@@ -239,7 +336,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return icon color string or null if not provided
    */
   protected String getAppIconColor(GenericKubernetesResource item) {
-<span class="fc" id="L242">    return null;</span>
+<span class="fc" id="L339">    return null;</span>
   }
 
   /**
@@ -249,7 +346,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return info string or null if not provided
    */
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="fc" id="L252">    return null;</span>
+<span class="fc" id="L349">    return null;</span>
   }
 
   /**
@@ -260,7 +357,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   @Nullable
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="fc" id="L263">    return false;</span>
+<span class="fc" id="L360">    return false;</span>
   }
 
   /**
@@ -270,7 +367,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return integer location, default is 1000
    */
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="fc" id="L273">    return 1000;</span>
+<span class="fc" id="L370">    return 1000;</span>
   }
 
   /**
@@ -281,7 +378,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   @Nullable
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="fc" id="L284">    return false;</span>
+<span class="fc" id="L381">    return false;</span>
   }
 
   /**
@@ -291,7 +388,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return protocol string or null if not specified
    */
   protected String getAppProtocol(GenericKubernetesResource item) {
-<span class="fc" id="L294">    return null;</span>
+<span class="fc" id="L391">    return null;</span>
   }
 
   /**
@@ -302,11 +399,11 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return comma-separated tags string or null if not set
    */
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L305">    var annotations = getAnnotations(item);</span>
-<span class="pc bpc" id="L306" title="1 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
-<span class="fc" id="L307">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+<span class="fc" id="L402">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L403" title="1 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="fc" id="L404">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
     }
-<span class="fc" id="L309">    return null;</span>
+<span class="fc" id="L406">    return null;</span>
   }
 
   /**
@@ -319,8 +416,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected String getOptionalSpecString(
       GenericKubernetesResource item, String key, String fallback) {
-<span class="fc" id="L322">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L323" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key) ? spec.get(key).toString() : fallback;</span>
+<span class="fc" id="L419">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L420" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key) ? spec.get(key).toString() : fallback;</span>
   }
 
   /**
@@ -333,10 +430,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected Boolean getOptionalSpecBoolean(
       GenericKubernetesResource item, String key, Boolean fallback) {
-<span class="fc" id="L336">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L337" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
-<span class="fc" id="L338">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
-<span class="fc" id="L339">        : fallback;</span>
+<span class="fc" id="L433">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L434" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L435">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
+<span class="fc" id="L436">        : fallback;</span>
   }
 
   /**
@@ -349,10 +446,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected Integer getOptionalSpecInteger(
       GenericKubernetesResource item, String key, Integer fallback) {
-<span class="fc" id="L352">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L353" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
-<span class="fc" id="L354">        ? Integer.parseInt(spec.get(key).toString())</span>
-<span class="fc" id="L355">        : fallback;</span>
+<span class="fc" id="L449">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L450" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L451">        ? Integer.parseInt(spec.get(key).toString())</span>
+<span class="fc" id="L452">        : fallback;</span>
   }
 
   /**
@@ -362,11 +459,11 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return root path string or null if not found
    */
   protected String getAppRootPath(GenericKubernetesResource item) {
-<span class="fc" id="L365">    var annotations = getAnnotations(item);</span>
-<span class="pc bpc" id="L366" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/rootPath&quot;)) {</span>
-<span class="nc" id="L367">      return annotations.get(&quot;startpunkt.ullberg.us/rootPath&quot;);</span>
+<span class="fc" id="L462">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L463" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/rootPath&quot;)) {</span>
+<span class="nc" id="L464">      return annotations.get(&quot;startpunkt.ullberg.us/rootPath&quot;);</span>
     }
-<span class="fc" id="L369">    return null;</span>
+<span class="fc" id="L466">    return null;</span>
   }
 
   /**
@@ -377,15 +474,15 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL with rootPath appended or original URL if no rootPath
    */
   protected String appendRootPath(String url, GenericKubernetesResource item) {
-<span class="fc bfc" id="L380" title="All 2 branches covered.">    if (url == null) {</span>
-<span class="fc" id="L381">      return null;</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L478">      return null;</span>
     }
 
-<span class="fc" id="L384">    String rootPath = getAppRootPath(item);</span>
-<span class="pc bpc" id="L385" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
-<span class="nc" id="L386">      return appendRootPath(url, rootPath);</span>
+<span class="fc" id="L481">    String rootPath = getAppRootPath(item);</span>
+<span class="pc bpc" id="L482" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
+<span class="nc" id="L483">      return appendRootPath(url, rootPath);</span>
     }
-<span class="fc" id="L388">    return url;</span>
+<span class="fc" id="L485">    return url;</span>
   }
 
   /**
@@ -396,17 +493,17 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL with rootPath appended
    */
   protected String appendRootPath(String url, String rootPath) {
-<span class="nc bnc" id="L399" title="All 2 branches missed.">    if (url == null) {</span>
-<span class="nc" id="L400">      return null;</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">    if (url == null) {</span>
+<span class="nc" id="L497">      return null;</span>
     }
 
-<span class="nc bnc" id="L403" title="All 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
+<span class="nc bnc" id="L500" title="All 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
       // Ensure the URL doesn't end with a slash and rootPath starts with a slash
-<span class="nc bnc" id="L405" title="All 2 branches missed.">      String normalizedUrl = url.endsWith(&quot;/&quot;) ? url.substring(0, url.length() - 1) : url;</span>
-<span class="nc bnc" id="L406" title="All 2 branches missed.">      String normalizedRootPath = rootPath.startsWith(&quot;/&quot;) ? rootPath : &quot;/&quot; + rootPath;</span>
-<span class="nc" id="L407">      return normalizedUrl + normalizedRootPath;</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">      String normalizedUrl = url.endsWith(&quot;/&quot;) ? url.substring(0, url.length() - 1) : url;</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">      String normalizedRootPath = rootPath.startsWith(&quot;/&quot;) ? rootPath : &quot;/&quot; + rootPath;</span>
+<span class="nc" id="L504">      return normalizedUrl + normalizedRootPath;</span>
     }
-<span class="nc" id="L409">    return url;</span>
+<span class="nc" id="L506">    return url;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

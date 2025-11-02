@@ -7,7 +7,6 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
-import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +15,7 @@ import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /**
  * Service class for managing bookmarks retrieved from Kubernetes Custom Resources. Supports
@@ -39,10 +39,10 @@ public class BookmarkService {
   /**
    * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces.
    *
-   * @return list of {@link BookmarkSpec} representing the bookmarks
+   * @return list of {@link BookmarkResponse} representing the bookmarks
    */
   @Timed(value = &quot;startpunkt.kubernetes.bookmarks&quot;, description = &quot;Get a list of bookmarks&quot;)
-  public List&lt;BookmarkSpec&gt; retrieveBookmarks() {
+  public List&lt;BookmarkResponse&gt; retrieveBookmarks() {
 <span class="fc" id="L46">    Log.debug(&quot;Retrieving Startpunkt bookmarks from Kubernetes&quot;);</span>
 <span class="fc" id="L47">    try (KubernetesClient client = new KubernetesClientBuilder().build()) {</span>
 <span class="fc" id="L48">      ResourceDefinitionContext ctx =</span>
@@ -54,7 +54,7 @@ public class BookmarkService {
 <span class="fc" id="L54">              .build();</span>
 
 <span class="fc" id="L56">      GenericKubernetesResourceList list = getResourceList(client, ctx);</span>
-<span class="fc" id="L57">      List&lt;BookmarkSpec&gt; bookmarks = mapResourcesToBookmarks(list);</span>
+<span class="fc" id="L57">      List&lt;BookmarkResponse&gt; bookmarks = mapResourcesToBookmarks(list);</span>
 <span class="fc" id="L58">      Log.debugf(&quot;Retrieved %d Startpunkt bookmarks&quot;, bookmarks.size());</span>
 <span class="fc" id="L59">      return bookmarks;</span>
 <span class="nc" id="L60">    } catch (Exception e) {</span>
@@ -89,12 +89,12 @@ public class BookmarkService {
   }
 
   /**
-   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkSpec} objects.
+   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkResponse} objects.
    *
    * @param list Kubernetes resource list to map
-   * @return list of {@link BookmarkSpec}
+   * @return list of {@link BookmarkResponse}
    */
-  private List&lt;BookmarkSpec&gt; mapResourcesToBookmarks(GenericKubernetesResourceList list) {
+  private List&lt;BookmarkResponse&gt; mapResourcesToBookmarks(GenericKubernetesResourceList list) {
 <span class="fc" id="L98">    return list.getItems().stream()</span>
 <span class="fc" id="L99">        .map(</span>
             item -&gt; {
@@ -120,35 +120,57 @@ public class BookmarkService {
 <span class="fc" id="L120">                location = 1000;</span>
               }
 
-<span class="fc" id="L123">              return new BookmarkSpec(name, group, icon, url, info, targetBlank, location);</span>
+<span class="fc" id="L123">              BookmarkSpec baseSpec =</span>
+                  new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
+<span class="fc" id="L125">              BookmarkResponse withMetadata = new BookmarkResponse(baseSpec);</span>
+
+              // Populate metadata fields
+<span class="fc" id="L128">              withMetadata.setNamespace(item.getMetadata().getNamespace());</span>
+<span class="fc" id="L129">              withMetadata.setResourceName(item.getMetadata().getName());</span>
+
+              // Check if resource has owner references or is managed by ArgoCD
+<span class="fc" id="L132">              boolean hasOwnerRefs =</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                  item.getMetadata().getOwnerReferences() != null</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">                      &amp;&amp; !item.getMetadata().getOwnerReferences().isEmpty();</span>
+<span class="fc" id="L135">              boolean managedByArgocd =</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">                  item.getMetadata().getManagedFields() != null</span>
+<span class="fc" id="L137">                      &amp;&amp; item.getMetadata().getManagedFields().stream()</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">                          .anyMatch(</span>
+                              field -&gt; {
+<span class="nc" id="L140">                                var manager = field.getManager();</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">                                return manager != null &amp;&amp; manager.contains(&quot;argocd&quot;);</span>
+                              });
+<span class="pc bpc" id="L143" title="2 of 4 branches missed.">              withMetadata.setHasOwnerReferences(hasOwnerRefs || managedByArgocd);</span>
+
+<span class="fc" id="L145">              return withMetadata;</span>
             })
-<span class="fc" id="L125">        .toList();</span>
+<span class="fc" id="L147">        .toList();</span>
   }
 
   /**
    * Retrieves bookmarks from the &quot;hajimari.io&quot; group namespace.
    *
-   * @return list of {@link BookmarkSpec} representing Hajimari bookmarks
+   * @return list of {@link BookmarkResponse} representing Hajimari bookmarks
    */
-  public List&lt;BookmarkSpec&gt; retrieveHajimariBookmarks() {
-<span class="fc" id="L134">    Log.debug(&quot;Retrieving Hajimari bookmarks&quot;);</span>
-<span class="fc" id="L135">    try (KubernetesClient client = new KubernetesClientBuilder().build()) {</span>
-<span class="fc" id="L136">      ResourceDefinitionContext resourceDefinitionContext =</span>
+  public List&lt;BookmarkResponse&gt; retrieveHajimariBookmarks() {
+<span class="fc" id="L156">    Log.debug(&quot;Retrieving Hajimari bookmarks&quot;);</span>
+<span class="fc" id="L157">    try (KubernetesClient client = new KubernetesClientBuilder().build()) {</span>
+<span class="fc" id="L158">      ResourceDefinitionContext resourceDefinitionContext =</span>
           new ResourceDefinitionContext.Builder()
-<span class="fc" id="L138">              .withGroup(&quot;hajimari.io&quot;)</span>
-<span class="fc" id="L139">              .withVersion(&quot;v1alpha1&quot;)</span>
-<span class="fc" id="L140">              .withPlural(&quot;bookmarks&quot;)</span>
-<span class="fc" id="L141">              .withNamespaced(true)</span>
-<span class="fc" id="L142">              .build();</span>
+<span class="fc" id="L160">              .withGroup(&quot;hajimari.io&quot;)</span>
+<span class="fc" id="L161">              .withVersion(&quot;v1alpha1&quot;)</span>
+<span class="fc" id="L162">              .withPlural(&quot;bookmarks&quot;)</span>
+<span class="fc" id="L163">              .withNamespaced(true)</span>
+<span class="fc" id="L164">              .build();</span>
 
-<span class="fc" id="L144">      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);</span>
-<span class="fc" id="L145">      List&lt;BookmarkSpec&gt; bookmarks = mapResourcesToBookmarks(list);</span>
-<span class="fc" id="L146">      Log.debugf(&quot;Retrieved %d Hajimari bookmarks&quot;, bookmarks.size());</span>
+<span class="fc" id="L166">      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);</span>
+<span class="fc" id="L167">      List&lt;BookmarkResponse&gt; bookmarks = mapResourcesToBookmarks(list);</span>
+<span class="fc" id="L168">      Log.debugf(&quot;Retrieved %d Hajimari bookmarks&quot;, bookmarks.size());</span>
 
-<span class="fc" id="L148">      return bookmarks;</span>
-<span class="nc" id="L149">    } catch (Exception e) {</span>
-<span class="nc" id="L150">      Log.error(&quot;Error retrieving hajimari bookmarks&quot;, e);</span>
-<span class="nc" id="L151">      return List.of();</span>
+<span class="fc" id="L170">      return bookmarks;</span>
+<span class="nc" id="L171">    } catch (Exception e) {</span>
+<span class="nc" id="L172">      Log.error(&quot;Error retrieving hajimari bookmarks&quot;, e);</span>
+<span class="nc" id="L173">      return List.of();</span>
     }
   }
 
@@ -158,33 +180,33 @@ public class BookmarkService {
    * @param bookmarklist list of bookmarks to group
    * @return list of {@link BookmarkGroup} containing grouped bookmarks
    */
-  public List&lt;BookmarkGroup&gt; generateBookmarkGroups(List&lt;BookmarkSpec&gt; bookmarklist) {
-<span class="fc" id="L162">    Log.debugf(&quot;Generating bookmark groups from %d bookmarks&quot;, bookmarklist.size());</span>
-<span class="fc" id="L163">    var groups = new LinkedList&lt;BookmarkGroup&gt;();</span>
+  public List&lt;BookmarkGroup&gt; generateBookmarkGroups(List&lt;BookmarkResponse&gt; bookmarklist) {
+<span class="fc" id="L184">    Log.debugf(&quot;Generating bookmark groups from %d bookmarks&quot;, bookmarklist.size());</span>
+<span class="fc" id="L185">    var groups = new LinkedList&lt;BookmarkGroup&gt;();</span>
 
     // Group the bookmarks by their group property
-<span class="fc bfc" id="L166" title="All 2 branches covered.">    for (BookmarkSpec bookmark : bookmarklist) {</span>
+<span class="fc bfc" id="L188" title="All 2 branches covered.">    for (BookmarkResponse bookmark : bookmarklist) {</span>
       // Find the existing group
-<span class="fc" id="L168">      BookmarkGroup group = null;</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">      for (BookmarkGroup g : groups) {</span>
-<span class="fc bfc" id="L170" title="All 2 branches covered.">        if (g.getName().equals(bookmark.getGroup())) {</span>
-<span class="fc" id="L171">          group = g;</span>
-<span class="fc" id="L172">          break;</span>
+<span class="fc" id="L190">      BookmarkGroup group = null;</span>
+<span class="fc bfc" id="L191" title="All 2 branches covered.">      for (BookmarkGroup g : groups) {</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (g.getName().equals(bookmark.getGroup())) {</span>
+<span class="fc" id="L193">          group = g;</span>
+<span class="fc" id="L194">          break;</span>
         }
-<span class="fc" id="L174">      }</span>
+<span class="fc" id="L196">      }</span>
 
       // If the group doesn't exist, create a new one
-<span class="fc bfc" id="L177" title="All 2 branches covered.">      if (group == null) {</span>
-<span class="fc" id="L178">        group = new BookmarkGroup(bookmark.getGroup());</span>
-<span class="fc" id="L179">        groups.add(group);</span>
-<span class="fc" id="L180">        Log.debugf(&quot;Created new bookmark group: %s&quot;, bookmark.getGroup());</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">      if (group == null) {</span>
+<span class="fc" id="L200">        group = new BookmarkGroup(bookmark.getGroup());</span>
+<span class="fc" id="L201">        groups.add(group);</span>
+<span class="fc" id="L202">        Log.debugf(&quot;Created new bookmark group: %s&quot;, bookmark.getGroup());</span>
       }
 
       // Add the bookmark to the group
-<span class="fc" id="L184">      group.addBookmark(bookmark);</span>
-<span class="fc" id="L185">    }</span>
+<span class="fc" id="L206">      group.addBookmark(bookmark);</span>
+<span class="fc" id="L207">    }</span>
 
-<span class="fc" id="L187">    return groups;</span>
+<span class="fc" id="L209">    return groups;</span>
   }
 
   /**
@@ -194,131 +216,13 @@ public class BookmarkService {
    * @return map representing the spec of the resource, or empty map if none present
    */
   private Map&lt;String, Object&gt; getSpec(GenericKubernetesResource item) {
-<span class="fc" id="L197">    Map&lt;String, Object&gt; props = item.getAdditionalProperties();</span>
-<span class="pc bpc" id="L198" title="1 of 2 branches missed.">    if (props == null) {</span>
-<span class="nc" id="L199">      return Map.of();</span>
+<span class="fc" id="L219">    Map&lt;String, Object&gt; props = item.getAdditionalProperties();</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">    if (props == null) {</span>
+<span class="nc" id="L221">      return Map.of();</span>
     }
     @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L202">    Map&lt;String, Object&gt; spec = (Map&lt;String, Object&gt;) props.get(&quot;spec&quot;);</span>
-<span class="pc bpc" id="L203" title="1 of 2 branches missed.">    return spec != null ? spec : Map.of();</span>
-  }
-
-  /**
-   * Gets the URL of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return URL string or null if not present
-   */
-  private String getUrl(GenericKubernetesResource item) {
-<span class="nc" id="L213">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (spec.containsKey(&quot;url&quot;)) {</span>
-<span class="nc" id="L216">      return spec.get(&quot;url&quot;).toString();</span>
-    }
-
-<span class="nc" id="L219">    return null;</span>
-  }
-
-  /**
-   * Gets the icon of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return icon string or null if not present
-   */
-  private String getIcon(GenericKubernetesResource item) {
-<span class="nc" id="L229">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L231" title="All 2 branches missed.">    if (spec.containsKey(&quot;icon&quot;)) {</span>
-<span class="nc" id="L232">      return spec.get(&quot;icon&quot;).toString();</span>
-    }
-
-<span class="nc" id="L235">    return null;</span>
-  }
-
-  /**
-   * Gets the info/description of the bookmark from the Kubernetes resource.
-   *
-   * @param item Kubernetes resource item
-   * @return info string or null if not present
-   */
-  private String getInfo(GenericKubernetesResource item) {
-<span class="nc" id="L245">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L247" title="All 2 branches missed.">    if (spec.containsKey(&quot;info&quot;)) {</span>
-<span class="nc" id="L248">      return spec.get(&quot;info&quot;).toString();</span>
-    }
-
-<span class="nc" id="L251">    return null;</span>
-  }
-
-  /**
-   * Gets the group name of the bookmark from the Kubernetes resource. Falls back to the resource's
-   * namespace if group is not specified.
-   *
-   * @param item Kubernetes resource item
-   * @return group name string in lowercase
-   */
-  private String getGroup(GenericKubernetesResource item) {
-<span class="nc" id="L262">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L264" title="All 2 branches missed.">    return (spec.containsKey(&quot;group&quot;)</span>
-<span class="nc" id="L265">            ? spec.get(&quot;group&quot;).toString()</span>
-<span class="nc" id="L266">            : item.getMetadata().getNamespace())</span>
-<span class="nc" id="L267">        .toLowerCase();</span>
-  }
-
-  /**
-   * Gets the bookmark name from the Kubernetes resource. Falls back to resource metadata name if
-   * not specified.
-   *
-   * @param item Kubernetes resource item
-   * @return bookmark name string in lowercase
-   */
-  private String getBookmarkName(GenericKubernetesResource item) {
-<span class="nc" id="L278">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L280" title="All 2 branches missed.">    if (spec.containsKey(&quot;name&quot;)) {</span>
-<span class="nc" id="L281">      return spec.get(&quot;name&quot;).toString();</span>
-    }
-
-<span class="nc" id="L284">    return item.getMetadata().getName().toLowerCase();</span>
-  }
-
-  /**
-   * Gets whether the bookmark URL should open in a new tab.
-   *
-   * @param item Kubernetes resource item
-   * @return Boolean true/false or null if not specified
-   */
-  @Nullable
-  private Boolean getTargetBlank(GenericKubernetesResource item) {
-<span class="nc" id="L295">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-<span class="nc bnc" id="L297" title="All 2 branches missed.">    if (spec.containsKey(&quot;targetBlank&quot;)) {</span>
-<span class="nc" id="L298">      return Boolean.parseBoolean(spec.get(&quot;targetBlank&quot;).toString());</span>
-    }
-<span class="nc" id="L300">    return null;</span>
-  }
-
-  /**
-   * Gets the location (sorting order) of the bookmark. Treats 0 as 1000 for backwards
-   * compatibility.
-   *
-   * @param item Kubernetes resource item
-   * @return location integer
-   */
-  private int getLocation(GenericKubernetesResource item) {
-<span class="nc" id="L311">    Map&lt;String, Object&gt; spec = getSpec(item);</span>
-
-    var location =
-<span class="nc bnc" id="L314" title="All 2 branches missed.">        spec.containsKey(&quot;location&quot;) ? Integer.parseInt(spec.get(&quot;location&quot;).toString()) : 1000;</span>
-
-    // This is for backwards compatibility with Hajimari, 0 is the same as blank
-<span class="nc bnc" id="L317" title="All 2 branches missed.">    if (location == 0) {</span>
-<span class="nc" id="L318">      return 1000;</span>
-    }
-
-<span class="nc" id="L321">    return location;</span>
+<span class="fc" id="L224">    Map&lt;String, Object&gt; spec = (Map&lt;String, Object&gt;) props.get(&quot;spec&quot;);</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">    return spec != null ? spec : Map.of();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
