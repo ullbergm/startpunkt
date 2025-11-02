@@ -44,6 +44,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  jvm-build-test:
+    runs-on: ubuntu-latest
+    if: github.repository == 'ullbergm/startpunkt'
+    name: jvm-build-test
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '${{ env.JAVA_VERSION }}'
+          cache: maven
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build and test with coverage
+        run: |
+          ./mvnw -B clean verify -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
+
+      - name: Analyze with SonarCloud
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }} \
+            -Dsonar.projectKey=${{ env.SONAR_PROJECTKEY }} \
+            -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+
+      - name: Publish JUnit test results to GitHub
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          check_name: "Test Results - JVM"
+          files: |
+            **/target/surefire-reports/*.xml
+            **/test-results/jest/*.xml
+
   native-build-test:
     runs-on: ubuntu-latest
     if: github.repository == 'ullbergm/startpunkt'
