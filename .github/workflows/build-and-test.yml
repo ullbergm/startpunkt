@@ -44,7 +44,6 @@ concurrency:
 jobs:
   jvm-sonarcloud-test:
     runs-on: ubuntu-latest
-    if: github.repository == 'ullbergm/startpunkt' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: jvm-sonarcloud-test
     steps:
       - uses: actions/checkout@v5
