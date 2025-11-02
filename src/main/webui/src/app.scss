@@ -75,37 +75,63 @@ body {
   /* Make dropdown buttons more touch-friendly */
   .bd-layout-toggle .btn,
   .bd-background-toggle .btn,
-  .bd-mode-toggle .btn {
+  .bd-mode-toggle .btn,
+  .bd-accessibility-toggle .btn {
     min-width: 44px;
     min-height: 44px;
     padding: 0.5rem;
   }
 
-  /* Position fixed buttons for mobile */
+  /* Position and stack fixed buttons for mobile */
   .bd-layout-toggle,
   .bd-background-toggle,
-  .bd-mode-toggle {
+  .bd-mode-toggle,
+  .bd-accessibility-toggle {
     margin-bottom: 0.5rem !important;
     margin-right: 0.5rem !important;
   }
 
-  /* Stack fixed position buttons on mobile */
+  /* Stack buttons vertically on mobile from bottom */
+  .bd-accessibility-toggle {
+    bottom: 0 !important;
+    right: 0 !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .bd-mode-toggle {
+    bottom: 0 !important;
+    right: 0 !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 4rem !important; /* Stack above accessibility */
+  }
+
   .bd-background-toggle {
-    bottom: 0;
-    right: 0;
+    bottom: 0 !important;
+    right: 0 !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 7.5rem !important; /* Stack above mode toggle */
   }
 
   .bd-layout-toggle {
-    bottom: 0;
-    right: 0;
+    bottom: 0 !important;
+    right: 0 !important;
+    margin-right: 0.5rem !important;
+    margin-bottom: 11rem !important; /* Stack above background toggle */
   }
 
-  /* Adjust dropdown menu width on mobile */
+  /* Adjust dropdown menu width and position on mobile */
   .dropdown-menu {
     max-width: 90vw !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%);
+    left: auto !important;
+    right: 0.5rem !important;
+    transform: none !important;
+  }
+
+  /* Ensure dropdowns fit on screen */
+  .dropdown-menu-end {
+    right: 0.5rem !important;
+    left: auto !important;
   }
 }
 
