@@ -1,7 +1,6 @@
 package us.ullberg.startpunkt.graphql;
 
 import io.micrometer.core.annotation.Timed;
-import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;

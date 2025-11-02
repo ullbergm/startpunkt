@@ -13,6 +13,14 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class ApplicationGraphQLResourceTest {
 
+  /**
+   * Helper method to format GraphQL query for REST Assured.
+   * Escapes quotes and removes newlines for JSON body.
+   */
+  private String formatGraphQLQuery(String query) {
+    return "{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}";
+  }
+
   @Test
   void testApplicationGroupsQuery() {
     String query = """
@@ -30,7 +38,7 @@ class ApplicationGraphQLResourceTest {
 
     given()
         .contentType("application/json")
-        .body("{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}")
+        .body(formatGraphQLQuery(query))
         .when()
         .post("/graphql")
         .then()
@@ -54,7 +62,7 @@ class ApplicationGraphQLResourceTest {
 
     given()
         .contentType("application/json")
-        .body("{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}")
+        .body(formatGraphQLQuery(query))
         .when()
         .post("/graphql")
         .then()
@@ -77,7 +85,7 @@ class ApplicationGraphQLResourceTest {
 
     given()
         .contentType("application/json")
-        .body("{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}")
+        .body(formatGraphQLQuery(query))
         .when()
         .post("/graphql")
         .then()
