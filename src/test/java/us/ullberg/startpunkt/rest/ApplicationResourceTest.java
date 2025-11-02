@@ -554,4 +554,626 @@ class ApplicationResourceTest {
           );
     }
   }
+
+  /**
+   * Test class for multiple Kubernetes resource types (Hajimari, Routes, Ingresses, Forecastle)
+   */
+  @QuarkusTest
+  @WithKubernetesTestServer
+  @io.quarkus.test.junit.TestProfile(AllResourceTypesApplicationProfile.class)
+  static class AllResourceTypesApplicationTest {
+
+    @KubernetesTestServer KubernetesServer server;
+    private NamespacedKubernetesClient client;
+
+    @BeforeEach
+    public void before() {
+      client = server.getClient();
+
+      // Create CRD for Startpunkt Application
+      CustomResourceDefinition applicationCrd =
+          CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Application.class).build();
+      server
+          .expect()
+          .post()
+          .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+          .andReturn(HttpURLConnection.HTTP_OK, applicationCrd)
+          .once();
+      CustomResourceDefinition createdApplicationCrd =
+          client.apiextensions().v1().customResourceDefinitions().resource(applicationCrd).create();
+      assertNotNull(createdApplicationCrd);
+
+      // Create mock Hajimari Application resources
+      setupMockHajimariResources();
+
+      // Create mock OpenShift Route resources
+      setupMockRouteResources();
+
+      // Create mock Kubernetes Ingress resources (includes Forecastle annotations)
+      setupMockIngressResources();
+    }
+
+    /** Setup mock Hajimari Application resources */
+    private void setupMockHajimariResources() {
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource hajimariApp =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      hajimariApp.setApiVersion("hajimari.io/v1alpha1");
+      hajimariApp.setKind("Application");
+      hajimariApp.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("grafana-hajimari")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/rootPath", "/dashboards")
+              .build());
+
+      java.util.Map<String, Object> hajimariSpec = new java.util.HashMap<>();
+      hajimariSpec.put("name", "Grafana");
+      hajimariSpec.put("group", "Monitoring");
+      hajimariSpec.put("url", "https://grafana.example.com");
+      hajimariSpec.put("icon", "mdi:chart-line");
+      hajimariSpec.put("info", "Monitoring dashboards");
+      hajimariSpec.put("targetBlank", true);
+      hajimariSpec.put("enabled", true);
+      hajimariSpec.put("location", 100);
+
+      java.util.Map<String, Object> additionalProps = new java.util.HashMap<>();
+      additionalProps.put("spec", hajimariSpec);
+      hajimariApp.setAdditionalProperties(additionalProps);
+
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList hajimariList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      hajimariList.setItems(java.util.List.of(hajimariApp));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/hajimari.io/v1alpha1/applications")
+          .andReturn(HttpURLConnection.HTTP_OK, hajimariList)
+          .always();
+    }
+
+    /** Setup mock OpenShift Route resources */
+    private void setupMockRouteResources() {
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource route =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      route.setApiVersion("route.openshift.io/v1");
+      route.setKind("Route");
+      route.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("prometheus-route")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/enable", "true")
+              .addToAnnotations("startpunkt.ullberg.us/appName", "Prometheus")
+              .addToAnnotations("startpunkt.ullberg.us/group", "Monitoring")
+              .addToAnnotations("startpunkt.ullberg.us/icon", "mdi:database")
+              .addToAnnotations("startpunkt.ullberg.us/info", "Metrics database")
+              .build());
+
+      java.util.Map<String, Object> routeSpec = new java.util.HashMap<>();
+      routeSpec.put("host", "prometheus.example.com");
+      routeSpec.put("path", "/metrics");
+      java.util.Map<String, Object> tls = new java.util.HashMap<>();
+      tls.put("termination", "edge");
+      routeSpec.put("tls", tls);
+
+      java.util.Map<String, Object> additionalProps = new java.util.HashMap<>();
+      additionalProps.put("spec", routeSpec);
+      route.setAdditionalProperties(additionalProps);
+
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList routeList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      routeList.setItems(java.util.List.of(route));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/route.openshift.io/v1/routes")
+          .andReturn(HttpURLConnection.HTTP_OK, routeList)
+          .always();
+    }
+
+    /** Setup mock Kubernetes Ingress resources */
+    private void setupMockIngressResources() {
+      // Create AlertManager Ingress
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource alertmanagerIngress =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      alertmanagerIngress.setApiVersion("networking.k8s.io/v1");
+      alertmanagerIngress.setKind("Ingress");
+      alertmanagerIngress.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("alertmanager-ingress")
+              .withNamespace("default")
+              .addToAnnotations("startpunkt.ullberg.us/enable", "true")
+              .addToAnnotations("startpunkt.ullberg.us/appName", "AlertManager")
+              .addToAnnotations("startpunkt.ullberg.us/group", "Monitoring")
+              .addToAnnotations("startpunkt.ullberg.us/icon", "mdi:bell")
+              .addToAnnotations("startpunkt.ullberg.us/info", "Alert management")
+              .addToAnnotations("startpunkt.ullberg.us/url", "https://alertmanager.example.com")
+              .build());
+
+      java.util.Map<String, Object> alertmanagerSpec = new java.util.HashMap<>();
+      java.util.List<java.util.Map<String, Object>> alertmanagerRules = new java.util.ArrayList<>();
+      java.util.Map<String, Object> alertmanagerRule = new java.util.HashMap<>();
+      alertmanagerRule.put("host", "alertmanager.example.com");
+      alertmanagerRules.add(alertmanagerRule);
+      alertmanagerSpec.put("rules", alertmanagerRules);
+
+      java.util.Map<String, Object> alertmanagerAdditionalProps = new java.util.HashMap<>();
+      alertmanagerAdditionalProps.put("spec", alertmanagerSpec);
+      alertmanagerIngress.setAdditionalProperties(alertmanagerAdditionalProps);
+
+      // Create Kibana Ingress with Forecastle annotations
+      io.fabric8.kubernetes.api.model.GenericKubernetesResource kibanaIngress =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResource();
+      kibanaIngress.setApiVersion("networking.k8s.io/v1");
+      kibanaIngress.setKind("Ingress");
+      kibanaIngress.setMetadata(
+          new ObjectMetaBuilder()
+              .withName("kibana-ingress")
+              .withNamespace("default")
+              .addToAnnotations("forecastle.stakater.com/expose", "true")
+              .addToAnnotations("forecastle.stakater.com/appName", "Kibana")
+              .addToAnnotations("forecastle.stakater.com/group", "Logging")
+              .addToAnnotations("forecastle.stakater.com/icon", "https://example.com/kibana.png")
+              .addToAnnotations("forecastle.stakater.com/url", "https://kibana.example.com")
+              .build());
+
+      java.util.Map<String, Object> kibanaSpec = new java.util.HashMap<>();
+      java.util.List<java.util.Map<String, Object>> kibanaRules = new java.util.ArrayList<>();
+      java.util.Map<String, Object> kibanaRule = new java.util.HashMap<>();
+      kibanaRule.put("host", "kibana.example.com");
+      kibanaRules.add(kibanaRule);
+      kibanaSpec.put("rules", kibanaRules);
+
+      java.util.Map<String, Object> kibanaAdditionalProps = new java.util.HashMap<>();
+      kibanaAdditionalProps.put("spec", kibanaSpec);
+      kibanaIngress.setAdditionalProperties(kibanaAdditionalProps);
+
+      // Combine both ingresses into a single list
+      io.fabric8.kubernetes.api.model.GenericKubernetesResourceList ingressList =
+          new io.fabric8.kubernetes.api.model.GenericKubernetesResourceList();
+      ingressList.setItems(java.util.List.of(alertmanagerIngress, kibanaIngress));
+
+      server
+          .expect()
+          .get()
+          .withPath("/apis/networking.k8s.io/v1/ingresses")
+          .andReturn(HttpURLConnection.HTTP_OK, ingressList)
+          .always();
+    }
+
+    @Test
+    void testRetrieveApplicationsFromMultipleResourceTypes() {
+      // Should retrieve apps from Hajimari, Routes, and Ingresses
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.size()", org.hamcrest.Matchers.greaterThan(0));
+    }
+
+    @Test
+    void testHajimariApplicationIsRetrieved() {
+      // Verify Hajimari application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testRouteApplicationIsRetrieved() {
+      // Verify OpenShift Route application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testIngressApplicationIsRetrieved() {
+      // Verify Ingress application is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testForecastleAnnotationsAreProcessed() {
+      // Verify Forecastle-annotated Ingress is present
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body(
+              "groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }",
+              org.hamcrest.Matchers.notNullValue());
+    }
+
+    // ---- Comprehensive Field Validation Tests ----
+
+    @Test
+    void testHajimariApplicationFields() {
+      // Verify all fields of Hajimari application are correctly populated
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.icon", equalTo("mdi:chart-line"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.info", equalTo("Monitoring dashboards"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank", equalTo(true))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location", equalTo(100))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled", equalTo(true))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.rootPath", equalTo("/dashboards"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url", equalTo("https://grafana.example.com/dashboards"));
+    }
+
+    @Test
+    void testRouteApplicationFields() {
+      // Verify all fields of Route application are correctly populated
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.icon", equalTo("mdi:database"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.info", equalTo("metrics database"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", equalTo("https://prometheus.example.com/metrics"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled", equalTo(true));
+    }
+
+    @Test
+    void testIngressApplicationFields() {
+      // Verify all fields of Ingress application are correctly populated
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon", equalTo("mdi:bell"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.info", equalTo("alert management"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.url", equalTo("https://alertmanager.example.com"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled", equalTo(true));
+    }
+
+    @Test
+    void testForecastleIngressFields() {
+      // Verify all fields of Forecastle-annotated Ingress are correctly populated
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.icon", equalTo("https://example.com/kibana.png"))
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url", equalTo("https://kibana.example.com"))
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled", equalTo(true))
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.location", equalTo(1000));
+    }
+
+    // ---- Grouping and Organization Tests ----
+
+    @Test
+    void testApplicationGrouping() {
+      // Verify applications are correctly grouped
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.size()", equalTo(2))
+          .body("groups.find { it.name == 'monitoring' }.applications.size()", equalTo(3))
+          .body("groups.find { it.name == 'logging' }.applications.size()", equalTo(1));
+    }
+
+    @Test
+    void testApplicationOrdering() {
+      // Verify applications are ordered by location (Grafana=100 should come before others=1000)
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications[0].name", equalTo("grafana"))
+          .body("groups.find { it.name == 'monitoring' }.applications[0].location", equalTo(100));
+    }
+
+    @Test
+    void testGroupNames() {
+      // Verify group names are lowercased correctly
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }", org.hamcrest.Matchers.notNullValue())
+          .body("groups.find { it.name == 'logging' }", org.hamcrest.Matchers.notNullValue());
+    }
+
+    // ---- Protocol and URL Tests ----
+
+    @Test
+    void testHttpsUrlsFromTLS() {
+      // Verify that Route with TLS generates HTTPS URL
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", org.hamcrest.Matchers.startsWith("https://"));
+    }
+
+    @Test
+    void testRootPathAppending() {
+      // Verify rootPath is correctly appended to URL
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.url", org.hamcrest.Matchers.endsWith("/dashboards"));
+    }
+
+    @Test
+    void testRoutePathInUrl() {
+      // Verify Route path is included in URL
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.url", org.hamcrest.Matchers.containsString("/metrics"));
+    }
+
+    // ---- Annotation Style Compatibility Tests ----
+
+    @Test
+    void testStartpunktAnnotations() {
+      // Verify startpunkt.ullberg.us annotations work correctly
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.group", equalTo("monitoring"))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.icon", equalTo("mdi:bell"));
+    }
+
+    @Test
+    void testHajimariAnnotations() {
+      // Verify hajimari.io spec-based configuration works
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.targetBlank", equalTo(true))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.location", equalTo(100));
+    }
+
+    @Test
+    void testForecastleAnnotationCompatibility() {
+      // Verify forecastle.stakater.com annotations work correctly
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.group", equalTo("logging"))
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.url", equalTo("https://kibana.example.com"));
+    }
+
+    // ---- Individual Application Retrieval Tests ----
+
+    @Test
+    void testGetGrafanaByGroupAndName() {
+      // Test retrieving individual Hajimari application
+      given()
+          .when()
+          .get("/api/apps/monitoring/grafana")
+          .then()
+          .statusCode(200)
+          .body("name", equalTo("grafana"))
+          .body("group", equalTo("monitoring"))
+          .body("url", equalTo("https://grafana.example.com/dashboards"))
+          .body("icon", equalTo("mdi:chart-line"));
+    }
+
+    @Test
+    void testGetPrometheusRouteByGroupAndName() {
+      // Test retrieving individual Route application
+      given()
+          .when()
+          .get("/api/apps/monitoring/prometheus")
+          .then()
+          .statusCode(200)
+          .body("name", equalTo("prometheus"))
+          .body("group", equalTo("monitoring"))
+          .body("url", equalTo("https://prometheus.example.com/metrics"));
+    }
+
+    @Test
+    void testGetAlertManagerIngressByGroupAndName() {
+      // Test retrieving individual Ingress application
+      given()
+          .when()
+          .get("/api/apps/monitoring/alertmanager")
+          .then()
+          .statusCode(200)
+          .body("name", equalTo("alertmanager"))
+          .body("group", equalTo("monitoring"))
+          .body("icon", equalTo("mdi:bell"));
+    }
+
+    @Test
+    void testGetKibanaForecastleByGroupAndName() {
+      // Test retrieving individual Forecastle-annotated Ingress
+      given()
+          .when()
+          .get("/api/apps/logging/kibana")
+          .then()
+          .statusCode(200)
+          .body("name", equalTo("kibana"))
+          .body("group", equalTo("logging"))
+          .body("url", equalTo("https://kibana.example.com"));
+    }
+
+    // ---- Availability Status Tests ----
+
+    @Test
+    void testApplicationsHaveAvailabilityStatus() {
+      // Verify all applications have availability status
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups[0].applications[0].available", org.hamcrest.Matchers.notNullValue())
+          .body("groups[1].applications[0].available", org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testAvailabilityIsBoolean() {
+      // Verify availability is a boolean type
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.available", org.hamcrest.Matchers.isA(Boolean.class));
+    }
+
+    // ---- Resource Type Mix Tests ----
+
+    @Test
+    void testMultipleResourceTypesInSameGroup() {
+      // Verify different resource types can coexist in the same group
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.size()", equalTo(3))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }", org.hamcrest.Matchers.notNullValue())
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }", org.hamcrest.Matchers.notNullValue())
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }", org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testAllResourceTypesAreEnabled() {
+      // Verify all applications from different sources are enabled
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'grafana' }.enabled", equalTo(true))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'prometheus' }.enabled", equalTo(true))
+          .body("groups.find { it.name == 'monitoring' }.applications.find { it.name == 'alertmanager' }.enabled", equalTo(true))
+          .body("groups.find { it.name == 'logging' }.applications.find { it.name == 'kibana' }.enabled", equalTo(true));
+    }
+
+    // ---- Response Structure Tests ----
+
+    @Test
+    void testResponseHasCorrectStructure() {
+      // Verify the response has the expected structure
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups", org.hamcrest.Matchers.notNullValue())
+          .body("groups", org.hamcrest.Matchers.instanceOf(java.util.List.class));
+    }
+
+    @Test
+    void testApplicationsHaveRequiredFields() {
+      // Verify each application has the minimum required fields
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups[0].applications[0].name", org.hamcrest.Matchers.notNullValue())
+          .body("groups[0].applications[0].group", org.hamcrest.Matchers.notNullValue())
+          .body("groups[0].applications[0].url", org.hamcrest.Matchers.notNullValue())
+          .body("groups[0].applications[0].enabled", org.hamcrest.Matchers.notNullValue());
+    }
+
+    @Test
+    void testGroupHasApplicationsList() {
+      // Verify each group contains an applications list
+      given()
+          .when()
+          .get("/api/apps")
+          .then()
+          .statusCode(200)
+          .body("groups[0].applications", org.hamcrest.Matchers.notNullValue())
+          .body("groups[0].applications", org.hamcrest.Matchers.instanceOf(java.util.List.class));
+    }
+
+    // ---- Edge Case Tests ----
+
+    @Test
+    void testNonExistentApplication() {
+      // Verify 404 is returned for non-existent applications
+      given()
+          .when()
+          .get("/api/apps/monitoring/nonexistent")
+          .then()
+          .statusCode(404);
+    }
+
+    @Test
+    void testNonExistentGroup() {
+      // Verify 404 is returned for non-existent group
+      given()
+          .when()
+          .get("/api/apps/nonexistentgroup/app")
+          .then()
+          .statusCode(404);
+    }
+
+    @Test
+    void testCaseSensitivityInRetrieval() {
+      // Verify case handling in application retrieval
+      given()
+          .when()
+          .get("/api/apps/monitoring/grafana")
+          .then()
+          .statusCode(200)
+          .body("name", equalTo("grafana"));
+    }
+  }
+
+  /** Test profile that enables all resource types for comprehensive testing */
+  public static class AllResourceTypesApplicationProfile
+      implements io.quarkus.test.junit.QuarkusTestProfile {
+    @Override
+    public java.util.Map<String, String> getConfigOverrides() {
+      return java.util.Map.of(
+          "startpunkt.namespaceSelector.any", "true",
+          "startpunkt.hajimari.enabled", "true",
+          "startpunkt.openshift.enabled", "true",
+          "startpunkt.openshift.onlyAnnotated", "true",
+          "startpunkt.ingress.enabled", "true",
+          "startpunkt.ingress.onlyAnnotated", "true");
+    }
+  }
 }
