@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
-import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /** Test class for {@link BookmarkService} with default namespace configuration behavior. */
 @QuarkusTest
@@ -84,7 +84,7 @@ class BookmarkServiceTest {
     createBookmark("startpunkt", "Test Bookmark 3", "Test", "https://test3.com");
 
     // With default configuration (anyNamespace = true), should retrieve from all namespaces
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(3, bookmarks.size());
@@ -120,7 +120,7 @@ class BookmarkServiceTest {
     // Create a bookmark with location = 0
     createBookmarkWithLocation("default", "Zero Location Bookmark", "Test", "https://zero.com", 0);
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(1, bookmarks.size());
@@ -138,7 +138,7 @@ class BookmarkServiceTest {
     createBookmarkWithLocation("default", "Location Ten", "Test", "https://ten.com", 10);
     createBookmarkWithLocation("default", "Location Hundred", "Test", "https://hundred.com", 100);
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(3, bookmarks.size());
@@ -160,7 +160,7 @@ class BookmarkServiceTest {
     // Create a bookmark with negative location
     createBookmarkWithLocation("default", "Negative Location", "Test", "https://negative.com", -5);
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(1, bookmarks.size());
@@ -176,7 +176,7 @@ class BookmarkServiceTest {
     // Create a bookmark with a large location value
     createBookmarkWithLocation("default", "Large Location", "Test", "https://large.com", 999999);
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(1, bookmarks.size());
@@ -193,7 +193,7 @@ class BookmarkServiceTest {
     createBookmark("default", "Mixed Group", "MiXeD", "https://mixed.com");
     createBookmark("default", "Lower Group", "lowercase", "https://lower.com");
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(3, bookmarks.size());
@@ -226,7 +226,7 @@ class BookmarkServiceTest {
 
     client.resources(Bookmark.class).inNamespace("default").resource(bookmark).create();
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(1, bookmarks.size());
@@ -252,7 +252,7 @@ class BookmarkServiceTest {
 
     client.resources(Bookmark.class).inNamespace("default").resource(bookmark).create();
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(1, bookmarks.size());
@@ -269,7 +269,7 @@ class BookmarkServiceTest {
     createBookmarkWithLocation("default", "First", "Test", "https://first.com", 10);
     createBookmarkWithLocation("default", "Second", "Test", "https://second.com", 20);
 
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertEquals(3, bookmarks.size());
@@ -285,7 +285,7 @@ class BookmarkServiceTest {
   @Test
   void testEmptyBookmarkList() {
     // Don't create any bookmarks
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     assertTrue(bookmarks.isEmpty(), "Should return empty list when no bookmarks exist");

@@ -24,7 +24,7 @@ import javax.net.ssl.X509TrustManager;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
-import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
 
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
@@ -155,14 +155,13 @@ public class AvailabilityCheckService {
    * Wraps a list of ApplicationSpec objects with availability status.
    *
    * @param applications list of ApplicationSpec to wrap
-   * @return list of ApplicationSpecWithAvailability with availability status set
+   * @return list of ApplicationResponse with availability status set
    */
-  public List<ApplicationSpecWithAvailability> wrapWithAvailability(
-      List<ApplicationSpec> applications) {
-    List<ApplicationSpecWithAvailability> wrappedApps = new ArrayList<>();
+  public List<ApplicationResponse> wrapWithAvailability(List<ApplicationSpec> applications) {
+    List<ApplicationResponse> wrappedApps = new ArrayList<>();
 
     for (ApplicationSpec app : applications) {
-      ApplicationSpecWithAvailability wrapped = new ApplicationSpecWithAvailability(app);
+      ApplicationResponse wrapped = new ApplicationResponse(app);
 
       if (!availabilityCheckEnabled) {
         // Set all applications as available if checking is disabled
@@ -190,16 +189,15 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Enriches a list of ApplicationSpecWithAvailability objects with availability status. Unlike
+   * Enriches a list of ApplicationResponse objects with availability status. Unlike
    * wrapWithAvailability, this method works with already-wrapped objects that may have metadata
    * fields populated.
    *
-   * @param applications list of ApplicationSpecWithAvailability to enrich
+   * @param applications list of ApplicationResponse to enrich
    * @return the same list with availability status updated
    */
-  public List<ApplicationSpecWithAvailability> enrichWithAvailability(
-      List<ApplicationSpecWithAvailability> applications) {
-    for (ApplicationSpecWithAvailability app : applications) {
+  public List<ApplicationResponse> enrichWithAvailability(List<ApplicationResponse> applications) {
+    for (ApplicationResponse app : applications) {
       if (!availabilityCheckEnabled) {
         // Set all applications as available if checking is disabled
         app.setAvailable(true);

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
-import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /** Test class for {@link BookmarkService} with empty namespace configuration. */
 @QuarkusTest
@@ -82,7 +82,7 @@ class BookmarkServiceEmptyNamespaceTest {
     createBookmark("startpunkt", "Empty Startpunkt Bookmark", "Test", "https://startpunkt.com");
 
     // With anyNamespace = false and no matchNames configured, should retrieve no bookmarks
-    List<BookmarkSpecWithMetadata> bookmarks = bookmarkService.retrieveBookmarks();
+    List<BookmarkResponse> bookmarks = bookmarkService.retrieveBookmarks();
 
     assertNotNull(bookmarks);
     // Should return empty list when anyNamespace=false and matchNames is not configured

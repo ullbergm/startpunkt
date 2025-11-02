@@ -66,11 +66,10 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
     return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;
   }
 
-  // Override method to get a list of ApplicationSpecWithAvailability objects
+  // Override method to get a list of ApplicationResponse objects
   @Override
-  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
-      getApplicationSpecsWithMetadata(
-          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     // Get the application specs with metadata from the parent class
     var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);
 

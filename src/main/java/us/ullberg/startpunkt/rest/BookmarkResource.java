@@ -32,7 +32,7 @@ import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkGroupList;
-import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 import us.ullberg.startpunkt.service.BookmarkManagementService;
 import us.ullberg.startpunkt.service.BookmarkService;
 
@@ -83,10 +83,10 @@ public class BookmarkResource {
    * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
    * alphabetically.
    *
-   * @return sorted list of BookmarkSpecWithMetadata objects
+   * @return sorted list of BookmarkResponse objects
    */
-  private ArrayList<BookmarkSpecWithMetadata> retrieveBookmarks() {
-    var bookmarks = new ArrayList<BookmarkSpecWithMetadata>();
+  private ArrayList<BookmarkResponse> retrieveBookmarks() {
+    var bookmarks = new ArrayList<BookmarkResponse>();
     bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
     if (hajimariEnabled) {
@@ -116,7 +116,7 @@ public class BookmarkResource {
   @CacheResult(cacheName = "getBookmarks")
   public Response getBookmarks() {
     // Retrieve the list of bookmarks
-    List<BookmarkSpecWithMetadata> bookmarklist = retrieveBookmarks();
+    List<BookmarkResponse> bookmarklist = retrieveBookmarks();
 
     // Create a list to store bookmark groups
     List<BookmarkGroup> groups = bookmarkService.generateBookmarkGroups(bookmarklist);

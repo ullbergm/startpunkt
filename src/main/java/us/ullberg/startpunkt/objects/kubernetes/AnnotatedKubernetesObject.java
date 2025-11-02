@@ -255,14 +255,13 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
-   * Filters a list of ApplicationSpecWithAvailability to include only those that are enabled.
+   * Filters a list of ApplicationResponse to include only those that are enabled.
    *
-   * @param specs list of ApplicationSpecWithAvailability objects
+   * @param specs list of ApplicationResponse objects
    * @return filtered list containing only enabled applications
    */
-  protected List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
-      filterEnabledWithMetadata(
-          List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability> specs) {
+  protected List<us.ullberg.startpunkt.objects.ApplicationResponse> filterEnabledWithMetadata(
+      List<us.ullberg.startpunkt.objects.ApplicationResponse> specs) {
     return specs.stream().filter(app -> Boolean.TRUE.equals(app.getEnabled())).toList();
   }
 }

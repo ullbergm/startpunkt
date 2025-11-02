@@ -139,27 +139,26 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @param client the Kubernetes client instance
    * @param anyNamespace whether to search across all namespaces
    * @param matchNames list of namespaces to filter on if anyNamespace is false
-   * @return list of ApplicationSpecWithAvailability instances with metadata populated
+   * @return list of ApplicationResponse instances with metadata populated
    */
-  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
-      getApplicationSpecsWithMetadata(
-          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()
         .map(this::mapToApplicationSpecWithMetadata)
         .toList();
   }
 
   /**
-   * Maps a GenericKubernetesResource to an ApplicationSpecWithAvailability instance with metadata.
+   * Maps a GenericKubernetesResource to an ApplicationResponse instance with metadata.
    *
    * @param item the Kubernetes generic resource
-   * @return the ApplicationSpecWithAvailability with metadata populated
+   * @return the ApplicationResponse with metadata populated
    */
-  protected us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability
-      mapToApplicationSpecWithMetadata(GenericKubernetesResource item) {
+  protected us.ullberg.startpunkt.objects.ApplicationResponse mapToApplicationSpecWithMetadata(
+      GenericKubernetesResource item) {
     ApplicationSpec spec = mapToApplicationSpec(item);
-    us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability withMetadata =
-        new us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability(spec);
+    us.ullberg.startpunkt.objects.ApplicationResponse withMetadata =
+        new us.ullberg.startpunkt.objects.ApplicationResponse(spec);
 
     // Populate metadata fields
     withMetadata.setNamespace(getResourceNamespace(item));
@@ -191,7 +190,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
             getAppTags(item));
 
     // Note: Metadata fields (namespace, resourceName, hasOwnerReferences) are set
-    // by ApplicationResource when wrapping in ApplicationSpecWithAvailability
+    // by ApplicationResource when wrapping in ApplicationResponse
     return spec;
   }
 

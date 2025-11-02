@@ -15,7 +15,7 @@ import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
-import us.ullberg.startpunkt.objects.BookmarkSpecWithMetadata;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /**
  * Service class for managing bookmarks retrieved from Kubernetes Custom Resources. Supports
@@ -39,10 +39,10 @@ public class BookmarkService {
   /**
    * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces.
    *
-   * @return list of {@link BookmarkSpecWithMetadata} representing the bookmarks
+   * @return list of {@link BookmarkResponse} representing the bookmarks
    */
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
-  public List<BookmarkSpecWithMetadata> retrieveBookmarks() {
+  public List<BookmarkResponse> retrieveBookmarks() {
     Log.debug("Retrieving Startpunkt bookmarks from Kubernetes");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext ctx =
@@ -54,7 +54,7 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, ctx);
-      List<BookmarkSpecWithMetadata> bookmarks = mapResourcesToBookmarks(list);
+      List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list);
       Log.debugf("Retrieved %d Startpunkt bookmarks", bookmarks.size());
       return bookmarks;
     } catch (Exception e) {
@@ -89,14 +89,12 @@ public class BookmarkService {
   }
 
   /**
-   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkSpecWithMetadata}
-   * objects.
+   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkResponse} objects.
    *
    * @param list Kubernetes resource list to map
-   * @return list of {@link BookmarkSpecWithMetadata}
+   * @return list of {@link BookmarkResponse}
    */
-  private List<BookmarkSpecWithMetadata> mapResourcesToBookmarks(
-      GenericKubernetesResourceList list) {
+  private List<BookmarkResponse> mapResourcesToBookmarks(GenericKubernetesResourceList list) {
     return list.getItems().stream()
         .map(
             item -> {
@@ -124,7 +122,7 @@ public class BookmarkService {
 
               BookmarkSpec baseSpec =
                   new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
-              BookmarkSpecWithMetadata withMetadata = new BookmarkSpecWithMetadata(baseSpec);
+              BookmarkResponse withMetadata = new BookmarkResponse(baseSpec);
 
               // Populate metadata fields
               withMetadata.setNamespace(item.getMetadata().getNamespace());
@@ -152,9 +150,9 @@ public class BookmarkService {
   /**
    * Retrieves bookmarks from the "hajimari.io" group namespace.
    *
-   * @return list of {@link BookmarkSpecWithMetadata} representing Hajimari bookmarks
+   * @return list of {@link BookmarkResponse} representing Hajimari bookmarks
    */
-  public List<BookmarkSpecWithMetadata> retrieveHajimariBookmarks() {
+  public List<BookmarkResponse> retrieveHajimariBookmarks() {
     Log.debug("Retrieving Hajimari bookmarks");
     try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       ResourceDefinitionContext resourceDefinitionContext =
@@ -166,7 +164,7 @@ public class BookmarkService {
               .build();
 
       GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
-      List<BookmarkSpecWithMetadata> bookmarks = mapResourcesToBookmarks(list);
+      List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list);
       Log.debugf("Retrieved %d Hajimari bookmarks", bookmarks.size());
 
       return bookmarks;
@@ -182,12 +180,12 @@ public class BookmarkService {
    * @param bookmarklist list of bookmarks to group
    * @return list of {@link BookmarkGroup} containing grouped bookmarks
    */
-  public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkSpecWithMetadata> bookmarklist) {
+  public List<BookmarkGroup> generateBookmarkGroups(List<BookmarkResponse> bookmarklist) {
     Log.debugf("Generating bookmark groups from %d bookmarks", bookmarklist.size());
     var groups = new LinkedList<BookmarkGroup>();
 
     // Group the bookmarks by their group property
-    for (BookmarkSpecWithMetadata bookmark : bookmarklist) {
+    for (BookmarkResponse bookmark : bookmarklist) {
       // Find the existing group
       BookmarkGroup group = null;
       for (BookmarkGroup g : groups) {

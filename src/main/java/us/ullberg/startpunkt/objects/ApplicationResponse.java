@@ -6,13 +6,14 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
- * Wrapper for ApplicationSpec that adds runtime availability status. This class is used for API
- * responses only and does not modify the CRD. The availability status is computed at runtime by the
- * AvailabilityCheckService.
+ * Response DTO for Application resources that enriches the base ApplicationSpec with runtime
+ * availability status and Kubernetes metadata. This class is used for API responses only and does
+ * not modify the CRD. The availability status is computed at runtime by the
+ * AvailabilityCheckService, and the metadata fields enable the edit interface.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
-public class ApplicationSpecWithAvailability extends ApplicationSpec {
+public class ApplicationResponse extends ApplicationSpec {
 
   /** Whether the application is currently available (reachable). */
   @JsonProperty("available")
@@ -31,16 +32,16 @@ public class ApplicationSpecWithAvailability extends ApplicationSpec {
   private Boolean hasOwnerReferences;
 
   /** Default constructor. */
-  public ApplicationSpecWithAvailability() {
+  public ApplicationResponse() {
     super();
   }
 
   /**
-   * Creates a wrapper from an existing ApplicationSpec, copying all fields.
+   * Creates a response DTO from an existing ApplicationSpec, copying all fields.
    *
    * @param spec the ApplicationSpec to wrap
    */
-  public ApplicationSpecWithAvailability(ApplicationSpec spec) {
+  public ApplicationResponse(ApplicationSpec spec) {
     this.name = spec.getName();
     this.setGroup(spec.getGroup());
     this.setIcon(spec.getIcon());

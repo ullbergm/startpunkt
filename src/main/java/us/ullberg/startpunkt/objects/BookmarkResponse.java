@@ -6,14 +6,14 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 
 /**
- * Wrapper for BookmarkSpec that adds Kubernetes metadata fields. This class is used for API
- * responses only and does not modify the CRD. The metadata fields (namespace, resourceName,
- * hasOwnerReferences) are added to support the edit interface, allowing identification and
- * modification of the underlying Kubernetes objects.
+ * Response DTO for Bookmark resources that enriches the base BookmarkSpec with Kubernetes metadata.
+ * This class is used for API responses only and does not modify the CRD. The metadata fields
+ * (namespace, resourceName, hasOwnerReferences) support the edit interface, allowing identification
+ * and modification of the underlying Kubernetes objects.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
-public class BookmarkSpecWithMetadata extends BookmarkSpec {
+public class BookmarkResponse extends BookmarkSpec {
 
   /** The Kubernetes namespace of the underlying resource. */
   @JsonProperty("namespace")
@@ -28,16 +28,16 @@ public class BookmarkSpecWithMetadata extends BookmarkSpec {
   private Boolean hasOwnerReferences;
 
   /** Default constructor. */
-  public BookmarkSpecWithMetadata() {
+  public BookmarkResponse() {
     super();
   }
 
   /**
-   * Creates a wrapper from an existing BookmarkSpec, copying all fields.
+   * Creates a response DTO from an existing BookmarkSpec, copying all fields.
    *
    * @param spec the BookmarkSpec to wrap
    */
-  public BookmarkSpecWithMetadata(BookmarkSpec spec) {
+  public BookmarkResponse(BookmarkSpec spec) {
     this.name = spec.getName();
     this.setGroup(spec.getGroup());
     this.setIcon(spec.getIcon());

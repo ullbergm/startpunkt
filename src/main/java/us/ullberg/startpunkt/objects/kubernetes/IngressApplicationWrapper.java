@@ -55,13 +55,12 @@ public class IngressApplicationWrapper extends AnnotatedKubernetesObject {
    * @param client Kubernetes client instance
    * @param anyNamespace whether to search across all namespaces
    * @param matchNames specific namespaces to include in the search
-   * @return list of {@link us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability} extracted
-   *     from Ingress resources with metadata
+   * @return list of {@link us.ullberg.startpunkt.objects.ApplicationResponse} extracted from
+   *     Ingress resources with metadata
    */
   @Override
-  public List<us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability>
-      getApplicationSpecsWithMetadata(
-          KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
     // Get the application specs with metadata from the parent class
     var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);
 

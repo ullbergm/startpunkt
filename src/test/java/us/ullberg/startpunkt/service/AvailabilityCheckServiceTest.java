@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
-import us.ullberg.startpunkt.objects.ApplicationSpecWithAvailability;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
 
 @QuarkusTest
 class AvailabilityCheckServiceTest {
@@ -60,7 +60,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = new ArrayList<>();
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertNotNull(result, "Result should not be null");
@@ -78,7 +78,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertNotNull(result, "Result should not be null");
@@ -96,7 +96,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertNotNull(result, "Result should not be null");
@@ -114,7 +114,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertNotNull(result, "Result should not be null");
@@ -132,7 +132,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertNotNull(result, "Result should not be null");
@@ -161,7 +161,7 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app1, app2, app3);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertEquals(3, result.size(), "Should have three wrapped apps");
@@ -220,11 +220,11 @@ class AvailabilityCheckServiceTest {
     List<ApplicationSpec> apps = List.of(app);
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertEquals(1, result.size());
-    ApplicationSpecWithAvailability wrapped = result.get(0);
+    ApplicationResponse wrapped = result.get(0);
 
     // Verify all fields are preserved
     assertEquals("Test App", wrapped.getName());
@@ -280,7 +280,7 @@ class AvailabilityCheckServiceTest {
     service.registerUrl("https://single-test.com");
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(List.of(app));
+    List<ApplicationResponse> result = service.wrapWithAvailability(List.of(app));
 
     // Then
     assertEquals(1, result.size());
@@ -310,7 +310,7 @@ class AvailabilityCheckServiceTest {
     service.registerUrl("https://cached-mix.com");
 
     // When
-    List<ApplicationSpecWithAvailability> result =
+    List<ApplicationResponse> result =
         service.wrapWithAvailability(List.of(cached, uncached, nullUrl, emptyUrl));
 
     // Then
@@ -401,8 +401,7 @@ class AvailabilityCheckServiceTest {
     service.registerUrl(sharedUrl);
 
     // When
-    List<ApplicationSpecWithAvailability> result =
-        service.wrapWithAvailability(List.of(app1, app2));
+    List<ApplicationResponse> result = service.wrapWithAvailability(List.of(app1, app2));
 
     // Then
     assertEquals(2, result.size());
@@ -430,11 +429,11 @@ class AvailabilityCheckServiceTest {
     service.registerUrl("https://test-preserve.com");
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(List.of(app));
+    List<ApplicationResponse> result = service.wrapWithAvailability(List.of(app));
 
     // Then
     assertEquals(1, result.size());
-    ApplicationSpecWithAvailability wrapped = result.get(0);
+    ApplicationResponse wrapped = result.get(0);
     assertEquals("TestApp", wrapped.getName());
     assertEquals("TestGroup", wrapped.getGroup());
     assertEquals("mdi:test", wrapped.getIcon());
@@ -518,7 +517,7 @@ class AvailabilityCheckServiceTest {
     }
 
     // When
-    List<ApplicationSpecWithAvailability> result = service.wrapWithAvailability(apps);
+    List<ApplicationResponse> result = service.wrapWithAvailability(apps);
 
     // Then
     assertEquals(100, result.size());
