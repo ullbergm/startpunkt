@@ -333,6 +333,23 @@ export function App() {
     setShowAppEditor(true);
   };
 
+  const handleEditApp = async (app) => {
+    // Fetch the full application resource from the API
+    try {
+      const response = await fetch(`/api/apps/manage?namespace=${app.namespace || 'default'}&name=${app.name}`);
+      if (response.ok) {
+        const fullApp = await response.json();
+        setEditingApp(fullApp);
+        setEditorMode('edit');
+        setShowAppEditor(true);
+      } else {
+        console.error('Failed to fetch application details');
+      }
+    } catch (error) {
+      console.error('Error fetching application:', error);
+    }
+  };
+
   const handleSaveApp = async (namespace, name, spec) => {
     const endpoint = editorMode === 'create' 
       ? `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
@@ -380,6 +397,23 @@ export function App() {
     setEditingBookmark(null);
     setEditorMode('create');
     setShowBookmarkEditor(true);
+  };
+
+  const handleEditBookmark = async (bookmark) => {
+    // Fetch the full bookmark resource from the API
+    try {
+      const response = await fetch(`/api/bookmarks/manage?namespace=${bookmark.namespace || 'default'}&name=${bookmark.name}`);
+      if (response.ok) {
+        const fullBookmark = await response.json();
+        setEditingBookmark(fullBookmark);
+        setEditorMode('edit');
+        setShowBookmarkEditor(true);
+      } else {
+        console.error('Failed to fetch bookmark details');
+      }
+    } catch (error) {
+      console.error('Error fetching bookmark:', error);
+    }
   };
 
   const handleSaveBookmark = async (namespace, name, spec) => {
@@ -465,8 +499,8 @@ export function App() {
         </header>
 
         <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
-          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} />}
-          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} />}
+          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
+          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
           {currentPage === "loading" && (
             <div class="text-center" role="status" aria-live="polite">
               <h1 class="display-4"><Text id="home.loading">Loading...</Text></h1>
@@ -495,7 +529,8 @@ export function App() {
           style={{
             position: 'fixed',
             bottom: '1.5rem',
-            left: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
             width: '56px',
             height: '56px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
@@ -515,7 +550,8 @@ export function App() {
           style={{
             position: 'fixed',
             bottom: '1.5rem',
-            left: '1.5rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
             width: '56px',
             height: '56px',
             boxShadow: '0 4px 8px rgba(0,0,0,0.3)',

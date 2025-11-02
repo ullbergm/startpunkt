@@ -1,4 +1,5 @@
 import { Icon } from '@iconify/react';
+import { useState, useEffect, useRef } from 'preact/hooks';
 
 function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
   const opacity = isUnavailable ? 0.4 : 1;
@@ -13,8 +14,10 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs } = props;
+  const { layoutPrefs, onEdit } = props;
   const isUnavailable = props.app.available === false;
+  const [showEditButton, setShowEditButton] = useState(false);
+  const hoverTimeoutRef = useRef(null);
   
   // Get preferences with defaults
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
@@ -32,12 +35,52 @@ export function Application(props) {
   const containerStyle = {
     transform: 'rotate(0)',
     padding: padding,
-    ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' })
+    ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' }),
+    position: 'relative'
+  };
+  
+  const handleMouseEnter = () => {
+    if (onEdit) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setShowEditButton(true);
+      }, 2000);
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setShowEditButton(false);
+  };
+  
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(props.app);
+    }
   };
   
   // Standard card layout
   return (
-    <div class={containerClass} style={containerStyle} role="article" aria-label={`Application: ${props.app.name}`}>
+    <div 
+      class={containerClass} 
+      style={containerStyle} 
+      role="article" 
+      aria-label={`Application: ${props.app.name}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {!isUnavailable && (
         <a
           href={props.app.url}
@@ -48,7 +91,7 @@ export function Application(props) {
         />
       )}
       {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
-      <div class="px-2" style={{ fontSize: '0.875rem' }}>
+      <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
         <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
           {props.app.name}
         </h4>
@@ -68,6 +111,17 @@ export function Application(props) {
           <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
         )}
       </div>
+      {onEdit && showEditButton && (
+        <button
+          onClick={handleEdit}
+          class="btn btn-sm btn-outline-secondary ms-2"
+          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
+          aria-label={`Edit ${props.app.name}`}
+          title={`Edit ${props.app.name}`}
+        >
+          <Icon icon="mdi:pencil" width="16" height="16" />
+        </button>
+      )}
     </div>
   );
 }

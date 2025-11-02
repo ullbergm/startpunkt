@@ -1,7 +1,7 @@
 import { Bookmark } from './Bookmark';
 
 export function BookmarkGroup(props) {
-  const { layoutPrefs, isCollapsed, onToggle } = props;
+  const { layoutPrefs, isCollapsed, onToggle, onEditBookmark } = props;
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
@@ -63,7 +63,7 @@ export function BookmarkGroup(props) {
         >
           {Array.isArray(props.bookmarks) && props.bookmarks.map((bookmark) => (
             <div role="listitem" key={bookmark.name}>
-              <Bookmark bookmark={bookmark} layoutPrefs={layoutPrefs} />
+              <Bookmark bookmark={bookmark} layoutPrefs={layoutPrefs} onEdit={onEditBookmark} />
             </div>
           ))}
         </div>

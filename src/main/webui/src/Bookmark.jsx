@@ -1,7 +1,10 @@
 import { Icon } from '@iconify/react';
+import { useState, useEffect, useRef } from 'preact/hooks';
 
 export function Bookmark(props) {
-  const { layoutPrefs } = props;
+  const { layoutPrefs, onEdit } = props;
+  const [showEditButton, setShowEditButton] = useState(false);
+  const hoverTimeoutRef = useRef(null);
   
   // Get preferences with defaults
   const viewMode = layoutPrefs?.preferences.viewMode || 'grid';
@@ -13,7 +16,40 @@ export function Bookmark(props) {
   // Build container style
   const containerStyle = {
     transform: 'rotate(0)',
-    padding: padding
+    padding: padding,
+    position: 'relative'
+  };
+  
+  const handleMouseEnter = () => {
+    if (onEdit) {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setShowEditButton(true);
+      }, 2000);
+    }
+  };
+  
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setShowEditButton(false);
+  };
+  
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(props.bookmark);
+    }
   };
   
   const renderIcon = (icon, name, size) => {
@@ -43,7 +79,14 @@ export function Bookmark(props) {
   // List view - compact horizontal layout
   if (viewMode === 'list') {
     return (
-      <div class="d-flex align-items-start" style={containerStyle} role="article" aria-label={`Bookmark: ${props.bookmark.name}`}>
+      <div 
+        class="d-flex align-items-start" 
+        style={containerStyle} 
+        role="article" 
+        aria-label={`Bookmark: ${props.bookmark.name}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <a
           href={props.bookmark.url}
           target={props.bookmark.targetBlank ? '_blank' : '_self'}
@@ -59,13 +102,31 @@ export function Bookmark(props) {
             </h3>
           </div>
         </div>
+        {onEdit && showEditButton && (
+          <button
+            onClick={handleEdit}
+            class="btn btn-sm btn-outline-secondary ms-2"
+            style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
+            aria-label={`Edit ${props.bookmark.name}`}
+            title={`Edit ${props.bookmark.name}`}
+          >
+            <Icon icon="mdi:pencil" width="16" height="16" />
+          </button>
+        )}
       </div>
     );
   }
   
   // Grid view - standard card layout
   return (
-    <div class="d-flex align-items-start" style={containerStyle} role="article" aria-label={`Bookmark: ${props.bookmark.name}`}>
+    <div 
+      class="d-flex align-items-start" 
+      style={containerStyle} 
+      role="article" 
+      aria-label={`Bookmark: ${props.bookmark.name}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <a
         href={props.bookmark.url}
         target={props.bookmark.targetBlank ? '_blank' : '_self'}
@@ -74,7 +135,7 @@ export function Bookmark(props) {
         aria-label={`${props.bookmark.name}${props.bookmark.info ? ` - ${props.bookmark.info}` : ''}`}
       />
       {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
-      <div class="px-2">
+      <div class="px-2" style={{ flexGrow: 1 }}>
         <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
           {props.bookmark.name}
         </h3>
@@ -82,6 +143,17 @@ export function Bookmark(props) {
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
       </div>
+      {onEdit && showEditButton && (
+        <button
+          onClick={handleEdit}
+          class="btn btn-sm btn-outline-secondary ms-2"
+          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
+          aria-label={`Edit ${props.bookmark.name}`}
+          title={`Edit ${props.bookmark.name}`}
+        >
+          <Icon icon="mdi:pencil" width="16" height="16" />
+        </button>
+      )}
     </div>
   );
 }

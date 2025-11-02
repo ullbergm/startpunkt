@@ -26,6 +26,7 @@ export function BookmarkGroupList(props) {
             layoutPrefs={props.layoutPrefs}
             isCollapsed={isCollapsed(group.name)}
             onToggle={groupHandlers[group.name]}
+            onEditBookmark={props.onEditBookmark}
           />
         ))}
       </div>
