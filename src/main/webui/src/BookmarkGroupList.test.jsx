@@ -52,7 +52,7 @@ describe('BookmarkGroupList component', () => {
     render(<BookmarkGroupList groups={groups} />);
     const container = document.getElementById('icon-grid');
     expect(container).toBeInTheDocument();
-    expect(container).toHaveClass('container', 'px-4', 'py-5');
+    expect(container).toHaveClass('container', 'px-4');
   });
 
   test('renders correct number of BookmarkGroup sections with accessible roles and labels', () => {

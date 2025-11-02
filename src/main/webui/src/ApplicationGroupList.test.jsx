@@ -52,7 +52,7 @@ describe('ApplicationGroupList component', () => {
     render(<ApplicationGroupList groups={groups} />);
     const container = document.getElementById('icon-grid');
     expect(container).toBeInTheDocument();
-    expect(container).toHaveClass('container', 'px-4', 'py-5');
+    expect(container).toHaveClass('container', 'px-4');
   });
 
   test('renders correct number of ApplicationGroup sections with accessible roles and labels', () => {

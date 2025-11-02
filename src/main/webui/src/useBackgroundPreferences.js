@@ -31,7 +31,7 @@ const DEFAULT_PREFERENCES = {
   meshAnimated: true,
   meshComplexity: 'low',
   contentOverlay: false,
-  contentOverlayOpacity: 0 // 0 = transparent (default), negative = white, positive = black
+  contentOverlayOpacity: -0.6 // 0 = transparent (default), negative = white, positive = black
 };
 
 export function useBackgroundPreferences() {
