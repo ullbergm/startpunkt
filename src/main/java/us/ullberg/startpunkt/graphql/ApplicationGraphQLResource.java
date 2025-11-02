@@ -13,6 +13,8 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.graphql.types.ApplicationGroupType;
+import us.ullberg.startpunkt.graphql.types.ApplicationType;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
 import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
@@ -92,7 +94,7 @@ public class ApplicationGraphQLResource {
   @Query("applicationGroups")
   @Description("Retrieve application groups, optionally filtered by tags")
   @Timed(value = "graphql.query.applicationGroups")
-  public List<ApplicationGroup> getApplicationGroups(
+  public List<ApplicationGroupType> getApplicationGroups(
       @Name("tags") @Description("Optional tags to filter applications") List<String> tags) {
     Log.debugf("GraphQL query: applicationGroups with tags: %s", tags);
 
@@ -126,7 +128,10 @@ public class ApplicationGraphQLResource {
       group.addApplication(a);
     }
 
-    return groups;
+    // Convert to GraphQL types (no CRD exposure)
+    return groups.stream()
+        .map(ApplicationGroupType::fromApplicationGroup)
+        .collect(java.util.stream.Collectors.toList());
   }
 
   /**
@@ -139,14 +144,14 @@ public class ApplicationGraphQLResource {
   @Query("application")
   @Description("Retrieve a single application by group and name")
   @Timed(value = "graphql.query.application")
-  public ApplicationResponse getApplication(
+  public ApplicationType getApplication(
       @Name("groupName") @Description("The group name of the application") String groupName,
       @Name("appName") @Description("The name of the application") String appName) {
     Log.debugf("GraphQL query: application with groupName=%s, appName=%s", groupName, appName);
 
     for (ApplicationResponse a : retrieveAppsWithAvailability()) {
       if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
-        return a;
+        return ApplicationType.fromResponse(a);
       }
     }
 

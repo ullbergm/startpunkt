@@ -3,8 +3,6 @@ package us.ullberg.startpunkt.objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.eclipse.microprofile.graphql.Description;
-import org.eclipse.microprofile.graphql.Type;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
 /**
@@ -13,29 +11,23 @@ import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
  * not modify the CRD. The availability status is computed at runtime by the
  * AvailabilityCheckService, and the metadata fields enable the edit interface.
  */
-@Type("ApplicationResponse")
-@Description("Application with runtime availability status and Kubernetes metadata")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @RegisterForReflection(registerFullHierarchy = true)
 public class ApplicationResponse extends ApplicationSpec {
 
   /** Whether the application is currently available (reachable). */
-  @Description("Whether the application is currently reachable")
   @JsonProperty("available")
   private Boolean available;
 
   /** The Kubernetes namespace of the underlying resource. */
-  @Description("Kubernetes namespace of the resource")
   @JsonProperty("namespace")
   private String namespace;
 
   /** The Kubernetes metadata.name (resource name) of the underlying object. */
-  @Description("Kubernetes resource name (metadata.name)")
   @JsonProperty("resourceName")
   private String resourceName;
 
   /** Whether the resource has owner references (true means it's managed by another resource). */
-  @Description("Whether the resource is managed by another resource")
   @JsonProperty("hasOwnerReferences")
   private Boolean hasOwnerReferences;
 

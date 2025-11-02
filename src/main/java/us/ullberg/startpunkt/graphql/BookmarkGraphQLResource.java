@@ -6,10 +6,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.graphql.types.BookmarkGroupType;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
 import us.ullberg.startpunkt.service.BookmarkService;
@@ -44,11 +46,16 @@ public class BookmarkGraphQLResource {
   @Query("bookmarkGroups")
   @Description("Retrieve all bookmark groups")
   @Timed(value = "graphql.query.bookmarkGroups")
-  public List<BookmarkGroup> getBookmarkGroups() {
+  public List<BookmarkGroupType> getBookmarkGroups() {
     Log.debug("GraphQL query: bookmarkGroups");
     
     List<BookmarkResponse> bookmarks = retrieveBookmarks();
-    return bookmarkService.generateBookmarkGroups(bookmarks);
+    List<BookmarkGroup> groups = bookmarkService.generateBookmarkGroups(bookmarks);
+    
+    // Convert to GraphQL types (no CRD exposure)
+    return groups.stream()
+        .map(BookmarkGroupType::fromBookmarkGroup)
+        .collect(Collectors.toList());
   }
 
   /**

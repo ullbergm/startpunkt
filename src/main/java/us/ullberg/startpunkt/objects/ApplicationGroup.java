@@ -4,16 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.LinkedList;
 import java.util.List;
-import org.eclipse.microprofile.graphql.Description;
-import org.eclipse.microprofile.graphql.NonNull;
-import org.eclipse.microprofile.graphql.Type;
 
 /**
  * Represents a group of applications, each group identified by a name and containing a list of
  * {@link ApplicationResponse} objects.
  */
-@Type("ApplicationGroup")
-@Description("A group of applications, organized by namespace or custom grouping")
 @RegisterForReflection(registerFullHierarchy = true)
 public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
@@ -55,8 +50,6 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    *
    * @return the group name
    */
-  @NonNull
-  @Description("The name of the application group")
   @JsonProperty("name")
   public String getName() {
     return name;
@@ -76,8 +69,6 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
    *
    * @return list of applications in this group
    */
-  @NonNull
-  @Description("List of applications in this group")
   @JsonProperty("applications")
   public List<ApplicationResponse> getApplications() {
     return List.copyOf(applications);
