@@ -48,6 +48,17 @@ export const TRANSLATIONS_QUERY = `
 // Note: translations query returns a JSON string, not an object.
 // The client must parse it: JSON.parse(result.data.translations)
 
+export const BING_IMAGE_QUERY = `
+  query GetBingImageOfDay($width: Int!, $height: Int!) {
+    bingImageOfDay(width: $width, height: $height) {
+      imageUrl
+      copyright
+      title
+      date
+    }
+  }
+`;
+
 export const APPLICATION_GROUPS_QUERY = `
   query GetApplicationGroups($tags: [String!]) {
     applicationGroups(tags: $tags) {

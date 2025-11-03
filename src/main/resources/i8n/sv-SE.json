@@ -30,6 +30,11 @@
             "pictureOfDay" : "Dagens bild",
             "geopattern" : "Geomönster"
         },
+        "pictureProvider" : "Bildleverantör",
+        "providers" : {
+            "bing" : "Bing",
+            "picsum" : "Lorem Picsum"
+        },
         "themeMode" : "Temaläge",
         "color" : "Färg",
         "primaryColor" : "Primär färg",

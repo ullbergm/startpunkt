@@ -4,11 +4,17 @@ import { Background } from './Background';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { useMediaQuery } from 'react-responsive';
+import { client } from './graphql/client';
 
 // Mock dependencies
 jest.mock('./useBackgroundPreferences');
 jest.mock('@rehooks/local-storage');
 jest.mock('react-responsive');
+jest.mock('./graphql/client', () => ({
+  client: {
+    query: jest.fn()
+  }
+}));
 
 describe('Background', () => {
   let mockGetBackgroundStyle;
@@ -324,6 +330,101 @@ describe('Background', () => {
         const overlay = document.getElementById('background-overlay');
         expect(overlay.style.filter).toBe('blur(10px)');
       });
+    });
+  });
+
+  describe('Bing Image of the Day Background', () => {
+    beforeEach(() => {
+      // Clear client mock
+      client.query.mockClear();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should fetch and display Bing image via GraphQL', async () => {
+      const mockBingData = {
+        imageUrl: 'https://www.bing.com/th?id=OHR.TestImage_EN-US1234567890_1920x1080.jpg',
+        copyright: 'Test Copyright',
+        title: 'Test Title',
+        date: '20251103'
+      };
+
+      client.query.mockReturnValue({
+        toPromise: jest.fn().mockResolvedValue({
+          data: { bingImageOfDay: mockBingData }
+        })
+      });
+
+      mockPreferences.type = 'pictureOfDay';
+      mockPreferences.pictureProvider = 'bing';
+
+      useBackgroundPreferences.mockReturnValue({
+        preferences: mockPreferences,
+        getBackgroundStyle: mockGetBackgroundStyle
+      });
+
+      mockGetBackgroundStyle.mockReturnValue({
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        opacity: 1.0
+      });
+
+      render(<Background />);
+
+      await waitFor(() => {
+        expect(client.query).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            width: expect.any(Number),
+            height: expect.any(Number)
+          })
+        );
+      });
+    });
+
+    it('should apply blur to Bing image when enabled', async () => {
+      mockPreferences.type = 'pictureOfDay';
+      mockPreferences.pictureProvider = 'bing';
+      mockPreferences.blur = true;
+      
+      const mockBingData = {
+        imageUrl: 'https://www.bing.com/th?id=OHR.TestImage_1920x1080.jpg',
+        copyright: 'Test',
+        title: 'Test',
+        date: '20251103'
+      };
+
+      client.query.mockReturnValue({
+        toPromise: jest.fn().mockResolvedValue({
+          data: { bingImageOfDay: mockBingData }
+        })
+      });
+
+      useBackgroundPreferences.mockReturnValue({
+        preferences: mockPreferences,
+        getBackgroundStyle: mockGetBackgroundStyle
+      });
+
+      mockGetBackgroundStyle.mockReturnValue({
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        opacity: 1.0
+      });
+
+      render(<Background />);
+
+      // Wait for the image to be fetched and applied
+      await waitFor(() => {
+        const overlay = document.getElementById('background-overlay');
+        if (overlay && overlay.style.backgroundImage) {
+          expect(overlay.style.filter).toBe('blur(10px)');
+          expect(overlay.style.transform).toBe('scale(1.1)');
+        }
+      }, { timeout: 2000 });
     });
   });
 
