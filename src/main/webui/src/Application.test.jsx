@@ -229,4 +229,93 @@ describe('Application component', () => {
     const link = screen.getByRole('link', { name: /Example App/ });
     expect(link).toBeInTheDocument();
   });
+
+  test('does not show star icon when not in edit mode', () => {
+    const layoutPrefs = {
+      preferences: { editMode: false },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} />);
+    const starButton = screen.queryByRole('button', { name: /favorites/i });
+    expect(starButton).not.toBeInTheDocument();
+  });
+
+  test('shows star icon in edit mode', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} onToggleFavorite={mockToggle} />);
+    const starButton = screen.getByRole('button', { name: /Add.*to favorites/i });
+    expect(starButton).toBeInTheDocument();
+  });
+
+  test('shows filled star for favorited app', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={true} onToggleFavorite={mockToggle} />);
+    const starButton = screen.getByRole('button', { name: /Remove.*from favorites/i });
+    expect(starButton).toBeInTheDocument();
+    expect(starButton).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('shows outline star for non-favorited app', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={false} onToggleFavorite={mockToggle} />);
+    const starButton = screen.getByRole('button', { name: /Add.*to favorites/i });
+    expect(starButton).toBeInTheDocument();
+    expect(starButton).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('calls onToggleFavorite when star is clicked', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={false} onToggleFavorite={mockToggle} />);
+    const starButton = screen.getByRole('button', { name: /Add.*to favorites/i });
+    starButton.click();
+    expect(mockToggle).toHaveBeenCalledWith(defaultApp);
+  });
+
+  test('star button has proper accessibility attributes', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={false} onToggleFavorite={mockToggle} />);
+    const starButton = screen.getByRole('button', { name: /Add Example App to favorites/i });
+    expect(starButton).toHaveAttribute('aria-label', 'Add Example App to favorites');
+    expect(starButton).toHaveAttribute('aria-pressed', 'false');
+    expect(starButton).toHaveAttribute('title', 'Add to favorites');
+  });
+
+  test('star button prevents event propagation', () => {
+    const layoutPrefs = {
+      preferences: { editMode: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem' })
+    };
+    const mockToggle = jest.fn();
+    const { container } = render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={false} onToggleFavorite={mockToggle} />);
+    
+    const starButton = screen.getByRole('button', { name: /Add.*to favorites/i });
+    const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const stopPropagationSpy = jest.spyOn(clickEvent, 'stopPropagation');
+    const preventDefaultSpy = jest.spyOn(clickEvent, 'preventDefault');
+    
+    starButton.dispatchEvent(clickEvent);
+    
+    expect(stopPropagationSpy).toHaveBeenCalled();
+    expect(preventDefaultSpy).toHaveBeenCalled();
+  });
 });
