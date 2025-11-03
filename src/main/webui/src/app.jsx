@@ -229,18 +229,18 @@ export function App() {
       });
   }, []);
 
-  // Function to fetch applications and bookmarks using GraphQL (for refreshes)
-  const fetchData = () => {
+  // Function to fetch applications using GraphQL (for refreshes)
+  const fetchApplications = () => {
     const tags = getTagsFromUrl();
     const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
-    console.log('[fetchData] Fetching applications with tags:', tagsArray);
+    console.log('[fetchApplications] Fetching applications with tags:', tagsArray);
     
     // Fetch applications with 'network-only' to bypass cache on refresh
     client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }, { requestPolicy: 'network-only' }).toPromise()
       .then(result => {
         if (result.data && result.data.applicationGroups) {
-          console.log('[fetchData] Received application data:', result.data.applicationGroups);
+          console.log('[fetchApplications] Received application data:', result.data.applicationGroups);
           const groups = result.data.applicationGroups.map(group => ({
             name: group.name,
             applications: group.applications
@@ -249,9 +249,14 @@ export function App() {
         }
       })
       .catch(err => {
-        console.error('[fetchData] Error fetching applications:', err);
+        console.error('[fetchApplications] Error fetching applications:', err);
         setApplicationGroups([]);
       });
+  };
+
+  // Function to fetch bookmarks using GraphQL (for refreshes)
+  const fetchBookmarks = () => {
+    console.log('[fetchBookmarks] Fetching bookmarks');
     
     // Fetch bookmarks with 'network-only' to bypass cache on refresh
     client.query(BOOKMARK_GROUPS_QUERY, {}, { requestPolicy: 'network-only' }).toPromise()
@@ -265,9 +270,15 @@ export function App() {
         }
       })
       .catch(err => {
-        console.error('[fetchData] Error fetching bookmarks:', err);
+        console.error('[fetchBookmarks] Error fetching bookmarks:', err);
         setBookmarkGroups([]);
       });
+  };
+
+  // Function to fetch both applications and bookmarks (for full refreshes)
+  const fetchData = () => {
+    fetchApplications();
+    fetchBookmarks();
   };
 
   // WebSocket connection for real-time updates
@@ -279,25 +290,25 @@ export function App() {
       onMessage: (message) => {
         console.log('WebSocket message received:', message);
         
-        // Handle different event types
+        // Handle different event types - only fetch what changed
         if (message.type === 'APPLICATION_ADDED' || 
             message.type === 'APPLICATION_REMOVED' || 
             message.type === 'APPLICATION_UPDATED' ||
             message.type === 'STATUS_CHANGED') {
-          // Refresh applications when changes occur or status changes
+          // Refresh only applications when app-related changes occur
           console.log('Refreshing applications due to:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
-            fetchData();
+            fetchApplications();
           }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'BOOKMARK_ADDED' || 
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {
-          // Refresh bookmarks when changes occur
+          // Refresh only bookmarks when bookmark-related changes occur
           console.log('Refreshing bookmarks due to:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
-            fetchData();
+            fetchBookmarks();
           }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'CONFIG_CHANGED') {
           // Reload config and data when configuration changes
