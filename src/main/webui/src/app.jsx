@@ -14,6 +14,9 @@ import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
+import { client } from './graphql/client';
+import { THEME_QUERY, TRANSLATIONS_QUERY, CONFIG_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
+import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION } from './graphql/mutations';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -52,10 +55,12 @@ export function ThemeApplier() {
   });
 
   useEffect(() => {
-    fetch('/api/theme')
-      .then((res) => res.json())
-      .then((res) => {
-        if (res && res.light && res.dark) setThemes(res);
+    // Fetch theme from GraphQL
+    client.query(THEME_QUERY).toPromise()
+      .then((result) => {
+        if (result.data && result.data.theme) {
+          setThemes(result.data.theme);
+        }
         // If response is bad, keep the default
       }).catch(() => {});
   }, []);
@@ -137,9 +142,13 @@ export function App() {
   useEffect(() => {
     var lang = navigator.language;
     console.log("switching language to " + lang);
-    fetch('/api/i8n/' + lang)
-      .then((res) => res.json())
-      .then(setDefinition)
+    // Fetch translations from GraphQL
+    client.query(TRANSLATIONS_QUERY, { language: lang }).toPromise()
+      .then((result) => {
+        if (result.data && result.data.translations) {
+          setDefinition(result.data.translations);
+        }
+      })
       .catch((err) => {
         // Ignore errors
       });
@@ -154,18 +163,21 @@ export function App() {
   const [websocketEnabled, setWebsocketEnabled] = useState(false);
   
   useEffect(() => {
-    var config = fetch('/api/config')
-      .then((res) => res.json())
-      .then((res) => {
-        console.log('Config loaded:', res);
-        setShowGitHubLink(res.config.web.showGithubLink);
-        setTitle(res.config.web.title);
-        setVersion(res.config.version);
-        setCheckForUpdates(res.config.web.checkForUpdates);
-        setRefreshInterval(res.config.web.refreshInterval || 0);
-        const wsEnabled = res.config.websocket?.enabled || false;
-        console.log('WebSocket enabled:', wsEnabled);
-        setWebsocketEnabled(wsEnabled);
+    // Fetch config from GraphQL
+    client.query(CONFIG_QUERY).toPromise()
+      .then((result) => {
+        if (result.data && result.data.config) {
+          const res = result.data.config;
+          console.log('Config loaded:', res);
+          setShowGitHubLink(res.web.showGithubLink);
+          setTitle(res.web.title);
+          setVersion(res.version);
+          setCheckForUpdates(res.web.checkForUpdates);
+          setRefreshInterval(res.web.refreshInterval || 0);
+          const wsEnabled = res.websocket?.enabled || false;
+          console.log('WebSocket enabled:', wsEnabled);
+          setWebsocketEnabled(wsEnabled);
+        }
       });
 
   }, [])
@@ -181,28 +193,45 @@ export function App() {
     return path && path !== '' ? path : null;
   };
 
-  // Function to fetch applications and bookmarks
+  // Function to fetch applications and bookmarks using GraphQL
   const fetchData = () => {
     const tags = getTagsFromUrl();
-    const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
+    const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
-    console.log('[fetchData] Fetching applications from:', appsEndpoint);
-    fetch(appsEndpoint)
-      .then(res => res.json())
-      .then(res => {
-        console.log('[fetchData] Received application data:', res);
-        setApplicationGroups(res.groups || []);
+    console.log('[fetchData] Fetching applications with tags:', tagsArray);
+    
+    // Fetch applications
+    client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }).toPromise()
+      .then(result => {
+        if (result.data && result.data.applicationGroups) {
+          console.log('[fetchData] Received application data:', result.data.applicationGroups);
+          // Transform to match expected structure
+          const groups = result.data.applicationGroups.map(group => ({
+            name: group.name,
+            applications: group.applications
+          }));
+          setApplicationGroups(groups);
+        }
       })
       .catch(err => {
         console.error('[fetchData] Error fetching applications:', err);
         setApplicationGroups([]);
       });
-    fetch('/api/bookmarks')
-      .then(res => res.json())
-      .then(res => {
-        setBookmarkGroups(res.groups || []);
+    
+    // Fetch bookmarks
+    client.query(BOOKMARK_GROUPS_QUERY).toPromise()
+      .then(result => {
+        if (result.data && result.data.bookmarkGroups) {
+          // Transform to match expected structure
+          const groups = result.data.bookmarkGroups.map(group => ({
+            name: group.name,
+            bookmarks: group.bookmarks
+          }));
+          setBookmarkGroups(groups);
+        }
       })
       .catch(err => {
+        console.error('[fetchData] Error fetching bookmarks:', err);
         setBookmarkGroups([]);
       });
     
@@ -381,15 +410,14 @@ export function App() {
   };
 
   const handleDeleteApp = async (namespace, name) => {
-    const endpoint = `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const response = await fetch(endpoint, {
-      method: 'DELETE',
-    });
+    // Use GraphQL mutation
+    const result = await client.mutation(DELETE_APPLICATION_MUTATION, {
+      namespace,
+      name
+    }).toPromise();
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to delete application');
+    if (result.error) {
+      throw new Error(result.error.message || 'Failed to delete application');
     }
 
     setShowAppEditor(false);
@@ -449,15 +477,14 @@ export function App() {
   };
 
   const handleDeleteBookmark = async (namespace, name) => {
-    const endpoint = `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const response = await fetch(endpoint, {
-      method: 'DELETE',
-    });
+    // Use GraphQL mutation
+    const result = await client.mutation(DELETE_BOOKMARK_MUTATION, {
+      namespace,
+      name
+    }).toPromise();
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to delete bookmark');
+    if (result.error) {
+      throw new Error(result.error.message || 'Failed to delete bookmark');
     }
 
     setShowBookmarkEditor(false);

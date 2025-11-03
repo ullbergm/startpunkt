@@ -4,10 +4,12 @@ import { Text } from 'preact-i18n';
 import { Document } from 'flexsearch';
 
 import { Icon } from '@iconify/react';
+import { client } from './graphql/client';
+import { APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 
-function normalizeBookmarks(bmRes) {
-    if (!bmRes || !Array.isArray(bmRes.groups)) return [];
-    return bmRes.groups.flatMap(group =>
+function normalizeBookmarks(bmData) {
+    if (!bmData || !bmData.bookmarkGroups || !Array.isArray(bmData.bookmarkGroups)) return [];
+    return bmData.bookmarkGroups.flatMap(group =>
         (group.bookmarks || []).map(b => ({
             id: `bookmark:${group.name}:${b.name}:${b.url}`,
             name: b.name,
@@ -15,7 +17,7 @@ function normalizeBookmarks(bmRes) {
             url: b.url,
             icon: b.icon || 'mdi:bookmark-outline',
             iconColor: '#8e44ad', // purple for bookmarks
-            openInNewTab: false,
+            openInNewTab: b.targetBlank || false,
             info: b.info || '',
             type: 'bookmark',
         }))
@@ -147,18 +149,17 @@ export default function SpotlightSearch({ testVisible = false }) {
 
     useEffect(() => {
         async function fetchAll() {
-            // Helper to fetch, handle 404/500 gracefully
-            async function safeFetch(url) {
+            // Helper to fetch using GraphQL
+            async function safeGraphQLQuery(query, variables = {}) {
                 try {
-                    const res = await fetch(url);
-                    if (!res.ok) {
-                        if (res.status === 404) return null;
-                        // You could do better error handling here
+                    const result = await client.query(query, variables).toPromise();
+                    if (result.error) {
+                        console.error('GraphQL error:', result.error);
                         return null;
                     }
-                    return await res.json();
+                    return result.data;
                 } catch (err) {
-                    // Network error or bad JSON
+                    console.error('Network error:', err);
                     return null;
                 }
             }
@@ -172,17 +173,17 @@ export default function SpotlightSearch({ testVisible = false }) {
             };
 
             const tags = getTagsFromUrl();
-            const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
+            const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
 
             // Fetch both apps and bookmarks in parallel
-            const [appRes, bmRes] = await Promise.all([
-                safeFetch(appsEndpoint),
-                safeFetch('/api/bookmarks')
+            const [appData, bmData] = await Promise.all([
+                safeGraphQLQuery(APPLICATION_GROUPS_QUERY, { tags: tagsArray }),
+                safeGraphQLQuery(BOOKMARK_GROUPS_QUERY)
             ]);
 
-            // Defensive against missing .groups
-            const allApps = appRes?.groups ? normalizeApps(appRes.groups) : [];
-            const allBookmarks = normalizeBookmarks(bmRes);
+            // Defensive against missing data
+            const allApps = appData?.applicationGroups ? normalizeApps(appData.applicationGroups) : [];
+            const allBookmarks = normalizeBookmarks(bmData);
             const allItems = [...allApps, ...allBookmarks];
 
             setApps(allItems);
