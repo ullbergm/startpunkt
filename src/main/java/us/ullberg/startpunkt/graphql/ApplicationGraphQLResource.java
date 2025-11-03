@@ -459,7 +459,8 @@ public class ApplicationGraphQLResource {
   public Multi<ApplicationUpdateEvent> subscribeToApplicationUpdates(
       @Name("namespace") @Description("Optional namespace filter") String namespace,
       @Name("tags") @Description("Optional tags to filter applications") List<String> tags) {
-    Log.debugf("GraphQL subscription: applicationUpdates with namespace=%s, tags=%s", namespace, tags);
+    Log.debugf(
+        "GraphQL subscription: applicationUpdates with namespace=%s, tags=%s", namespace, tags);
 
     Multi<ApplicationUpdateEvent> stream = subscriptionEventEmitter.getApplicationStream();
 
