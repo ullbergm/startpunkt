@@ -5,6 +5,8 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
 import io.quarkus.logging.Log;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +25,8 @@ import us.ullberg.startpunkt.graphql.input.CreateApplicationInput;
 import us.ullberg.startpunkt.graphql.input.UpdateApplicationInput;
 import us.ullberg.startpunkt.graphql.types.ApplicationGroupType;
 import us.ullberg.startpunkt.graphql.types.ApplicationType;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
@@ -49,6 +53,7 @@ public class ApplicationGraphQLResource {
   final ApplicationService applicationService;
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
+  final SubscriptionEventEmitter subscriptionEventEmitter;
 
   @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;, defaultValue = &quot;false&quot;)
   boolean hajimariEnabled;
@@ -94,19 +99,22 @@ public class ApplicationGraphQLResource {
    * @param applicationService the application service for CRUD operations
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
+   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
    */
   public ApplicationGraphQLResource(
       KubernetesClient kubernetesClient,
       AvailabilityCheckService availabilityCheckService,
       ApplicationService applicationService,
       EventBroadcaster eventBroadcaster,
-<span class="nc" id="L103">      CacheManager cacheManager) {</span>
-<span class="nc" id="L104">    this.kubernetesClient = kubernetesClient;</span>
-<span class="nc" id="L105">    this.availabilityCheckService = availabilityCheckService;</span>
-<span class="nc" id="L106">    this.applicationService = applicationService;</span>
-<span class="nc" id="L107">    this.eventBroadcaster = eventBroadcaster;</span>
-<span class="nc" id="L108">    this.cacheManager = cacheManager;</span>
-<span class="nc" id="L109">  }</span>
+      CacheManager cacheManager,
+<span class="nc" id="L110">      SubscriptionEventEmitter subscriptionEventEmitter) {</span>
+<span class="nc" id="L111">    this.kubernetesClient = kubernetesClient;</span>
+<span class="nc" id="L112">    this.availabilityCheckService = availabilityCheckService;</span>
+<span class="nc" id="L113">    this.applicationService = applicationService;</span>
+<span class="nc" id="L114">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="nc" id="L115">    this.cacheManager = cacheManager;</span>
+<span class="nc" id="L116">    this.subscriptionEventEmitter = subscriptionEventEmitter;</span>
+<span class="nc" id="L117">  }</span>
 
   /**
    * Retrieve application groups, optionally filtered by tags.
@@ -119,42 +127,42 @@ public class ApplicationGraphQLResource {
   @Timed(value = &quot;graphql.query.applicationGroups&quot;)
   public List&lt;ApplicationGroupType&gt; getApplicationGroups(
       @Name(&quot;tags&quot;) @Description(&quot;Optional tags to filter applications&quot;) List&lt;String&gt; tags) {
-<span class="nc" id="L122">    Log.debugf(&quot;GraphQL query: applicationGroups with tags: %s&quot;, tags);</span>
+<span class="nc" id="L130">    Log.debugf(&quot;GraphQL query: applicationGroups with tags: %s&quot;, tags);</span>
 
     // Retrieve applications
-<span class="nc" id="L125">    ArrayList&lt;ApplicationResponse&gt; applist = retrieveAppsWithAvailability();</span>
+<span class="nc" id="L133">    ArrayList&lt;ApplicationResponse&gt; applist = retrieveAppsWithAvailability();</span>
 
     // Apply tag filtering
-<span class="nc bnc" id="L128" title="All 4 branches missed.">    if (tags != null &amp;&amp; !tags.isEmpty()) {</span>
-<span class="nc" id="L129">      String tagsStr = String.join(&quot;,&quot;, tags);</span>
-<span class="nc" id="L130">      applist = filterApplicationsByTags(applist, tagsStr);</span>
-<span class="nc" id="L131">    } else {</span>
-<span class="nc" id="L132">      applist = filterApplicationsWithoutTags(applist);</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">    if (tags != null &amp;&amp; !tags.isEmpty()) {</span>
+<span class="nc" id="L137">      String tagsStr = String.join(&quot;,&quot;, tags);</span>
+<span class="nc" id="L138">      applist = filterApplicationsByTags(applist, tagsStr);</span>
+<span class="nc" id="L139">    } else {</span>
+<span class="nc" id="L140">      applist = filterApplicationsWithoutTags(applist);</span>
     }
 
     // Group applications
-<span class="nc" id="L136">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">    for (ApplicationResponse a : applist) {</span>
-<span class="nc" id="L138">      ApplicationGroup group = null;</span>
-<span class="nc bnc" id="L139" title="All 2 branches missed.">      for (ApplicationGroup g : groups) {</span>
-<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (g.getName().equals(a.getGroup())) {</span>
-<span class="nc" id="L141">          group = g;</span>
-<span class="nc" id="L142">          break;</span>
+<span class="nc" id="L144">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    for (ApplicationResponse a : applist) {</span>
+<span class="nc" id="L146">      ApplicationGroup group = null;</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">      for (ApplicationGroup g : groups) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (g.getName().equals(a.getGroup())) {</span>
+<span class="nc" id="L149">          group = g;</span>
+<span class="nc" id="L150">          break;</span>
         }
-<span class="nc" id="L144">      }</span>
+<span class="nc" id="L152">      }</span>
 
-<span class="nc bnc" id="L146" title="All 2 branches missed.">      if (group == null) {</span>
-<span class="nc" id="L147">        group = new ApplicationGroup(a.getGroup());</span>
-<span class="nc" id="L148">        groups.add(group);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">      if (group == null) {</span>
+<span class="nc" id="L155">        group = new ApplicationGroup(a.getGroup());</span>
+<span class="nc" id="L156">        groups.add(group);</span>
       }
 
-<span class="nc" id="L151">      group.addApplication(a);</span>
-<span class="nc" id="L152">    }</span>
+<span class="nc" id="L159">      group.addApplication(a);</span>
+<span class="nc" id="L160">    }</span>
 
     // Convert to GraphQL types (no CRD exposure)
-<span class="nc" id="L155">    return groups.stream()</span>
-<span class="nc" id="L156">        .map(ApplicationGroupType::fromApplicationGroup)</span>
-<span class="nc" id="L157">        .collect(java.util.stream.Collectors.toList());</span>
+<span class="nc" id="L163">    return groups.stream()</span>
+<span class="nc" id="L164">        .map(ApplicationGroupType::fromApplicationGroup)</span>
+<span class="nc" id="L165">        .collect(java.util.stream.Collectors.toList());</span>
   }
 
   /**
@@ -170,130 +178,130 @@ public class ApplicationGraphQLResource {
   public ApplicationType getApplication(
       @Name(&quot;groupName&quot;) @Description(&quot;The group name of the application&quot;) String groupName,
       @Name(&quot;appName&quot;) @Description(&quot;The name of the application&quot;) String appName) {
-<span class="nc" id="L173">    Log.debugf(&quot;GraphQL query: application with groupName=%s, appName=%s&quot;, groupName, appName);</span>
+<span class="nc" id="L181">    Log.debugf(&quot;GraphQL query: application with groupName=%s, appName=%s&quot;, groupName, appName);</span>
 
-<span class="nc bnc" id="L175" title="All 2 branches missed.">    for (ApplicationResponse a : retrieveAppsWithAvailability()) {</span>
-<span class="nc bnc" id="L176" title="All 4 branches missed.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
-<span class="nc" id="L177">        return ApplicationType.fromResponse(a);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">    for (ApplicationResponse a : retrieveAppsWithAvailability()) {</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
+<span class="nc" id="L185">        return ApplicationType.fromResponse(a);</span>
       }
-<span class="nc" id="L179">    }</span>
+<span class="nc" id="L187">    }</span>
 
-<span class="nc" id="L181">    return null;</span>
+<span class="nc" id="L189">    return null;</span>
   }
 
   // Private helper methods from ApplicationResource
 
   private ArrayList&lt;ApplicationResponse&gt; retrieveApps() {
-<span class="nc" id="L187">    Log.debug(&quot;Retrieving applications from Kubernetes&quot;);</span>
-<span class="nc bnc" id="L188" title="All 2 branches missed.">    if (kubernetesClient == null) {</span>
-<span class="nc" id="L189">      Log.warn(&quot;KubernetesClient is null, returning empty application list&quot;);</span>
-<span class="nc" id="L190">      return new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L195">    Log.debug(&quot;Retrieving applications from Kubernetes&quot;);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (kubernetesClient == null) {</span>
+<span class="nc" id="L197">      Log.warn(&quot;KubernetesClient is null, returning empty application list&quot;);</span>
+<span class="nc" id="L198">      return new ArrayList&lt;&gt;();</span>
     }
 
-<span class="nc" id="L193">    var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
-<span class="nc" id="L194">    applicationWrappers.add(new StartpunktApplicationWrapper());</span>
+<span class="nc" id="L201">    var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
+<span class="nc" id="L202">    applicationWrappers.add(new StartpunktApplicationWrapper());</span>
 
-<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="nc" id="L197">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="nc" id="L205">      applicationWrappers.add(new HajimariApplicationWrapper());</span>
     }
-<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (openshiftEnabled) {</span>
-<span class="nc" id="L200">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    if (openshiftEnabled) {</span>
+<span class="nc" id="L208">      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
     }
-<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (ingressEnabled) {</span>
-<span class="nc" id="L203">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (ingressEnabled) {</span>
+<span class="nc" id="L211">      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
     }
-<span class="nc bnc" id="L205" title="All 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
-<span class="nc" id="L206">      applicationWrappers.add(</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">    if (istioVirtualServiceEnabled) {</span>
+<span class="nc" id="L214">      applicationWrappers.add(</span>
           new IstioVirtualServiceApplicationWrapper(
               istioVirtualServiceOnlyAnnotated, defaultProtocol));
     }
-<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (gatewayApiEnabled) {</span>
-<span class="nc" id="L211">      applicationWrappers.add(</span>
-<span class="nc" id="L212">          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">    if (gatewayApiEnabled) {</span>
+<span class="nc" id="L219">      applicationWrappers.add(</span>
+<span class="nc" id="L220">          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));</span>
     }
 
-<span class="nc" id="L215">    var apps = new ArrayList&lt;ApplicationResponse&gt;();</span>
+<span class="nc" id="L223">    var apps = new ArrayList&lt;ApplicationResponse&gt;();</span>
 
     try {
-<span class="nc bnc" id="L218" title="All 2 branches missed.">      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
-<span class="nc" id="L219">        var wrapperApps =</span>
-<span class="nc" id="L220">            applicationWrapper.getApplicationSpecsWithMetadata(</span>
-<span class="nc" id="L221">                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));</span>
-<span class="nc" id="L222">        apps.addAll(wrapperApps);</span>
-<span class="nc" id="L223">      }</span>
-<span class="nc" id="L224">    } catch (Exception e) {</span>
-<span class="nc" id="L225">      Log.error(&quot;Error retrieving applications from Kubernetes&quot;, e);</span>
-<span class="nc" id="L226">      return new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L227">    }</span>
-
-<span class="nc" id="L229">    Collections.sort(apps);</span>
-
-<span class="nc bnc" id="L231" title="All 2 branches missed.">    for (ApplicationResponse app : apps) {</span>
-<span class="nc bnc" id="L232" title="All 4 branches missed.">      if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
-<span class="nc" id="L233">        availabilityCheckService.registerUrl(app.getUrl());</span>
-      }
+<span class="nc bnc" id="L226" title="All 2 branches missed.">      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
+<span class="nc" id="L227">        var wrapperApps =</span>
+<span class="nc" id="L228">            applicationWrapper.getApplicationSpecsWithMetadata(</span>
+<span class="nc" id="L229">                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));</span>
+<span class="nc" id="L230">        apps.addAll(wrapperApps);</span>
+<span class="nc" id="L231">      }</span>
+<span class="nc" id="L232">    } catch (Exception e) {</span>
+<span class="nc" id="L233">      Log.error(&quot;Error retrieving applications from Kubernetes&quot;, e);</span>
+<span class="nc" id="L234">      return new ArrayList&lt;&gt;();</span>
 <span class="nc" id="L235">    }</span>
 
-<span class="nc" id="L237">    return apps;</span>
+<span class="nc" id="L237">    Collections.sort(apps);</span>
+
+<span class="nc bnc" id="L239" title="All 2 branches missed.">    for (ApplicationResponse app : apps) {</span>
+<span class="nc bnc" id="L240" title="All 4 branches missed.">      if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
+<span class="nc" id="L241">        availabilityCheckService.registerUrl(app.getUrl());</span>
+      }
+<span class="nc" id="L243">    }</span>
+
+<span class="nc" id="L245">    return apps;</span>
   }
 
   private ArrayList&lt;ApplicationResponse&gt; retrieveAppsWithAvailability() {
-<span class="nc" id="L241">    ArrayList&lt;ApplicationResponse&gt; apps = retrieveApps();</span>
-<span class="nc" id="L242">    return new ArrayList&lt;&gt;(availabilityCheckService.enrichWithAvailability(apps));</span>
+<span class="nc" id="L249">    ArrayList&lt;ApplicationResponse&gt; apps = retrieveApps();</span>
+<span class="nc" id="L250">    return new ArrayList&lt;&gt;(availabilityCheckService.enrichWithAvailability(apps));</span>
   }
 
   private ArrayList&lt;ApplicationResponse&gt; filterApplicationsByTags(
       ArrayList&lt;ApplicationResponse&gt; applications, String filterTags) {
-<span class="nc bnc" id="L247" title="All 4 branches missed.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
-<span class="nc" id="L248">      return applications;</span>
+<span class="nc bnc" id="L255" title="All 4 branches missed.">    if (filterTags == null || filterTags.trim().isEmpty()) {</span>
+<span class="nc" id="L256">      return applications;</span>
     }
 
-<span class="nc" id="L251">    var filterTagSet =</span>
-<span class="nc" id="L252">        java.util.Arrays.stream(filterTags.split(&quot;,&quot;))</span>
-<span class="nc" id="L253">            .map(String::trim)</span>
-<span class="nc" id="L254">            .map(String::toLowerCase)</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">            .filter(tag -&gt; !tag.isEmpty())</span>
-<span class="nc" id="L256">            .collect(java.util.stream.Collectors.toSet());</span>
+<span class="nc" id="L259">    var filterTagSet =</span>
+<span class="nc" id="L260">        java.util.Arrays.stream(filterTags.split(&quot;,&quot;))</span>
+<span class="nc" id="L261">            .map(String::trim)</span>
+<span class="nc" id="L262">            .map(String::toLowerCase)</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">            .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="nc" id="L264">            .collect(java.util.stream.Collectors.toSet());</span>
 
-<span class="nc bnc" id="L258" title="All 2 branches missed.">    if (filterTagSet.isEmpty()) {</span>
-<span class="nc" id="L259">      return applications;</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">    if (filterTagSet.isEmpty()) {</span>
+<span class="nc" id="L267">      return applications;</span>
     }
 
-<span class="nc" id="L262">    ArrayList&lt;ApplicationResponse&gt; filteredApps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L270">    ArrayList&lt;ApplicationResponse&gt; filteredApps = new ArrayList&lt;&gt;();</span>
 
-<span class="nc bnc" id="L264" title="All 2 branches missed.">    for (ApplicationResponse app : applications) {</span>
-<span class="nc bnc" id="L265" title="All 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
-<span class="nc" id="L266">        filteredApps.add(app);</span>
-<span class="nc" id="L267">        continue;</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">    for (ApplicationResponse app : applications) {</span>
+<span class="nc bnc" id="L273" title="All 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="nc" id="L274">        filteredApps.add(app);</span>
+<span class="nc" id="L275">        continue;</span>
       }
 
-<span class="nc" id="L270">      var appTagSet =</span>
-<span class="nc" id="L271">          java.util.Arrays.stream(app.getTags().split(&quot;,&quot;))</span>
-<span class="nc" id="L272">              .map(String::trim)</span>
-<span class="nc" id="L273">              .map(String::toLowerCase)</span>
-<span class="nc bnc" id="L274" title="All 2 branches missed.">              .filter(tag -&gt; !tag.isEmpty())</span>
-<span class="nc" id="L275">              .collect(java.util.stream.Collectors.toSet());</span>
+<span class="nc" id="L278">      var appTagSet =</span>
+<span class="nc" id="L279">          java.util.Arrays.stream(app.getTags().split(&quot;,&quot;))</span>
+<span class="nc" id="L280">              .map(String::trim)</span>
+<span class="nc" id="L281">              .map(String::toLowerCase)</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">              .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="nc" id="L283">              .collect(java.util.stream.Collectors.toSet());</span>
 
-<span class="nc" id="L277">      boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);</span>
-<span class="nc bnc" id="L278" title="All 2 branches missed.">      if (hasMatchingTag) {</span>
-<span class="nc" id="L279">        filteredApps.add(app);</span>
+<span class="nc" id="L285">      boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">      if (hasMatchingTag) {</span>
+<span class="nc" id="L287">        filteredApps.add(app);</span>
       }
-<span class="nc" id="L281">    }</span>
+<span class="nc" id="L289">    }</span>
 
-<span class="nc" id="L283">    return filteredApps;</span>
+<span class="nc" id="L291">    return filteredApps;</span>
   }
 
   private ArrayList&lt;ApplicationResponse&gt; filterApplicationsWithoutTags(
       ArrayList&lt;ApplicationResponse&gt; applications) {
-<span class="nc" id="L288">    ArrayList&lt;ApplicationResponse&gt; filteredApps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L296">    ArrayList&lt;ApplicationResponse&gt; filteredApps = new ArrayList&lt;&gt;();</span>
 
-<span class="nc bnc" id="L290" title="All 2 branches missed.">    for (ApplicationResponse app : applications) {</span>
-<span class="nc bnc" id="L291" title="All 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
-<span class="nc" id="L292">        filteredApps.add(app);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">    for (ApplicationResponse app : applications) {</span>
+<span class="nc bnc" id="L299" title="All 4 branches missed.">      if (app.getTags() == null || app.getTags().trim().isEmpty()) {</span>
+<span class="nc" id="L300">        filteredApps.add(app);</span>
       }
-<span class="nc" id="L294">    }</span>
+<span class="nc" id="L302">    }</span>
 
-<span class="nc" id="L296">    return filteredApps;</span>
+<span class="nc" id="L304">    return filteredApps;</span>
   }
 
   /**
@@ -306,39 +314,39 @@ public class ApplicationGraphQLResource {
   @Description(&quot;Create a new application&quot;)
   @Timed(value = &quot;graphql.mutation.createApplication&quot;)
   public ApplicationType createApplication(@NonNull @Name(&quot;input&quot;) CreateApplicationInput input) {
-<span class="nc" id="L309">    Log.debugf(</span>
+<span class="nc" id="L317">    Log.debugf(</span>
         &quot;GraphQL mutation: createApplication in namespace=%s, name=%s&quot;,
         input.namespace, input.resourceName);
 
     // Create ApplicationSpec from input
-<span class="nc" id="L314">    ApplicationSpec spec = new ApplicationSpec();</span>
-<span class="nc" id="L315">    spec.name = input.name;</span>
-<span class="nc" id="L316">    spec.setGroup(input.group);</span>
-<span class="nc" id="L317">    spec.setIcon(input.icon);</span>
-<span class="nc" id="L318">    spec.setIconColor(input.iconColor);</span>
-<span class="nc" id="L319">    spec.setUrl(input.url);</span>
-<span class="nc" id="L320">    spec.setInfo(input.info);</span>
-<span class="nc" id="L321">    spec.setTargetBlank(input.targetBlank);</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">    spec.setLocation(input.location != null ? input.location : 1000);</span>
-<span class="nc bnc" id="L323" title="All 2 branches missed.">    spec.setEnabled(input.enabled != null ? input.enabled : true);</span>
-<span class="nc" id="L324">    spec.setRootPath(input.rootPath);</span>
-<span class="nc" id="L325">    spec.setTags(input.tags);</span>
+<span class="nc" id="L322">    ApplicationSpec spec = new ApplicationSpec();</span>
+<span class="nc" id="L323">    spec.name = input.name;</span>
+<span class="nc" id="L324">    spec.setGroup(input.group);</span>
+<span class="nc" id="L325">    spec.setIcon(input.icon);</span>
+<span class="nc" id="L326">    spec.setIconColor(input.iconColor);</span>
+<span class="nc" id="L327">    spec.setUrl(input.url);</span>
+<span class="nc" id="L328">    spec.setInfo(input.info);</span>
+<span class="nc" id="L329">    spec.setTargetBlank(input.targetBlank);</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">    spec.setLocation(input.location != null ? input.location : 1000);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">    spec.setEnabled(input.enabled != null ? input.enabled : true);</span>
+<span class="nc" id="L332">    spec.setRootPath(input.rootPath);</span>
+<span class="nc" id="L333">    spec.setTags(input.tags);</span>
 
     // Create application via service
-<span class="nc" id="L328">    Application created =</span>
-<span class="nc" id="L329">        applicationService.createApplication(input.namespace, input.resourceName, spec);</span>
+<span class="nc" id="L336">    Application created =</span>
+<span class="nc" id="L337">        applicationService.createApplication(input.namespace, input.resourceName, spec);</span>
 
     // Invalidate cache
-<span class="nc" id="L332">    invalidateApplicationCaches();</span>
+<span class="nc" id="L340">    invalidateApplicationCaches();</span>
 
     // Broadcast event
-<span class="nc" id="L335">    eventBroadcaster.broadcastApplicationAdded(created);</span>
+<span class="nc" id="L343">    eventBroadcaster.broadcastApplicationAdded(created);</span>
 
     // Convert to GraphQL type
-<span class="nc" id="L338">    ApplicationResponse response = new ApplicationResponse(spec);</span>
-<span class="nc" id="L339">    response.setNamespace(input.namespace);</span>
-<span class="nc" id="L340">    response.setResourceName(input.resourceName);</span>
-<span class="nc" id="L341">    return ApplicationType.fromResponse(response);</span>
+<span class="nc" id="L346">    ApplicationResponse response = new ApplicationResponse(spec);</span>
+<span class="nc" id="L347">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L348">    response.setResourceName(input.resourceName);</span>
+<span class="nc" id="L349">    return ApplicationType.fromResponse(response);</span>
   }
 
   /**
@@ -351,39 +359,39 @@ public class ApplicationGraphQLResource {
   @Description(&quot;Update an existing application&quot;)
   @Timed(value = &quot;graphql.mutation.updateApplication&quot;)
   public ApplicationType updateApplication(@NonNull @Name(&quot;input&quot;) UpdateApplicationInput input) {
-<span class="nc" id="L354">    Log.debugf(</span>
+<span class="nc" id="L362">    Log.debugf(</span>
         &quot;GraphQL mutation: updateApplication in namespace=%s, name=%s&quot;,
         input.namespace, input.resourceName);
 
     // Create ApplicationSpec from input
-<span class="nc" id="L359">    ApplicationSpec spec = new ApplicationSpec();</span>
-<span class="nc" id="L360">    spec.name = input.name;</span>
-<span class="nc" id="L361">    spec.setGroup(input.group);</span>
-<span class="nc" id="L362">    spec.setIcon(input.icon);</span>
-<span class="nc" id="L363">    spec.setIconColor(input.iconColor);</span>
-<span class="nc" id="L364">    spec.setUrl(input.url);</span>
-<span class="nc" id="L365">    spec.setInfo(input.info);</span>
-<span class="nc" id="L366">    spec.setTargetBlank(input.targetBlank);</span>
-<span class="nc bnc" id="L367" title="All 2 branches missed.">    spec.setLocation(input.location != null ? input.location : 1000);</span>
-<span class="nc bnc" id="L368" title="All 2 branches missed.">    spec.setEnabled(input.enabled != null ? input.enabled : true);</span>
-<span class="nc" id="L369">    spec.setRootPath(input.rootPath);</span>
-<span class="nc" id="L370">    spec.setTags(input.tags);</span>
+<span class="nc" id="L367">    ApplicationSpec spec = new ApplicationSpec();</span>
+<span class="nc" id="L368">    spec.name = input.name;</span>
+<span class="nc" id="L369">    spec.setGroup(input.group);</span>
+<span class="nc" id="L370">    spec.setIcon(input.icon);</span>
+<span class="nc" id="L371">    spec.setIconColor(input.iconColor);</span>
+<span class="nc" id="L372">    spec.setUrl(input.url);</span>
+<span class="nc" id="L373">    spec.setInfo(input.info);</span>
+<span class="nc" id="L374">    spec.setTargetBlank(input.targetBlank);</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">    spec.setLocation(input.location != null ? input.location : 1000);</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">    spec.setEnabled(input.enabled != null ? input.enabled : true);</span>
+<span class="nc" id="L377">    spec.setRootPath(input.rootPath);</span>
+<span class="nc" id="L378">    spec.setTags(input.tags);</span>
 
     // Update application via service
-<span class="nc" id="L373">    Application updated =</span>
-<span class="nc" id="L374">        applicationService.updateApplication(input.namespace, input.resourceName, spec);</span>
+<span class="nc" id="L381">    Application updated =</span>
+<span class="nc" id="L382">        applicationService.updateApplication(input.namespace, input.resourceName, spec);</span>
 
     // Invalidate cache
-<span class="nc" id="L377">    invalidateApplicationCaches();</span>
+<span class="nc" id="L385">    invalidateApplicationCaches();</span>
 
     // Broadcast event
-<span class="nc" id="L380">    eventBroadcaster.broadcastApplicationUpdated(updated);</span>
+<span class="nc" id="L388">    eventBroadcaster.broadcastApplicationUpdated(updated);</span>
 
     // Convert to GraphQL type
-<span class="nc" id="L383">    ApplicationResponse response = new ApplicationResponse(spec);</span>
-<span class="nc" id="L384">    response.setNamespace(input.namespace);</span>
-<span class="nc" id="L385">    response.setResourceName(input.resourceName);</span>
-<span class="nc" id="L386">    return ApplicationType.fromResponse(response);</span>
+<span class="nc" id="L391">    ApplicationResponse response = new ApplicationResponse(spec);</span>
+<span class="nc" id="L392">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L393">    response.setResourceName(input.resourceName);</span>
+<span class="nc" id="L394">    return ApplicationType.fromResponse(response);</span>
   }
 
   /**
@@ -398,41 +406,163 @@ public class ApplicationGraphQLResource {
   @Timed(value = &quot;graphql.mutation.deleteApplication&quot;)
   public Boolean deleteApplication(
       @NonNull @Name(&quot;namespace&quot;) String namespace, @NonNull @Name(&quot;name&quot;) String name) {
-<span class="nc" id="L401">    Log.debugf(&quot;GraphQL mutation: deleteApplication in namespace=%s, name=%s&quot;, namespace, name);</span>
+<span class="nc" id="L409">    Log.debugf(&quot;GraphQL mutation: deleteApplication in namespace=%s, name=%s&quot;, namespace, name);</span>
+
+    // Get the application data BEFORE deleting so we can broadcast it
+<span class="nc" id="L412">    var appToDelete = applicationService.getApplication(namespace, name);</span>
 
     // Delete application via service
-<span class="nc" id="L404">    boolean deleted = applicationService.deleteApplication(namespace, name);</span>
+<span class="nc" id="L415">    boolean deleted = applicationService.deleteApplication(namespace, name);</span>
 
-<span class="nc bnc" id="L406" title="All 2 branches missed.">    if (deleted) {</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">    if (deleted) {</span>
       // Invalidate cache
-<span class="nc" id="L408">      invalidateApplicationCaches();</span>
+<span class="nc" id="L419">      invalidateApplicationCaches();</span>
 
-      // Broadcast event
-<span class="nc" id="L411">      var deletedData = new java.util.HashMap&lt;String, String&gt;();</span>
-<span class="nc" id="L412">      deletedData.put(&quot;namespace&quot;, namespace);</span>
-<span class="nc" id="L413">      deletedData.put(&quot;name&quot;, name);</span>
-<span class="nc" id="L414">      eventBroadcaster.broadcastApplicationRemoved(deletedData);</span>
+      // Broadcast event with the full application data
+<span class="nc bnc" id="L422" title="All 2 branches missed.">      if (appToDelete != null) {</span>
+<span class="nc" id="L423">        eventBroadcaster.broadcastApplicationRemoved(appToDelete);</span>
+      } else {
+<span class="nc" id="L425">        Log.warnf(</span>
+            &quot;Could not broadcast application removed event - application data not found for %s/%s&quot;,
+            namespace, name);
+      }
     }
 
-<span class="nc" id="L417">    return deleted;</span>
+<span class="nc" id="L431">    return deleted;</span>
   }
 
   /** Invalidates the application caches. */
   private void invalidateApplicationCaches() {
-<span class="nc" id="L422">    Cache cache = cacheManager.getCache(&quot;getApps&quot;).orElse(null);</span>
-<span class="nc bnc" id="L423" title="All 2 branches missed.">    if (cache != null) {</span>
-<span class="nc" id="L424">      cache.invalidateAll().await().indefinitely();</span>
+<span class="nc" id="L436">    Cache cache = cacheManager.getCache(&quot;getApps&quot;).orElse(null);</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">    if (cache != null) {</span>
+<span class="nc" id="L438">      cache.invalidateAll().await().indefinitely();</span>
     }
 
-<span class="nc" id="L427">    cache = cacheManager.getCache(&quot;getAppsFiltered&quot;).orElse(null);</span>
-<span class="nc bnc" id="L428" title="All 2 branches missed.">    if (cache != null) {</span>
-<span class="nc" id="L429">      cache.invalidateAll().await().indefinitely();</span>
+<span class="nc" id="L441">    cache = cacheManager.getCache(&quot;getAppsFiltered&quot;).orElse(null);</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">    if (cache != null) {</span>
+<span class="nc" id="L443">      cache.invalidateAll().await().indefinitely();</span>
     }
 
-<span class="nc" id="L432">    cache = cacheManager.getCache(&quot;getApp&quot;).orElse(null);</span>
-<span class="nc bnc" id="L433" title="All 2 branches missed.">    if (cache != null) {</span>
-<span class="nc" id="L434">      cache.invalidateAll().await().indefinitely();</span>
+<span class="nc" id="L446">    cache = cacheManager.getCache(&quot;getApp&quot;).orElse(null);</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">    if (cache != null) {</span>
+<span class="nc" id="L448">      cache.invalidateAll().await().indefinitely();</span>
     }
-<span class="nc" id="L436">  }</span>
+<span class="nc" id="L450">  }</span>
+
+  /**
+   * Subscribe to real-time application updates.
+   *
+   * &lt;p&gt;Clients can subscribe to this to receive notifications when applications are added, updated,
+   * or removed. Optional filtering by namespace and tags is supported.
+   *
+   * @param namespace optional namespace filter (only events for this namespace will be sent)
+   * @param tags optional list of tags to filter applications
+   * @return Multi stream of application update events
+   */
+  @Subscription(&quot;applicationUpdates&quot;)
+  @Description(&quot;Subscribe to real-time application updates with optional filtering&quot;)
+  public Multi&lt;ApplicationUpdateEvent&gt; subscribeToApplicationUpdates(
+      @Name(&quot;namespace&quot;) @Description(&quot;Optional namespace filter&quot;) String namespace,
+      @Name(&quot;tags&quot;) @Description(&quot;Optional tags to filter applications&quot;) List&lt;String&gt; tags) {
+<span class="nc" id="L467">    Log.debugf(</span>
+        &quot;GraphQL subscription: applicationUpdates with namespace=%s, tags=%s&quot;, namespace, tags);
+
+<span class="nc" id="L470">    Multi&lt;ApplicationUpdateEvent&gt; stream = subscriptionEventEmitter.getApplicationStream();</span>
+
+    // Apply namespace filter if provided
+<span class="nc bnc" id="L473" title="All 4 branches missed.">    if (namespace != null &amp;&amp; !namespace.trim().isEmpty()) {</span>
+<span class="nc" id="L474">      final String ns = namespace.trim();</span>
+<span class="nc" id="L475">      stream =</span>
+<span class="nc" id="L476">          stream.filter(</span>
+              event -&gt; {
+<span class="nc" id="L478">                ApplicationType app = event.getApplication();</span>
+<span class="nc bnc" id="L479" title="All 4 branches missed.">                return app != null &amp;&amp; ns.equals(app.namespace);</span>
+              });
+    }
+
+    // Apply tags filter if provided
+<span class="nc bnc" id="L484" title="All 4 branches missed.">    if (tags != null &amp;&amp; !tags.isEmpty()) {</span>
+<span class="nc" id="L485">      final List&lt;String&gt; lowerCaseTags =</span>
+<span class="nc" id="L486">          tags.stream()</span>
+<span class="nc" id="L487">              .map(String::trim)</span>
+<span class="nc" id="L488">              .map(String::toLowerCase)</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">              .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="nc" id="L490">              .toList();</span>
+
+<span class="nc bnc" id="L492" title="All 2 branches missed.">      if (!lowerCaseTags.isEmpty()) {</span>
+<span class="nc" id="L493">        stream =</span>
+<span class="nc" id="L494">            stream.filter(</span>
+                event -&gt; {
+<span class="nc" id="L496">                  ApplicationType app = event.getApplication();</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                  if (app == null) {</span>
+<span class="nc" id="L498">                    return false;</span>
+                  }
+
+                  // Include apps without tags (per tag filtering rules in
+                  // docs/object-tag-filtering.md)
+<span class="nc bnc" id="L503" title="All 4 branches missed.">                  if (app.tags == null || app.tags.trim().isEmpty()) {</span>
+<span class="nc" id="L504">                    return true;</span>
+                  }
+
+                  // Check if app has any of the requested tags
+<span class="nc" id="L508">                  List&lt;String&gt; appTags =</span>
+<span class="nc" id="L509">                      java.util.Arrays.stream(app.tags.split(&quot;,&quot;))</span>
+<span class="nc" id="L510">                          .map(String::trim)</span>
+<span class="nc" id="L511">                          .map(String::toLowerCase)</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">                          .filter(tag -&gt; !tag.isEmpty())</span>
+<span class="nc" id="L513">                          .toList();</span>
+
+<span class="nc" id="L515">                  return appTags.stream().anyMatch(lowerCaseTags::contains);</span>
+                });
+      }
+    }
+
+<span class="nc" id="L520">    return stream;</span>
+  }
+
+  /**
+   * Subscribe to new applications being added.
+   *
+   * @return Multi stream of new applications
+   */
+  @Subscription(&quot;applicationAdded&quot;)
+  @Description(&quot;Subscribe to notifications when new applications are added&quot;)
+  public Multi&lt;ApplicationType&gt; subscribeToApplicationsAdded() {
+<span class="nc" id="L531">    Log.debug(&quot;GraphQL subscription: applicationAdded&quot;);</span>
+<span class="nc" id="L532">    return subscriptionEventEmitter</span>
+<span class="nc" id="L533">        .getApplicationStream()</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == ApplicationUpdateType.ADDED)</span>
+<span class="nc" id="L535">        .map(ApplicationUpdateEvent::getApplication);</span>
+  }
+
+  /**
+   * Subscribe to applications being removed.
+   *
+   * @return Multi stream of removed applications
+   */
+  @Subscription(&quot;applicationRemoved&quot;)
+  @Description(&quot;Subscribe to notifications when applications are removed&quot;)
+  public Multi&lt;ApplicationType&gt; subscribeToApplicationsRemoved() {
+<span class="nc" id="L546">    Log.debug(&quot;GraphQL subscription: applicationRemoved&quot;);</span>
+<span class="nc" id="L547">    return subscriptionEventEmitter</span>
+<span class="nc" id="L548">        .getApplicationStream()</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == ApplicationUpdateType.REMOVED)</span>
+<span class="nc" id="L550">        .map(ApplicationUpdateEvent::getApplication);</span>
+  }
+
+  /**
+   * Subscribe to applications being updated.
+   *
+   * @return Multi stream of updated applications
+   */
+  @Subscription(&quot;applicationUpdated&quot;)
+  @Description(&quot;Subscribe to notifications when applications are updated&quot;)
+  public Multi&lt;ApplicationType&gt; subscribeToApplicationsUpdated() {
+<span class="nc" id="L561">    Log.debug(&quot;GraphQL subscription: applicationUpdated&quot;);</span>
+<span class="nc" id="L562">    return subscriptionEventEmitter</span>
+<span class="nc" id="L563">        .getApplicationStream()</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == ApplicationUpdateType.UPDATED)</span>
+<span class="nc" id="L565">        .map(ApplicationUpdateEvent::getApplication);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

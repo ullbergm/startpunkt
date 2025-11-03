@@ -4,6 +4,8 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
 import io.quarkus.logging.Log;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +24,8 @@ import us.ullberg.startpunkt.graphql.input.CreateBookmarkInput;
 import us.ullberg.startpunkt.graphql.input.UpdateBookmarkInput;
 import us.ullberg.startpunkt.graphql.types.BookmarkGroupType;
 import us.ullberg.startpunkt.graphql.types.BookmarkType;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
@@ -40,6 +44,7 @@ public class BookmarkGraphQLResource {
   final BookmarkManagementService bookmarkManagementService;
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
+  final SubscriptionEventEmitter subscriptionEventEmitter;
 
   @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;, defaultValue = &quot;false&quot;)
   boolean hajimariEnabled;
@@ -51,17 +56,20 @@ public class BookmarkGraphQLResource {
    * @param bookmarkManagementService the bookmark management service for CRUD operations
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
+   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
    */
   public BookmarkGraphQLResource(
       BookmarkService bookmarkService,
       BookmarkManagementService bookmarkManagementService,
       EventBroadcaster eventBroadcaster,
-<span class="fc" id="L59">      CacheManager cacheManager) {</span>
-<span class="fc" id="L60">    this.bookmarkService = bookmarkService;</span>
-<span class="fc" id="L61">    this.bookmarkManagementService = bookmarkManagementService;</span>
-<span class="fc" id="L62">    this.eventBroadcaster = eventBroadcaster;</span>
-<span class="fc" id="L63">    this.cacheManager = cacheManager;</span>
-<span class="fc" id="L64">  }</span>
+      CacheManager cacheManager,
+<span class="fc" id="L66">      SubscriptionEventEmitter subscriptionEventEmitter) {</span>
+<span class="fc" id="L67">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L68">    this.bookmarkManagementService = bookmarkManagementService;</span>
+<span class="fc" id="L69">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="fc" id="L70">    this.cacheManager = cacheManager;</span>
+<span class="fc" id="L71">    this.subscriptionEventEmitter = subscriptionEventEmitter;</span>
+<span class="fc" id="L72">  }</span>
 
   /**
    * Retrieve bookmark groups.
@@ -72,13 +80,13 @@ public class BookmarkGraphQLResource {
   @Description(&quot;Retrieve all bookmark groups&quot;)
   @Timed(value = &quot;graphql.query.bookmarkGroups&quot;)
   public List&lt;BookmarkGroupType&gt; getBookmarkGroups() {
-<span class="fc" id="L75">    Log.debug(&quot;GraphQL query: bookmarkGroups&quot;);</span>
+<span class="fc" id="L83">    Log.debug(&quot;GraphQL query: bookmarkGroups&quot;);</span>
 
-<span class="fc" id="L77">    List&lt;BookmarkResponse&gt; bookmarks = retrieveBookmarks();</span>
-<span class="fc" id="L78">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarks);</span>
+<span class="fc" id="L85">    List&lt;BookmarkResponse&gt; bookmarks = retrieveBookmarks();</span>
+<span class="fc" id="L86">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarks);</span>
 
     // Convert to GraphQL types (no CRD exposure)
-<span class="fc" id="L81">    return groups.stream().map(BookmarkGroupType::fromBookmarkGroup).collect(Collectors.toList());</span>
+<span class="fc" id="L89">    return groups.stream().map(BookmarkGroupType::fromBookmarkGroup).collect(Collectors.toList());</span>
   }
 
   /**
@@ -88,15 +96,15 @@ public class BookmarkGraphQLResource {
    * @return sorted list of BookmarkResponse objects
    */
   private ArrayList&lt;BookmarkResponse&gt; retrieveBookmarks() {
-<span class="fc" id="L91">    var bookmarks = new ArrayList&lt;BookmarkResponse&gt;();</span>
-<span class="fc" id="L92">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
+<span class="fc" id="L99">    var bookmarks = new ArrayList&lt;BookmarkResponse&gt;();</span>
+<span class="fc" id="L100">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
 
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
-<span class="fc" id="L95">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L103">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
     }
 
-<span class="fc" id="L98">    Collections.sort(bookmarks);</span>
-<span class="fc" id="L99">    return bookmarks;</span>
+<span class="fc" id="L106">    Collections.sort(bookmarks);</span>
+<span class="fc" id="L107">    return bookmarks;</span>
   }
 
   /**
@@ -109,11 +117,11 @@ public class BookmarkGraphQLResource {
   @Description(&quot;Create a new bookmark&quot;)
   @Timed(value = &quot;graphql.mutation.createBookmark&quot;)
   public BookmarkType createBookmark(@NonNull @Name(&quot;input&quot;) CreateBookmarkInput input) {
-<span class="nc" id="L112">    Log.debugf(</span>
+<span class="nc" id="L120">    Log.debugf(</span>
         &quot;GraphQL mutation: createBookmark in namespace=%s, name=%s&quot;, input.namespace, input.name);
 
     // Create BookmarkSpec from input
-<span class="nc" id="L116">    BookmarkSpec spec =</span>
+<span class="nc" id="L124">    BookmarkSpec spec =</span>
         new BookmarkSpec(
             input.bookmarkName,
             input.group,
@@ -121,22 +129,22 @@ public class BookmarkGraphQLResource {
             input.url,
             input.info,
             input.targetBlank,
-<span class="nc bnc" id="L124" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
 
     // Create bookmark via management service
-<span class="nc" id="L127">    Bookmark created = bookmarkManagementService.createBookmark(input.namespace, input.name, spec);</span>
+<span class="nc" id="L135">    Bookmark created = bookmarkManagementService.createBookmark(input.namespace, input.name, spec);</span>
 
     // Invalidate cache
-<span class="nc" id="L130">    invalidateBookmarkCache();</span>
+<span class="nc" id="L138">    invalidateBookmarkCache();</span>
 
     // Broadcast event
-<span class="nc" id="L133">    eventBroadcaster.broadcastBookmarkAdded(created);</span>
+<span class="nc" id="L141">    eventBroadcaster.broadcastBookmarkAdded(created);</span>
 
     // Convert to GraphQL type
-<span class="nc" id="L136">    BookmarkResponse response = new BookmarkResponse(spec);</span>
-<span class="nc" id="L137">    response.setNamespace(input.namespace);</span>
-<span class="nc" id="L138">    response.setResourceName(input.name);</span>
-<span class="nc" id="L139">    return BookmarkType.fromResponse(response);</span>
+<span class="nc" id="L144">    BookmarkResponse response = new BookmarkResponse(spec);</span>
+<span class="nc" id="L145">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L146">    response.setResourceName(input.name);</span>
+<span class="nc" id="L147">    return BookmarkType.fromResponse(response);</span>
   }
 
   /**
@@ -149,11 +157,11 @@ public class BookmarkGraphQLResource {
   @Description(&quot;Update an existing bookmark&quot;)
   @Timed(value = &quot;graphql.mutation.updateBookmark&quot;)
   public BookmarkType updateBookmark(@NonNull @Name(&quot;input&quot;) UpdateBookmarkInput input) {
-<span class="nc" id="L152">    Log.debugf(</span>
+<span class="nc" id="L160">    Log.debugf(</span>
         &quot;GraphQL mutation: updateBookmark in namespace=%s, name=%s&quot;, input.namespace, input.name);
 
     // Create BookmarkSpec from input
-<span class="nc" id="L156">    BookmarkSpec spec =</span>
+<span class="nc" id="L164">    BookmarkSpec spec =</span>
         new BookmarkSpec(
             input.bookmarkName,
             input.group,
@@ -161,22 +169,22 @@ public class BookmarkGraphQLResource {
             input.url,
             input.info,
             input.targetBlank,
-<span class="nc bnc" id="L164" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
 
     // Update bookmark via management service
-<span class="nc" id="L167">    Bookmark updated = bookmarkManagementService.updateBookmark(input.namespace, input.name, spec);</span>
+<span class="nc" id="L175">    Bookmark updated = bookmarkManagementService.updateBookmark(input.namespace, input.name, spec);</span>
 
     // Invalidate cache
-<span class="nc" id="L170">    invalidateBookmarkCache();</span>
+<span class="nc" id="L178">    invalidateBookmarkCache();</span>
 
     // Broadcast event
-<span class="nc" id="L173">    eventBroadcaster.broadcastBookmarkUpdated(updated);</span>
+<span class="nc" id="L181">    eventBroadcaster.broadcastBookmarkUpdated(updated);</span>
 
     // Convert to GraphQL type
-<span class="nc" id="L176">    BookmarkResponse response = new BookmarkResponse(spec);</span>
-<span class="nc" id="L177">    response.setNamespace(input.namespace);</span>
-<span class="nc" id="L178">    response.setResourceName(input.name);</span>
-<span class="nc" id="L179">    return BookmarkType.fromResponse(response);</span>
+<span class="nc" id="L184">    BookmarkResponse response = new BookmarkResponse(spec);</span>
+<span class="nc" id="L185">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L186">    response.setResourceName(input.name);</span>
+<span class="nc" id="L187">    return BookmarkType.fromResponse(response);</span>
   }
 
   /**
@@ -191,31 +199,97 @@ public class BookmarkGraphQLResource {
   @Timed(value = &quot;graphql.mutation.deleteBookmark&quot;)
   public Boolean deleteBookmark(
       @NonNull @Name(&quot;namespace&quot;) String namespace, @NonNull @Name(&quot;name&quot;) String name) {
-<span class="nc" id="L194">    Log.debugf(&quot;GraphQL mutation: deleteBookmark in namespace=%s, name=%s&quot;, namespace, name);</span>
+<span class="nc" id="L202">    Log.debugf(&quot;GraphQL mutation: deleteBookmark in namespace=%s, name=%s&quot;, namespace, name);</span>
+
+    // Get the bookmark data BEFORE deleting so we can broadcast it
+<span class="nc" id="L205">    var bookmarkToDelete = bookmarkManagementService.getBookmark(namespace, name);</span>
 
     // Delete bookmark via management service
-<span class="nc" id="L197">    boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);</span>
+<span class="nc" id="L208">    boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);</span>
 
-<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (deleted) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (deleted) {</span>
       // Invalidate cache
-<span class="nc" id="L201">      invalidateBookmarkCache();</span>
+<span class="nc" id="L212">      invalidateBookmarkCache();</span>
 
-      // Broadcast event
-<span class="nc" id="L204">      var deletedData = new java.util.HashMap&lt;String, String&gt;();</span>
-<span class="nc" id="L205">      deletedData.put(&quot;namespace&quot;, namespace);</span>
-<span class="nc" id="L206">      deletedData.put(&quot;name&quot;, name);</span>
-<span class="nc" id="L207">      eventBroadcaster.broadcastBookmarkRemoved(deletedData);</span>
+      // Broadcast event with the full bookmark data
+<span class="nc bnc" id="L215" title="All 2 branches missed.">      if (bookmarkToDelete != null) {</span>
+<span class="nc" id="L216">        eventBroadcaster.broadcastBookmarkRemoved(bookmarkToDelete);</span>
+      } else {
+<span class="nc" id="L218">        Log.warnf(</span>
+            &quot;Could not broadcast bookmark removed event - bookmark data not found for %s/%s&quot;,
+            namespace, name);
+      }
     }
 
-<span class="nc" id="L210">    return deleted;</span>
+<span class="nc" id="L224">    return deleted;</span>
   }
 
   /** Invalidates the bookmarks cache. */
   private void invalidateBookmarkCache() {
-<span class="nc" id="L215">    Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (cache != null) {</span>
-<span class="nc" id="L217">      cache.invalidateAll().await().indefinitely();</span>
+<span class="nc" id="L229">    Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">    if (cache != null) {</span>
+<span class="nc" id="L231">      cache.invalidateAll().await().indefinitely();</span>
     }
-<span class="nc" id="L219">  }</span>
+<span class="nc" id="L233">  }</span>
+
+  /**
+   * Subscribe to real-time bookmark updates.
+   *
+   * &lt;p&gt;Clients can subscribe to this to receive notifications when bookmarks are added, updated, or
+   * removed.
+   *
+   * @return Multi stream of bookmark update events
+   */
+  @Subscription(&quot;bookmarkUpdates&quot;)
+  @Description(&quot;Subscribe to real-time bookmark updates&quot;)
+  public Multi&lt;BookmarkUpdateEvent&gt; subscribeToBookmarkUpdates() {
+<span class="nc" id="L246">    Log.debug(&quot;GraphQL subscription: bookmarkUpdates&quot;);</span>
+<span class="nc" id="L247">    return subscriptionEventEmitter.getBookmarkStream();</span>
+  }
+
+  /**
+   * Subscribe to new bookmarks being added.
+   *
+   * @return Multi stream of new bookmarks
+   */
+  @Subscription(&quot;bookmarkAdded&quot;)
+  @Description(&quot;Subscribe to notifications when new bookmarks are added&quot;)
+  public Multi&lt;BookmarkType&gt; subscribeToBookmarksAdded() {
+<span class="nc" id="L258">    Log.debug(&quot;GraphQL subscription: bookmarkAdded&quot;);</span>
+<span class="nc" id="L259">    return subscriptionEventEmitter</span>
+<span class="nc" id="L260">        .getBookmarkStream()</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == BookmarkUpdateType.ADDED)</span>
+<span class="nc" id="L262">        .map(BookmarkUpdateEvent::getBookmark);</span>
+  }
+
+  /**
+   * Subscribe to bookmarks being removed.
+   *
+   * @return Multi stream of removed bookmarks
+   */
+  @Subscription(&quot;bookmarkRemoved&quot;)
+  @Description(&quot;Subscribe to notifications when bookmarks are removed&quot;)
+  public Multi&lt;BookmarkType&gt; subscribeToBookmarksRemoved() {
+<span class="nc" id="L273">    Log.debug(&quot;GraphQL subscription: bookmarkRemoved&quot;);</span>
+<span class="nc" id="L274">    return subscriptionEventEmitter</span>
+<span class="nc" id="L275">        .getBookmarkStream()</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == BookmarkUpdateType.REMOVED)</span>
+<span class="nc" id="L277">        .map(BookmarkUpdateEvent::getBookmark);</span>
+  }
+
+  /**
+   * Subscribe to bookmarks being updated.
+   *
+   * @return Multi stream of updated bookmarks
+   */
+  @Subscription(&quot;bookmarkUpdated&quot;)
+  @Description(&quot;Subscribe to notifications when bookmarks are updated&quot;)
+  public Multi&lt;BookmarkType&gt; subscribeToBookmarksUpdated() {
+<span class="nc" id="L288">    Log.debug(&quot;GraphQL subscription: bookmarkUpdated&quot;);</span>
+<span class="nc" id="L289">    return subscriptionEventEmitter</span>
+<span class="nc" id="L290">        .getBookmarkStream()</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">        .filter(event -&gt; event.getType() == BookmarkUpdateType.UPDATED)</span>
+<span class="nc" id="L292">        .map(BookmarkUpdateEvent::getBookmark);</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

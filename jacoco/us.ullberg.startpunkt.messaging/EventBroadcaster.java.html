@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventBroadcaster.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.messaging</a> &gt; <span class="el_source">EventBroadcaster.java</span></div><h1>EventBroadcaster.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.messaging;
 
+import io.quarkus.arc.Arc;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
@@ -7,71 +8,50 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import us.ullberg.startpunkt.websocket.WebSocketConnectionManager;
-import us.ullberg.startpunkt.websocket.WebSocketEventType;
-import us.ullberg.startpunkt.websocket.WebSocketMessage;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
+import us.ullberg.startpunkt.graphql.SubscriptionEventEmitter;
+import us.ullberg.startpunkt.graphql.types.ApplicationType;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
+import us.ullberg.startpunkt.graphql.types.BookmarkType;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /**
- * Service for broadcasting events to connected clients using WebSocket.
+ * Service for broadcasting events to connected clients using GraphQL subscriptions.
  *
  * &lt;p&gt;This service provides methods to broadcast various types of events (application changes,
- * configuration updates, etc.) to all connected clients via WebSocket. It includes debouncing logic
- * to prevent flooding clients with rapid updates.
+ * bookmark updates, etc.) to all connected clients via GraphQL subscriptions. It includes
+ * debouncing logic to prevent flooding clients with rapid updates.
  */
 @ApplicationScoped
-public class EventBroadcaster {
+<span class="fc" id="L31">public class EventBroadcaster {</span>
 
-  private final WebSocketConnectionManager connectionManager;
-
-  @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
-  boolean websocketEnabled;
+  @ConfigProperty(name = &quot;startpunkt.graphql.subscription.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean subscriptionEnabled;
 
   @ConfigProperty(name = &quot;startpunkt.websocket.eventDebounceMs&quot;, defaultValue = &quot;500&quot;)
   long eventDebounceMs;
 
   // Track last broadcast time for each event type to implement debouncing
-<span class="fc" id="L33">  private final Map&lt;String, Instant&gt; lastBroadcastTimes = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L40">  private final Map&lt;String, Instant&gt; lastBroadcastTimes = new ConcurrentHashMap&lt;&gt;();</span>
 
   /**
-   * Constructor for EventBroadcaster.
+   * Get the subscription event emitter if available using Arc CDI container.
    *
-   * @param connectionManager the WebSocket connection manager
+   * @return the subscription event emitter or null if not available
    */
-<span class="fc" id="L40">  public EventBroadcaster(WebSocketConnectionManager connectionManager) {</span>
-<span class="fc" id="L41">    this.connectionManager = connectionManager;</span>
-<span class="fc" id="L42">  }</span>
-
-  /**
-   * Broadcasts an event to all connected clients with debouncing.
-   *
-   * @param eventType the type of event
-   * @param data the event data
-   * @param &lt;T&gt; the type of the event data
-   */
-  public &lt;T&gt; void broadcastEvent(WebSocketEventType eventType, T data) {
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">    if (!websocketEnabled) {</span>
-<span class="nc" id="L53">      Log.warnf(&quot;Event broadcasting is disabled, not broadcasting event: %s&quot;, eventType);</span>
-<span class="nc" id="L54">      return;</span>
+  private SubscriptionEventEmitter getSubscriptionEventEmitter() {
+    try {
+<span class="nc" id="L49">      return Arc.container().instance(SubscriptionEventEmitter.class).get();</span>
+<span class="nc" id="L50">    } catch (Exception e) {</span>
+<span class="nc" id="L51">      Log.debug(&quot;SubscriptionEventEmitter not available&quot;, e);</span>
+<span class="nc" id="L52">      return null;</span>
     }
-
-    // Create a unique key for this event type and data
-<span class="fc" id="L58">    String eventKey = eventType.toString();</span>
-
-    // Check if we should debounce this event
-<span class="fc bfc" id="L61" title="All 2 branches covered.">    if (shouldDebounce(eventKey)) {</span>
-<span class="fc" id="L62">      Log.debugf(&quot;Debouncing event: %s&quot;, eventType);</span>
-<span class="fc" id="L63">      return;</span>
-    }
-
-    // Update last broadcast time
-<span class="fc" id="L67">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
-
-    // Create and broadcast the message
-<span class="fc" id="L70">    var message = new WebSocketMessage&lt;&gt;(eventType, data);</span>
-<span class="fc" id="L71">    connectionManager.broadcast(message);</span>
-
-<span class="fc" id="L73">    Log.infof(&quot;Broadcasted event: %s&quot;, eventType);</span>
-<span class="fc" id="L74">  }</span>
+  }
 
   /**
    * Checks if an event should be debounced based on the last broadcast time.
@@ -80,13 +60,13 @@ public class EventBroadcaster {
    * @return true if the event should be debounced, false otherwise
    */
   private boolean shouldDebounce(String eventKey) {
-<span class="fc" id="L83">    Instant lastBroadcast = lastBroadcastTimes.get(eventKey);</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">    if (lastBroadcast == null) {</span>
-<span class="fc" id="L85">      return false;</span>
+<span class="nc" id="L63">    Instant lastBroadcast = lastBroadcastTimes.get(eventKey);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (lastBroadcast == null) {</span>
+<span class="nc" id="L65">      return false;</span>
     }
 
-<span class="fc" id="L88">    Duration timeSinceLastBroadcast = Duration.between(lastBroadcast, Instant.now());</span>
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    return timeSinceLastBroadcast.toMillis() &lt; eventDebounceMs;</span>
+<span class="nc" id="L68">    Duration timeSinceLastBroadcast = Duration.between(lastBroadcast, Instant.now());</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    return timeSinceLastBroadcast.toMillis() &lt; eventDebounceMs;</span>
   }
 
   /**
@@ -95,8 +75,34 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationAdded(Object applicationData) {
-<span class="fc" id="L98">    broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);</span>
-<span class="fc" id="L99">  }</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L79">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L80">      return;</span>
+    }
+
+<span class="nc" id="L83">    String eventKey = &quot;APPLICATION_ADDED&quot;;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L85">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L86">      return;</span>
+    }
+
+<span class="nc" id="L89">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L91">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L94">        ApplicationType appType = convertToApplicationType(applicationData);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (appType != null) {</span>
+<span class="nc" id="L96">          ApplicationUpdateEvent event =</span>
+<span class="nc" id="L97">              new ApplicationUpdateEvent(ApplicationUpdateType.ADDED, appType, Instant.now());</span>
+<span class="nc" id="L98">          emitter.emitApplicationUpdate(event);</span>
+<span class="nc" id="L99">          Log.infof(&quot;Emitted application added event via subscription&quot;);</span>
+        }
+<span class="nc" id="L101">      } catch (Exception e) {</span>
+<span class="nc" id="L102">        Log.error(&quot;Error emitting application added event to subscriptions&quot;, e);</span>
+<span class="nc" id="L103">      }</span>
+    }
+<span class="nc" id="L105">  }</span>
 
   /**
    * Broadcasts an application removed event.
@@ -104,8 +110,34 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationRemoved(Object applicationData) {
-<span class="fc" id="L107">    broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);</span>
-<span class="fc" id="L108">  }</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L114">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L115">      return;</span>
+    }
+
+<span class="nc" id="L118">    String eventKey = &quot;APPLICATION_REMOVED&quot;;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L120">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L121">      return;</span>
+    }
+
+<span class="nc" id="L124">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L126">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L129">        ApplicationType appType = convertToApplicationType(applicationData);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (appType != null) {</span>
+<span class="nc" id="L131">          ApplicationUpdateEvent event =</span>
+<span class="nc" id="L132">              new ApplicationUpdateEvent(ApplicationUpdateType.REMOVED, appType, Instant.now());</span>
+<span class="nc" id="L133">          emitter.emitApplicationUpdate(event);</span>
+<span class="nc" id="L134">          Log.infof(&quot;Emitted application removed event via subscription&quot;);</span>
+        }
+<span class="nc" id="L136">      } catch (Exception e) {</span>
+<span class="nc" id="L137">        Log.error(&quot;Error emitting application removed event to subscriptions&quot;, e);</span>
+<span class="nc" id="L138">      }</span>
+    }
+<span class="nc" id="L140">  }</span>
 
   /**
    * Broadcasts an application updated event.
@@ -113,8 +145,34 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationUpdated(Object applicationData) {
-<span class="fc" id="L116">    broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);</span>
-<span class="fc" id="L117">  }</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L149">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L150">      return;</span>
+    }
+
+<span class="nc" id="L153">    String eventKey = &quot;APPLICATION_UPDATED&quot;;</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L155">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L156">      return;</span>
+    }
+
+<span class="nc" id="L159">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L161">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L164">        ApplicationType appType = convertToApplicationType(applicationData);</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (appType != null) {</span>
+<span class="nc" id="L166">          ApplicationUpdateEvent event =</span>
+<span class="nc" id="L167">              new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, appType, Instant.now());</span>
+<span class="nc" id="L168">          emitter.emitApplicationUpdate(event);</span>
+<span class="nc" id="L169">          Log.infof(&quot;Emitted application updated event via subscription&quot;);</span>
+        }
+<span class="nc" id="L171">      } catch (Exception e) {</span>
+<span class="nc" id="L172">        Log.error(&quot;Error emitting application updated event to subscriptions&quot;, e);</span>
+<span class="nc" id="L173">      }</span>
+    }
+<span class="nc" id="L175">  }</span>
 
   /**
    * Broadcasts a configuration changed event.
@@ -122,17 +180,52 @@ public class EventBroadcaster {
    * @param configData the configuration data
    */
   public void broadcastConfigChanged(Object configData) {
-<span class="fc" id="L125">    broadcastEvent(WebSocketEventType.CONFIG_CHANGED, configData);</span>
-<span class="fc" id="L126">  }</span>
+<span class="nc" id="L183">    Log.info(&quot;Config changed event received (no-op for subscriptions)&quot;);</span>
+    // Config changes don't need subscription events as they require page reload
+<span class="nc" id="L185">  }</span>
 
   /**
    * Broadcasts a status changed event.
    *
+   * &lt;p&gt;Status changes affect application availability. We don't have specific application data, so
+   * we trigger a general refresh by emitting a synthetic update event. The frontend should refetch
+   * all applications when receiving this.
+   *
    * @param statusData the status data
    */
   public void broadcastStatusChanged(Object statusData) {
-<span class="fc" id="L134">    broadcastEvent(WebSocketEventType.STATUS_CHANGED, statusData);</span>
-<span class="fc" id="L135">  }</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L198">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L199">      return;</span>
+    }
+
+<span class="nc" id="L202">    String eventKey = &quot;STATUS_CHANGED&quot;;</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L204">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L205">      return;</span>
+    }
+
+<span class="nc" id="L208">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L210">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+        // Emit a synthetic application update event with minimal data
+        // This signals the frontend to refresh all applications
+<span class="nc" id="L215">        ApplicationType placeholderApp = new ApplicationType();</span>
+<span class="nc" id="L216">        placeholderApp.name = &quot;_status_check_&quot;;</span>
+<span class="nc" id="L217">        placeholderApp.namespace = &quot;system&quot;;</span>
+
+<span class="nc" id="L219">        ApplicationUpdateEvent event =</span>
+            new ApplicationUpdateEvent(
+<span class="nc" id="L221">                ApplicationUpdateType.UPDATED, placeholderApp, Instant.now());</span>
+<span class="nc" id="L222">        emitter.emitApplicationUpdate(event);</span>
+<span class="nc" id="L223">        Log.infof(&quot;Emitted status changed event via subscription (triggers application refresh)&quot;);</span>
+<span class="nc" id="L224">      } catch (Exception e) {</span>
+<span class="nc" id="L225">        Log.error(&quot;Error emitting status changed event to subscriptions&quot;, e);</span>
+<span class="nc" id="L226">      }</span>
+    }
+<span class="nc" id="L228">  }</span>
 
   /**
    * Broadcasts a bookmark added event.
@@ -140,8 +233,34 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkAdded(Object bookmarkData) {
-<span class="fc" id="L143">    broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);</span>
-<span class="fc" id="L144">  }</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L237">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L238">      return;</span>
+    }
+
+<span class="nc" id="L241">    String eventKey = &quot;BOOKMARK_ADDED&quot;;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L243">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L244">      return;</span>
+    }
+
+<span class="nc" id="L247">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L249">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L252">        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (bookmarkType != null) {</span>
+<span class="nc" id="L254">          BookmarkUpdateEvent event =</span>
+<span class="nc" id="L255">              new BookmarkUpdateEvent(BookmarkUpdateType.ADDED, bookmarkType, Instant.now());</span>
+<span class="nc" id="L256">          emitter.emitBookmarkUpdate(event);</span>
+<span class="nc" id="L257">          Log.infof(&quot;Emitted bookmark added event via subscription&quot;);</span>
+        }
+<span class="nc" id="L259">      } catch (Exception e) {</span>
+<span class="nc" id="L260">        Log.error(&quot;Error emitting bookmark added event to subscriptions&quot;, e);</span>
+<span class="nc" id="L261">      }</span>
+    }
+<span class="nc" id="L263">  }</span>
 
   /**
    * Broadcasts a bookmark removed event.
@@ -149,8 +268,34 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkRemoved(Object bookmarkData) {
-<span class="fc" id="L152">    broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);</span>
-<span class="fc" id="L153">  }</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L272">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L273">      return;</span>
+    }
+
+<span class="nc" id="L276">    String eventKey = &quot;BOOKMARK_REMOVED&quot;;</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L278">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L279">      return;</span>
+    }
+
+<span class="nc" id="L282">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L284">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L287">        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (bookmarkType != null) {</span>
+<span class="nc" id="L289">          BookmarkUpdateEvent event =</span>
+<span class="nc" id="L290">              new BookmarkUpdateEvent(BookmarkUpdateType.REMOVED, bookmarkType, Instant.now());</span>
+<span class="nc" id="L291">          emitter.emitBookmarkUpdate(event);</span>
+<span class="nc" id="L292">          Log.infof(&quot;Emitted bookmark removed event via subscription&quot;);</span>
+        }
+<span class="nc" id="L294">      } catch (Exception e) {</span>
+<span class="nc" id="L295">        Log.error(&quot;Error emitting bookmark removed event to subscriptions&quot;, e);</span>
+<span class="nc" id="L296">      }</span>
+    }
+<span class="nc" id="L298">  }</span>
 
   /**
    * Broadcasts a bookmark updated event.
@@ -158,7 +303,79 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkUpdated(Object bookmarkData) {
-<span class="fc" id="L161">    broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);</span>
-<span class="fc" id="L162">  }</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc" id="L307">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
+<span class="nc" id="L308">      return;</span>
+    }
+
+<span class="nc" id="L311">    String eventKey = &quot;BOOKMARK_UPDATED&quot;;</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L313">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L314">      return;</span>
+    }
+
+<span class="nc" id="L317">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+
+<span class="nc" id="L319">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    if (emitter != null) {</span>
+      try {
+<span class="nc" id="L322">        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">        if (bookmarkType != null) {</span>
+<span class="nc" id="L324">          BookmarkUpdateEvent event =</span>
+<span class="nc" id="L325">              new BookmarkUpdateEvent(BookmarkUpdateType.UPDATED, bookmarkType, Instant.now());</span>
+<span class="nc" id="L326">          emitter.emitBookmarkUpdate(event);</span>
+<span class="nc" id="L327">          Log.infof(&quot;Emitted bookmark updated event via subscription&quot;);</span>
+        }
+<span class="nc" id="L329">      } catch (Exception e) {</span>
+<span class="nc" id="L330">        Log.error(&quot;Error emitting bookmark updated event to subscriptions&quot;, e);</span>
+<span class="nc" id="L331">      }</span>
+    }
+<span class="nc" id="L333">  }</span>
+
+  /**
+   * Converts application data to ApplicationType for GraphQL subscriptions.
+   *
+   * @param applicationData the application data (Application CRD)
+   * @return ApplicationType or null if conversion fails
+   */
+  private ApplicationType convertToApplicationType(Object applicationData) {
+<span class="nc bnc" id="L342" title="All 2 branches missed.">    if (applicationData == null) {</span>
+<span class="nc" id="L343">      return null;</span>
+    }
+
+<span class="nc bnc" id="L346" title="All 2 branches missed.">    if (applicationData instanceof Application app) {</span>
+      // Convert Application CRD to ApplicationResponse then to ApplicationType
+<span class="nc" id="L348">      ApplicationResponse response = new ApplicationResponse(app.getSpec());</span>
+<span class="nc" id="L349">      response.setNamespace(app.getMetadata().getNamespace());</span>
+<span class="nc" id="L350">      response.setResourceName(app.getMetadata().getName());</span>
+<span class="nc" id="L351">      return ApplicationType.fromResponse(response);</span>
+    }
+
+<span class="nc" id="L354">    Log.warnf(&quot;Unknown application data type for subscription: %s&quot;, applicationData.getClass());</span>
+<span class="nc" id="L355">    return null;</span>
+  }
+
+  /**
+   * Converts bookmark data to BookmarkType for GraphQL subscriptions.
+   *
+   * @param bookmarkData the bookmark data (Bookmark CRD)
+   * @return BookmarkType or null if conversion fails
+   */
+  private BookmarkType convertToBookmarkType(Object bookmarkData) {
+<span class="nc bnc" id="L365" title="All 2 branches missed.">    if (bookmarkData == null) {</span>
+<span class="nc" id="L366">      return null;</span>
+    }
+
+<span class="nc bnc" id="L369" title="All 2 branches missed.">    if (bookmarkData instanceof Bookmark bookmark) {</span>
+      // Convert Bookmark CRD to BookmarkResponse then to BookmarkType
+<span class="nc" id="L371">      BookmarkResponse response = new BookmarkResponse(bookmark.getSpec());</span>
+<span class="nc" id="L372">      response.setNamespace(bookmark.getMetadata().getNamespace());</span>
+<span class="nc" id="L373">      response.setResourceName(bookmark.getMetadata().getName());</span>
+<span class="nc" id="L374">      return BookmarkType.fromResponse(response);</span>
+    }
+
+<span class="nc" id="L377">    Log.warnf(&quot;Unknown bookmark data type for subscription: %s&quot;, bookmarkData.getClass());</span>
+<span class="nc" id="L378">    return null;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
