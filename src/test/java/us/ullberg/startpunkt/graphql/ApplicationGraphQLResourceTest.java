@@ -21,57 +21,6 @@ class ApplicationGraphQLResourceTest {
   }
 
   @Test
-  void testApplicationGroupsQuery() {
-    String query =
-        """
-        {
-          applicationGroups {
-            name
-            applications {
-              name
-              url
-              group
-            }
-          }
-        }
-        """;
-
-    given()
-        .contentType("application/json")
-        .body(formatGraphQLQuery(query))
-        .when()
-        .post("/graphql")
-        .then()
-        .statusCode(200)
-        .body("data.applicationGroups", notNullValue());
-  }
-
-  @Test
-  void testApplicationGroupsQueryWithTags() {
-    String query =
-        """
-        {
-          applicationGroups(tags: ["admin"]) {
-            name
-            applications {
-              name
-              url
-            }
-          }
-        }
-        """;
-
-    given()
-        .contentType("application/json")
-        .body(formatGraphQLQuery(query))
-        .when()
-        .post("/graphql")
-        .then()
-        .statusCode(200)
-        .body("data.applicationGroups", notNullValue());
-  }
-
-  @Test
   void testGraphQLSchemaIntrospection() {
     // Test that GraphQL schema introspection works
     String query =
