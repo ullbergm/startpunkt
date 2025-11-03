@@ -396,22 +396,31 @@ export function App() {
   };
 
   const handleEditApp = async (app) => {
-    // Fetch the full application resource from the API using namespace and resourceName
-    try {
-      const namespace = app.namespace || 'default';
-      const resourceName = app.resourceName || app.name;
-      const response = await fetch(`/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
-      if (response.ok) {
-        const fullApp = await response.json();
-        setEditingApp(fullApp);
-        setEditorMode('edit');
-        setShowAppEditor(true);
-      } else {
-        console.error('Failed to fetch application details');
-      }
-    } catch (error) {
-      console.error('Error fetching application:', error);
-    }
+    // Transform GraphQL data to match the format expected by ApplicationEditor
+    // GraphQL already provides all necessary fields including namespace and resourceName
+    const fullApp = {
+      metadata: {
+        namespace: app.namespace || 'default',
+        name: app.resourceName || app.name,
+      },
+      spec: {
+        name: app.name,
+        group: app.group,
+        icon: app.icon,
+        iconColor: app.iconColor,
+        url: app.url,
+        info: app.info,
+        targetBlank: app.targetBlank,
+        location: app.location,
+        enabled: app.enabled,
+        rootPath: app.rootPath,
+        tags: app.tags,
+      },
+      hasOwnerReferences: app.hasOwnerReferences,
+    };
+    setEditingApp(fullApp);
+    setEditorMode('edit');
+    setShowAppEditor(true);
   };
 
   const handleSaveApp = async (namespace, name, spec) => {
@@ -499,22 +508,27 @@ export function App() {
   };
 
   const handleEditBookmark = async (bookmark) => {
-    // Fetch the full bookmark resource from the API using namespace and resourceName
-    try {
-      const namespace = bookmark.namespace || 'default';
-      const resourceName = bookmark.resourceName || bookmark.name;
-      const response = await fetch(`/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
-      if (response.ok) {
-        const fullBookmark = await response.json();
-        setEditingBookmark(fullBookmark);
-        setEditorMode('edit');
-        setShowBookmarkEditor(true);
-      } else {
-        console.error('Failed to fetch bookmark details');
-      }
-    } catch (error) {
-      console.error('Error fetching bookmark:', error);
-    }
+    // Transform GraphQL data to match the format expected by BookmarkEditor
+    // GraphQL already provides all necessary fields including namespace and resourceName
+    const fullBookmark = {
+      metadata: {
+        namespace: bookmark.namespace || 'default',
+        name: bookmark.resourceName || bookmark.name,
+      },
+      spec: {
+        name: bookmark.name,
+        group: bookmark.group,
+        icon: bookmark.icon,
+        url: bookmark.url,
+        info: bookmark.info,
+        targetBlank: bookmark.targetBlank,
+        location: bookmark.location,
+      },
+      hasOwnerReferences: bookmark.hasOwnerReferences,
+    };
+    setEditingBookmark(fullBookmark);
+    setEditorMode('edit');
+    setShowBookmarkEditor(true);
   };
 
   const handleSaveBookmark = async (namespace, name, spec) => {
