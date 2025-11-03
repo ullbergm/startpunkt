@@ -376,10 +376,12 @@ describe('Background', () => {
 
       await waitFor(() => {
         expect(client.query).toHaveBeenCalledWith(
-          expect.any(String),
           expect.objectContaining({
-            width: expect.any(Number),
-            height: expect.any(Number)
+            query: expect.any(String),
+            variables: expect.objectContaining({
+              width: expect.any(Number),
+              height: expect.any(Number)
+            })
           })
         );
       });
