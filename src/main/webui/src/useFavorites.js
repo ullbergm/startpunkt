@@ -90,6 +90,17 @@ export function useFavorites() {
   }, [favoritesData]);
 
   /**
+   * Get the index of an application in the favorites list
+   * Returns -1 if not favorited
+   */
+  const getFavoriteIndex = useCallback((app) => {
+    if (!app) return -1;
+    const appId = getApplicationId(app);
+    const currentFavorites = favoritesData?.favorites || [];
+    return appId ? currentFavorites.indexOf(appId) : -1;
+  }, [favoritesData]);
+
+  /**
    * Toggle favorite status for an application
    */
   const toggleFavorite = useCallback((app) => {
@@ -154,6 +165,30 @@ export function useFavorites() {
    */
   const clearFavorites = useCallback(() => {
     setFavoritesData(DEFAULT_FAVORITES);
+  }, [setFavoritesData]);
+
+  /**
+   * Reorder favorites by moving an item from one index to another
+   * @param {number} fromIndex - The current index of the favorite to move
+   * @param {number} toIndex - The target index where the favorite should be moved
+   */
+  const reorderFavorites = useCallback((fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return;
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    setFavoritesData(prevData => {
+      const prevFavorites = prevData?.favorites || [];
+      if (fromIndex >= prevFavorites.length || toIndex >= prevFavorites.length) return prevData;
+
+      const newFavorites = [...prevFavorites];
+      const [movedItem] = newFavorites.splice(fromIndex, 1);
+      newFavorites.splice(toIndex, 0, movedItem);
+
+      return {
+        version: STORAGE_VERSION,
+        favorites: newFavorites
+      };
+    });
   }, [setFavoritesData]);
 
   /**
@@ -229,10 +264,12 @@ export function useFavorites() {
   return {
     favorites,
     isFavorite,
+    getFavoriteIndex,
     toggleFavorite,
     addFavorite,
     removeFavorite,
     clearFavorites,
+    reorderFavorites,
     exportFavorites,
     importFavorites
   };

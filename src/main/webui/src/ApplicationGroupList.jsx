@@ -5,8 +5,9 @@ import { useFavorites } from './useFavorites';
 
 /**
  * Separate applications into favorites and regular groups
+ * Favorites are sorted according to the favorites array order
  */
-function separateFavoritesFromGroups(groups, isFavorite) {
+function separateFavoritesFromGroups(groups, isFavorite, getFavoriteIndex) {
   if (!Array.isArray(groups)) {
     return { favoritesGroup: null, regularGroups: [] };
   }
@@ -31,6 +32,18 @@ function separateFavoritesFromGroups(groups, isFavorite) {
     };
   }).filter(group => group.applications.length > 0); // Remove empty groups
 
+  // Sort favorites according to their order in the favorites array
+  if (getFavoriteIndex && favoriteApps.length > 0) {
+    favoriteApps.sort((a, b) => {
+      const indexA = getFavoriteIndex(a);
+      const indexB = getFavoriteIndex(b);
+      // If either index is -1 (not found), put it at the end
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }
+
   const favGroup = favoriteApps.length > 0 ? {
     name: null, // No heading for favorites
     applications: favoriteApps,
@@ -45,12 +58,12 @@ function separateFavoritesFromGroups(groups, isFavorite) {
 
 export function ApplicationGroupList(props) {
   const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups');
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isFavorite, getFavoriteIndex, toggleFavorite, reorderFavorites } = useFavorites();
 
   // Separate favorites from regular apps and create groups
   const { favoritesGroup, regularGroups } = useMemo(() => {
-    return separateFavoritesFromGroups(props.groups, isFavorite);
-  }, [props.groups, isFavorite]);
+    return separateFavoritesFromGroups(props.groups, isFavorite, getFavoriteIndex);
+  }, [props.groups, isFavorite, getFavoriteIndex]);
 
   // Memoize toggle handlers to prevent unnecessary re-renders
   const groupHandlers = useMemo(() => {
@@ -78,6 +91,7 @@ export function ApplicationGroupList(props) {
             onEditApp={props.onEditApp}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
+            onReorderFavorites={reorderFavorites}
           />
         )}
 
