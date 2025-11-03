@@ -1,49 +1,35 @@
 import { render, screen, fireEvent, within, cleanup } from '@testing-library/preact';
 import SpotlightSearch from './SpotlightSearch.jsx';
 
-const applicationGroupsResponse = {
-    applicationGroups: [
-        {
-            name: 'Group 1',
-            applications: [
-                { name: 'Alpha App', url: 'http://alpha.app', targetBlank: false }
-            ],
-        },
-        {
-            name: 'Group 2',
-            applications: [
-                { name: 'Beta App', url: 'http://beta.app', targetBlank: true }
-            ],
-        },
-    ],
-};
+const mockApplicationGroups = [
+    {
+        name: 'Group 1',
+        applications: [
+            { name: 'Alpha App', url: 'http://alpha.app', targetBlank: false }
+        ],
+    },
+    {
+        name: 'Group 2',
+        applications: [
+            { name: 'Beta App', url: 'http://beta.app', targetBlank: true }
+        ],
+    },
+];
 
-const bookmarkGroupsResponse = {
-    bookmarkGroups: [
-        {
-            name: 'Social',
-            bookmarks: [
-                {
-                    name: 'Reddit',
-                    group: 'Social',
-                    icon: 'simple-icons:reddit',
-                    url: 'https://reddit.com/',
-                    info: 'Discussion site',
-                },
-            ],
-        },
-    ]
-};
-
-// Mock GraphQL client
-const mockQuery = jest.fn();
-jest.mock('./graphql/client', () => ({
-  client: {
-    query: jest.fn((query, variables) => ({
-      toPromise: () => mockQuery(query, variables)
-    })),
-  },
-}));
+const mockBookmarkGroups = [
+    {
+        name: 'Social',
+        bookmarks: [
+            {
+                name: 'Reddit',
+                group: 'Social',
+                icon: 'simple-icons:reddit',
+                url: 'https://reddit.com/',
+                info: 'Discussion site',
+            },
+        ],
+    },
+];
 
 // Setup and teardown
 beforeAll(() => {
@@ -54,25 +40,6 @@ beforeEach(() => {
     window._navigate.mockClear();
     jest.clearAllMocks();
     cleanup(); // Always start from a clean DOM
-    
-    // Setup GraphQL mock responses
-    mockQuery.mockImplementation((query, variables) => {
-        const queryString = typeof query === 'string' ? query : query.toString();
-        
-        if (queryString.includes('applicationGroups(tags:')) {
-            return Promise.resolve({
-                data: applicationGroupsResponse
-            });
-        }
-        
-        if (queryString.includes('bookmarkGroups {')) {
-            return Promise.resolve({
-                data: bookmarkGroupsResponse
-            });
-        }
-        
-        return Promise.resolve({ data: {} });
-    });
 });
 
 afterAll(() => {
@@ -81,7 +48,7 @@ afterAll(() => {
 
 describe('SpotlightSearch component', () => {
     test('shows badge "App" for an app', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         const strong = await screen.findByText('Alpha App', { selector: 'strong' });
@@ -90,7 +57,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('shows badge "Bookmark" for a bookmark', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Reddit' } });
         const strong = await screen.findByText('Reddit', { selector: 'strong' });
@@ -99,7 +66,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('opens link in new tab when openInNewTab is true', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Beta' } });
         const betaItem = await screen.findByText('Beta App', { selector: 'strong' });
@@ -109,7 +76,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('navigates in same tab when openInNewTab is false', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         await screen.findByText('Alpha App', { selector: 'strong' });
@@ -119,7 +86,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Alpha navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         await screen.findByText('Alpha App', { selector: 'strong' });
@@ -129,7 +96,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Beta navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Beta' } });
         await screen.findByText('Beta App', { selector: 'strong' });
@@ -139,7 +106,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Reddit navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Reddit' } });
         await screen.findByText('Reddit', { selector: 'strong' });
@@ -149,7 +116,24 @@ describe('SpotlightSearch component', () => {
     });
 
     test('search is case-insensitive', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: 'alpha' } });
+        await screen.findByText('Alpha App', { selector: 'strong' });
+        expect(await screen.findByText('Alpha App', { selector: 'strong' })).toBeInTheDocument();
+    });
+
+    test('handles empty search term gracefully', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '' } });
+        
+        // With empty search, all items should be shown
+        expect(input).toBeInTheDocument();
+    });
+
+    test('search for "reddit" finds bookmark', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'reddit' } });
         expect(await screen.findByText('Reddit', { selector: 'strong' })).toBeInTheDocument();
@@ -158,7 +142,7 @@ describe('SpotlightSearch component', () => {
     test('closes when clicking outside the search box', async () => {
         render(
             <div>
-                <SpotlightSearch testVisible={true} />
+                <SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />
                 <div data-testid="outside-element">Outside content</div>
             </div>
         );
@@ -176,29 +160,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles empty search results', async () => {
-        // Mock empty responses
-        global.fetch = jest.fn(url => {
-            if (url.includes('/api/apps')) {
-                return Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    json: () => Promise.resolve({ groups: [] }),
-                });
-            } else if (url.includes('/api/bookmarks')) {
-                return Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    json: () => Promise.resolve({ groups: [] }),
-                });
-            }
-            return Promise.resolve({
-                ok: false,
-                status: 404,
-                json: () => Promise.resolve({}),
-            });
-        });
-
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={[]} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'nonexistent' } });
         
@@ -207,9 +169,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles API failures gracefully', async () => {
-        global.fetch = jest.fn(() => Promise.reject(new Error('Network error')));
-
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={null} bookmarkGroups={null} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'test' } });
         
@@ -218,7 +178,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles special characters in search', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         
         // Test various special characters
@@ -231,7 +191,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles very long search queries', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         
         const longQuery = 'a'.repeat(1000);
@@ -241,7 +201,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles rapid consecutive searches', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         
         // Rapid fire search inputs
@@ -255,16 +215,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('keyboard navigation with no results', async () => {
-        // Mock empty responses
-        global.fetch = jest.fn(url => {
-            return Promise.resolve({
-                ok: true,
-                status: 200,
-                json: () => Promise.resolve({ groups: [] }),
-            });
-        });
-
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={[]} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'nothing' } });
         
@@ -277,7 +228,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('maintains focus after search operations', async () => {
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
         const input = await screen.findByRole('textbox');
         
         fireEvent.input(input, { target: { value: 'Alpha' } });
@@ -288,33 +239,18 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles malformed bookmark data', async () => {
-        global.fetch = jest.fn(url => {
-            if (url.includes('/api/bookmarks')) {
-                return Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    json: () => Promise.resolve({
-                        groups: [
-                            {
-                                name: 'Malformed',
-                                bookmarks: [
-                                    { name: null, url: 'https://test.com' }, // null name
-                                    { name: 'Valid', url: null }, // null url
-                                    { name: '', url: '' }, // empty strings
-                                ]
-                            }
-                        ]
-                    }),
-                });
+        const malformedBookmarks = [
+            {
+                name: 'Malformed',
+                bookmarks: [
+                    { name: null, url: 'https://test.com' }, // null name
+                    { name: 'Valid', url: null }, // null url
+                    { name: '', url: '' }, // empty strings
+                ]
             }
-            return Promise.resolve({
-                ok: true,
-                status: 200,
-                json: () => Promise.resolve({ groups: [] }),
-            });
-        });
+        ];
 
-        render(<SpotlightSearch testVisible={true} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={malformedBookmarks} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'test' } });
         

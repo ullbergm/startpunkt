@@ -268,9 +268,6 @@ export function App() {
         console.error('[fetchData] Error fetching bookmarks:', err);
         setBookmarkGroups([]);
       });
-    
-    // Dispatch custom event to notify SpotlightSearch to refresh
-    window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
   };
 
   // WebSocket connection for real-time updates
@@ -619,7 +616,7 @@ export function App() {
       <AccessibilitySettings />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
-      <SpotlightSearch />
+      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
       
       {websocketEnabled && <WebSocketHeartIndicator websocket={websocket} />}
 
