@@ -14,7 +14,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs, onEdit } = props;
+  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite } = props;
   const isUnavailable = props.app.available === false;
   const isEditable = !props.app.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode;
@@ -53,6 +53,14 @@ export function Application(props) {
     e.stopPropagation();
     if (onEdit && isEditable) {
       onEdit(props.app);
+    }
+  };
+  
+  const handleToggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite(props.app);
     }
   };
   
@@ -100,6 +108,24 @@ export function Application(props) {
           </span>
         )}
       </div>
+      {editMode && onToggleFavorite && (
+        <button
+          onClick={handleToggleFavorite}
+          class="btn btn-sm btn-link ms-2"
+          style={{ 
+            position: 'relative', 
+            zIndex: 10, 
+            flexShrink: 0, 
+            padding: '0.25rem 0.5rem',
+            color: isFavorite ? '#ffc107' : '#6c757d'
+          }}
+          aria-label={isFavorite ? `Remove ${props.app.name} from favorites` : `Add ${props.app.name} to favorites`}
+          aria-pressed={isFavorite}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Icon icon={isFavorite ? 'mdi:star' : 'mdi:star-outline'} width="20" height="20" />
+        </button>
+      )}
       {editMode && isEditable && onEdit && (
         <button
           onClick={handleEdit}
