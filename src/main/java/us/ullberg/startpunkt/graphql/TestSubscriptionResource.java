@@ -16,10 +16,10 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
 import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 
 /**
- * Test endpoint for manually triggering GraphQL subscription events.
- * This is a temporary endpoint for testing subscriptions without Kubernetes watchers.
- * 
- * DELETE THIS FILE once Kubernetes watchers are implemented!
+ * Test endpoint for manually triggering GraphQL subscription events. This is a temporary endpoint
+ * for testing subscriptions without Kubernetes watchers.
+ *
+ * <p>DELETE THIS FILE once Kubernetes watchers are implemented!
  */
 @Path("/api/test/subscriptions")
 @ApplicationScoped
@@ -33,7 +33,7 @@ public class TestSubscriptionResource {
 
   /**
    * Test endpoint to trigger an application update event.
-   * 
+   *
    * @return Response indicating the event was sent
    */
   @GET
@@ -61,11 +61,8 @@ public class TestSubscriptionResource {
     testApp.hasOwnerReferences = false;
 
     // Create and emit the event
-    ApplicationUpdateEvent event = new ApplicationUpdateEvent(
-        ApplicationUpdateType.UPDATED,
-        testApp,
-        Instant.now()
-    );
+    ApplicationUpdateEvent event =
+        new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, testApp, Instant.now());
 
     subscriptionEventEmitter.emitApplicationUpdate(event);
 
@@ -78,7 +75,7 @@ public class TestSubscriptionResource {
 
   /**
    * Test endpoint to trigger a bookmark update event.
-   * 
+   *
    * @return Response indicating the event was sent
    */
   @GET
@@ -101,11 +98,8 @@ public class TestSubscriptionResource {
     testBookmark.hasOwnerReferences = false;
 
     // Create and emit the event
-    BookmarkUpdateEvent event = new BookmarkUpdateEvent(
-        BookmarkUpdateType.UPDATED,
-        testBookmark,
-        Instant.now()
-    );
+    BookmarkUpdateEvent event =
+        new BookmarkUpdateEvent(BookmarkUpdateType.UPDATED, testBookmark, Instant.now());
 
     subscriptionEventEmitter.emitBookmarkUpdate(event);
 

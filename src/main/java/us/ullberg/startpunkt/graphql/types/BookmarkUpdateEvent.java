@@ -31,8 +31,7 @@ public class BookmarkUpdateEvent {
    * @param bookmark the bookmark that was updated
    * @param timestamp the timestamp when the event occurred
    */
-  public BookmarkUpdateEvent(
-      BookmarkUpdateType type, BookmarkType bookmark, Instant timestamp) {
+  public BookmarkUpdateEvent(BookmarkUpdateType type, BookmarkType bookmark, Instant timestamp) {
     this.type = type;
     this.bookmark = bookmark;
     this.timestamp = timestamp;

@@ -11,8 +11,8 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
  * Service for managing GraphQL subscription event streams.
  *
  * <p>This service provides reactive streams for application and bookmark update events that can be
- * subscribed to via GraphQL subscriptions. It uses Mutiny's BroadcastProcessor to fan-out events
- * to multiple subscribers.
+ * subscribed to via GraphQL subscriptions. It uses Mutiny's BroadcastProcessor to fan-out events to
+ * multiple subscribers.
  */
 @ApplicationScoped
 public class SubscriptionEventEmitter {

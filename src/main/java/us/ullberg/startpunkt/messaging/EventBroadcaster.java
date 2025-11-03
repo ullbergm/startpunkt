@@ -187,9 +187,9 @@ public class EventBroadcaster {
   /**
    * Broadcasts a status changed event.
    *
-   * <p>Status changes affect application availability. We don't have specific application
-   * data, so we trigger a general refresh by emitting a synthetic update event.
-   * The frontend should refetch all applications when receiving this.
+   * <p>Status changes affect application availability. We don't have specific application data, so
+   * we trigger a general refresh by emitting a synthetic update event. The frontend should refetch
+   * all applications when receiving this.
    *
    * @param statusData the status data
    */
@@ -215,9 +215,10 @@ public class EventBroadcaster {
         ApplicationType placeholderApp = new ApplicationType();
         placeholderApp.name = "_status_check_";
         placeholderApp.namespace = "system";
-        
+
         ApplicationUpdateEvent event =
-            new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, placeholderApp, Instant.now());
+            new ApplicationUpdateEvent(
+                ApplicationUpdateType.UPDATED, placeholderApp, Instant.now());
         emitter.emitApplicationUpdate(event);
         Log.infof("Emitted status changed event via subscription (triggers application refresh)");
       } catch (Exception e) {

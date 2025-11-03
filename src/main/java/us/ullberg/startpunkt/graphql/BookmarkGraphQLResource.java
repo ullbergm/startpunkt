@@ -215,7 +215,9 @@ public class BookmarkGraphQLResource {
       if (bookmarkToDelete != null) {
         eventBroadcaster.broadcastBookmarkRemoved(bookmarkToDelete);
       } else {
-        Log.warnf("Could not broadcast bookmark removed event - bookmark data not found for %s/%s", namespace, name);
+        Log.warnf(
+            "Could not broadcast bookmark removed event - bookmark data not found for %s/%s",
+            namespace, name);
       }
     }
 
@@ -254,7 +256,8 @@ public class BookmarkGraphQLResource {
   @Description("Subscribe to notifications when new bookmarks are added")
   public Multi<BookmarkType> subscribeToBookmarksAdded() {
     Log.debug("GraphQL subscription: bookmarkAdded");
-    return subscriptionEventEmitter.getBookmarkStream()
+    return subscriptionEventEmitter
+        .getBookmarkStream()
         .filter(event -> event.getType() == BookmarkUpdateType.ADDED)
         .map(BookmarkUpdateEvent::getBookmark);
   }
@@ -268,7 +271,8 @@ public class BookmarkGraphQLResource {
   @Description("Subscribe to notifications when bookmarks are removed")
   public Multi<BookmarkType> subscribeToBookmarksRemoved() {
     Log.debug("GraphQL subscription: bookmarkRemoved");
-    return subscriptionEventEmitter.getBookmarkStream()
+    return subscriptionEventEmitter
+        .getBookmarkStream()
         .filter(event -> event.getType() == BookmarkUpdateType.REMOVED)
         .map(BookmarkUpdateEvent::getBookmark);
   }
@@ -282,7 +286,8 @@ public class BookmarkGraphQLResource {
   @Description("Subscribe to notifications when bookmarks are updated")
   public Multi<BookmarkType> subscribeToBookmarksUpdated() {
     Log.debug("GraphQL subscription: bookmarkUpdated");
-    return subscriptionEventEmitter.getBookmarkStream()
+    return subscriptionEventEmitter
+        .getBookmarkStream()
         .filter(event -> event.getType() == BookmarkUpdateType.UPDATED)
         .map(BookmarkUpdateEvent::getBookmark);
   }

@@ -19,7 +19,6 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
-import org.eclipse.microprofile.graphql.Source;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.graphql.input.CreateApplicationInput;
@@ -423,7 +422,9 @@ public class ApplicationGraphQLResource {
       if (appToDelete != null) {
         eventBroadcaster.broadcastApplicationRemoved(appToDelete);
       } else {
-        Log.warnf("Could not broadcast application removed event - application data not found for %s/%s", namespace, name);
+        Log.warnf(
+            "Could not broadcast application removed event - application data not found for %s/%s",
+            namespace, name);
       }
     }
 
@@ -471,41 +472,48 @@ public class ApplicationGraphQLResource {
     // Apply namespace filter if provided
     if (namespace != null && !namespace.trim().isEmpty()) {
       final String ns = namespace.trim();
-      stream = stream.filter(event -> {
-        ApplicationType app = event.getApplication();
-        return app != null && ns.equals(app.namespace);
-      });
+      stream =
+          stream.filter(
+              event -> {
+                ApplicationType app = event.getApplication();
+                return app != null && ns.equals(app.namespace);
+              });
     }
 
     // Apply tags filter if provided
     if (tags != null && !tags.isEmpty()) {
-      final List<String> lowerCaseTags = tags.stream()
-          .map(String::trim)
-          .map(String::toLowerCase)
-          .filter(tag -> !tag.isEmpty())
-          .toList();
-
-      if (!lowerCaseTags.isEmpty()) {
-        stream = stream.filter(event -> {
-          ApplicationType app = event.getApplication();
-          if (app == null) {
-            return false;
-          }
-          
-          // Include apps without tags (per tag filtering rules in docs/object-tag-filtering.md)
-          if (app.tags == null || app.tags.trim().isEmpty()) {
-            return true;
-          }
-
-          // Check if app has any of the requested tags
-          List<String> appTags = java.util.Arrays.stream(app.tags.split(","))
+      final List<String> lowerCaseTags =
+          tags.stream()
               .map(String::trim)
               .map(String::toLowerCase)
               .filter(tag -> !tag.isEmpty())
               .toList();
 
-          return appTags.stream().anyMatch(lowerCaseTags::contains);
-        });
+      if (!lowerCaseTags.isEmpty()) {
+        stream =
+            stream.filter(
+                event -> {
+                  ApplicationType app = event.getApplication();
+                  if (app == null) {
+                    return false;
+                  }
+
+                  // Include apps without tags (per tag filtering rules in
+                  // docs/object-tag-filtering.md)
+                  if (app.tags == null || app.tags.trim().isEmpty()) {
+                    return true;
+                  }
+
+                  // Check if app has any of the requested tags
+                  List<String> appTags =
+                      java.util.Arrays.stream(app.tags.split(","))
+                          .map(String::trim)
+                          .map(String::toLowerCase)
+                          .filter(tag -> !tag.isEmpty())
+                          .toList();
+
+                  return appTags.stream().anyMatch(lowerCaseTags::contains);
+                });
       }
     }
 
@@ -521,7 +529,8 @@ public class ApplicationGraphQLResource {
   @Description("Subscribe to notifications when new applications are added")
   public Multi<ApplicationType> subscribeToApplicationsAdded() {
     Log.debug("GraphQL subscription: applicationAdded");
-    return subscriptionEventEmitter.getApplicationStream()
+    return subscriptionEventEmitter
+        .getApplicationStream()
         .filter(event -> event.getType() == ApplicationUpdateType.ADDED)
         .map(ApplicationUpdateEvent::getApplication);
   }
@@ -535,7 +544,8 @@ public class ApplicationGraphQLResource {
   @Description("Subscribe to notifications when applications are removed")
   public Multi<ApplicationType> subscribeToApplicationsRemoved() {
     Log.debug("GraphQL subscription: applicationRemoved");
-    return subscriptionEventEmitter.getApplicationStream()
+    return subscriptionEventEmitter
+        .getApplicationStream()
         .filter(event -> event.getType() == ApplicationUpdateType.REMOVED)
         .map(ApplicationUpdateEvent::getApplication);
   }
@@ -549,7 +559,8 @@ public class ApplicationGraphQLResource {
   @Description("Subscribe to notifications when applications are updated")
   public Multi<ApplicationType> subscribeToApplicationsUpdated() {
     Log.debug("GraphQL subscription: applicationUpdated");
-    return subscriptionEventEmitter.getApplicationStream()
+    return subscriptionEventEmitter
+        .getApplicationStream()
         .filter(event -> event.getType() == ApplicationUpdateType.UPDATED)
         .map(ApplicationUpdateEvent::getApplication);
   }
