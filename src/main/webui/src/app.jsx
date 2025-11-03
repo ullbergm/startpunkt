@@ -637,7 +637,7 @@ export function App() {
         <header class="mb-auto" role="banner">
           <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
             <h3 class="mb-2 mb-md-0 me-md-auto">
-              <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}
+              <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}{layoutPrefs?.preferences.editMode && ' (Edit Mode)'}
             </h3>
             <nav class="nav nav-masthead justify-content-center mt-2 mt-md-0" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
