@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'preact/hooks';
+import { useEffect, useState, useRef, useMemo } from 'preact/hooks';
 import { client } from './client';
 
 /**
@@ -24,6 +24,9 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
   const subscriptionRef = useRef(null);
   const mountedRef = useRef(true);
   
+  // Memoize variables to avoid unnecessary re-subscriptions
+  const stableVariables = useMemo(() => variables, [JSON.stringify(variables)]);
+  
   useEffect(() => {
     mountedRef.current = true;
     
@@ -37,10 +40,10 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     setLoading(true);
     setError(null);
     
-    console.log('[useSubscription] Starting subscription with variables:', variables);
+    console.log('[useSubscription] Starting subscription with variables:', stableVariables);
     
     // Create subscription
-    const subscription$ = client.subscription(subscription, variables).subscribe({
+    const subscription$ = client.subscription(subscription, stableVariables).subscribe({
       next: (result) => {
         if (!mountedRef.current) return;
         
@@ -83,7 +86,7 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
         subscriptionRef.current = null;
       }
     };
-  }, [subscription, JSON.stringify(variables), enabled]);
+  }, [subscription, stableVariables, enabled]);
   
   return {
     data,

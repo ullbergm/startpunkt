@@ -69,6 +69,7 @@ jest.mock('./ForkMe', () => ({
 // Mock GraphQL client
 const mockQuery = jest.fn();
 const mockMutation = jest.fn();
+const mockSubscription = jest.fn();
 jest.mock('./graphql/client', () => ({
   client: {
     query: jest.fn((query, variables) => ({
@@ -77,6 +78,14 @@ jest.mock('./graphql/client', () => ({
     mutation: jest.fn((mutation, variables) => ({
       toPromise: () => mockMutation(mutation, variables)
     })),
+    subscription: jest.fn((subscription, variables) => ({
+      subscribe: jest.fn((handlers) => {
+        mockSubscription(subscription, variables, handlers);
+        return {
+          unsubscribe: jest.fn()
+        };
+      })
+    }))
   },
 }));
 

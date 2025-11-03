@@ -485,8 +485,8 @@ public class ApplicationGraphQLResource {
         stream = stream.filter(event -> {
           ApplicationType app = event.getApplication();
           if (app == null || app.tags == null || app.tags.trim().isEmpty()) {
-            // Include apps without tags when tags filter is provided
-            return true;
+            // Exclude apps without tags when tags filter is provided
+            return false;
           }
 
           // Check if app has any of the requested tags

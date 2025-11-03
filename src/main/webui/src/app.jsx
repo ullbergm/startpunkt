@@ -151,6 +151,23 @@ export function App() {
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
 
+  // Helper function to compute subscription connection status
+  const getSubscriptionStatus = (appSub, bookmarkSub) => {
+    const isConnected = appSub.isSubscribed || bookmarkSub.isSubscribed;
+    const isLoading = appSub.loading || bookmarkSub.loading;
+    const hasError = !!(appSub.error || bookmarkSub.error);
+    
+    return {
+      status: isConnected ? 'connected' : 
+              isLoading ? 'connecting' : 
+              hasError ? 'error' : 'disconnected',
+      isConnected,
+      isConnecting: isLoading,
+      isDisconnected: !isConnected && !isLoading,
+      hasError
+    };
+  };
+
   // Extract tags from URL path for filtering
   const getTagsFromUrl = () => {
     const pathname = window.location.pathname;
@@ -640,16 +657,7 @@ export function App() {
       {/* Show subscription status indicator */}
       {subscriptionsEnabled && (
         <WebSocketHeartIndicator 
-          websocket={{
-            status: appSubscription.isSubscribed || bookmarkSubscription.isSubscribed ? 'connected' : 
-                    appSubscription.loading || bookmarkSubscription.loading ? 'connecting' : 
-                    appSubscription.error || bookmarkSubscription.error ? 'error' : 'disconnected',
-            isConnected: appSubscription.isSubscribed || bookmarkSubscription.isSubscribed,
-            isConnecting: appSubscription.loading || bookmarkSubscription.loading,
-            isDisconnected: !appSubscription.isSubscribed && !bookmarkSubscription.isSubscribed && 
-                           !appSubscription.loading && !bookmarkSubscription.loading,
-            hasError: !!(appSubscription.error || bookmarkSubscription.error)
-          }} 
+          websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
         />
       )}
 
