@@ -51,7 +51,7 @@ export function LayoutSettings({ layoutPrefs }) {
         <div 
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-layout-text"
-          style="max-width: 300px; max-height: 80vh; overflow-y: auto;"
+          style="width: 275px; max-height: 80vh; overflow-y: auto;"
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">

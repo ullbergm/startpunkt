@@ -70,7 +70,7 @@ export function AccessibilitySettings() {
         <div 
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-accessibility-text"
-          style="min-width: 250px;"
+          style="width: 275px; max-height: 80vh; overflow-y: auto;"
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">
