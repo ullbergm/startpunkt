@@ -60,7 +60,8 @@ export function Application(props) {
       outline: '2px solid rgba(13, 110, 253, 0.5)',
       outlineOffset: '2px',
       borderRadius: '4px',
-      backgroundColor: 'rgba(13, 110, 253, 0.05)'
+      backgroundColor: 'rgba(13, 110, 253, 0.05)',
+      cursor: 'pointer'
     }),
     ...(editMode && !isEditable && { 
       opacity: '0.6'
@@ -68,10 +69,10 @@ export function Application(props) {
     position: 'relative'
   };
   
-  const handleEdit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onEdit && isEditable) {
+  const handleClick = (e) => {
+    if (editMode && isEditable && onEdit) {
+      e.preventDefault();
+      e.stopPropagation();
       onEdit(props.app);
     }
   };
@@ -80,9 +81,10 @@ export function Application(props) {
   return (
     <div 
       class={containerClass} 
-      style={containerStyle} 
+      style={containerStyle}
+      onClick={handleClick}
       role="article" 
-      aria-label={`Application: ${props.app.name}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
+      aria-label={`Application: ${props.app.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
     >
       {!isUnavailable && !editMode && (
         <a
@@ -113,24 +115,7 @@ export function Application(props) {
         {showStatus && isUnavailable && (
           <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
         )}
-        {editMode && !isEditable && (
-          <span class="badge bg-secondary mt-1" style={{ fontSize: '0.65rem' }} role="status" title="Managed by external system">
-            <Icon icon="mdi:lock" width="10" height="10" class="me-1" />
-            <Text id="layout.cannotEdit">Cannot Edit</Text>
-          </span>
-        )}
       </div>
-      {editMode && isEditable && onEdit && (
-        <button
-          onClick={handleEdit}
-          class="btn btn-sm btn-primary ms-2"
-          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
-          aria-label={`Edit ${props.app.name}`}
-          title={`Edit ${props.app.name}`}
-        >
-          <Icon icon="mdi:pencil" width="16" height="16" />
-        </button>
-      )}
     </div>
   );
 }

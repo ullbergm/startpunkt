@@ -22,17 +22,18 @@ export function Bookmark(props) {
       outline: '2px solid rgba(13, 110, 253, 0.5)',
       outlineOffset: '2px',
       borderRadius: '4px',
-      backgroundColor: 'rgba(13, 110, 253, 0.05)'
+      backgroundColor: 'rgba(13, 110, 253, 0.05)',
+      cursor: 'pointer'
     }),
     ...(editMode && !isEditable && { 
       opacity: '0.6'
     })
   };
   
-  const handleEdit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onEdit && isEditable) {
+  const handleClick = (e) => {
+    if (editMode && isEditable && onEdit) {
+      e.preventDefault();
+      e.stopPropagation();
       onEdit(props.bookmark);
     }
   };
@@ -82,9 +83,10 @@ export function Bookmark(props) {
     return (
       <div 
         class="d-flex align-items-start" 
-        style={containerStyle} 
+        style={containerStyle}
+        onClick={handleClick}
         role="article" 
-        aria-label={`Bookmark: ${props.bookmark.name}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
+        aria-label={`Bookmark: ${props.bookmark.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
       >
         {!editMode && (
           <a
@@ -101,25 +103,8 @@ export function Bookmark(props) {
             <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
               {props.bookmark.name}
             </h3>
-            {editMode && !isEditable && (
-              <span class="badge bg-secondary mt-1" style={{ fontSize: '0.65rem' }} role="status" title="Managed by external system">
-                <Icon icon="mdi:lock" width="10" height="10" class="me-1" />
-                <Text id="layout.cannotEdit">Cannot Edit</Text>
-              </span>
-            )}
           </div>
         </div>
-        {editMode && isEditable && onEdit && (
-          <button
-            onClick={handleEdit}
-            class="btn btn-sm btn-primary ms-2"
-            style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
-            aria-label={`Edit ${props.bookmark.name}`}
-            title={`Edit ${props.bookmark.name}`}
-          >
-            <Icon icon="mdi:pencil" width="16" height="16" />
-          </button>
-        )}
       </div>
     );
   }
@@ -128,9 +113,10 @@ export function Bookmark(props) {
   return (
     <div 
       class="d-flex align-items-start" 
-      style={containerStyle} 
+      style={containerStyle}
+      onClick={handleClick}
       role="article" 
-      aria-label={`Bookmark: ${props.bookmark.name}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
+      aria-label={`Bookmark: ${props.bookmark.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
     >
       {!editMode && (
         <a
@@ -149,24 +135,7 @@ export function Bookmark(props) {
         {showDescription && props.bookmark.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
-        {editMode && !isEditable && (
-          <span class="badge bg-secondary mt-1" style={{ fontSize: '0.65rem' }} role="status" title="Managed by external system">
-            <Icon icon="mdi:lock" width="10" height="10" class="me-1" />
-            <Text id="layout.cannotEdit">Cannot Edit</Text>
-          </span>
-        )}
       </div>
-      {editMode && isEditable && onEdit && (
-        <button
-          onClick={handleEdit}
-          class="btn btn-sm btn-primary ms-2"
-          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
-          aria-label={`Edit ${props.bookmark.name}`}
-          title={`Edit ${props.bookmark.name}`}
-        >
-          <Icon icon="mdi:pencil" width="16" height="16" />
-        </button>
-      )}
     </div>
   );
 }
