@@ -2,7 +2,13 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/pre
 
 // ---- MOCKS ----
 // Mock the GraphQL client to avoid actual GraphQL calls - MUST be before importing App
-jest.mock('./graphql/client');
+jest.mock('./graphql/client', () => ({
+  client: {
+    query: jest.fn(),
+    mutate: jest.fn(),
+  },
+  setOnPingCallback: jest.fn(),
+}));
 
 // Now import App AFTER setting up the mock
 import { App } from './app';

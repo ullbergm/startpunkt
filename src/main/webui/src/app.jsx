@@ -13,7 +13,7 @@ import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
-import { client } from './graphql/client';
+import { client, setOnPingCallback } from './graphql/client';
 import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
 import { APPLICATION_UPDATES_SUBSCRIPTION, BOOKMARK_UPDATES_SUBSCRIPTION } from './graphql/subscriptions';
@@ -150,7 +150,7 @@ export function App() {
   // Data state
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
-  const [lastSubscriptionActivity, setLastSubscriptionActivity] = useState(Date.now());
+  const [lastDataReceived, setLastDataReceived] = useState(null);
 
   // Helper function to compute subscription connection status
   const getSubscriptionStatus = (appSub, bookmarkSub) => {
@@ -166,7 +166,7 @@ export function App() {
       isConnecting: isLoading,
       isDisconnected: !isConnected && !isLoading,
       hasError,
-      lastHeartbeat: isConnected ? lastSubscriptionActivity : null
+      lastHeartbeat: lastDataReceived
     };
   };
 
@@ -334,8 +334,8 @@ export function App() {
       const { type, application } = appSubscription.data.applicationUpdates;
       console.log('[App] GraphQL subscription - application update:', type, application);
       
-      // Update last activity timestamp (acts as heartbeat)
-      setLastSubscriptionActivity(Date.now());
+      // Update last data received timestamp (for heartbeat indicator)
+      setLastDataReceived(Date.now());
       
       // Refresh applications on any change
       // Add a small delay to ensure backend cache is fully updated
@@ -351,8 +351,8 @@ export function App() {
       const { type, bookmark } = bookmarkSubscription.data.bookmarkUpdates;
       console.log('[App] GraphQL subscription - bookmark update:', type, bookmark);
       
-      // Update last activity timestamp (acts as heartbeat)
-      setLastSubscriptionActivity(Date.now());
+      // Update last data received timestamp (for heartbeat indicator)
+      setLastDataReceived(Date.now());
       
       // Refresh bookmarks on any change
       // Add a small delay to ensure backend cache is fully updated
@@ -362,12 +362,26 @@ export function App() {
     }
   }, [bookmarkSubscription.data]);
 
-  // Update lastSubscriptionActivity when subscriptions connect
+  // Update lastDataReceived when subscriptions first connect
   useEffect(() => {
     if (appSubscription.isSubscribed || bookmarkSubscription.isSubscribed) {
-      setLastSubscriptionActivity(Date.now());
+      setLastDataReceived(Date.now());
     }
   }, [appSubscription.isSubscribed, bookmarkSubscription.isSubscribed]);
+
+  // Register callback for WebSocket ping events (keepalive heartbeat)
+  useEffect(() => {
+    if (subscriptionsEnabled) {
+      setOnPingCallback(() => {
+        setLastDataReceived(Date.now());
+      });
+      
+      // Cleanup callback on unmount or when subscriptions disabled
+      return () => {
+        setOnPingCallback(null);
+      };
+    }
+  }, [subscriptionsEnabled]);
 
   // Set up periodic refresh if configured (only when subscriptions are not enabled)
   useEffect(() => {

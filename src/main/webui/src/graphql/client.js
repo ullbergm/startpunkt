@@ -18,6 +18,12 @@ const wsUrl = `${wsProtocol}//${window.location.host}/graphql`;
 
 console.log('[GraphQL] Creating WebSocket client for subscriptions:', wsUrl);
 
+// Callback for ping events (exposed for heartbeat indicator)
+let onPingCallback = null;
+export const setOnPingCallback = (callback) => {
+  onPingCallback = callback;
+};
+
 const wsClient = createWSClient({
   url: wsUrl,
   connectionParams: () => ({
@@ -30,6 +36,11 @@ const wsClient = createWSClient({
     connected: () => console.log('[GraphQL] WebSocket connected'),
     closed: () => console.log('[GraphQL] WebSocket closed'),
     error: (error) => console.error('[GraphQL] WebSocket error:', error),
+    ping: () => {
+      if (onPingCallback) {
+        onPingCallback();
+      }
+    },
   },
 });
 

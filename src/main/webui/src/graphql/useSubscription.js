@@ -82,6 +82,10 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
       }
     });
     
+    // Mark as connected immediately after subscription is created
+    // The subscription is ready to receive data even if no data has arrived yet
+    setLoading(false);
+    
     // Cleanup function
     return () => {
       mountedRef.current = false;
