@@ -1,27 +1,102 @@
-import { createClient, cacheExchange, fetchExchange } from 'urql';
+import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { createClient as createWSClient } from 'graphql-ws';
 
-export const client = createClient({
-  url: '/graphql',
-  exchanges: [
-    // cacheExchange provides normalized caching for better performance
-    cacheExchange,
-    fetchExchange
-  ],
-  // Request policy configuration:
-  // - 'cache-first': Use cached data if available, only fetch if missing (best for static data)
-  // - 'cache-and-network': Return cached data immediately, then fetch fresh data (best for dynamic data)
-  // - 'network-only': Always fetch from network, ignore cache (best for real-time data)
-  // Using 'cache-first' as default since most data is relatively stable and we have WebSocket for updates
-  requestPolicy: 'cache-first',
-  // Force standard GraphQL POST request format
-  fetchOptions: () => ({
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+// Create HTTP link for queries and mutations
+const httpLink = new HttpLink({
+  uri: '/graphql',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+});
+
+// Create WebSocket link for subscriptions
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${wsProtocol}//${window.location.host}/graphql`;
+
+console.log('[GraphQL] Creating WebSocket client for subscriptions:', wsUrl);
+
+// Callback for ping events (exposed for heartbeat indicator)
+let onPingCallback = null;
+export const setOnPingCallback = (callback) => {
+  onPingCallback = callback;
+};
+
+const wsClient = createWSClient({
+  url: wsUrl,
+  connectionParams: () => ({
+    // Add authentication headers if needed
+  }),
+  retryAttempts: Infinity,
+  shouldRetry: () => true,
+  keepAlive: 30000, // 30 seconds
+  on: {
+    connected: () => console.log('[GraphQL] WebSocket connected'),
+    closed: () => console.log('[GraphQL] WebSocket closed'),
+    error: (error) => console.error('[GraphQL] WebSocket error:', error),
+    ping: () => {
+      if (onPingCallback) {
+        onPingCallback();
+      }
+    },
+  },
+});
+
+const wsLink = new GraphQLWsLink(wsClient);
+
+// Split link: use WebSocket for subscriptions, HTTP for queries/mutations
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink,
+  httpLink,
+);
+
+// Create Apollo Client
+export const client = new ApolloClient({
+  link: splitLink,
+  cache: new InMemoryCache({
+    // Cache type policies for better normalization
+    typePolicies: {
+      Query: {
+        fields: {
+          // For array fields like applicationGroups and bookmarkGroups,
+          // we want to replace the entire array on refetch (not merge items)
+          // This prevents cache warnings when the array length changes
+          applicationGroups: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+          bookmarkGroups: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+        },
+      },
     },
   }),
-  // Disable automatic persisted queries
-  preferGetMethod: false,
+  // Default fetch policy: cache-first for queries, network-only for subscriptions
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'cache-first',
+    },
+    query: {
+      fetchPolicy: 'cache-first',
+    },
+  },
+});
+
+// Clean up WebSocket connection when page unloads
+window.addEventListener('beforeunload', () => {
+  wsClient.dispose();
 });
 

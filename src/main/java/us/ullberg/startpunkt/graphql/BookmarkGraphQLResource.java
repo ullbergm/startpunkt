@@ -4,6 +4,8 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
 import io.quarkus.logging.Log;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +24,8 @@ import us.ullberg.startpunkt.graphql.input.CreateBookmarkInput;
 import us.ullberg.startpunkt.graphql.input.UpdateBookmarkInput;
 import us.ullberg.startpunkt.graphql.types.BookmarkGroupType;
 import us.ullberg.startpunkt.graphql.types.BookmarkType;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
@@ -40,6 +44,7 @@ public class BookmarkGraphQLResource {
   final BookmarkManagementService bookmarkManagementService;
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
+  final SubscriptionEventEmitter subscriptionEventEmitter;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -51,16 +56,19 @@ public class BookmarkGraphQLResource {
    * @param bookmarkManagementService the bookmark management service for CRUD operations
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
+   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
    */
   public BookmarkGraphQLResource(
       BookmarkService bookmarkService,
       BookmarkManagementService bookmarkManagementService,
       EventBroadcaster eventBroadcaster,
-      CacheManager cacheManager) {
+      CacheManager cacheManager,
+      SubscriptionEventEmitter subscriptionEventEmitter) {
     this.bookmarkService = bookmarkService;
     this.bookmarkManagementService = bookmarkManagementService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
+    this.subscriptionEventEmitter = subscriptionEventEmitter;
   }
 
   /**
@@ -193,6 +201,9 @@ public class BookmarkGraphQLResource {
       @NonNull @Name("namespace") String namespace, @NonNull @Name("name") String name) {
     Log.debugf("GraphQL mutation: deleteBookmark in namespace=%s, name=%s", namespace, name);
 
+    // Get the bookmark data BEFORE deleting so we can broadcast it
+    var bookmarkToDelete = bookmarkManagementService.getBookmark(namespace, name);
+
     // Delete bookmark via management service
     boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);
 
@@ -200,11 +211,14 @@ public class BookmarkGraphQLResource {
       // Invalidate cache
       invalidateBookmarkCache();
 
-      // Broadcast event
-      var deletedData = new java.util.HashMap<String, String>();
-      deletedData.put("namespace", namespace);
-      deletedData.put("name", name);
-      eventBroadcaster.broadcastBookmarkRemoved(deletedData);
+      // Broadcast event with the full bookmark data
+      if (bookmarkToDelete != null) {
+        eventBroadcaster.broadcastBookmarkRemoved(bookmarkToDelete);
+      } else {
+        Log.warnf(
+            "Could not broadcast bookmark removed event - bookmark data not found for %s/%s",
+            namespace, name);
+      }
     }
 
     return deleted;
@@ -216,5 +230,65 @@ public class BookmarkGraphQLResource {
     if (cache != null) {
       cache.invalidateAll().await().indefinitely();
     }
+  }
+
+  /**
+   * Subscribe to real-time bookmark updates.
+   *
+   * <p>Clients can subscribe to this to receive notifications when bookmarks are added, updated, or
+   * removed.
+   *
+   * @return Multi stream of bookmark update events
+   */
+  @Subscription("bookmarkUpdates")
+  @Description("Subscribe to real-time bookmark updates")
+  public Multi<BookmarkUpdateEvent> subscribeToBookmarkUpdates() {
+    Log.debug("GraphQL subscription: bookmarkUpdates");
+    return subscriptionEventEmitter.getBookmarkStream();
+  }
+
+  /**
+   * Subscribe to new bookmarks being added.
+   *
+   * @return Multi stream of new bookmarks
+   */
+  @Subscription("bookmarkAdded")
+  @Description("Subscribe to notifications when new bookmarks are added")
+  public Multi<BookmarkType> subscribeToBookmarksAdded() {
+    Log.debug("GraphQL subscription: bookmarkAdded");
+    return subscriptionEventEmitter
+        .getBookmarkStream()
+        .filter(event -> event.getType() == BookmarkUpdateType.ADDED)
+        .map(BookmarkUpdateEvent::getBookmark);
+  }
+
+  /**
+   * Subscribe to bookmarks being removed.
+   *
+   * @return Multi stream of removed bookmarks
+   */
+  @Subscription("bookmarkRemoved")
+  @Description("Subscribe to notifications when bookmarks are removed")
+  public Multi<BookmarkType> subscribeToBookmarksRemoved() {
+    Log.debug("GraphQL subscription: bookmarkRemoved");
+    return subscriptionEventEmitter
+        .getBookmarkStream()
+        .filter(event -> event.getType() == BookmarkUpdateType.REMOVED)
+        .map(BookmarkUpdateEvent::getBookmark);
+  }
+
+  /**
+   * Subscribe to bookmarks being updated.
+   *
+   * @return Multi stream of updated bookmarks
+   */
+  @Subscription("bookmarkUpdated")
+  @Description("Subscribe to notifications when bookmarks are updated")
+  public Multi<BookmarkType> subscribeToBookmarksUpdated() {
+    Log.debug("GraphQL subscription: bookmarkUpdated");
+    return subscriptionEventEmitter
+        .getBookmarkStream()
+        .filter(event -> event.getType() == BookmarkUpdateType.UPDATED)
+        .map(BookmarkUpdateEvent::getBookmark);
   }
 }
