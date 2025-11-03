@@ -3,14 +3,34 @@ import { Text } from 'preact-i18n';
 
 function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
   const opacity = isUnavailable ? 0.4 : 1;
+  const iconStyle = {
+    opacity,
+    minWidth: `${size}px`,
+    minHeight: `${size}px`,
+    maxWidth: `${size}px`,
+    maxHeight: `${size}px`,
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+  
   if (!icon) return null;
   if (icon.includes('://')) {
-    return <img src={icon} alt={name} class="me-3" width={size} height={size} style={{ color: iconColor, opacity }} />;
+    return (
+      <div class="me-1" style={iconStyle}>
+        <img src={icon} alt={name} width={size} height={size} style={{ color: iconColor, opacity, display: 'block', objectFit: 'contain' }} />
+      </div>
+    );
   }
   if (!icon.includes(':')) {
     icon = `mdi:${icon}`;
   }
-  return <Icon icon={icon} class="me-3 fs-2 text-primary" width={size} height={size} color={iconColor} style={{ opacity }} />;
+  return (
+    <div class="me-1" style={iconStyle}>
+      <Icon icon={icon} class="fs-2 text-primary" width={size} height={size} color={iconColor} style={{ opacity, display: 'block' }} />
+    </div>
+  );
 }
 
 export function Application(props) {

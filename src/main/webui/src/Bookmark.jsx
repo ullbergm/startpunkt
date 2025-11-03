@@ -38,26 +38,42 @@ export function Bookmark(props) {
   };
   
   const renderIcon = (icon, name, size) => {
+    const iconStyle = {
+      minWidth: `${size}px`,
+      minHeight: `${size}px`,
+      maxWidth: `${size}px`,
+      maxHeight: `${size}px`,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+    
     if (!icon) return null;
     if (icon.includes('://')) {
       return (
-        <img
-          src={icon}
-          alt={name}
-          class="me-3"
-          width={size}
-          height={size}
-        />
+        <div class="me-1" style={iconStyle}>
+          <img
+            src={icon}
+            alt={name}
+            width={size}
+            height={size}
+            style={{ display: 'block', objectFit: 'contain' }}
+          />
+        </div>
       );
     }
     const iconValue = !icon.includes(':') ? `mdi:${icon}` : icon;
     return (
-      <Icon
-        icon={iconValue}
-        class="me-3 fs-2 text-primary"
-        width={size}
-        height={size}
-      />
+      <div class="me-1" style={iconStyle}>
+        <Icon
+          icon={iconValue}
+          class="fs-2 text-primary"
+          width={size}
+          height={size}
+          style={{ display: 'block' }}
+        />
+      </div>
     );
   };
   
