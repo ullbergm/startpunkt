@@ -483,8 +483,8 @@ export function App() {
 
       setShowAppEditor(false);
       setEditingApp(null);
-      // Refresh data
-      setTimeout(() => fetchData(), 500);
+      // Refresh only applications
+      setTimeout(() => fetchApplications(), 500);
     } catch (error) {
       console.error('Error saving application:', error);
       throw error;
@@ -504,8 +504,8 @@ export function App() {
 
     setShowAppEditor(false);
     setEditingApp(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
+    // Refresh only applications
+    setTimeout(() => fetchApplications(), 500);
   };
 
   // Bookmark editor handlers
@@ -583,8 +583,8 @@ export function App() {
 
       setShowBookmarkEditor(false);
       setEditingBookmark(null);
-      // Refresh data
-      setTimeout(() => fetchData(), 500);
+      // Refresh only bookmarks
+      setTimeout(() => fetchBookmarks(), 500);
     } catch (error) {
       console.error('Error saving bookmark:', error);
       throw error;
@@ -604,8 +604,8 @@ export function App() {
 
     setShowBookmarkEditor(false);
     setEditingBookmark(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
+    // Refresh only bookmarks
+    setTimeout(() => fetchBookmarks(), 500);
   };
 
   return (
