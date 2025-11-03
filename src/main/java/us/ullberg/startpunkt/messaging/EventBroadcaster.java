@@ -5,7 +5,6 @@ import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
@@ -335,7 +334,7 @@ public class EventBroadcaster {
   /**
    * Converts application data to ApplicationType for GraphQL subscriptions.
    *
-   * @param applicationData the application data (Application CRD or Map)
+   * @param applicationData the application data (Application CRD)
    * @return ApplicationType or null if conversion fails
    */
   private ApplicationType convertToApplicationType(Object applicationData) {
@@ -349,12 +348,6 @@ public class EventBroadcaster {
       response.setNamespace(app.getMetadata().getNamespace());
       response.setResourceName(app.getMetadata().getName());
       return ApplicationType.fromResponse(response);
-    } else if (applicationData instanceof Map) {
-      // For delete events, we get a Map with namespace and name
-      // We can't construct a full ApplicationType, so return null
-      // Subscriptions will need to handle REMOVED events differently
-      Log.debug("Cannot convert Map to ApplicationType for subscription");
-      return null;
     }
 
     Log.warnf("Unknown application data type for subscription: %s", applicationData.getClass());
@@ -364,7 +357,7 @@ public class EventBroadcaster {
   /**
    * Converts bookmark data to BookmarkType for GraphQL subscriptions.
    *
-   * @param bookmarkData the bookmark data (Bookmark CRD or Map)
+   * @param bookmarkData the bookmark data (Bookmark CRD)
    * @return BookmarkType or null if conversion fails
    */
   private BookmarkType convertToBookmarkType(Object bookmarkData) {
@@ -378,11 +371,6 @@ public class EventBroadcaster {
       response.setNamespace(bookmark.getMetadata().getNamespace());
       response.setResourceName(bookmark.getMetadata().getName());
       return BookmarkType.fromResponse(response);
-    } else if (bookmarkData instanceof Map) {
-      // For delete events, we get a Map with namespace and name
-      // We can't construct a full BookmarkType, so return null
-      Log.debug("Cannot convert Map to BookmarkType for subscription");
-      return null;
     }
 
     Log.warnf("Unknown bookmark data type for subscription: %s", bookmarkData.getClass());

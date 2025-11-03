@@ -41,7 +41,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     
     // Don't subscribe if not enabled
     if (!enabled) {
-      console.log('[useSubscription] Subscription not enabled');
       setLoading(false);
       return;
     }
@@ -49,8 +48,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     // Reset state when starting new subscription
     setLoading(true);
     setError(null);
-    
-    console.log('[useSubscription] Starting subscription with variables:', stableVariables);
     
     // Create subscription using Apollo Client
     const observable = client.subscribe({
@@ -61,8 +58,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     subscriptionRef.current = observable.subscribe({
       next: (result) => {
         if (!mountedRef.current) return;
-        
-        console.log('[useSubscription] Received data:', result);
         
         if (result.errors) {
           console.error('[useSubscription] Subscription errors:', result.errors);
@@ -83,8 +78,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
       },
       complete: () => {
         if (!mountedRef.current) return;
-        
-        console.log('[useSubscription] Subscription completed');
         setLoading(false);
       }
     });
@@ -94,7 +87,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
       mountedRef.current = false;
       
       if (subscriptionRef.current) {
-        console.log('[useSubscription] Unsubscribing');
         subscriptionRef.current.unsubscribe();
         subscriptionRef.current = null;
       }
