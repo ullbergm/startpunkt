@@ -150,6 +150,7 @@ export function App() {
   // Data state
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
+  const [lastSubscriptionActivity, setLastSubscriptionActivity] = useState(Date.now());
 
   // Helper function to compute subscription connection status
   const getSubscriptionStatus = (appSub, bookmarkSub) => {
@@ -164,7 +165,8 @@ export function App() {
       isConnected,
       isConnecting: isLoading,
       isDisconnected: !isConnected && !isLoading,
-      hasError
+      hasError,
+      lastHeartbeat: isConnected ? lastSubscriptionActivity : null
     };
   };
 
@@ -324,6 +326,9 @@ export function App() {
       const { type, application } = appSubscription.data.applicationUpdates;
       console.log('[App] GraphQL subscription - application update:', type, application);
       
+      // Update last activity timestamp (acts as heartbeat)
+      setLastSubscriptionActivity(Date.now());
+      
       // Refresh applications on any change
       // Add a small delay to ensure backend cache is fully updated
       setTimeout(() => {
@@ -338,6 +343,9 @@ export function App() {
       const { type, bookmark } = bookmarkSubscription.data.bookmarkUpdates;
       console.log('[App] GraphQL subscription - bookmark update:', type, bookmark);
       
+      // Update last activity timestamp (acts as heartbeat)
+      setLastSubscriptionActivity(Date.now());
+      
       // Refresh bookmarks on any change
       // Add a small delay to ensure backend cache is fully updated
       setTimeout(() => {
@@ -345,6 +353,13 @@ export function App() {
       }, 100);
     }
   }, [bookmarkSubscription.data]);
+
+  // Update lastSubscriptionActivity when subscriptions connect
+  useEffect(() => {
+    if (appSubscription.isSubscribed || bookmarkSubscription.isSubscribed) {
+      setLastSubscriptionActivity(Date.now());
+    }
+  }, [appSubscription.isSubscribed, bookmarkSubscription.isSubscribed]);
 
   // Set up periodic refresh if configured (only when subscriptions are not enabled)
   useEffect(() => {

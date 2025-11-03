@@ -236,7 +236,6 @@ public class BookmarkGraphQLResource {
    */
   @Subscription("bookmarkUpdates")
   @Description("Subscribe to real-time bookmark updates")
-  @Timed(value = "graphql.subscription.bookmarkUpdates")
   public Multi<BookmarkUpdateEvent> subscribeToBookmarkUpdates() {
     Log.debug("GraphQL subscription: bookmarkUpdates");
     return subscriptionEventEmitter.getBookmarkStream();
@@ -249,7 +248,6 @@ public class BookmarkGraphQLResource {
    */
   @Subscription("bookmarkAdded")
   @Description("Subscribe to notifications when new bookmarks are added")
-  @Timed(value = "graphql.subscription.bookmarkAdded")
   public Multi<BookmarkType> subscribeToBookmarksAdded() {
     Log.debug("GraphQL subscription: bookmarkAdded");
     return subscriptionEventEmitter.getBookmarkStream()
@@ -264,7 +262,6 @@ public class BookmarkGraphQLResource {
    */
   @Subscription("bookmarkRemoved")
   @Description("Subscribe to notifications when bookmarks are removed")
-  @Timed(value = "graphql.subscription.bookmarkRemoved")
   public Multi<BookmarkType> subscribeToBookmarksRemoved() {
     Log.debug("GraphQL subscription: bookmarkRemoved");
     return subscriptionEventEmitter.getBookmarkStream()
@@ -279,7 +276,6 @@ public class BookmarkGraphQLResource {
    */
   @Subscription("bookmarkUpdated")
   @Description("Subscribe to notifications when bookmarks are updated")
-  @Timed(value = "graphql.subscription.bookmarkUpdated")
   public Multi<BookmarkType> subscribeToBookmarksUpdated() {
     Log.debug("GraphQL subscription: bookmarkUpdated");
     return subscriptionEventEmitter.getBookmarkStream()

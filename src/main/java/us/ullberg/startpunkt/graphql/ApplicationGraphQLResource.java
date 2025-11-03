@@ -456,7 +456,6 @@ public class ApplicationGraphQLResource {
    */
   @Subscription("applicationUpdates")
   @Description("Subscribe to real-time application updates with optional filtering")
-  @Timed(value = "graphql.subscription.applicationUpdates")
   public Multi<ApplicationUpdateEvent> subscribeToApplicationUpdates(
       @Name("namespace") @Description("Optional namespace filter") String namespace,
       @Name("tags") @Description("Optional tags to filter applications") List<String> tags) {
@@ -511,7 +510,6 @@ public class ApplicationGraphQLResource {
    */
   @Subscription("applicationAdded")
   @Description("Subscribe to notifications when new applications are added")
-  @Timed(value = "graphql.subscription.applicationAdded")
   public Multi<ApplicationType> subscribeToApplicationsAdded() {
     Log.debug("GraphQL subscription: applicationAdded");
     return subscriptionEventEmitter.getApplicationStream()
@@ -526,7 +524,6 @@ public class ApplicationGraphQLResource {
    */
   @Subscription("applicationRemoved")
   @Description("Subscribe to notifications when applications are removed")
-  @Timed(value = "graphql.subscription.applicationRemoved")
   public Multi<ApplicationType> subscribeToApplicationsRemoved() {
     Log.debug("GraphQL subscription: applicationRemoved");
     return subscriptionEventEmitter.getApplicationStream()
@@ -541,7 +538,6 @@ public class ApplicationGraphQLResource {
    */
   @Subscription("applicationUpdated")
   @Description("Subscribe to notifications when applications are updated")
-  @Timed(value = "graphql.subscription.applicationUpdated")
   public Multi<ApplicationType> subscribeToApplicationsUpdated() {
     Log.debug("GraphQL subscription: applicationUpdated");
     return subscriptionEventEmitter.getApplicationStream()

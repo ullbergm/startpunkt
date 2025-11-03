@@ -1,7 +1,7 @@
 package us.ullberg.startpunkt.messaging;
 
-import io.quarkus.logging.Log;
 import io.quarkus.arc.Arc;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
@@ -19,24 +19,16 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
 import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
-import us.ullberg.startpunkt.websocket.WebSocketConnectionManager;
-import us.ullberg.startpunkt.websocket.WebSocketEventType;
-import us.ullberg.startpunkt.websocket.WebSocketMessage;
 
 /**
- * Service for broadcasting events to connected clients using WebSocket.
+ * Service for broadcasting events to connected clients using GraphQL subscriptions.
  *
  * <p>This service provides methods to broadcast various types of events (application changes,
- * configuration updates, etc.) to all connected clients via WebSocket. It includes debouncing logic
- * to prevent flooding clients with rapid updates.
+ * bookmark updates, etc.) to all connected clients via GraphQL subscriptions. It includes
+ * debouncing logic to prevent flooding clients with rapid updates.
  */
 @ApplicationScoped
 public class EventBroadcaster {
-
-  private final WebSocketConnectionManager connectionManager;
-
-  @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
-  boolean websocketEnabled;
 
   @ConfigProperty(name = "startpunkt.graphql.subscription.enabled", defaultValue = "true")
   boolean subscriptionEnabled;
@@ -46,15 +38,6 @@ public class EventBroadcaster {
 
   // Track last broadcast time for each event type to implement debouncing
   private final Map<String, Instant> lastBroadcastTimes = new ConcurrentHashMap<>();
-
-  /**
-   * Constructor for EventBroadcaster.
-   *
-   * @param connectionManager the WebSocket connection manager
-   */
-  public EventBroadcaster(WebSocketConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
 
   /**
    * Get the subscription event emitter if available using Arc CDI container.
@@ -68,38 +51,6 @@ public class EventBroadcaster {
       Log.debug("SubscriptionEventEmitter not available", e);
       return null;
     }
-  }
-
-  /**
-   * Broadcasts an event to all connected clients with debouncing.
-   *
-   * @param eventType the type of event
-   * @param data the event data
-   * @param <T> the type of the event data
-   */
-  public <T> void broadcastEvent(WebSocketEventType eventType, T data) {
-    if (!websocketEnabled) {
-      Log.warnf("Event broadcasting is disabled, not broadcasting event: %s", eventType);
-      return;
-    }
-
-    // Create a unique key for this event type and data
-    String eventKey = eventType.toString();
-
-    // Check if we should debounce this event
-    if (shouldDebounce(eventKey)) {
-      Log.debugf("Debouncing event: %s", eventType);
-      return;
-    }
-
-    // Update last broadcast time
-    lastBroadcastTimes.put(eventKey, Instant.now());
-
-    // Create and broadcast the message
-    var message = new WebSocketMessage<>(eventType, data);
-    connectionManager.broadcast(message);
-
-    Log.infof("Broadcasted event: %s", eventType);
   }
 
   /**
@@ -124,22 +75,31 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationAdded(Object applicationData) {
-    broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          ApplicationType appType = convertToApplicationType(applicationData);
-          if (appType != null) {
-            ApplicationUpdateEvent event =
-                new ApplicationUpdateEvent(ApplicationUpdateType.ADDED, appType, Instant.now());
-            emitter.emitApplicationUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting application added event to subscriptions", e);
+    String eventKey = "APPLICATION_ADDED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        ApplicationType appType = convertToApplicationType(applicationData);
+        if (appType != null) {
+          ApplicationUpdateEvent event =
+              new ApplicationUpdateEvent(ApplicationUpdateType.ADDED, appType, Instant.now());
+          emitter.emitApplicationUpdate(event);
+          Log.infof("Emitted application added event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting application added event to subscriptions", e);
       }
     }
   }
@@ -150,22 +110,31 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationRemoved(Object applicationData) {
-    broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          ApplicationType appType = convertToApplicationType(applicationData);
-          if (appType != null) {
-            ApplicationUpdateEvent event =
-                new ApplicationUpdateEvent(ApplicationUpdateType.REMOVED, appType, Instant.now());
-            emitter.emitApplicationUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting application removed event to subscriptions", e);
+    String eventKey = "APPLICATION_REMOVED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        ApplicationType appType = convertToApplicationType(applicationData);
+        if (appType != null) {
+          ApplicationUpdateEvent event =
+              new ApplicationUpdateEvent(ApplicationUpdateType.REMOVED, appType, Instant.now());
+          emitter.emitApplicationUpdate(event);
+          Log.infof("Emitted application removed event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting application removed event to subscriptions", e);
       }
     }
   }
@@ -176,22 +145,31 @@ public class EventBroadcaster {
    * @param applicationData the application data
    */
   public void broadcastApplicationUpdated(Object applicationData) {
-    broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          ApplicationType appType = convertToApplicationType(applicationData);
-          if (appType != null) {
-            ApplicationUpdateEvent event =
-                new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, appType, Instant.now());
-            emitter.emitApplicationUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting application updated event to subscriptions", e);
+    String eventKey = "APPLICATION_UPDATED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        ApplicationType appType = convertToApplicationType(applicationData);
+        if (appType != null) {
+          ApplicationUpdateEvent event =
+              new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, appType, Instant.now());
+          emitter.emitApplicationUpdate(event);
+          Log.infof("Emitted application updated event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting application updated event to subscriptions", e);
       }
     }
   }
@@ -202,7 +180,8 @@ public class EventBroadcaster {
    * @param configData the configuration data
    */
   public void broadcastConfigChanged(Object configData) {
-    broadcastEvent(WebSocketEventType.CONFIG_CHANGED, configData);
+    Log.info("Config changed event received (no-op for subscriptions)");
+    // Config changes don't need subscription events as they require page reload
   }
 
   /**
@@ -211,7 +190,8 @@ public class EventBroadcaster {
    * @param statusData the status data
    */
   public void broadcastStatusChanged(Object statusData) {
-    broadcastEvent(WebSocketEventType.STATUS_CHANGED, statusData);
+    // Treat status changes as application updates
+    broadcastApplicationUpdated(statusData);
   }
 
   /**
@@ -220,22 +200,31 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkAdded(Object bookmarkData) {
-    broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
-          if (bookmarkType != null) {
-            BookmarkUpdateEvent event =
-                new BookmarkUpdateEvent(BookmarkUpdateType.ADDED, bookmarkType, Instant.now());
-            emitter.emitBookmarkUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting bookmark added event to subscriptions", e);
+    String eventKey = "BOOKMARK_ADDED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+        if (bookmarkType != null) {
+          BookmarkUpdateEvent event =
+              new BookmarkUpdateEvent(BookmarkUpdateType.ADDED, bookmarkType, Instant.now());
+          emitter.emitBookmarkUpdate(event);
+          Log.infof("Emitted bookmark added event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting bookmark added event to subscriptions", e);
       }
     }
   }
@@ -246,22 +235,31 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkRemoved(Object bookmarkData) {
-    broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
-          if (bookmarkType != null) {
-            BookmarkUpdateEvent event =
-                new BookmarkUpdateEvent(BookmarkUpdateType.REMOVED, bookmarkType, Instant.now());
-            emitter.emitBookmarkUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting bookmark removed event to subscriptions", e);
+    String eventKey = "BOOKMARK_REMOVED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+        if (bookmarkType != null) {
+          BookmarkUpdateEvent event =
+              new BookmarkUpdateEvent(BookmarkUpdateType.REMOVED, bookmarkType, Instant.now());
+          emitter.emitBookmarkUpdate(event);
+          Log.infof("Emitted bookmark removed event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting bookmark removed event to subscriptions", e);
       }
     }
   }
@@ -272,22 +270,31 @@ public class EventBroadcaster {
    * @param bookmarkData the bookmark data
    */
   public void broadcastBookmarkUpdated(Object bookmarkData) {
-    broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);
+    if (!subscriptionEnabled) {
+      Log.debug("Subscription broadcasting is disabled");
+      return;
+    }
 
-    // Also emit to GraphQL subscriptions
-    if (subscriptionEnabled) {
-      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
-      if (emitter != null) {
-        try {
-          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
-          if (bookmarkType != null) {
-            BookmarkUpdateEvent event =
-                new BookmarkUpdateEvent(BookmarkUpdateType.UPDATED, bookmarkType, Instant.now());
-            emitter.emitBookmarkUpdate(event);
-          }
-        } catch (Exception e) {
-          Log.error("Error emitting bookmark updated event to subscriptions", e);
+    String eventKey = "BOOKMARK_UPDATED";
+    if (shouldDebounce(eventKey)) {
+      Log.debugf("Debouncing event: %s", eventKey);
+      return;
+    }
+
+    lastBroadcastTimes.put(eventKey, Instant.now());
+
+    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+    if (emitter != null) {
+      try {
+        BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+        if (bookmarkType != null) {
+          BookmarkUpdateEvent event =
+              new BookmarkUpdateEvent(BookmarkUpdateType.UPDATED, bookmarkType, Instant.now());
+          emitter.emitBookmarkUpdate(event);
+          Log.infof("Emitted bookmark updated event via subscription");
         }
+      } catch (Exception e) {
+        Log.error("Error emitting bookmark updated event to subscriptions", e);
       }
     }
   }
