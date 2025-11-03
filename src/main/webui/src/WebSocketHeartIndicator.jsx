@@ -4,10 +4,13 @@ import './WebSocketHeartIndicator.scss';
 
 /**
  * WebSocket Heart Indicator component
- * Displays a heart icon in the bottom left corner to indicate WebSocket connection status
- * - Beats when heartbeat messages are received
- * - Shows green heart only when successfully connected
+ * Displays a heart icon in the bottom left corner to indicate GraphQL subscription status
+ * - Beats when real-time data is received OR when keepalive pings are sent
+ * - Shows green heart when successfully connected
  * - Shows broken red heart when connecting, disconnected, or has errors
+ * 
+ * Note: GraphQL subscriptions use websocket ping/pong for keepalive (30s interval),
+ * and the heart beats on every ping to show the connection is alive.
  */
 export function WebSocketHeartIndicator({ websocket }) {
   const [isBeating, setIsBeating] = useState(false);
@@ -15,6 +18,7 @@ export function WebSocketHeartIndicator({ websocket }) {
 
   // Track heartbeat changes and trigger beat animation
   useEffect(() => {
+    // Only trigger if we have a heartbeat timestamp and it's different from the last one we saw
     if (websocket.lastHeartbeat && websocket.lastHeartbeat !== lastHeartbeatTime) {
       setLastHeartbeatTime(websocket.lastHeartbeat);
       setIsBeating(true);
@@ -26,24 +30,6 @@ export function WebSocketHeartIndicator({ websocket }) {
       
       return () => clearTimeout(timer);
     }
-  }, [websocket.lastHeartbeat, lastHeartbeatTime]);
-
-  // Calculate seconds since last heartbeat
-  const [secondsSinceHeartbeat, setSecondsSinceHeartbeat] = useState(null);
-  
-  useEffect(() => {
-    if (!websocket.lastHeartbeat) {
-      setSecondsSinceHeartbeat(null);
-      return;
-    }
-    
-    // Update every second
-    const interval = setInterval(() => {
-      const seconds = Math.floor((Date.now() - websocket.lastHeartbeat) / 1000);
-      setSecondsSinceHeartbeat(seconds);
-    }, 1000);
-    
-    return () => clearInterval(interval);
   }, [websocket.lastHeartbeat]);
 
   // Determine which icon to show and its color
@@ -53,9 +39,7 @@ export function WebSocketHeartIndicator({ websocket }) {
       return {
         icon: 'mdi:heart',
         color: '#198754', // Bootstrap success color
-        title: secondsSinceHeartbeat !== null 
-          ? `Real-time updates active (${secondsSinceHeartbeat}s since last heartbeat)` 
-          : 'Real-time updates active'
+        title: 'Real-time updates active (GraphQL subscriptions connected)'
       };
     }
     
@@ -64,7 +48,7 @@ export function WebSocketHeartIndicator({ websocket }) {
       icon: 'mdi:heart-broken',
       color: '#dc3545', // Bootstrap danger color
       title: websocket.hasError 
-        ? 'Connection error - using HTTP polling'
+        ? 'GraphQL subscription error'
         : (websocket.isConnecting 
             ? 'Connecting to real-time updates...' 
             : 'Real-time updates not connected')

@@ -14,6 +14,7 @@
       "outputName": "js-junit.xml"
    },
    "dependencies": {
+      "@apollo/client": "^4.0.9",
       "@popperjs/core": "^2.11.8",
       "@preact/compat": "^18.0.0",
       "@rehooks/local-storage": "^2.4.5",
@@ -23,10 +24,10 @@
       "flexsearch": "^0.8.205",
       "geopattern": "^1.2.3",
       "graphql": "^16.12.0",
+      "graphql-ws": "^6.0.0",
       "preact": "^10.22.0",
       "preact-i18n": "^2.4.0-preactx",
-      "react-responsive": "^10.0.0",
-      "urql": "^5.0.1"
+      "react-responsive": "^10.0.0"
    },
    "devDependencies": {
       "@babel/preset-env": "^7.28.0",

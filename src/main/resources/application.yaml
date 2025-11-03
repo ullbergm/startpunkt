@@ -68,11 +68,16 @@ startpunkt:
         textPrimaryColor: "#FAB795"
         textAccentColor: "#E95678"
 
-  # WebSocket configuration for real-time updates
+  # WebSocket configuration for real-time updates (DEPRECATED - use GraphQL subscriptions instead)
   websocket:
-    enabled: true  # If true, enable WebSocket connections for real-time updates
-    heartbeatInterval: 30s  # Heartbeat interval in seconds to keep connections alive (e.g., 60s, 5m, 1h)
-    eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
+    enabled: false  # WebSocket support is deprecated, use GraphQL subscriptions
+    heartbeatInterval: 30s  # Heartbeat interval (kept for backward compatibility)
+    eventDebounceMs: 500  # Debounce time in milliseconds for events
+
+  # GraphQL Subscription configuration for real-time updates
+  graphql:
+    subscription:
+      enabled: true  # If true, enable GraphQL subscriptions for real-time updates
 
 # Quarkus configuration
 quarkus:

@@ -105,7 +105,7 @@ describe('WebSocketHeartIndicator', () => {
     render(<WebSocketHeartIndicator websocket={websocket} />);
     
     const indicator = screen.getByRole('status');
-    expect(indicator).toHaveAttribute('title', 'Connection error - using HTTP polling');
+    expect(indicator).toHaveAttribute('title', 'GraphQL subscription error');
   });
 
   it('should display appropriate title for connecting state', () => {
