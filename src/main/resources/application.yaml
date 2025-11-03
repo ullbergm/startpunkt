@@ -86,6 +86,10 @@ quarkus:
       enabled: true  # Enable tracing for GraphQL queries
     schema-include-directives: true  # Include directives in schema
     error-extension-fields: ["classification", "code"]  # Include error details in response
+    # DO NOT enable GET - it causes issues with named operations
+    # http:
+    #   get:
+    #     enabled: true
 
 # Logging configuration (uncomment to enable debug logging)
 # quarkus:

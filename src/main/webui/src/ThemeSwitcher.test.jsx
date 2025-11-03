@@ -22,31 +22,49 @@ jest.mock('./useBackgroundPreferences', () => ({
   })
 }));
 
+// Mock GraphQL client
+const mockQuery = jest.fn();
+jest.mock('./graphql/client', () => ({
+  client: {
+    query: jest.fn((query, variables) => ({
+      toPromise: () => mockQuery(query, variables)
+    })),
+  },
+}));
+
 beforeEach(() => {
   global._mockTheme = 'auto';
   global._mockSystemPrefersDark = false;
   global._mockBackgroundType = 'theme';
-  // Mock fetch for /api/theme
-  global.fetch = jest.fn(() =>
-    Promise.resolve({
-      json: () => Promise.resolve({
-        light: {
-          bodyBgColor: '#fff',
-          bodyColor: '#111',
-          emphasisColor: '#222',
-          textPrimaryColor: '#333',
-          textAccentColor: '#444',
-        },
-        dark: {
-          bodyBgColor: '#000',
-          bodyColor: '#eee',
-          emphasisColor: '#222',
-          textPrimaryColor: '#333',
-          textAccentColor: '#444',
+  
+  // Mock GraphQL theme query response
+  mockQuery.mockImplementation((query, variables) => {
+    const queryString = typeof query === 'string' ? query : query.toString();
+    if (queryString.includes('theme {')) {
+      return Promise.resolve({
+        data: {
+          theme: {
+            light: {
+              bodyBgColor: '#fff',
+              bodyColor: '#111',
+              emphasisColor: '#222',
+              textPrimaryColor: '#333',
+              textAccentColor: '#444',
+            },
+            dark: {
+              bodyBgColor: '#000',
+              bodyColor: '#eee',
+              emphasisColor: '#222',
+              textPrimaryColor: '#333',
+              textAccentColor: '#444',
+            }
+          }
         }
-      }),
-    })
-  );
+      });
+    }
+    return Promise.resolve({ data: {} });
+  });
+  
   jest.spyOn(document.body.style, 'setProperty');
 });
 afterEach(() => {

@@ -1,25 +1,25 @@
 import { render, screen, fireEvent, within, cleanup } from '@testing-library/preact';
 import SpotlightSearch from './SpotlightSearch.jsx';
 
-const appsApiResponse = {
-    groups: [
+const applicationGroupsResponse = {
+    applicationGroups: [
         {
             name: 'Group 1',
             applications: [
-                { name: 'Alpha App', url: 'http://alpha.app', openInNewTab: false }
+                { name: 'Alpha App', url: 'http://alpha.app', targetBlank: false }
             ],
         },
         {
             name: 'Group 2',
             applications: [
-                { name: 'Beta App', url: 'http://beta.app', openInNewTab: true }
+                { name: 'Beta App', url: 'http://beta.app', targetBlank: true }
             ],
         },
     ],
 };
 
-const bookmarksApiResponse = {
-    groups: [
+const bookmarkGroupsResponse = {
+    bookmarkGroups: [
         {
             name: 'Social',
             bookmarks: [
@@ -35,41 +35,48 @@ const bookmarksApiResponse = {
     ]
 };
 
+// Mock GraphQL client
+const mockQuery = jest.fn();
+jest.mock('./graphql/client', () => ({
+  client: {
+    query: jest.fn((query, variables) => ({
+      toPromise: () => mockQuery(query, variables)
+    })),
+  },
+}));
+
 // Setup and teardown
 beforeAll(() => {
     window._navigate = jest.fn();
-    global.fetch = jest.fn(url => {
-        if (url.includes('/api/apps')) {
-            return Promise.resolve({
-                ok: true,
-                status: 200,
-                json: () => Promise.resolve(appsApiResponse),
-            });
-        } else if (url.includes('/api/bookmarks')) {
-            return Promise.resolve({
-                ok: true,
-                status: 200,
-                json: () => Promise.resolve(bookmarksApiResponse),
-            });
-        }
-        return Promise.resolve({
-            ok: false,
-            status: 404,
-            json: () => Promise.resolve({}),
-        });
-    });
 });
-
 
 beforeEach(() => {
     window._navigate.mockClear();
+    jest.clearAllMocks();
     cleanup(); // Always start from a clean DOM
+    
+    // Setup GraphQL mock responses
+    mockQuery.mockImplementation((query, variables) => {
+        const queryString = typeof query === 'string' ? query : query.toString();
+        
+        if (queryString.includes('applicationGroups(tags:')) {
+            return Promise.resolve({
+                data: applicationGroupsResponse
+            });
+        }
+        
+        if (queryString.includes('bookmarkGroups {')) {
+            return Promise.resolve({
+                data: bookmarkGroupsResponse
+            });
+        }
+        
+        return Promise.resolve({ data: {} });
+    });
 });
 
 afterAll(() => {
     delete window._navigate;
-    if (global.fetch && global.fetch.mockClear) global.fetch.mockClear();
-    delete global.fetch;
 });
 
 describe('SpotlightSearch component', () => {
