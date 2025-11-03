@@ -22,9 +22,11 @@
       "bootstrap": "^5.3.7",
       "flexsearch": "^0.8.205",
       "geopattern": "^1.2.3",
+      "graphql": "^16.12.0",
       "preact": "^10.22.0",
       "preact-i18n": "^2.4.0-preactx",
-      "react-responsive": "^10.0.0"
+      "react-responsive": "^10.0.0",
+      "urql": "^5.0.1"
    },
    "devDependencies": {
       "@babel/preset-env": "^7.28.0",

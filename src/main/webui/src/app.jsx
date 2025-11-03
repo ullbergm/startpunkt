@@ -14,6 +14,9 @@ import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
+import { client } from './graphql/client';
+import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
+import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -33,8 +36,8 @@ import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
  * The UI for theme switching is in BackgroundSettings component
  */
-export function ThemeApplier() {
-  const [themes, setThemes] = useState({
+export function ThemeApplier({ themes: themesProp }) {
+  const [themes, setThemes] = useState(themesProp || {
     light: {
       bodyBgColor: '#f8f9fa',
       bodyColor: '#696969',
@@ -51,14 +54,12 @@ export function ThemeApplier() {
     }
   });
 
+  // Update themes when prop changes
   useEffect(() => {
-    fetch('/api/theme')
-      .then((res) => res.json())
-      .then((res) => {
-        if (res && res.light && res.dark) setThemes(res);
-        // If response is bad, keep the default
-      }).catch(() => {});
-  }, []);
+    if (themesProp) {
+      setThemes(themesProp);
+    }
+  }, [themesProp]);
 
   // Read the theme preference from local storage
   const [theme] = useLocalStorage('theme', 'auto');
@@ -134,80 +135,151 @@ export function App() {
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editorMode, setEditorMode] = useState('create');
 
-  useEffect(() => {
-    var lang = navigator.language;
-    console.log("switching language to " + lang);
-    fetch('/api/i8n/' + lang)
-      .then((res) => res.json())
-      .then(setDefinition)
-      .catch((err) => {
-        // Ignore errors
-      });
-  }, []);
-
-  // read the /api/config endpoint to get the configuration
+  // Configuration state
   const [showGitHubLink, setShowGitHubLink] = useState(false);
   const [title, setTitle] = useState("Startpunkt");
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [websocketEnabled, setWebsocketEnabled] = useState(false);
-  
-  useEffect(() => {
-    var config = fetch('/api/config')
-      .then((res) => res.json())
-      .then((res) => {
-        console.log('Config loaded:', res);
-        setShowGitHubLink(res.config.web.showGithubLink);
-        setTitle(res.config.web.title);
-        setVersion(res.config.version);
-        setCheckForUpdates(res.config.web.checkForUpdates);
-        setRefreshInterval(res.config.web.refreshInterval || 0);
-        const wsEnabled = res.config.websocket?.enabled || false;
-        console.log('WebSocket enabled:', wsEnabled);
-        setWebsocketEnabled(wsEnabled);
-      });
 
-  }, [])
+  // Theme state
+  const [themes, setThemes] = useState(null);
 
+  // Data state
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
 
   // Extract tags from URL path for filtering
   const getTagsFromUrl = () => {
     const pathname = window.location.pathname;
-    // Remove leading slash and return tags if present
     const path = pathname.replace(/^\//, '');
     return path && path !== '' ? path : null;
   };
 
-  // Function to fetch applications and bookmarks
-  const fetchData = () => {
+  // Single initialization query to fetch all data at once
+  useEffect(() => {
+    const lang = navigator.language;
     const tags = getTagsFromUrl();
-    const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
+    const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
-    console.log('[fetchData] Fetching applications from:', appsEndpoint);
-    fetch(appsEndpoint)
-      .then(res => res.json())
-      .then(res => {
-        console.log('[fetchData] Received application data:', res);
-        setApplicationGroups(res.groups || []);
+    console.log('[INIT] Fetching all data with language:', lang, 'tags:', tagsArray);
+    
+    // Single query to fetch config, theme, translations, applications, and bookmarks
+    client.query(INIT_QUERY, { language: lang, tags: tagsArray }).toPromise()
+      .then((result) => {
+        if (result.data) {
+          console.log('[INIT] Received data:', result.data);
+          
+          // Set translations (parse JSON string)
+          if (result.data.translations) {
+            try {
+              const translations = typeof result.data.translations === 'string' 
+                ? JSON.parse(result.data.translations) 
+                : result.data.translations;
+              setDefinition(translations);
+            } catch (e) {
+              console.error('[INIT] Failed to parse translations:', e);
+              setDefinition({});
+            }
+          }
+          
+          // Set config
+          if (result.data.config) {
+            const config = result.data.config;
+            setShowGitHubLink(config.web.showGithubLink);
+            setTitle(config.web.title);
+            setVersion(config.version);
+            setCheckForUpdates(config.web.checkForUpdates);
+            setRefreshInterval(config.web.refreshInterval || 0);
+            const wsEnabled = config.websocket?.enabled || false;
+            console.log('[INIT] WebSocket enabled:', wsEnabled);
+            setWebsocketEnabled(wsEnabled);
+          }
+          
+          // Set theme
+          if (result.data.theme) {
+            setThemes(result.data.theme);
+          }
+          
+          // Set applications
+          if (result.data.applicationGroups) {
+            const groups = result.data.applicationGroups.map(group => ({
+              name: group.name,
+              applications: group.applications
+            }));
+            setApplicationGroups(groups);
+          }
+          
+          // Set bookmarks
+          if (result.data.bookmarkGroups) {
+            const groups = result.data.bookmarkGroups.map(group => ({
+              name: group.name,
+              bookmarks: group.bookmarks
+            }));
+            setBookmarkGroups(groups);
+          }
+        }
       })
-      .catch(err => {
-        console.error('[fetchData] Error fetching applications:', err);
+      .catch((err) => {
+        console.error('[INIT] Error fetching data:', err);
+        // Set empty arrays to prevent loading state
         setApplicationGroups([]);
-      });
-    fetch('/api/bookmarks')
-      .then(res => res.json())
-      .then(res => {
-        setBookmarkGroups(res.groups || []);
-      })
-      .catch(err => {
         setBookmarkGroups([]);
       });
+  }, []);
+
+  // Function to fetch applications using GraphQL (for refreshes)
+  const fetchApplications = () => {
+    const tags = getTagsFromUrl();
+    const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
-    // Dispatch custom event to notify SpotlightSearch to refresh
-    window.dispatchEvent(new CustomEvent('startpunkt-refresh'));
+    console.log('[App] Fetching applications with tags:', tagsArray);
+    
+    // Fetch applications with 'network-only' to bypass cache on refresh
+    client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }, { requestPolicy: 'network-only' }).toPromise()
+      .then(result => {
+        if (result.data && result.data.applicationGroups) {
+          console.log('[App] Received', result.data.applicationGroups.length, 'application group(s)');
+          const groups = result.data.applicationGroups.map(group => ({
+            name: group.name,
+            applications: group.applications
+          }));
+          setApplicationGroups(groups);
+        }
+      })
+      .catch(err => {
+        console.error('[App] Error fetching applications:', err);
+        setApplicationGroups([]);
+      });
+  };
+
+  // Function to fetch bookmarks using GraphQL (for refreshes)
+  const fetchBookmarks = () => {
+    console.log('[App] Fetching bookmarks');
+    
+    // Fetch bookmarks with 'network-only' to bypass cache on refresh
+    client.query(BOOKMARK_GROUPS_QUERY, {}, { requestPolicy: 'network-only' }).toPromise()
+      .then(result => {
+        if (result.data && result.data.bookmarkGroups) {
+          console.log('[App] Received', result.data.bookmarkGroups.length, 'bookmark group(s)');
+          const groups = result.data.bookmarkGroups.map(group => ({
+            name: group.name,
+            bookmarks: group.bookmarks
+          }));
+          setBookmarkGroups(groups);
+        }
+      })
+      .catch(err => {
+        console.error('[App] Error fetching bookmarks:', err);
+        setBookmarkGroups([]);
+      });
+  };
+
+  // Function to fetch both applications and bookmarks (for full refreshes)
+  const fetchData = () => {
+    fetchApplications();
+    fetchBookmarks();
   };
 
   // WebSocket connection for real-time updates
@@ -217,43 +289,39 @@ export function App() {
     {
       enabled: websocketEnabled,
       onMessage: (message) => {
-        console.log('WebSocket message received:', message);
+        console.log('[App] WebSocket event received:', message.type);
         
-        // Handle different event types
+        // Handle different event types - only fetch what changed
         if (message.type === 'APPLICATION_ADDED' || 
             message.type === 'APPLICATION_REMOVED' || 
             message.type === 'APPLICATION_UPDATED' ||
             message.type === 'STATUS_CHANGED') {
-          // Refresh applications when changes occur or status changes
-          console.log('Refreshing applications due to:', message.type);
+          // Refresh only applications when app-related changes occur
+          console.log('[App] Refreshing applications due to event:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
-            fetchData();
+            fetchApplications();
           }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'BOOKMARK_ADDED' || 
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {
-          // Refresh bookmarks when changes occur
-          console.log('Refreshing bookmarks due to:', message.type);
+          // Refresh only bookmarks when bookmark-related changes occur
+          console.log('[App] Refreshing bookmarks due to event:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
-            fetchData();
+            fetchBookmarks();
           }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'CONFIG_CHANGED') {
           // Reload config and data when configuration changes
+          console.log('[App] Config changed, reloading page');
           window.location.reload();
         }
       },
       onOpen: () => {
-        console.log('WebSocket connected for real-time updates');
+        console.log('[App] WebSocket connected');
       }
     }
   );
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // Set up periodic refresh if configured (only when WebSocket is not connected)
   useEffect(() => {
@@ -312,7 +380,7 @@ export function App() {
   useEffect(() => {
     if (checkForUpdates && version != "dev") {
       var checkVersion = "v" + version.replace("-SNAPSHOT", "");
-      console.log("Checking for updates (current version: " + checkVersion + ")");
+      console.log('[App] Checking for updates, current version:', checkVersion);
       versionCheck({
         owner: 'ullbergm',
         repo: 'startpunkt',
@@ -320,7 +388,7 @@ export function App() {
       })
         .then((res) => {
           if (res.update) {
-            console.log('There is a new version available! You should update to', res.update.name);
+            console.log('[App] Update available:', res.update.name);
             setUpdateAvailable(true);
           }
         })
@@ -338,64 +406,108 @@ export function App() {
   };
 
   const handleEditApp = async (app) => {
-    // Fetch the full application resource from the API using namespace and resourceName
-    try {
-      const namespace = app.namespace || 'default';
-      const resourceName = app.resourceName || app.name;
-      const response = await fetch(`/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
-      if (response.ok) {
-        const fullApp = await response.json();
-        setEditingApp(fullApp);
-        setEditorMode('edit');
-        setShowAppEditor(true);
-      } else {
-        console.error('Failed to fetch application details');
-      }
-    } catch (error) {
-      console.error('Error fetching application:', error);
-    }
+    // Transform GraphQL data to match the format expected by ApplicationEditor
+    // GraphQL already provides all necessary fields including namespace and resourceName
+    const fullApp = {
+      metadata: {
+        namespace: app.namespace || 'default',
+        name: app.resourceName || app.name,
+      },
+      spec: {
+        name: app.name,
+        group: app.group,
+        icon: app.icon,
+        iconColor: app.iconColor,
+        url: app.url,
+        info: app.info,
+        targetBlank: app.targetBlank,
+        location: app.location,
+        enabled: app.enabled,
+        rootPath: app.rootPath,
+        tags: app.tags,
+      },
+      hasOwnerReferences: app.hasOwnerReferences,
+    };
+    setEditingApp(fullApp);
+    setEditorMode('edit');
+    setShowAppEditor(true);
   };
 
   const handleSaveApp = async (namespace, name, spec) => {
-    const endpoint = editorMode === 'create' 
-      ? `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
-      : `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const method = editorMode === 'create' ? 'POST' : 'PUT';
-    
-    const response = await fetch(endpoint, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(spec),
-    });
+    try {
+      if (editorMode === 'create') {
+        // Use GraphQL create mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          appName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          iconColor: spec.iconColor,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location,
+          enabled: spec.enabled,
+          rootPath: spec.rootPath,
+          tags: spec.tags
+        };
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to save application');
+        const result = await client.mutation(CREATE_APPLICATION_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to create application');
+        }
+      } else {
+        // Use GraphQL update mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          appName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          iconColor: spec.iconColor,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location,
+          enabled: spec.enabled,
+          rootPath: spec.rootPath,
+          tags: spec.tags
+        };
+
+        const result = await client.mutation(UPDATE_APPLICATION_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to update application');
+        }
+      }
+
+      setShowAppEditor(false);
+      setEditingApp(null);
+      // Refresh only applications
+      setTimeout(() => fetchApplications(), 500);
+    } catch (error) {
+      console.error('[App] Error saving application:', error);
+      throw error;
     }
-
-    setShowAppEditor(false);
-    setEditingApp(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
   };
 
   const handleDeleteApp = async (namespace, name) => {
-    const endpoint = `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const response = await fetch(endpoint, {
-      method: 'DELETE',
-    });
+    // Use GraphQL mutation
+    const result = await client.mutation(DELETE_APPLICATION_MUTATION, {
+      namespace,
+      name
+    }).toPromise();
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to delete application');
+    if (result.error) {
+      throw new Error(result.error.message || 'Failed to delete application');
     }
 
     setShowAppEditor(false);
     setEditingApp(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
+    // Refresh only applications
+    setTimeout(() => fetchApplications(), 500);
   };
 
   // Bookmark editor handlers
@@ -406,64 +518,96 @@ export function App() {
   };
 
   const handleEditBookmark = async (bookmark) => {
-    // Fetch the full bookmark resource from the API using namespace and resourceName
-    try {
-      const namespace = bookmark.namespace || 'default';
-      const resourceName = bookmark.resourceName || bookmark.name;
-      const response = await fetch(`/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(resourceName)}`);
-      if (response.ok) {
-        const fullBookmark = await response.json();
-        setEditingBookmark(fullBookmark);
-        setEditorMode('edit');
-        setShowBookmarkEditor(true);
-      } else {
-        console.error('Failed to fetch bookmark details');
-      }
-    } catch (error) {
-      console.error('Error fetching bookmark:', error);
-    }
+    // Transform GraphQL data to match the format expected by BookmarkEditor
+    // GraphQL already provides all necessary fields including namespace and resourceName
+    const fullBookmark = {
+      metadata: {
+        namespace: bookmark.namespace || 'default',
+        name: bookmark.resourceName || bookmark.name,
+      },
+      spec: {
+        name: bookmark.name,
+        group: bookmark.group,
+        icon: bookmark.icon,
+        url: bookmark.url,
+        info: bookmark.info,
+        targetBlank: bookmark.targetBlank,
+        location: bookmark.location,
+      },
+      hasOwnerReferences: bookmark.hasOwnerReferences,
+    };
+    setEditingBookmark(fullBookmark);
+    setEditorMode('edit');
+    setShowBookmarkEditor(true);
   };
 
   const handleSaveBookmark = async (namespace, name, spec) => {
-    const endpoint = editorMode === 'create' 
-      ? `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
-      : `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const method = editorMode === 'create' ? 'POST' : 'PUT';
-    
-    const response = await fetch(endpoint, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(spec),
-    });
+    try {
+      if (editorMode === 'create') {
+        // Use GraphQL create mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          bookmarkName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location
+        };
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to save bookmark');
+        const result = await client.mutation(CREATE_BOOKMARK_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to create bookmark');
+        }
+      } else {
+        // Use GraphQL update mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          bookmarkName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location
+        };
+
+        const result = await client.mutation(UPDATE_BOOKMARK_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to update bookmark');
+        }
+      }
+
+      setShowBookmarkEditor(false);
+      setEditingBookmark(null);
+      // Refresh only bookmarks
+      setTimeout(() => fetchBookmarks(), 500);
+    } catch (error) {
+      console.error('[App] Error saving bookmark:', error);
+      throw error;
     }
-
-    setShowBookmarkEditor(false);
-    setEditingBookmark(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
   };
 
   const handleDeleteBookmark = async (namespace, name) => {
-    const endpoint = `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const response = await fetch(endpoint, {
-      method: 'DELETE',
-    });
+    // Use GraphQL mutation
+    const result = await client.mutation(DELETE_BOOKMARK_MUTATION, {
+      namespace,
+      name
+    }).toPromise();
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to delete bookmark');
+    if (result.error) {
+      throw new Error(result.error.message || 'Failed to delete bookmark');
     }
 
     setShowBookmarkEditor(false);
     setEditingBookmark(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
+    // Refresh only bookmarks
+    setTimeout(() => fetchBookmarks(), 500);
   };
 
   return (
@@ -479,13 +623,13 @@ export function App() {
 
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
-      <ThemeApplier />
+      <ThemeApplier themes={themes} />
       <Background />
       <ContentOverlay />
       <AccessibilitySettings />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
-      <SpotlightSearch />
+      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
       
       {websocketEnabled && <WebSocketHeartIndicator websocket={websocket} />}
 

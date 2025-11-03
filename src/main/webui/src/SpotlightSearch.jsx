@@ -5,9 +5,9 @@ import { Document } from 'flexsearch';
 
 import { Icon } from '@iconify/react';
 
-function normalizeBookmarks(bmRes) {
-    if (!bmRes || !Array.isArray(bmRes.groups)) return [];
-    return bmRes.groups.flatMap(group =>
+function normalizeBookmarks(bmData) {
+    if (!bmData || !bmData.bookmarkGroups || !Array.isArray(bmData.bookmarkGroups)) return [];
+    return bmData.bookmarkGroups.flatMap(group =>
         (group.bookmarks || []).map(b => ({
             id: `bookmark:${group.name}:${b.name}:${b.url}`,
             name: b.name,
@@ -15,7 +15,7 @@ function normalizeBookmarks(bmRes) {
             url: b.url,
             icon: b.icon || 'mdi:bookmark-outline',
             iconColor: '#8e44ad', // purple for bookmarks
-            openInNewTab: false,
+            openInNewTab: b.targetBlank || false,
             info: b.info || '',
             type: 'bookmark',
         }))
@@ -120,13 +120,12 @@ if (!window._navigate) {
     };
 }
 
-export default function SpotlightSearch({ testVisible = false }) {
+export default function SpotlightSearch({ testVisible = false, applicationGroups, bookmarkGroups }) {
     const [visible, setVisible] = useState(testVisible);
     const [query, setQuery] = useState('');
     const [apps, setApps] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const inputRef = useRef(null);
     const itemRefs = useRef([]);
     const indexRef = useRef(null);
@@ -136,74 +135,35 @@ export default function SpotlightSearch({ testVisible = false }) {
         if (typeof testVisible === 'boolean') setVisible(testVisible);
     }, [testVisible]);
 
-    // Listen for refresh events from the main app
+    // Update search index when applicationGroups or bookmarkGroups change
     useEffect(() => {
-        const handleRefresh = () => {
-            setRefreshTrigger(prev => prev + 1);
-        };
-        window.addEventListener('startpunkt-refresh', handleRefresh);
-        return () => window.removeEventListener('startpunkt-refresh', handleRefresh);
-    }, []);
-
-    useEffect(() => {
-        async function fetchAll() {
-            // Helper to fetch, handle 404/500 gracefully
-            async function safeFetch(url) {
-                try {
-                    const res = await fetch(url);
-                    if (!res.ok) {
-                        if (res.status === 404) return null;
-                        // You could do better error handling here
-                        return null;
-                    }
-                    return await res.json();
-                } catch (err) {
-                    // Network error or bad JSON
-                    return null;
-                }
-            }
-
-            // Extract tags from URL path for filtering
-            const getTagsFromUrl = () => {
-                const pathname = window.location.pathname;
-                // Remove leading slash and return tags if present
-                const path = pathname.replace(/^\//, '');
-                return path && path !== '' ? path : null;
-            };
-
-            const tags = getTagsFromUrl();
-            const appsEndpoint = tags ? `/api/apps/${encodeURIComponent(tags)}` : '/api/apps';
-
-            // Fetch both apps and bookmarks in parallel
-            const [appRes, bmRes] = await Promise.all([
-                safeFetch(appsEndpoint),
-                safeFetch('/api/bookmarks')
-            ]);
-
-            // Defensive against missing .groups
-            const allApps = appRes?.groups ? normalizeApps(appRes.groups) : [];
-            const allBookmarks = normalizeBookmarks(bmRes);
-            const allItems = [...allApps, ...allBookmarks];
-
-            setApps(allItems);
-            setFiltered(allItems);
-
-            // Build combined FlexSearch index
-            const index = new Document({
-                document: {
-                    id: 'id',
-                    index: ['name'],
-                    store: ['name', 'group', 'url', 'icon', 'iconColor', 'openInNewTab', 'info', 'type'],
-                },
-                tokenize: 'forward',
-                normalize: 'full',
-            });
-
-            allItems.forEach(item => index.add(item));
-            indexRef.current = index;
+        // Wait for data to be loaded
+        if (!applicationGroups || !bookmarkGroups) {
+            return;
         }
-        fetchAll();
-    }, [refreshTrigger]);
+
+        // Normalize the data into searchable items
+        const allApps = normalizeApps(applicationGroups);
+        const allBookmarks = normalizeBookmarks({ bookmarkGroups });
+        const allItems = [...allApps, ...allBookmarks];
+
+        setApps(allItems);
+        setFiltered(allItems);
+
+        // Build combined FlexSearch index
+        const index = new Document({
+            document: {
+                id: 'id',
+                index: ['name'],
+                store: ['name', 'group', 'url', 'icon', 'iconColor', 'openInNewTab', 'info', 'type'],
+            },
+            tokenize: 'forward',
+            normalize: 'full',
+        });
+
+        allItems.forEach(item => index.add(item));
+        indexRef.current = index;
+    }, [applicationGroups, bookmarkGroups]);
 
     useEffect(() => {
         if (query.trim() && indexRef.current) {

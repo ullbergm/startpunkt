@@ -74,6 +74,23 @@ startpunkt:
     heartbeatInterval: 30s  # Heartbeat interval in seconds to keep connections alive (e.g., 60s, 5m, 1h)
     eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
 
+# Quarkus configuration
+quarkus:
+  # SmallRye GraphQL configuration
+  smallrye-graphql:
+    ui:
+      always-include: true  # Enable GraphiQL in dev mode
+    metrics:
+      enabled: true  # Enable metrics for GraphQL operations
+    tracing:
+      enabled: true  # Enable tracing for GraphQL queries
+    schema-include-directives: true  # Include directives in schema
+    error-extension-fields: ["classification", "code"]  # Include error details in response
+    # DO NOT enable GET - it causes issues with named operations
+    # http:
+    #   get:
+    #     enabled: true
+
 # Logging configuration (uncomment to enable debug logging)
 # quarkus:
 #   log:

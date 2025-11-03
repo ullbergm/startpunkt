@@ -32,27 +32,7 @@ class ApplicationGroupTest {
 
   @Test
   void testGetApplications() {
-    List<ApplicationSpec> applications =
-        new LinkedList<>(
-            Arrays.asList(
-                new ApplicationSpec(
-                    "App3",
-                    "Group1",
-                    "mdi:application",
-                    "red",
-                    "https://www.testing.com/",
-                    "Description 1",
-                    true,
-                    0,
-                    true)));
-    applicationGroup.addApplication(applications.get(0));
-
-    assertEquals(applications, applicationGroup.getApplications());
-  }
-
-  @Test
-  void testAddApplication() {
-    ApplicationSpec newApp =
+    ApplicationSpec spec =
         new ApplicationSpec(
             "App3",
             "Group1",
@@ -63,6 +43,27 @@ class ApplicationGroupTest {
             true,
             0,
             true);
+    ApplicationResponse appResponse = new ApplicationResponse(spec);
+    List<ApplicationResponse> applications = new LinkedList<>(Arrays.asList(appResponse));
+    applicationGroup.addApplication(applications.get(0));
+
+    assertEquals(applications, applicationGroup.getApplications());
+  }
+
+  @Test
+  void testAddApplication() {
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true);
+    ApplicationResponse newApp = new ApplicationResponse(spec);
     applicationGroup.addApplication(newApp);
     assertThat(applicationGroup.getApplications(), contains(newApp));
   }
@@ -77,7 +78,7 @@ class ApplicationGroupTest {
 
   @Test
   void testEquals() {
-    applicationGroup.addApplication(
+    ApplicationSpec spec1 =
         new ApplicationSpec(
             "App3",
             "Group1",
@@ -87,36 +88,16 @@ class ApplicationGroupTest {
             "Description 1",
             true,
             0,
-            true));
+            true);
+    applicationGroup.addApplication(new ApplicationResponse(spec1));
 
     ApplicationGroup sameGroup = new ApplicationGroup("Group1");
-    sameGroup.addApplication(
-        new ApplicationSpec(
-            "App3",
-            "Group1",
-            "mdi:application",
-            "red",
-            "https://www.testing.com/",
-            "Description 1",
-            true,
-            0,
-            true));
+    sameGroup.addApplication(new ApplicationResponse(spec1));
 
     ApplicationGroup differentGroup = new ApplicationGroup("Group2");
-    differentGroup.addApplication(
-        new ApplicationSpec(
-            "App3",
-            "Group1",
-            "mdi:application",
-            "red",
-            "https://www.testing.com/",
-            "Description 1",
-            true,
-            0,
-            true));
+    differentGroup.addApplication(new ApplicationResponse(spec1));
 
-    ApplicationGroup differentGroup2 = new ApplicationGroup("Group2");
-    differentGroup2.addApplication(
+    ApplicationSpec spec2 =
         new ApplicationSpec(
             "App2",
             "Group1",
@@ -126,7 +107,9 @@ class ApplicationGroupTest {
             "Description 1",
             true,
             0,
-            true));
+            true);
+    ApplicationGroup differentGroup2 = new ApplicationGroup("Group2");
+    differentGroup2.addApplication(new ApplicationResponse(spec2));
 
     assertThat(applicationGroup.equals(sameGroup), is(true));
     assertThat(applicationGroup.equals(differentGroup), is(false));
@@ -147,7 +130,7 @@ class ApplicationGroupTest {
     ApplicationGroup sameGroup = new ApplicationGroup("Group1");
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
 
-    applicationGroup.addApplication(
+    ApplicationSpec spec =
         new ApplicationSpec(
             "App3",
             "Group1",
@@ -157,18 +140,9 @@ class ApplicationGroupTest {
             "Description 1",
             true,
             0,
-            true));
-    sameGroup.addApplication(
-        new ApplicationSpec(
-            "App3",
-            "Group1",
-            "mdi:application",
-            "red",
-            "https://www.testing.com/",
-            "Description 1",
-            true,
-            0,
-            true));
+            true);
+    applicationGroup.addApplication(new ApplicationResponse(spec));
+    sameGroup.addApplication(new ApplicationResponse(spec));
 
     assertEquals(applicationGroup.hashCode(), sameGroup.hashCode());
   }
@@ -176,19 +150,19 @@ class ApplicationGroupTest {
   // Test creating an application group with a supplied list of applications
   @Test
   void testApplicationGroupWithApplications() {
-    List<ApplicationSpec> applications =
-        new LinkedList<>(
-            Arrays.asList(
-                new ApplicationSpec(
-                    "App3",
-                    "Group1",
-                    "mdi:application",
-                    "red",
-                    "https://www.testing.com/",
-                    "Description 1",
-                    true,
-                    0,
-                    true)));
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "App3",
+            "Group1",
+            "mdi:application",
+            "red",
+            "https://www.testing.com/",
+            "Description 1",
+            true,
+            0,
+            true);
+    List<ApplicationResponse> applications =
+        new LinkedList<>(Arrays.asList(new ApplicationResponse(spec)));
     ApplicationGroup groupWithApps = new ApplicationGroup("Group1", applications);
 
     assertEquals("Group1", groupWithApps.getName());
@@ -212,18 +186,18 @@ class ApplicationGroupTest {
 
   @Test
   void testSetApplications() {
-    List<ApplicationSpec> apps =
-        List.of(
-            new ApplicationSpec(
-                "AppX",
-                "Group1",
-                "mdi:application",
-                "blue",
-                "https://example.com",
-                "App X description",
-                true,
-                1,
-                false));
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            "AppX",
+            "Group1",
+            "mdi:application",
+            "blue",
+            "https://example.com",
+            "App X description",
+            true,
+            1,
+            false);
+    List<ApplicationResponse> apps = List.of(new ApplicationResponse(spec));
 
     applicationGroup.setApplications(apps);
     assertEquals(apps, applicationGroup.getApplications());
@@ -237,7 +211,7 @@ class ApplicationGroupTest {
 
   @Test
   void testApplicationsListIsUnmodifiable() {
-    applicationGroup.addApplication(
+    ApplicationSpec spec =
         new ApplicationSpec(
             "App1",
             "Group1",
@@ -247,28 +221,28 @@ class ApplicationGroupTest {
             "App Desc",
             true,
             0,
-            true));
+            true);
+    applicationGroup.addApplication(new ApplicationResponse(spec));
 
-    List<ApplicationSpec> apps = applicationGroup.getApplications();
+    List<ApplicationResponse> apps = applicationGroup.getApplications();
+    ApplicationSpec spec2 =
+        new ApplicationSpec(
+            "App2",
+            "Group1",
+            "mdi:application",
+            "blue",
+            "https://example.com",
+            "App Desc",
+            true,
+            1,
+            false);
     assertThrows(
-        UnsupportedOperationException.class,
-        () ->
-            apps.add(
-                new ApplicationSpec(
-                    "App2",
-                    "Group1",
-                    "mdi:application",
-                    "blue",
-                    "https://example.com",
-                    "App Desc",
-                    true,
-                    1,
-                    false)));
+        UnsupportedOperationException.class, () -> apps.add(new ApplicationResponse(spec2)));
   }
 
   @Test
   void testToStringContainsGroupNameAndAppName() {
-    applicationGroup.addApplication(
+    ApplicationSpec spec =
         new ApplicationSpec(
             "AppZ",
             "Group1",
@@ -278,7 +252,8 @@ class ApplicationGroupTest {
             "Desc",
             false,
             3,
-            true));
+            true);
+    applicationGroup.addApplication(new ApplicationResponse(spec));
 
     String output = applicationGroup.toString();
     assertTrue(output.contains("Group1"));
