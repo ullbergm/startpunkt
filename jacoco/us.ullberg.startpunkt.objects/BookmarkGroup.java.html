@@ -23,14 +23,14 @@ public class BookmarkGroup implements Comparable&lt;BookmarkGroup&gt; {
    * @param name the name of the bookmark group, cannot be null or empty
    * @throws IllegalArgumentException if name is null or empty
    */
-<span class="fc" id="L26">  public BookmarkGroup(String name) {</span>
-<span class="pc bpc" id="L27" title="2 of 4 branches missed.">    if (name == null || name.trim().isEmpty()) {</span>
+<span class="nc" id="L26">  public BookmarkGroup(String name) {</span>
+<span class="nc bnc" id="L27" title="All 4 branches missed.">    if (name == null || name.trim().isEmpty()) {</span>
 <span class="nc" id="L28">      throw new IllegalArgumentException(&quot;BookmarkGroup name cannot be null or empty&quot;);</span>
     }
 
-<span class="fc" id="L31">    this.name = name;</span>
-<span class="fc" id="L32">    bookmarks = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L33">  }</span>
+<span class="nc" id="L31">    this.name = name;</span>
+<span class="nc" id="L32">    bookmarks = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L33">  }</span>
 
   /**
    * Constructs a BookmarkGroup with the specified name and bookmarks list.
@@ -55,7 +55,7 @@ public class BookmarkGroup implements Comparable&lt;BookmarkGroup&gt; {
    */
   @JsonProperty(&quot;name&quot;)
   public String getName() {
-<span class="fc" id="L58">    return name;</span>
+<span class="nc" id="L58">    return name;</span>
   }
 
   /**
@@ -65,7 +65,7 @@ public class BookmarkGroup implements Comparable&lt;BookmarkGroup&gt; {
    */
   @JsonProperty(&quot;bookmarks&quot;)
   public List&lt;BookmarkSpec&gt; getBookmarks() {
-<span class="fc" id="L68">    return Collections.unmodifiableList(bookmarks);</span>
+<span class="nc" id="L68">    return Collections.unmodifiableList(bookmarks);</span>
   }
 
   /**
@@ -108,12 +108,12 @@ public class BookmarkGroup implements Comparable&lt;BookmarkGroup&gt; {
    * @throws IllegalArgumentException if bookmark is null
    */
   public void addBookmark(BookmarkSpec bookmark) {
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (bookmark == null) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (bookmark == null) {</span>
 <span class="nc" id="L112">      throw new IllegalArgumentException(&quot;Bookmark cannot be null&quot;);</span>
     }
 
-<span class="fc" id="L115">    bookmarks.add(bookmark);</span>
-<span class="fc" id="L116">  }</span>
+<span class="nc" id="L115">    bookmarks.add(bookmark);</span>
+<span class="nc" id="L116">  }</span>
 
   @Override
   public String toString() {

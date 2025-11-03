@@ -23,9 +23,9 @@ public class BookmarkGroupList {
    *
    * @param groups list of BookmarkGroup
    */
-<span class="fc" id="L26">  public BookmarkGroupList(List&lt;BookmarkGroup&gt; groups) {</span>
-<span class="fc" id="L27">    this.groups = groups;</span>
-<span class="fc" id="L28">  }</span>
+<span class="nc" id="L26">  public BookmarkGroupList(List&lt;BookmarkGroup&gt; groups) {</span>
+<span class="nc" id="L27">    this.groups = groups;</span>
+<span class="nc" id="L28">  }</span>
 
   /**
    * Gets the list of bookmark groups.
@@ -34,7 +34,7 @@ public class BookmarkGroupList {
    */
   @JsonProperty(&quot;groups&quot;)
   public List&lt;BookmarkGroup&gt; getGroups() {
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">    return groups != null ? groups : List.of();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">    return groups != null ? groups : List.of();</span>
   }
 
   /**

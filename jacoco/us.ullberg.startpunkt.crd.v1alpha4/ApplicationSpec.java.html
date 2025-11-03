@@ -422,14 +422,14 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public int compareTo(ApplicationSpec other) {
-<span class="fc" id="L425">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="fc bfc" id="L426" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
-<span class="fc" id="L427">      return groupCompare;</span>
+<span class="nc" id="L425">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="nc" id="L427">      return groupCompare;</span>
     }
 
-<span class="fc" id="L430">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="pc bpc" id="L431" title="1 of 2 branches missed.">    if (locationCompare != 0) {</span>
-<span class="fc" id="L432">      return locationCompare;</span>
+<span class="nc" id="L430">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L432">      return locationCompare;</span>
     }
 
 <span class="nc" id="L435">    return this.getName().compareTo(other.getName());</span>

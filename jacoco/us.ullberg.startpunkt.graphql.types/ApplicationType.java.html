@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql.types</a> &gt; <span class="el_source">ApplicationType.java</span></div><h1>ApplicationType.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql.types;
+
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.Type;
+
+/** GraphQL type for Application data. This is a pure DTO that does not extend from CRD classes. */
+@Type(&quot;Application&quot;)
+@Description(&quot;Application with runtime availability status and Kubernetes metadata&quot;)
+public class ApplicationType {
+
+  @Description(&quot;Application name&quot;)
+  public String name;
+
+  @Description(&quot;Group the application belongs to&quot;)
+  public String group;
+
+  @Description(&quot;Application icon, e.g. 'mdi:home'&quot;)
+  public String icon;
+
+  @Description(&quot;Application icon color, e.g. '#FF0000'&quot;)
+  public String iconColor;
+
+  @Description(&quot;Application URL&quot;)
+  public String url;
+
+  @Description(&quot;Description of the application&quot;)
+  public String info;
+
+  @Description(&quot;Open the URL in a new tab&quot;)
+  public Boolean targetBlank;
+
+  @Description(&quot;Sorting order of the application&quot;)
+  public Integer location;
+
+  @Description(&quot;Enable the application&quot;)
+  public Boolean enabled;
+
+  @Description(&quot;Root path to append to the URL&quot;)
+  public String rootPath;
+
+  @Description(&quot;Comma-separated tags for filtering applications&quot;)
+  public String tags;
+
+  @Description(&quot;Whether the application is currently reachable&quot;)
+  public Boolean available;
+
+  @Description(&quot;Kubernetes namespace of the resource&quot;)
+  public String namespace;
+
+  @Description(&quot;Kubernetes resource name (metadata.name)&quot;)
+  public String resourceName;
+
+  @Description(&quot;Whether the resource is managed by another resource&quot;)
+  public Boolean hasOwnerReferences;
+
+  /** Default constructor for GraphQL. */
+<span class="nc" id="L57">  public ApplicationType() {}</span>
+
+  /**
+   * Creates an ApplicationType from an ApplicationResponse.
+   *
+   * @param response the ApplicationResponse to convert
+   * @return ApplicationType
+   */
+  public static ApplicationType fromResponse(
+      us.ullberg.startpunkt.objects.ApplicationResponse response) {
+<span class="nc" id="L67">    ApplicationType type = new ApplicationType();</span>
+<span class="nc" id="L68">    type.name = response.getName();</span>
+<span class="nc" id="L69">    type.group = response.getGroup();</span>
+<span class="nc" id="L70">    type.icon = response.getIcon();</span>
+<span class="nc" id="L71">    type.iconColor = response.getIconColor();</span>
+<span class="nc" id="L72">    type.url = response.getUrl();</span>
+<span class="nc" id="L73">    type.info = response.getInfo();</span>
+<span class="nc" id="L74">    type.targetBlank = response.getTargetBlank();</span>
+<span class="nc" id="L75">    type.location = response.getLocation();</span>
+<span class="nc" id="L76">    type.enabled = response.getEnabled();</span>
+<span class="nc" id="L77">    type.rootPath = response.getRootPath();</span>
+<span class="nc" id="L78">    type.tags = response.getTags();</span>
+<span class="nc" id="L79">    type.available = response.getAvailable();</span>
+<span class="nc" id="L80">    type.namespace = response.getNamespace();</span>
+<span class="nc" id="L81">    type.resourceName = response.getResourceName();</span>
+<span class="nc" id="L82">    type.hasOwnerReferences = response.getHasOwnerReferences();</span>
+<span class="nc" id="L83">    return type;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

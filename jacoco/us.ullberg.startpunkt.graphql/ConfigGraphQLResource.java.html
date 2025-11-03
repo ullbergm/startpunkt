@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfigGraphQLResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql</a> &gt; <span class="el_source">ConfigGraphQLResource.java</span></div><h1>ConfigGraphQLResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Query;
+
+/**
+ * GraphQL API resource for application configuration. Provides queries for retrieving configuration
+ * settings.
+ */
+@GraphQLApi
+@ApplicationScoped
+<span class="fc" id="L17">public class ConfigGraphQLResource {</span>
+
+  @ConfigProperty(name = &quot;startpunkt.web.githubLink.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean showGithubLink;
+
+  @ConfigProperty(name = &quot;startpunkt.web.checkForUpdates&quot;, defaultValue = &quot;true&quot;)
+  boolean checkForUpdates;
+
+  @ConfigProperty(name = &quot;startpunkt.web.title&quot;, defaultValue = &quot;Startpunkt&quot;)
+  String title;
+
+  @ConfigProperty(name = &quot;startpunkt.web.refreshInterval&quot;, defaultValue = &quot;300&quot;)
+  int refreshInterval;
+
+  @ConfigProperty(name = &quot;startpunkt.websocket.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean websocketEnabled;
+
+  @ConfigProperty(name = &quot;quarkus.application.version&quot;, defaultValue = &quot;0&quot;)
+  String version;
+
+  /**
+   * Retrieve application configuration.
+   *
+   * @return configuration object
+   */
+  @Query(&quot;config&quot;)
+  @Description(&quot;Retrieve application configuration&quot;)
+  @Timed(value = &quot;graphql.query.config&quot;)
+  public ConfigResponse getConfig() {
+<span class="fc" id="L46">    Log.debug(&quot;GraphQL query: config&quot;);</span>
+<span class="fc" id="L47">    return new ConfigResponse(</span>
+        version,
+        new WebConfig(showGithubLink, checkForUpdates, title, refreshInterval),
+        new WebSocketConfig(websocketEnabled));
+  }
+
+  /** Configuration response type. */
+  public static class ConfigResponse {
+    public String version;
+    public WebConfig web;
+    public WebSocketConfig websocket;
+
+<span class="fc" id="L59">    public ConfigResponse(String version, WebConfig web, WebSocketConfig websocket) {</span>
+<span class="fc" id="L60">      this.version = version;</span>
+<span class="fc" id="L61">      this.web = web;</span>
+<span class="fc" id="L62">      this.websocket = websocket;</span>
+<span class="fc" id="L63">    }</span>
+  }
+
+  /** Web configuration type. */
+  public static class WebConfig {
+    public boolean showGithubLink;
+    public boolean checkForUpdates;
+    public String title;
+    public int refreshInterval;
+
+    public WebConfig(
+<span class="fc" id="L74">        boolean showGithubLink, boolean checkForUpdates, String title, int refreshInterval) {</span>
+<span class="fc" id="L75">      this.showGithubLink = showGithubLink;</span>
+<span class="fc" id="L76">      this.checkForUpdates = checkForUpdates;</span>
+<span class="fc" id="L77">      this.title = title;</span>
+<span class="fc" id="L78">      this.refreshInterval = refreshInterval;</span>
+<span class="fc" id="L79">    }</span>
+  }
+
+  /** WebSocket configuration type. */
+  public static class WebSocketConfig {
+    public boolean enabled;
+
+<span class="fc" id="L86">    public WebSocketConfig(boolean enabled) {</span>
+<span class="fc" id="L87">      this.enabled = enabled;</span>
+<span class="fc" id="L88">    }</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

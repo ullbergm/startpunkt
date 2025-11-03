@@ -143,9 +143,9 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="fc" id="L146">    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()</span>
-<span class="fc" id="L147">        .map(this::mapToApplicationSpecWithMetadata)</span>
-<span class="fc" id="L148">        .toList();</span>
+<span class="nc" id="L146">    return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()</span>
+<span class="nc" id="L147">        .map(this::mapToApplicationSpecWithMetadata)</span>
+<span class="nc" id="L148">        .toList();</span>
   }
 
   /**
@@ -156,16 +156,16 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected us.ullberg.startpunkt.objects.ApplicationResponse mapToApplicationSpecWithMetadata(
       GenericKubernetesResource item) {
-<span class="fc" id="L159">    ApplicationSpec spec = mapToApplicationSpec(item);</span>
-<span class="fc" id="L160">    us.ullberg.startpunkt.objects.ApplicationResponse withMetadata =</span>
+<span class="nc" id="L159">    ApplicationSpec spec = mapToApplicationSpec(item);</span>
+<span class="nc" id="L160">    us.ullberg.startpunkt.objects.ApplicationResponse withMetadata =</span>
         new us.ullberg.startpunkt.objects.ApplicationResponse(spec);
 
     // Populate metadata fields
-<span class="fc" id="L164">    withMetadata.setNamespace(getResourceNamespace(item));</span>
-<span class="fc" id="L165">    withMetadata.setResourceName(getResourceMetadataName(item));</span>
-<span class="fc" id="L166">    withMetadata.setHasOwnerReferences(hasOwnerReferences(item));</span>
+<span class="nc" id="L164">    withMetadata.setNamespace(getResourceNamespace(item));</span>
+<span class="nc" id="L165">    withMetadata.setResourceName(getResourceMetadataName(item));</span>
+<span class="nc" id="L166">    withMetadata.setHasOwnerReferences(hasOwnerReferences(item));</span>
 
-<span class="fc" id="L168">    return withMetadata;</span>
+<span class="nc" id="L168">    return withMetadata;</span>
   }
 
   /**
@@ -201,19 +201,19 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return true if the resource has owner references or is managed by ArgoCD, false otherwise
    */
   protected boolean hasOwnerReferences(GenericKubernetesResource item) {
-<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    if (item.getMetadata() == null) {</span>
 <span class="nc" id="L205">      return false;</span>
     }
 
     // Check for owner references
-<span class="fc" id="L209">    var ownerRefs = item.getMetadata().getOwnerReferences();</span>
-<span class="pc bpc" id="L210" title="2 of 4 branches missed.">    if (ownerRefs != null &amp;&amp; !ownerRefs.isEmpty()) {</span>
+<span class="nc" id="L209">    var ownerRefs = item.getMetadata().getOwnerReferences();</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">    if (ownerRefs != null &amp;&amp; !ownerRefs.isEmpty()) {</span>
 <span class="nc" id="L211">      return true;</span>
     }
 
     // Check for ArgoCD management in managed fields
-<span class="fc" id="L215">    var managedFields = item.getMetadata().getManagedFields();</span>
-<span class="pc bpc" id="L216" title="2 of 4 branches missed.">    if (managedFields != null &amp;&amp; !managedFields.isEmpty()) {</span>
+<span class="nc" id="L215">    var managedFields = item.getMetadata().getManagedFields();</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">    if (managedFields != null &amp;&amp; !managedFields.isEmpty()) {</span>
 <span class="nc" id="L217">      return managedFields.stream()</span>
 <span class="nc" id="L218">          .anyMatch(</span>
               field -&gt; {
@@ -222,7 +222,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
               });
     }
 
-<span class="fc" id="L225">    return false;</span>
+<span class="nc" id="L225">    return false;</span>
   }
 
   /**
@@ -232,10 +232,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the namespace, or null if metadata is not present
    */
   protected String getResourceNamespace(GenericKubernetesResource item) {
-<span class="pc bpc" id="L235" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (item.getMetadata() == null) {</span>
 <span class="nc" id="L236">      return null;</span>
     }
-<span class="fc" id="L238">    return item.getMetadata().getNamespace();</span>
+<span class="nc" id="L238">    return item.getMetadata().getNamespace();</span>
   }
 
   /**
@@ -245,10 +245,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return the resource name (metadata.name), or null if metadata is not present
    */
   protected String getResourceMetadataName(GenericKubernetesResource item) {
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">    if (item.getMetadata() == null) {</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (item.getMetadata() == null) {</span>
 <span class="nc" id="L249">      return null;</span>
     }
-<span class="fc" id="L251">    return item.getMetadata().getName();</span>
+<span class="nc" id="L251">    return item.getMetadata().getName();</span>
   }
 
   /**
@@ -400,8 +400,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected String getAppTags(GenericKubernetesResource item) {
 <span class="fc" id="L402">    var annotations = getAnnotations(item);</span>
-<span class="pc bpc" id="L403" title="1 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
-<span class="fc" id="L404">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+<span class="pc bpc" id="L403" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="nc" id="L404">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
     }
 <span class="fc" id="L406">    return null;</span>
   }
@@ -431,8 +431,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   protected Boolean getOptionalSpecBoolean(
       GenericKubernetesResource item, String key, Boolean fallback) {
 <span class="fc" id="L433">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L434" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
-<span class="fc" id="L435">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
+<span class="pc bpc" id="L434" title="2 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="nc" id="L435">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
 <span class="fc" id="L436">        : fallback;</span>
   }
 

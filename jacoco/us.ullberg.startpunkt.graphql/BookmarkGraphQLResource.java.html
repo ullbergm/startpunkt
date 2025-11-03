@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkGraphQLResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql</a> &gt; <span class="el_source">BookmarkGraphQLResource.java</span></div><h1>BookmarkGraphQLResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheManager;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
+import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
+import us.ullberg.startpunkt.graphql.input.CreateBookmarkInput;
+import us.ullberg.startpunkt.graphql.input.UpdateBookmarkInput;
+import us.ullberg.startpunkt.graphql.types.BookmarkGroupType;
+import us.ullberg.startpunkt.graphql.types.BookmarkType;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
+import us.ullberg.startpunkt.objects.BookmarkGroup;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
+import us.ullberg.startpunkt.service.BookmarkManagementService;
+import us.ullberg.startpunkt.service.BookmarkService;
+
+/**
+ * GraphQL API resource for bookmarks. Provides queries for retrieving bookmarks grouped by their
+ * group property.
+ */
+@GraphQLApi
+@ApplicationScoped
+public class BookmarkGraphQLResource {
+
+  final BookmarkService bookmarkService;
+  final BookmarkManagementService bookmarkManagementService;
+  final EventBroadcaster eventBroadcaster;
+  final CacheManager cacheManager;
+
+  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean hajimariEnabled;
+
+  /**
+   * Constructor with injected dependencies.
+   *
+   * @param bookmarkService the bookmark service
+   * @param bookmarkManagementService the bookmark management service for CRUD operations
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
+   */
+  public BookmarkGraphQLResource(
+      BookmarkService bookmarkService,
+      BookmarkManagementService bookmarkManagementService,
+      EventBroadcaster eventBroadcaster,
+<span class="fc" id="L59">      CacheManager cacheManager) {</span>
+<span class="fc" id="L60">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L61">    this.bookmarkManagementService = bookmarkManagementService;</span>
+<span class="fc" id="L62">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="fc" id="L63">    this.cacheManager = cacheManager;</span>
+<span class="fc" id="L64">  }</span>
+
+  /**
+   * Retrieve bookmark groups.
+   *
+   * @return list of bookmark groups
+   */
+  @Query(&quot;bookmarkGroups&quot;)
+  @Description(&quot;Retrieve all bookmark groups&quot;)
+  @Timed(value = &quot;graphql.query.bookmarkGroups&quot;)
+  public List&lt;BookmarkGroupType&gt; getBookmarkGroups() {
+<span class="fc" id="L75">    Log.debug(&quot;GraphQL query: bookmarkGroups&quot;);</span>
+
+<span class="fc" id="L77">    List&lt;BookmarkResponse&gt; bookmarks = retrieveBookmarks();</span>
+<span class="fc" id="L78">    List&lt;BookmarkGroup&gt; groups = bookmarkService.generateBookmarkGroups(bookmarks);</span>
+
+    // Convert to GraphQL types (no CRD exposure)
+<span class="fc" id="L81">    return groups.stream().map(BookmarkGroupType::fromBookmarkGroup).collect(Collectors.toList());</span>
+  }
+
+  /**
+   * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
+   * alphabetically.
+   *
+   * @return sorted list of BookmarkResponse objects
+   */
+  private ArrayList&lt;BookmarkResponse&gt; retrieveBookmarks() {
+<span class="fc" id="L91">    var bookmarks = new ArrayList&lt;BookmarkResponse&gt;();</span>
+<span class="fc" id="L92">    bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
+
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    if (hajimariEnabled) {</span>
+<span class="fc" id="L95">      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+    }
+
+<span class="fc" id="L98">    Collections.sort(bookmarks);</span>
+<span class="fc" id="L99">    return bookmarks;</span>
+  }
+
+  /**
+   * Create a new bookmark.
+   *
+   * @param input the bookmark creation input
+   * @return the created bookmark
+   */
+  @Mutation(&quot;createBookmark&quot;)
+  @Description(&quot;Create a new bookmark&quot;)
+  @Timed(value = &quot;graphql.mutation.createBookmark&quot;)
+  public BookmarkType createBookmark(@NonNull @Name(&quot;input&quot;) CreateBookmarkInput input) {
+<span class="nc" id="L112">    Log.debugf(</span>
+        &quot;GraphQL mutation: createBookmark in namespace=%s, name=%s&quot;, input.namespace, input.name);
+
+    // Create BookmarkSpec from input
+<span class="nc" id="L116">    BookmarkSpec spec =</span>
+        new BookmarkSpec(
+            input.bookmarkName,
+            input.group,
+            input.icon,
+            input.url,
+            input.info,
+            input.targetBlank,
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
+
+    // Create bookmark via management service
+<span class="nc" id="L127">    Bookmark created = bookmarkManagementService.createBookmark(input.namespace, input.name, spec);</span>
+
+    // Invalidate cache
+<span class="nc" id="L130">    invalidateBookmarkCache();</span>
+
+    // Broadcast event
+<span class="nc" id="L133">    eventBroadcaster.broadcastBookmarkAdded(created);</span>
+
+    // Convert to GraphQL type
+<span class="nc" id="L136">    BookmarkResponse response = new BookmarkResponse(spec);</span>
+<span class="nc" id="L137">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L138">    response.setResourceName(input.name);</span>
+<span class="nc" id="L139">    return BookmarkType.fromResponse(response);</span>
+  }
+
+  /**
+   * Update an existing bookmark.
+   *
+   * @param input the bookmark update input
+   * @return the updated bookmark
+   */
+  @Mutation(&quot;updateBookmark&quot;)
+  @Description(&quot;Update an existing bookmark&quot;)
+  @Timed(value = &quot;graphql.mutation.updateBookmark&quot;)
+  public BookmarkType updateBookmark(@NonNull @Name(&quot;input&quot;) UpdateBookmarkInput input) {
+<span class="nc" id="L152">    Log.debugf(</span>
+        &quot;GraphQL mutation: updateBookmark in namespace=%s, name=%s&quot;, input.namespace, input.name);
+
+    // Create BookmarkSpec from input
+<span class="nc" id="L156">    BookmarkSpec spec =</span>
+        new BookmarkSpec(
+            input.bookmarkName,
+            input.group,
+            input.icon,
+            input.url,
+            input.info,
+            input.targetBlank,
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            input.location != null ? input.location : 1000);</span>
+
+    // Update bookmark via management service
+<span class="nc" id="L167">    Bookmark updated = bookmarkManagementService.updateBookmark(input.namespace, input.name, spec);</span>
+
+    // Invalidate cache
+<span class="nc" id="L170">    invalidateBookmarkCache();</span>
+
+    // Broadcast event
+<span class="nc" id="L173">    eventBroadcaster.broadcastBookmarkUpdated(updated);</span>
+
+    // Convert to GraphQL type
+<span class="nc" id="L176">    BookmarkResponse response = new BookmarkResponse(spec);</span>
+<span class="nc" id="L177">    response.setNamespace(input.namespace);</span>
+<span class="nc" id="L178">    response.setResourceName(input.name);</span>
+<span class="nc" id="L179">    return BookmarkType.fromResponse(response);</span>
+  }
+
+  /**
+   * Delete a bookmark.
+   *
+   * @param namespace the namespace of the bookmark
+   * @param name the name of the bookmark resource
+   * @return true if deleted successfully
+   */
+  @Mutation(&quot;deleteBookmark&quot;)
+  @Description(&quot;Delete a bookmark&quot;)
+  @Timed(value = &quot;graphql.mutation.deleteBookmark&quot;)
+  public Boolean deleteBookmark(
+      @NonNull @Name(&quot;namespace&quot;) String namespace, @NonNull @Name(&quot;name&quot;) String name) {
+<span class="nc" id="L194">    Log.debugf(&quot;GraphQL mutation: deleteBookmark in namespace=%s, name=%s&quot;, namespace, name);</span>
+
+    // Delete bookmark via management service
+<span class="nc" id="L197">    boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);</span>
+
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (deleted) {</span>
+      // Invalidate cache
+<span class="nc" id="L201">      invalidateBookmarkCache();</span>
+
+      // Broadcast event
+<span class="nc" id="L204">      var deletedData = new java.util.HashMap&lt;String, String&gt;();</span>
+<span class="nc" id="L205">      deletedData.put(&quot;namespace&quot;, namespace);</span>
+<span class="nc" id="L206">      deletedData.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L207">      eventBroadcaster.broadcastBookmarkRemoved(deletedData);</span>
+    }
+
+<span class="nc" id="L210">    return deleted;</span>
+  }
+
+  /** Invalidates the bookmarks cache. */
+  private void invalidateBookmarkCache() {
+<span class="nc" id="L215">    Cache cache = cacheManager.getCache(&quot;getBookmarks&quot;).orElse(null);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (cache != null) {</span>
+<span class="nc" id="L217">      cache.invalidateAll().await().indefinitely();</span>
+    }
+<span class="nc" id="L219">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -202,28 +202,28 @@ public class AvailabilityCheckService {
    * @return the same list with availability status updated
    */
   public List&lt;ApplicationResponse&gt; enrichWithAvailability(List&lt;ApplicationResponse&gt; applications) {
-<span class="fc bfc" id="L205" title="All 2 branches covered.">    for (ApplicationResponse app : applications) {</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">    for (ApplicationResponse app : applications) {</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">      if (!availabilityCheckEnabled) {</span>
         // Set all applications as available if checking is disabled
 <span class="nc" id="L208">        app.setAvailable(true);</span>
       } else {
-<span class="fc" id="L210">        String url = app.getUrl();</span>
-<span class="pc bpc" id="L211" title="2 of 4 branches missed.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
+<span class="nc" id="L210">        String url = app.getUrl();</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">        if (url != null &amp;&amp; !url.isEmpty()) {</span>
           // Check if we have a cached result
-<span class="fc" id="L213">          Boolean cached = availabilityCache.get(url);</span>
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">          if (cached != null) {</span>
-<span class="fc" id="L215">            app.setAvailable(cached);</span>
+<span class="nc" id="L213">          Boolean cached = availabilityCache.get(url);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">          if (cached != null) {</span>
+<span class="nc" id="L215">            app.setAvailable(cached);</span>
           } else {
             // If not cached, default to true to avoid blocking
 <span class="nc" id="L218">            app.setAvailable(true);</span>
           }
-<span class="fc" id="L220">        } else {</span>
+<span class="nc" id="L220">        } else {</span>
 <span class="nc" id="L221">          app.setAvailable(true); // No URL to check, consider available</span>
         }
       }
-<span class="fc" id="L224">    }</span>
+<span class="nc" id="L224">    }</span>
 
-<span class="fc" id="L226">    return applications;</span>
+<span class="nc" id="L226">    return applications;</span>
   }
 
   /**
@@ -232,16 +232,16 @@ public class AvailabilityCheckService {
    */
   @Scheduled(every = &quot;{startpunkt.availability.interval}&quot;, delayed = &quot;5s&quot;)
   void refreshAvailability() {
-<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">    if (!availabilityCheckEnabled) {</span>
 <span class="nc" id="L236">      return;</span>
     }
 
-<span class="nc" id="L239">    Log.info(&quot;Running background availability checks for &quot; + availabilityCache.size() + &quot; URLs&quot;);</span>
+<span class="fc" id="L239">    Log.info(&quot;Running background availability checks for &quot; + availabilityCache.size() + &quot; URLs&quot;);</span>
 
-<span class="nc" id="L241">    boolean hasChanges = false;</span>
+<span class="fc" id="L241">    boolean hasChanges = false;</span>
 
     // Get all unique URLs from the cache keys
-<span class="nc bnc" id="L244" title="All 2 branches missed.">    for (String url : availabilityCache.keySet()) {</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">    for (String url : availabilityCache.keySet()) {</span>
       try {
 <span class="nc" id="L246">        boolean isAvailable = checkAvailability(url);</span>
 <span class="nc" id="L247">        Boolean previousValue = previousAvailabilityCache.get(url);</span>
@@ -273,14 +273,14 @@ public class AvailabilityCheckService {
 <span class="nc" id="L273">    }</span>
 
     // Broadcast status changed event if any availability changed
-<span class="nc bnc" id="L276" title="All 2 branches missed.">    if (hasChanges) {</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">    if (hasChanges) {</span>
 <span class="nc" id="L277">      Log.info(&quot;Broadcasting STATUS_CHANGED event due to availability changes&quot;);</span>
       // Invalidate caches BEFORE broadcasting to ensure fresh data
 <span class="nc" id="L279">      invalidateApplicationCaches();</span>
 <span class="nc" id="L280">      eventBroadcaster.broadcastStatusChanged(</span>
 <span class="nc" id="L281">          Map.of(&quot;timestamp&quot;, System.currentTimeMillis(), &quot;reason&quot;, &quot;availability_check&quot;));</span>
     }
-<span class="nc" id="L283">  }</span>
+<span class="fc" id="L283">  }</span>
 
   /**
    * Registers a URL for periodic availability checking.

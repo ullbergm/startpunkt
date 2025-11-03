@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateBookmarkInput.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql.input</a> &gt; <span class="el_source">CreateBookmarkInput.java</span></div><h1>CreateBookmarkInput.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql.input;
+
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.Input;
+import org.eclipse.microprofile.graphql.NonNull;
+
+/** GraphQL input type for creating a bookmark. */
+@Input(&quot;CreateBookmarkInput&quot;)
+@Description(&quot;Input for creating a new bookmark&quot;)
+<span class="nc" id="L10">public class CreateBookmarkInput {</span>
+
+  @NonNull
+  @Description(&quot;Kubernetes namespace for the bookmark&quot;)
+  public String namespace;
+
+  @NonNull
+  @Description(&quot;Name of the bookmark resource&quot;)
+  public String name;
+
+  @NonNull
+  @Description(&quot;Bookmark name to display&quot;)
+  public String bookmarkName;
+
+  @NonNull
+  @Description(&quot;Group the bookmark belongs to&quot;)
+  public String group;
+
+  @Description(&quot;Bookmark icon, e.g. 'mdi:home'&quot;)
+  public String icon;
+
+  @NonNull
+  @Description(&quot;Bookmark URL&quot;)
+  public String url;
+
+  @Description(&quot;Description of the bookmark&quot;)
+  public String info;
+
+  @Description(&quot;Open the URL in a new tab&quot;)
+  public Boolean targetBlank;
+
+  @Description(&quot;Sorting order of the bookmark&quot;)
+  public Integer location;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

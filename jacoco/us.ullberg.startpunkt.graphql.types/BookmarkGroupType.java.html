@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkGroupType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql.types</a> &gt; <span class="el_source">BookmarkGroupType.java</span></div><h1>BookmarkGroupType.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql.types;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.Type;
+
+/** GraphQL type for Bookmark Group. Groups bookmarks by name. */
+@Type(&quot;BookmarkGroup&quot;)
+@Description(&quot;A group of bookmarks, organized by custom grouping&quot;)
+public class BookmarkGroupType {
+
+  @Description(&quot;Name of the bookmark group&quot;)
+  public String name;
+
+  @Description(&quot;List of bookmarks in this group&quot;)
+  public List&lt;BookmarkType&gt; bookmarks;
+
+  /** Default constructor for GraphQL. */
+<span class="nc" id="L20">  public BookmarkGroupType() {}</span>
+
+  /**
+   * Constructor with name and bookmarks.
+   *
+   * @param name group name
+   * @param bookmarks list of bookmarks
+   */
+<span class="nc" id="L28">  public BookmarkGroupType(String name, List&lt;BookmarkType&gt; bookmarks) {</span>
+<span class="nc" id="L29">    this.name = name;</span>
+<span class="nc" id="L30">    this.bookmarks = bookmarks;</span>
+<span class="nc" id="L31">  }</span>
+
+  /**
+   * Creates a BookmarkGroupType from a BookmarkGroup.
+   *
+   * @param group the BookmarkGroup to convert
+   * @return BookmarkGroupType
+   */
+  public static BookmarkGroupType fromBookmarkGroup(
+      us.ullberg.startpunkt.objects.BookmarkGroup group) {
+<span class="nc" id="L41">    BookmarkGroupType type = new BookmarkGroupType();</span>
+<span class="nc" id="L42">    type.name = group.getName();</span>
+<span class="nc" id="L43">    type.bookmarks =</span>
+<span class="nc" id="L44">        group.getBookmarks().stream()</span>
+<span class="nc" id="L45">            .map(</span>
+                bm -&gt;
+<span class="nc" id="L47">                    BookmarkType.fromResponse((us.ullberg.startpunkt.objects.BookmarkResponse) bm))</span>
+<span class="nc" id="L48">            .collect(Collectors.toList());</span>
+<span class="nc" id="L49">    return type;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

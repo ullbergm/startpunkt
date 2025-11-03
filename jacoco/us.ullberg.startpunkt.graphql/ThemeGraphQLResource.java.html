@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ThemeGraphQLResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql</a> &gt; <span class="el_source">ThemeGraphQLResource.java</span></div><h1>ThemeGraphQLResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.objects.theme.Theme;
+import us.ullberg.startpunkt.objects.theme.ThemeColors;
+
+/**
+ * GraphQL API resource for theme configuration. Provides queries for retrieving theme color
+ * schemes.
+ */
+@GraphQLApi
+@ApplicationScoped
+<span class="fc" id="L19">public class ThemeGraphQLResource {</span>
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.light.bodyBgColor&quot;, defaultValue = &quot;#F8F6F1&quot;)
+  String lightThemeBodyBg;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.light.bodyColor&quot;, defaultValue = &quot;#696969&quot;)
+  String lightThemeBodyColor;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.light.emphasisColor&quot;, defaultValue = &quot;#000000&quot;)
+  String lightThemeEmphasisColor;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.light.textPrimaryColor&quot;, defaultValue = &quot;#4C432E&quot;)
+  String lightThemeTextPrimary;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.light.textAccentColor&quot;, defaultValue = &quot;#AA9A73&quot;)
+  String lightThemeTextAccent;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.dark.bodyBgColor&quot;, defaultValue = &quot;#232530&quot;)
+  String darkThemeBodyBg;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.dark.bodyColor&quot;, defaultValue = &quot;#696969&quot;)
+  String darkThemeBodyColor;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.dark.emphasisColor&quot;, defaultValue = &quot;#FAB795&quot;)
+  String darkThemeEmphasisColor;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.dark.textPrimaryColor&quot;, defaultValue = &quot;#FAB795&quot;)
+  String darkThemeTextPrimary;
+
+  @ConfigProperty(name = &quot;startpunkt.web.theme.dark.textAccentColor&quot;, defaultValue = &quot;#E95678&quot;)
+  String darkThemeTextAccent;
+
+  /**
+   * Retrieve theme configuration.
+   *
+   * @return theme object with light and dark color schemes
+   */
+  @Query(&quot;theme&quot;)
+  @Description(&quot;Retrieve theme color schemes for light and dark modes&quot;)
+  @Timed(value = &quot;graphql.query.theme&quot;)
+  public Theme getTheme() {
+<span class="fc" id="L60">    Log.debug(&quot;GraphQL query: theme&quot;);</span>
+
+<span class="fc" id="L62">    ThemeColors light =</span>
+        new ThemeColors(
+            lightThemeBodyBg,
+            lightThemeBodyColor,
+            lightThemeEmphasisColor,
+            lightThemeTextPrimary,
+            lightThemeTextAccent);
+
+<span class="fc" id="L70">    ThemeColors dark =</span>
+        new ThemeColors(
+            darkThemeBodyBg,
+            darkThemeBodyColor,
+            darkThemeEmphasisColor,
+            darkThemeTextPrimary,
+            darkThemeTextAccent);
+
+<span class="fc" id="L78">    return new Theme(light, dark);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -350,7 +350,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
 <span class="fc" id="L352">    int location = getOptionalSpecInteger(item, &quot;location&quot;, super.getAppLocation(item));</span>
-<span class="fc bfc" id="L353" title="All 2 branches covered.">    return location == 0 ? 1000 : location;</span>
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">    return location == 0 ? 1000 : location;</span>
   }
 
   /**
