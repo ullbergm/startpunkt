@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef, useMemo } from 'preact/hooks';
+import { gql } from '@apollo/client';
 import { client } from './client';
 
 /**
- * Custom hook for GraphQL subscriptions using urql
+ * Custom hook for GraphQL subscriptions using Apollo Client
  * 
  * @param {string} subscription - The GraphQL subscription query string
  * @param {object} variables - Variables for the subscription query
@@ -24,6 +25,14 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
   const subscriptionRef = useRef(null);
   const mountedRef = useRef(true);
   
+  // Parse the subscription string into a DocumentNode if needed
+  const subscriptionDoc = useMemo(() => {
+    if (typeof subscription === 'string') {
+      return gql(subscription);
+    }
+    return subscription;
+  }, [subscription]);
+  
   // Memoize variables to avoid unnecessary re-subscriptions
   const stableVariables = useMemo(() => variables, [JSON.stringify(variables)]);
   
@@ -32,6 +41,7 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     
     // Don't subscribe if not enabled
     if (!enabled) {
+      console.log('[useSubscription] Subscription not enabled');
       setLoading(false);
       return;
     }
@@ -42,16 +52,21 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
     
     console.log('[useSubscription] Starting subscription with variables:', stableVariables);
     
-    // Create subscription
-    const subscription$ = client.subscription(subscription, stableVariables).subscribe({
+    // Create subscription using Apollo Client
+    const observable = client.subscribe({
+      query: subscriptionDoc,
+      variables: stableVariables,
+    });
+    
+    subscriptionRef.current = observable.subscribe({
       next: (result) => {
         if (!mountedRef.current) return;
         
         console.log('[useSubscription] Received data:', result);
         
-        if (result.error) {
-          console.error('[useSubscription] Subscription error:', result.error);
-          setError(result.error);
+        if (result.errors) {
+          console.error('[useSubscription] Subscription errors:', result.errors);
+          setError(result.errors[0]);
           setLoading(false);
         } else if (result.data) {
           setData(result.data);
@@ -74,8 +89,6 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
       }
     });
     
-    subscriptionRef.current = subscription$;
-    
     // Cleanup function
     return () => {
       mountedRef.current = false;
@@ -86,7 +99,7 @@ export function useSubscription(subscription, variables = {}, enabled = true) {
         subscriptionRef.current = null;
       }
     };
-  }, [subscription, stableVariables, enabled]);
+  }, [subscriptionDoc, stableVariables, enabled]);
   
   return {
     data,

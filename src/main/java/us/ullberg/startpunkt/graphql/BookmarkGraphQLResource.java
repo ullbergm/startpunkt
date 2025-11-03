@@ -201,6 +201,9 @@ public class BookmarkGraphQLResource {
       @NonNull @Name("namespace") String namespace, @NonNull @Name("name") String name) {
     Log.debugf("GraphQL mutation: deleteBookmark in namespace=%s, name=%s", namespace, name);
 
+    // Get the bookmark data BEFORE deleting so we can broadcast it
+    var bookmarkToDelete = bookmarkManagementService.getBookmark(namespace, name);
+
     // Delete bookmark via management service
     boolean deleted = bookmarkManagementService.deleteBookmark(namespace, name);
 
@@ -208,11 +211,12 @@ public class BookmarkGraphQLResource {
       // Invalidate cache
       invalidateBookmarkCache();
 
-      // Broadcast event
-      var deletedData = new java.util.HashMap<String, String>();
-      deletedData.put("namespace", namespace);
-      deletedData.put("name", name);
-      eventBroadcaster.broadcastBookmarkRemoved(deletedData);
+      // Broadcast event with the full bookmark data
+      if (bookmarkToDelete != null) {
+        eventBroadcaster.broadcastBookmarkRemoved(bookmarkToDelete);
+      } else {
+        Log.warnf("Could not broadcast bookmark removed event - bookmark data not found for %s/%s", namespace, name);
+      }
     }
 
     return deleted;

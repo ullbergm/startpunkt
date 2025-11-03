@@ -186,8 +186,10 @@ export function App() {
     console.log('[INIT] Fetching all data with language:', lang, 'tags:', tagsArray);
     
     // Single query to fetch config, theme, translations, applications, and bookmarks
-    client.query(INIT_QUERY, { language: lang, tags: tagsArray }).toPromise()
-      .then((result) => {
+    client.query({
+      query: INIT_QUERY,
+      variables: { language: lang, tags: tagsArray }
+    }).then((result) => {
         if (result.data) {
           console.log('[INIT] Received data:', result.data);
           
@@ -257,8 +259,11 @@ export function App() {
     console.log('[App] Fetching applications with tags:', tagsArray);
     
     // Fetch applications with 'network-only' to bypass cache on refresh
-    client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }, { requestPolicy: 'network-only' }).toPromise()
-      .then(result => {
+    client.query({
+      query: APPLICATION_GROUPS_QUERY,
+      variables: { tags: tagsArray },
+      fetchPolicy: 'network-only'
+    }).then(result => {
         if (result.data && result.data.applicationGroups) {
           console.log('[App] Received', result.data.applicationGroups.length, 'application group(s)');
           const groups = result.data.applicationGroups.map(group => ({
@@ -279,8 +284,11 @@ export function App() {
     console.log('[App] Fetching bookmarks');
     
     // Fetch bookmarks with 'network-only' to bypass cache on refresh
-    client.query(BOOKMARK_GROUPS_QUERY, {}, { requestPolicy: 'network-only' }).toPromise()
-      .then(result => {
+    client.query({
+      query: BOOKMARK_GROUPS_QUERY,
+      variables: {},
+      fetchPolicy: 'network-only'
+    }).then(result => {
         if (result.data && result.data.bookmarkGroups) {
           console.log('[App] Received', result.data.bookmarkGroups.length, 'bookmark group(s)');
           const groups = result.data.bookmarkGroups.map(group => ({
@@ -319,7 +327,7 @@ export function App() {
     {},
     subscriptionsEnabled
   );
-
+  
   // Handle application subscription updates
   useEffect(() => {
     if (appSubscription.data && appSubscription.data.applicationUpdates) {
@@ -477,8 +485,8 @@ export function App() {
         // Use GraphQL create mutation
         const input = {
           namespace,
-          name,  // This is the resource name
-          appName: spec.name,  // This is the display name
+          resourceName: name,  // Kubernetes resource name
+          name: spec.name,     // Display name
           group: spec.group,
           url: spec.url,
           icon: spec.icon,
@@ -491,17 +499,20 @@ export function App() {
           tags: spec.tags
         };
 
-        const result = await client.mutation(CREATE_APPLICATION_MUTATION, { input }).toPromise();
+        const result = await client.mutate({
+          mutation: CREATE_APPLICATION_MUTATION,
+          variables: { input }
+        });
 
-        if (result.error) {
-          throw new Error(result.error.message || 'Failed to create application');
+        if (result.errors) {
+          throw new Error(result.errors[0].message || 'Failed to create application');
         }
       } else {
         // Use GraphQL update mutation
         const input = {
           namespace,
-          name,  // This is the resource name
-          appName: spec.name,  // This is the display name
+          resourceName: name,  // Kubernetes resource name
+          name: spec.name,     // Display name
           group: spec.group,
           url: spec.url,
           icon: spec.icon,
@@ -514,10 +525,13 @@ export function App() {
           tags: spec.tags
         };
 
-        const result = await client.mutation(UPDATE_APPLICATION_MUTATION, { input }).toPromise();
+        const result = await client.mutate({
+          mutation: UPDATE_APPLICATION_MUTATION,
+          variables: { input }
+        });
 
-        if (result.error) {
-          throw new Error(result.error.message || 'Failed to update application');
+        if (result.errors) {
+          throw new Error(result.errors[0].message || 'Failed to update application');
         }
       }
 
@@ -533,13 +547,13 @@ export function App() {
 
   const handleDeleteApp = async (namespace, name) => {
     // Use GraphQL mutation
-    const result = await client.mutation(DELETE_APPLICATION_MUTATION, {
-      namespace,
-      name
-    }).toPromise();
+    const result = await client.mutate({
+      mutation: DELETE_APPLICATION_MUTATION,
+      variables: { namespace, name }
+    });
 
-    if (result.error) {
-      throw new Error(result.error.message || 'Failed to delete application');
+    if (result.errors) {
+      throw new Error(result.errors[0].message || 'Failed to delete application');
     }
 
     setShowAppEditor(false);
@@ -595,10 +609,13 @@ export function App() {
           location: spec.location
         };
 
-        const result = await client.mutation(CREATE_BOOKMARK_MUTATION, { input }).toPromise();
+        const result = await client.mutate({
+          mutation: CREATE_BOOKMARK_MUTATION,
+          variables: { input }
+        });
 
-        if (result.error) {
-          throw new Error(result.error.message || 'Failed to create bookmark');
+        if (result.errors) {
+          throw new Error(result.errors[0].message || 'Failed to create bookmark');
         }
       } else {
         // Use GraphQL update mutation
@@ -614,10 +631,13 @@ export function App() {
           location: spec.location
         };
 
-        const result = await client.mutation(UPDATE_BOOKMARK_MUTATION, { input }).toPromise();
+        const result = await client.mutate({
+          mutation: UPDATE_BOOKMARK_MUTATION,
+          variables: { input }
+        });
 
-        if (result.error) {
-          throw new Error(result.error.message || 'Failed to update bookmark');
+        if (result.errors) {
+          throw new Error(result.errors[0].message || 'Failed to update bookmark');
         }
       }
 
@@ -633,13 +653,13 @@ export function App() {
 
   const handleDeleteBookmark = async (namespace, name) => {
     // Use GraphQL mutation
-    const result = await client.mutation(DELETE_BOOKMARK_MUTATION, {
-      namespace,
-      name
-    }).toPromise();
+    const result = await client.mutate({
+      mutation: DELETE_BOOKMARK_MUTATION,
+      variables: { namespace, name }
+    });
 
-    if (result.error) {
-      throw new Error(result.error.message || 'Failed to delete bookmark');
+    if (result.errors) {
+      throw new Error(result.errors[0].message || 'Failed to delete bookmark');
     }
 
     setShowBookmarkEditor(false);

@@ -409,6 +409,9 @@ public class ApplicationGraphQLResource {
       @NonNull @Name("namespace") String namespace, @NonNull @Name("name") String name) {
     Log.debugf("GraphQL mutation: deleteApplication in namespace=%s, name=%s", namespace, name);
 
+    // Get the application data BEFORE deleting so we can broadcast it
+    var appToDelete = applicationService.getApplication(namespace, name);
+
     // Delete application via service
     boolean deleted = applicationService.deleteApplication(namespace, name);
 
@@ -416,11 +419,12 @@ public class ApplicationGraphQLResource {
       // Invalidate cache
       invalidateApplicationCaches();
 
-      // Broadcast event
-      var deletedData = new java.util.HashMap<String, String>();
-      deletedData.put("namespace", namespace);
-      deletedData.put("name", name);
-      eventBroadcaster.broadcastApplicationRemoved(deletedData);
+      // Broadcast event with the full application data
+      if (appToDelete != null) {
+        eventBroadcaster.broadcastApplicationRemoved(appToDelete);
+      } else {
+        Log.warnf("Could not broadcast application removed event - application data not found for %s/%s", namespace, name);
+      }
     }
 
     return deleted;
@@ -484,9 +488,13 @@ public class ApplicationGraphQLResource {
       if (!lowerCaseTags.isEmpty()) {
         stream = stream.filter(event -> {
           ApplicationType app = event.getApplication();
-          if (app == null || app.tags == null || app.tags.trim().isEmpty()) {
-            // Exclude apps without tags when tags filter is provided
+          if (app == null) {
             return false;
+          }
+          
+          // Include apps without tags (per tag filtering rules in docs/object-tag-filtering.md)
+          if (app.tags == null || app.tags.trim().isEmpty()) {
+            return true;
           }
 
           // Check if app has any of the requested tags

@@ -18,6 +18,6 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Don't ignore these modules from transformation
-    'node_modules/(?!(preact|@testing-library/preact)/)',
+    'node_modules/(?!(preact|@testing-library/preact|@apollo)/)',
   ],
 };
