@@ -15,7 +15,7 @@ import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
 import { client } from './graphql/client';
-import { THEME_QUERY, TRANSLATIONS_QUERY, CONFIG_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
+import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
 
 // This is required for Bootstrap to work
@@ -36,8 +36,8 @@ import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
  * The UI for theme switching is in BackgroundSettings component
  */
-export function ThemeApplier() {
-  const [themes, setThemes] = useState({
+export function ThemeApplier({ themes: themesProp }) {
+  const [themes, setThemes] = useState(themesProp || {
     light: {
       bodyBgColor: '#f8f9fa',
       bodyColor: '#696969',
@@ -54,16 +54,12 @@ export function ThemeApplier() {
     }
   });
 
+  // Update themes when prop changes
   useEffect(() => {
-    // Fetch theme from GraphQL
-    client.query(THEME_QUERY).toPromise()
-      .then((result) => {
-        if (result.data && result.data.theme) {
-          setThemes(result.data.theme);
-        }
-        // If response is bad, keep the default
-      }).catch(() => {});
-  }, []);
+    if (themesProp) {
+      setThemes(themesProp);
+    }
+  }, [themesProp]);
 
   // Read the theme preference from local storage
   const [theme] = useLocalStorage('theme', 'auto');
@@ -139,73 +135,112 @@ export function App() {
   const [editingBookmark, setEditingBookmark] = useState(null);
   const [editorMode, setEditorMode] = useState('create');
 
-  useEffect(() => {
-    var lang = navigator.language;
-    console.log("switching language to " + lang);
-    // Fetch translations from GraphQL
-    client.query(TRANSLATIONS_QUERY, { language: lang }).toPromise()
-      .then((result) => {
-        if (result.data && result.data.translations) {
-          setDefinition(result.data.translations);
-        }
-      })
-      .catch((err) => {
-        // Ignore errors
-      });
-  }, []);
-
-  // read the /api/config endpoint to get the configuration
+  // Configuration state
   const [showGitHubLink, setShowGitHubLink] = useState(false);
   const [title, setTitle] = useState("Startpunkt");
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [websocketEnabled, setWebsocketEnabled] = useState(false);
-  
-  useEffect(() => {
-    // Fetch config from GraphQL
-    client.query(CONFIG_QUERY).toPromise()
-      .then((result) => {
-        if (result.data && result.data.config) {
-          const res = result.data.config;
-          console.log('Config loaded:', res);
-          setShowGitHubLink(res.web.showGithubLink);
-          setTitle(res.web.title);
-          setVersion(res.version);
-          setCheckForUpdates(res.web.checkForUpdates);
-          setRefreshInterval(res.web.refreshInterval || 0);
-          const wsEnabled = res.websocket?.enabled || false;
-          console.log('WebSocket enabled:', wsEnabled);
-          setWebsocketEnabled(wsEnabled);
-        }
-      });
 
-  }, [])
+  // Theme state
+  const [themes, setThemes] = useState(null);
 
+  // Data state
   const [applicationGroups, setApplicationGroups] = useState(null);
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
 
   // Extract tags from URL path for filtering
   const getTagsFromUrl = () => {
     const pathname = window.location.pathname;
-    // Remove leading slash and return tags if present
     const path = pathname.replace(/^\//, '');
     return path && path !== '' ? path : null;
   };
 
-  // Function to fetch applications and bookmarks using GraphQL
+  // Single initialization query to fetch all data at once
+  useEffect(() => {
+    const lang = navigator.language;
+    const tags = getTagsFromUrl();
+    const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
+    
+    console.log('[INIT] Fetching all data with language:', lang, 'tags:', tagsArray);
+    
+    // Single query to fetch config, theme, translations, applications, and bookmarks
+    client.query(INIT_QUERY, { language: lang, tags: tagsArray }).toPromise()
+      .then((result) => {
+        if (result.data) {
+          console.log('[INIT] Received data:', result.data);
+          
+          // Set translations (parse JSON string)
+          if (result.data.translations) {
+            try {
+              const translations = typeof result.data.translations === 'string' 
+                ? JSON.parse(result.data.translations) 
+                : result.data.translations;
+              setDefinition(translations);
+            } catch (e) {
+              console.error('[INIT] Failed to parse translations:', e);
+              setDefinition({});
+            }
+          }
+          
+          // Set config
+          if (result.data.config) {
+            const config = result.data.config;
+            setShowGitHubLink(config.web.showGithubLink);
+            setTitle(config.web.title);
+            setVersion(config.version);
+            setCheckForUpdates(config.web.checkForUpdates);
+            setRefreshInterval(config.web.refreshInterval || 0);
+            const wsEnabled = config.websocket?.enabled || false;
+            console.log('[INIT] WebSocket enabled:', wsEnabled);
+            setWebsocketEnabled(wsEnabled);
+          }
+          
+          // Set theme
+          if (result.data.theme) {
+            setThemes(result.data.theme);
+          }
+          
+          // Set applications
+          if (result.data.applicationGroups) {
+            const groups = result.data.applicationGroups.map(group => ({
+              name: group.name,
+              applications: group.applications
+            }));
+            setApplicationGroups(groups);
+          }
+          
+          // Set bookmarks
+          if (result.data.bookmarkGroups) {
+            const groups = result.data.bookmarkGroups.map(group => ({
+              name: group.name,
+              bookmarks: group.bookmarks
+            }));
+            setBookmarkGroups(groups);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('[INIT] Error fetching data:', err);
+        // Set empty arrays to prevent loading state
+        setApplicationGroups([]);
+        setBookmarkGroups([]);
+      });
+  }, []);
+
+  // Function to fetch applications and bookmarks using GraphQL (for refreshes)
   const fetchData = () => {
     const tags = getTagsFromUrl();
     const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
     console.log('[fetchData] Fetching applications with tags:', tagsArray);
     
-    // Fetch applications
-    client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }).toPromise()
+    // Fetch applications with 'network-only' to bypass cache on refresh
+    client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }, { requestPolicy: 'network-only' }).toPromise()
       .then(result => {
         if (result.data && result.data.applicationGroups) {
           console.log('[fetchData] Received application data:', result.data.applicationGroups);
-          // Transform to match expected structure
           const groups = result.data.applicationGroups.map(group => ({
             name: group.name,
             applications: group.applications
@@ -218,11 +253,10 @@ export function App() {
         setApplicationGroups([]);
       });
     
-    // Fetch bookmarks
-    client.query(BOOKMARK_GROUPS_QUERY).toPromise()
+    // Fetch bookmarks with 'network-only' to bypass cache on refresh
+    client.query(BOOKMARK_GROUPS_QUERY, {}, { requestPolicy: 'network-only' }).toPromise()
       .then(result => {
         if (result.data && result.data.bookmarkGroups) {
-          // Transform to match expected structure
           const groups = result.data.bookmarkGroups.map(group => ({
             name: group.name,
             bookmarks: group.bookmarks
@@ -278,11 +312,6 @@ export function App() {
       }
     }
   );
-
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // Set up periodic refresh if configured (only when WebSocket is not connected)
   useEffect(() => {
@@ -570,7 +599,7 @@ export function App() {
 
       {(showGitHubLink || updateAvailable) && <ForkMe color={updateAvailable ? "orange" : "white"} link={updateAvailable ? "releases" : ""} />}
 
-      <ThemeApplier />
+      <ThemeApplier themes={themes} />
       <Background />
       <ContentOverlay />
       <AccessibilitySettings />

@@ -32,38 +32,28 @@ jest.mock('./graphql/client', () => ({
   },
 }));
 
+// Test theme data
+const testThemes = {
+  light: {
+    bodyBgColor: '#fff',
+    bodyColor: '#111',
+    emphasisColor: '#222',
+    textPrimaryColor: '#333',
+    textAccentColor: '#444',
+  },
+  dark: {
+    bodyBgColor: '#000',
+    bodyColor: '#eee',
+    emphasisColor: '#222',
+    textPrimaryColor: '#333',
+    textAccentColor: '#444',
+  }
+};
+
 beforeEach(() => {
   global._mockTheme = 'auto';
   global._mockSystemPrefersDark = false;
   global._mockBackgroundType = 'theme';
-  
-  // Mock GraphQL theme query response
-  mockQuery.mockImplementation((query, variables) => {
-    const queryString = typeof query === 'string' ? query : query.toString();
-    if (queryString.includes('theme {')) {
-      return Promise.resolve({
-        data: {
-          theme: {
-            light: {
-              bodyBgColor: '#fff',
-              bodyColor: '#111',
-              emphasisColor: '#222',
-              textPrimaryColor: '#333',
-              textAccentColor: '#444',
-            },
-            dark: {
-              bodyBgColor: '#000',
-              bodyColor: '#eee',
-              emphasisColor: '#222',
-              textPrimaryColor: '#333',
-              textAccentColor: '#444',
-            }
-          }
-        }
-      });
-    }
-    return Promise.resolve({ data: {} });
-  });
   
   jest.spyOn(document.body.style, 'setProperty');
 });
@@ -73,13 +63,13 @@ afterEach(() => {
 
 describe('ThemeApplier (theme logic)', () => {
   it('sets correct CSS variables for light and dark theme', async () => {
-    render(<ThemeApplier />);
+    render(<ThemeApplier themes={testThemes} />);
     await waitFor(() => expect(document.body.style.setProperty).toHaveBeenCalled());
 
     // Set theme to dark
     global._mockTheme = 'dark';
     global._mockBackgroundType = 'theme';
-    render(<ThemeApplier />);
+    render(<ThemeApplier themes={testThemes} />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#000')
     );
@@ -87,7 +77,7 @@ describe('ThemeApplier (theme logic)', () => {
     // Set theme to light
     global._mockTheme = 'light';
     global._mockBackgroundType = 'theme';
-    render(<ThemeApplier />);
+    render(<ThemeApplier themes={testThemes} />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#fff')
     );
@@ -97,7 +87,7 @@ describe('ThemeApplier (theme logic)', () => {
     global._mockTheme = 'auto';
     global._mockSystemPrefersDark = true;
     global._mockBackgroundType = 'theme';
-    render(<ThemeApplier />);
+    render(<ThemeApplier themes={testThemes} />);
     await waitFor(() =>
       expect(document.body.style.setProperty).toHaveBeenCalledWith('--bs-body-bg', '#000')
     );

@@ -1,7 +1,17 @@
 // GraphQL Queries
+// Following best practices: named queries, explicit operation types, minimal field selection
+
+// Fragment for common theme palette fields to avoid duplication
+const THEME_PALETTE_FIELDS = `
+  bodyBgColor
+  bodyColor
+  emphasisColor
+  textPrimaryColor
+  textAccentColor
+`;
 
 export const CONFIG_QUERY = `
-  query {
+  query GetConfig {
     config {
       version
       web {
@@ -18,21 +28,13 @@ export const CONFIG_QUERY = `
 `;
 
 export const THEME_QUERY = `
-  query {
+  query GetTheme {
     theme {
       light {
-        bodyBgColor
-        bodyColor
-        emphasisColor
-        textPrimaryColor
-        textAccentColor
+        ${THEME_PALETTE_FIELDS}
       }
       dark {
-        bodyBgColor
-        bodyColor
-        emphasisColor
-        textPrimaryColor
-        textAccentColor
+        ${THEME_PALETTE_FIELDS}
       }
     }
   }
@@ -43,6 +45,8 @@ export const TRANSLATIONS_QUERY = `
     translations(language: $language)
   }
 `;
+// Note: translations query returns a JSON string, not an object.
+// The client must parse it: JSON.parse(result.data.translations)
 
 export const APPLICATION_GROUPS_QUERY = `
   query GetApplicationGroups($tags: [String!]) {
@@ -70,7 +74,7 @@ export const APPLICATION_GROUPS_QUERY = `
 `;
 
 export const BOOKMARK_GROUPS_QUERY = `
-  query {
+  query GetBookmarkGroups {
     bookmarkGroups {
       name
       bookmarks {
@@ -89,7 +93,8 @@ export const BOOKMARK_GROUPS_QUERY = `
   }
 `;
 
-// Combined initialization query - fetches multiple resources in one request
+// Combined initialization query - fetches all required data in one request
+// This reduces the number of round trips from 5 to 1, improving initial page load performance
 export const INIT_QUERY = `
   query InitApp($language: String!, $tags: [String!]) {
     config {
@@ -106,18 +111,10 @@ export const INIT_QUERY = `
     }
     theme {
       light {
-        bodyBgColor
-        bodyColor
-        emphasisColor
-        textPrimaryColor
-        textAccentColor
+        ${THEME_PALETTE_FIELDS}
       }
       dark {
-        bodyBgColor
-        bodyColor
-        emphasisColor
-        textPrimaryColor
-        textAccentColor
+        ${THEME_PALETTE_FIELDS}
       }
     }
     translations(language: $language)
