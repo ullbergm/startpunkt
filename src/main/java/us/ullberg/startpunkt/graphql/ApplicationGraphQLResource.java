@@ -5,6 +5,8 @@ import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
 import io.quarkus.logging.Log;
+import io.smallrye.graphql.api.Subscription;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,12 +19,15 @@ import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
+import org.eclipse.microprofile.graphql.Source;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.graphql.input.CreateApplicationInput;
 import us.ullberg.startpunkt.graphql.input.UpdateApplicationInput;
 import us.ullberg.startpunkt.graphql.types.ApplicationGroupType;
 import us.ullberg.startpunkt.graphql.types.ApplicationType;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
@@ -49,6 +54,7 @@ public class ApplicationGraphQLResource {
   final ApplicationService applicationService;
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
+  final SubscriptionEventEmitter subscriptionEventEmitter;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -94,18 +100,21 @@ public class ApplicationGraphQLResource {
    * @param applicationService the application service for CRUD operations
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
+   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
    */
   public ApplicationGraphQLResource(
       KubernetesClient kubernetesClient,
       AvailabilityCheckService availabilityCheckService,
       ApplicationService applicationService,
       EventBroadcaster eventBroadcaster,
-      CacheManager cacheManager) {
+      CacheManager cacheManager,
+      SubscriptionEventEmitter subscriptionEventEmitter) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
     this.applicationService = applicationService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
+    this.subscriptionEventEmitter = subscriptionEventEmitter;
   }
 
   /**
@@ -433,5 +442,110 @@ public class ApplicationGraphQLResource {
     if (cache != null) {
       cache.invalidateAll().await().indefinitely();
     }
+  }
+
+  /**
+   * Subscribe to real-time application updates.
+   *
+   * <p>Clients can subscribe to this to receive notifications when applications are added, updated,
+   * or removed. Optional filtering by namespace and tags is supported.
+   *
+   * @param namespace optional namespace filter (only events for this namespace will be sent)
+   * @param tags optional list of tags to filter applications
+   * @return Multi stream of application update events
+   */
+  @Subscription("applicationUpdates")
+  @Description("Subscribe to real-time application updates with optional filtering")
+  @Timed(value = "graphql.subscription.applicationUpdates")
+  public Multi<ApplicationUpdateEvent> subscribeToApplicationUpdates(
+      @Name("namespace") @Description("Optional namespace filter") String namespace,
+      @Name("tags") @Description("Optional tags to filter applications") List<String> tags) {
+    Log.debugf("GraphQL subscription: applicationUpdates with namespace=%s, tags=%s", namespace, tags);
+
+    Multi<ApplicationUpdateEvent> stream = subscriptionEventEmitter.getApplicationStream();
+
+    // Apply namespace filter if provided
+    if (namespace != null && !namespace.trim().isEmpty()) {
+      final String ns = namespace.trim();
+      stream = stream.filter(event -> {
+        ApplicationType app = event.getApplication();
+        return app != null && ns.equals(app.namespace);
+      });
+    }
+
+    // Apply tags filter if provided
+    if (tags != null && !tags.isEmpty()) {
+      final List<String> lowerCaseTags = tags.stream()
+          .map(String::trim)
+          .map(String::toLowerCase)
+          .filter(tag -> !tag.isEmpty())
+          .toList();
+
+      if (!lowerCaseTags.isEmpty()) {
+        stream = stream.filter(event -> {
+          ApplicationType app = event.getApplication();
+          if (app == null || app.tags == null || app.tags.trim().isEmpty()) {
+            // Include apps without tags when tags filter is provided
+            return true;
+          }
+
+          // Check if app has any of the requested tags
+          List<String> appTags = java.util.Arrays.stream(app.tags.split(","))
+              .map(String::trim)
+              .map(String::toLowerCase)
+              .filter(tag -> !tag.isEmpty())
+              .toList();
+
+          return appTags.stream().anyMatch(lowerCaseTags::contains);
+        });
+      }
+    }
+
+    return stream;
+  }
+
+  /**
+   * Subscribe to new applications being added.
+   *
+   * @return Multi stream of new applications
+   */
+  @Subscription("applicationAdded")
+  @Description("Subscribe to notifications when new applications are added")
+  @Timed(value = "graphql.subscription.applicationAdded")
+  public Multi<ApplicationType> subscribeToApplicationsAdded() {
+    Log.debug("GraphQL subscription: applicationAdded");
+    return subscriptionEventEmitter.getApplicationStream()
+        .filter(event -> event.getType() == ApplicationUpdateType.ADDED)
+        .map(ApplicationUpdateEvent::getApplication);
+  }
+
+  /**
+   * Subscribe to applications being removed.
+   *
+   * @return Multi stream of removed applications
+   */
+  @Subscription("applicationRemoved")
+  @Description("Subscribe to notifications when applications are removed")
+  @Timed(value = "graphql.subscription.applicationRemoved")
+  public Multi<ApplicationType> subscribeToApplicationsRemoved() {
+    Log.debug("GraphQL subscription: applicationRemoved");
+    return subscriptionEventEmitter.getApplicationStream()
+        .filter(event -> event.getType() == ApplicationUpdateType.REMOVED)
+        .map(ApplicationUpdateEvent::getApplication);
+  }
+
+  /**
+   * Subscribe to applications being updated.
+   *
+   * @return Multi stream of updated applications
+   */
+  @Subscription("applicationUpdated")
+  @Description("Subscribe to notifications when applications are updated")
+  @Timed(value = "graphql.subscription.applicationUpdated")
+  public Multi<ApplicationType> subscribeToApplicationsUpdated() {
+    Log.debug("GraphQL subscription: applicationUpdated");
+    return subscriptionEventEmitter.getApplicationStream()
+        .filter(event -> event.getType() == ApplicationUpdateType.UPDATED)
+        .map(ApplicationUpdateEvent::getApplication);
   }
 }
