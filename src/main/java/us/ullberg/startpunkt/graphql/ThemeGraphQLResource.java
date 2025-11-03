@@ -7,8 +7,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
-import us.ullberg.startpunkt.rest.Theme;
-import us.ullberg.startpunkt.rest.ThemeColors;
+import us.ullberg.startpunkt.objects.theme.Theme;
+import us.ullberg.startpunkt.objects.theme.ThemeColors;
 
 /**
  * GraphQL API resource for theme configuration. Provides queries for retrieving theme color
