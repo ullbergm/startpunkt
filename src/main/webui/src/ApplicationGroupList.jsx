@@ -3,46 +3,53 @@ import { ApplicationGroup } from './ApplicationGroup';
 import { useCollapsibleGroups } from './useCollapsibleGroups';
 import { useFavorites } from './useFavorites';
 
+/**
+ * Separate applications into favorites and regular groups
+ */
+function separateFavoritesFromGroups(groups, isFavorite) {
+  if (!Array.isArray(groups)) {
+    return { favoritesGroup: null, regularGroups: [] };
+  }
+
+  const favoriteApps = [];
+  const newRegularGroups = groups.map(group => {
+    const regularApps = [];
+    
+    if (Array.isArray(group.applications)) {
+      group.applications.forEach(app => {
+        if (isFavorite(app)) {
+          favoriteApps.push(app);
+        } else {
+          regularApps.push(app);
+        }
+      });
+    }
+
+    return {
+      ...group,
+      applications: regularApps
+    };
+  }).filter(group => group.applications.length > 0); // Remove empty groups
+
+  const favGroup = favoriteApps.length > 0 ? {
+    name: null, // No heading for favorites
+    applications: favoriteApps,
+    isFavorites: true
+  } : null;
+
+  return {
+    favoritesGroup: favGroup,
+    regularGroups: newRegularGroups
+  };
+}
+
 export function ApplicationGroupList(props) {
   const { isCollapsed, toggleGroup } = useCollapsibleGroups('collapsedApplicationGroups');
   const { isFavorite, toggleFavorite } = useFavorites();
 
   // Separate favorites from regular apps and create groups
   const { favoritesGroup, regularGroups } = useMemo(() => {
-    if (!Array.isArray(props.groups)) {
-      return { favoritesGroup: null, regularGroups: [] };
-    }
-
-    const favoriteApps = [];
-    const newRegularGroups = props.groups.map(group => {
-      const regularApps = [];
-      
-      if (Array.isArray(group.applications)) {
-        group.applications.forEach(app => {
-          if (isFavorite(app)) {
-            favoriteApps.push(app);
-          } else {
-            regularApps.push(app);
-          }
-        });
-      }
-
-      return {
-        ...group,
-        applications: regularApps
-      };
-    }).filter(group => group.applications.length > 0); // Remove empty groups
-
-    const favGroup = favoriteApps.length > 0 ? {
-      name: null, // No heading for favorites
-      applications: favoriteApps,
-      isFavorites: true
-    } : null;
-
-    return {
-      favoritesGroup: favGroup,
-      regularGroups: newRegularGroups
-    };
+    return separateFavoritesFromGroups(props.groups, isFavorite);
   }, [props.groups, isFavorite]);
 
   // Memoize toggle handlers to prevent unnecessary re-renders

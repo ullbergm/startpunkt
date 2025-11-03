@@ -207,12 +207,17 @@ export function useFavorites() {
    */
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const newData = JSON.parse(e.newValue);
-          setFavoritesData(newData);
-        } catch (error) {
-          console.error('Failed to parse favorites from storage event:', error);
+      if (e.key === STORAGE_KEY) {
+        if (e.newValue === null) {
+          // Item was deleted from localStorage - reset to defaults
+          setFavoritesData(DEFAULT_FAVORITES);
+        } else {
+          try {
+            const newData = JSON.parse(e.newValue);
+            setFavoritesData(newData);
+          } catch (error) {
+            console.error('Failed to parse favorites from storage event:', error);
+          }
         }
       }
     };
