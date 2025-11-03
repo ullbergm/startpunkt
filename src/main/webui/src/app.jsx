@@ -234,13 +234,13 @@ export function App() {
     const tags = getTagsFromUrl();
     const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
     
-    console.log('[fetchApplications] Fetching applications with tags:', tagsArray);
+    console.log('[App] Fetching applications with tags:', tagsArray);
     
     // Fetch applications with 'network-only' to bypass cache on refresh
     client.query(APPLICATION_GROUPS_QUERY, { tags: tagsArray }, { requestPolicy: 'network-only' }).toPromise()
       .then(result => {
         if (result.data && result.data.applicationGroups) {
-          console.log('[fetchApplications] Received application data:', result.data.applicationGroups);
+          console.log('[App] Received', result.data.applicationGroups.length, 'application group(s)');
           const groups = result.data.applicationGroups.map(group => ({
             name: group.name,
             applications: group.applications
@@ -249,19 +249,20 @@ export function App() {
         }
       })
       .catch(err => {
-        console.error('[fetchApplications] Error fetching applications:', err);
+        console.error('[App] Error fetching applications:', err);
         setApplicationGroups([]);
       });
   };
 
   // Function to fetch bookmarks using GraphQL (for refreshes)
   const fetchBookmarks = () => {
-    console.log('[fetchBookmarks] Fetching bookmarks');
+    console.log('[App] Fetching bookmarks');
     
     // Fetch bookmarks with 'network-only' to bypass cache on refresh
     client.query(BOOKMARK_GROUPS_QUERY, {}, { requestPolicy: 'network-only' }).toPromise()
       .then(result => {
         if (result.data && result.data.bookmarkGroups) {
+          console.log('[App] Received', result.data.bookmarkGroups.length, 'bookmark group(s)');
           const groups = result.data.bookmarkGroups.map(group => ({
             name: group.name,
             bookmarks: group.bookmarks
@@ -270,7 +271,7 @@ export function App() {
         }
       })
       .catch(err => {
-        console.error('[fetchBookmarks] Error fetching bookmarks:', err);
+        console.error('[App] Error fetching bookmarks:', err);
         setBookmarkGroups([]);
       });
   };
@@ -288,7 +289,7 @@ export function App() {
     {
       enabled: websocketEnabled,
       onMessage: (message) => {
-        console.log('WebSocket message received:', message);
+        console.log('[App] WebSocket event received:', message.type);
         
         // Handle different event types - only fetch what changed
         if (message.type === 'APPLICATION_ADDED' || 
@@ -296,7 +297,7 @@ export function App() {
             message.type === 'APPLICATION_UPDATED' ||
             message.type === 'STATUS_CHANGED') {
           // Refresh only applications when app-related changes occur
-          console.log('Refreshing applications due to:', message.type);
+          console.log('[App] Refreshing applications due to event:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
             fetchApplications();
@@ -305,18 +306,19 @@ export function App() {
                    message.type === 'BOOKMARK_REMOVED' || 
                    message.type === 'BOOKMARK_UPDATED') {
           // Refresh only bookmarks when bookmark-related changes occur
-          console.log('Refreshing bookmarks due to:', message.type);
+          console.log('[App] Refreshing bookmarks due to event:', message.type);
           // Add a small delay to ensure backend cache is fully updated
           setTimeout(() => {
             fetchBookmarks();
           }, 100); // 100ms delay to avoid race condition
         } else if (message.type === 'CONFIG_CHANGED') {
           // Reload config and data when configuration changes
+          console.log('[App] Config changed, reloading page');
           window.location.reload();
         }
       },
       onOpen: () => {
-        console.log('WebSocket connected for real-time updates');
+        console.log('[App] WebSocket connected');
       }
     }
   );
@@ -378,7 +380,7 @@ export function App() {
   useEffect(() => {
     if (checkForUpdates && version != "dev") {
       var checkVersion = "v" + version.replace("-SNAPSHOT", "");
-      console.log("Checking for updates (current version: " + checkVersion + ")");
+      console.log('[App] Checking for updates, current version:', checkVersion);
       versionCheck({
         owner: 'ullbergm',
         repo: 'startpunkt',
@@ -386,7 +388,7 @@ export function App() {
       })
         .then((res) => {
           if (res.update) {
-            console.log('There is a new version available! You should update to', res.update.name);
+            console.log('[App] Update available:', res.update.name);
             setUpdateAvailable(true);
           }
         })
@@ -486,7 +488,7 @@ export function App() {
       // Refresh only applications
       setTimeout(() => fetchApplications(), 500);
     } catch (error) {
-      console.error('Error saving application:', error);
+      console.error('[App] Error saving application:', error);
       throw error;
     }
   };
@@ -586,7 +588,7 @@ export function App() {
       // Refresh only bookmarks
       setTimeout(() => fetchBookmarks(), 500);
     } catch (error) {
-      console.error('Error saving bookmark:', error);
+      console.error('[App] Error saving bookmark:', error);
       throw error;
     }
   };
