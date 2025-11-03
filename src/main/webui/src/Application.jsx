@@ -142,17 +142,6 @@ export function Application(props) {
           <Icon icon={isFavorite ? 'mdi:star' : 'mdi:star-outline'} width="20" height="20" />
         </button>
       )}
-      {editMode && isEditable && onEdit && (
-        <button
-          onClick={handleEdit}
-          class="btn btn-sm btn-primary ms-2"
-          style={{ position: 'relative', zIndex: 10, flexShrink: 0 }}
-          aria-label={`Edit ${props.app.name}`}
-          title={`Edit ${props.app.name}`}
-        >
-          <Icon icon="mdi:pencil" width="16" height="16" />
-        </button>
-      )}
     </div>
   );
 }
