@@ -21,10 +21,12 @@ startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,83
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,RouteApplicationWrapper,23,60,5,5,2,11,5,4,1,3
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IstioVirtualServiceApplicationWrapper,22,65,5,5,3,14,5,4,1,3
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,StartpunktApplicationWrapper,132,392,44,30,30,86,33,22,0,18
+startpunkt,us.ullberg.startpunkt.objects.bingimage,BingImage,46,0,0,0,19,0,10,0,10,0
 startpunkt,us.ullberg.startpunkt.graphql,ConfigGraphQLResource.WebConfig,0,15,0,0,0,6,0,1,0,1
 startpunkt,us.ullberg.startpunkt.graphql,ThemeGraphQLResource,0,39,0,0,0,5,0,2,0,2
 startpunkt,us.ullberg.startpunkt.graphql,ApplicationGraphQLResource,868,0,110,0,212,0,79,0,24,0
 startpunkt,us.ullberg.startpunkt.graphql,I18nGraphQLResource,8,14,0,0,3,5,0,2,0,2
+startpunkt,us.ullberg.startpunkt.graphql,BingImageGraphQLResource,27,0,4,0,7,0,4,0,2,0
 startpunkt,us.ullberg.startpunkt.graphql,SubscriptionEventEmitter,60,9,8,0,22,5,8,1,4,1
 startpunkt,us.ullberg.startpunkt.graphql,BookmarkGraphQLResource,232,59,17,1,50,17,20,3,11,3
 startpunkt,us.ullberg.startpunkt.graphql,ConfigGraphQLResource.WebSocketConfig,0,6,0,0,0,3,0,1,0,1
@@ -35,6 +37,8 @@ startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,BookmarkService,89,293,21,19,20,83,17,12,1,8
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,243,171,35,23,59,53,22,19,1,11
+startpunkt,us.ullberg.startpunkt.service,BingImageService,374,0,92,0,92,0,50,0,4,0
+startpunkt,us.ullberg.startpunkt.service,BingImageService.BingImageData,15,0,0,0,1,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.service,BookmarkManagementService,4,187,7,17,2,44,7,12,0,7
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationSpec,521,0,84,0,118,0,72,0,30,0

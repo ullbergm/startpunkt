@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BingImageGraphQLResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql</a> &gt; <span class="el_source">BingImageGraphQLResource.java</span></div><h1>BingImageGraphQLResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql;
+
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.io.IOException;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.objects.bingimage.BingImage;
+import us.ullberg.startpunkt.service.BingImageService;
+
+/**
+ * GraphQL API resource for Bing Image of the Day. Provides queries for retrieving optimized Bing
+ * images based on client screen resolution.
+ */
+@GraphQLApi
+@ApplicationScoped
+public class BingImageGraphQLResource {
+
+  private final BingImageService bingImageService;
+
+  /**
+   * Constructor for dependency injection.
+   *
+   * @param bingImageService the Bing image service
+   */
+<span class="nc" id="L28">  public BingImageGraphQLResource(BingImageService bingImageService) {</span>
+<span class="nc" id="L29">    this.bingImageService = bingImageService;</span>
+<span class="nc" id="L30">  }</span>
+
+  /**
+   * Retrieve Bing Image of the Day optimized for the given screen resolution.
+   *
+   * @param width client screen width in pixels
+   * @param height client screen height in pixels
+   * @return BingImage with optimized URL and metadata
+   * @throws IOException if the API call fails
+   */
+  @Query(&quot;bingImageOfDay&quot;)
+  @Description(&quot;Retrieve Bing Image of the Day optimized for client screen resolution&quot;)
+  @Timed(value = &quot;graphql.query.bingImageOfDay&quot;)
+  public BingImage getBingImageOfDay(int width, int height) throws IOException {
+<span class="nc" id="L44">    Log.debugf(&quot;GraphQL query: bingImageOfDay with resolution %dx%d&quot;, width, height);</span>
+
+<span class="nc bnc" id="L46" title="All 4 branches missed.">    if (width &lt;= 0 || height &lt;= 0) {</span>
+<span class="nc" id="L47">      throw new IllegalArgumentException(</span>
+          &quot;Width and height must be positive integers, got: &quot; + width + &quot;x&quot; + height);
+    }
+
+<span class="nc" id="L51">    return bingImageService.getBingImageOfDay(width, height);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

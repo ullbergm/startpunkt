@@ -8,6 +8,7 @@ us.ullberg.startpunkt.graphql.types
 us.ullberg.startpunkt.health
 us.ullberg.startpunkt.messaging
 us.ullberg.startpunkt.objects
+us.ullberg.startpunkt.objects.bingimage
 us.ullberg.startpunkt.objects.kubernetes
 us.ullberg.startpunkt.objects.theme
 us.ullberg.startpunkt.service

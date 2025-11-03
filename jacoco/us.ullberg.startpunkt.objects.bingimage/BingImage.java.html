@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BingImage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.bingimage</a> &gt; <span class="el_source">BingImage.java</span></div><h1>BingImage.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.bingimage;
+
+/**
+ * Represents Bing's Image of the Day with metadata and optimized image URL based on client screen
+ * resolution.
+ */
+public class BingImage {
+
+  /** The optimized image URL for the client's screen resolution. */
+  private String imageUrl;
+
+  /** Copyright information for the image. */
+  private String copyright;
+
+  /** Title or description of the image. */
+  private String title;
+
+  /** Date of the image in YYYYMMDD format. */
+  private String date;
+
+  /** Default constructor for frameworks and serialization. */
+<span class="nc" id="L22">  public BingImage() {}</span>
+
+  /**
+   * Constructs a BingImage with all properties.
+   *
+   * @param imageUrl the optimized image URL
+   * @param copyright copyright information
+   * @param title image title
+   * @param date image date in YYYYMMDD format
+   */
+<span class="nc" id="L32">  public BingImage(String imageUrl, String copyright, String title, String date) {</span>
+<span class="nc" id="L33">    this.imageUrl = imageUrl;</span>
+<span class="nc" id="L34">    this.copyright = copyright;</span>
+<span class="nc" id="L35">    this.title = title;</span>
+<span class="nc" id="L36">    this.date = date;</span>
+<span class="nc" id="L37">  }</span>
+
+  /**
+   * Gets the optimized image URL.
+   *
+   * @return the image URL
+   */
+  public String getImageUrl() {
+<span class="nc" id="L45">    return imageUrl;</span>
+  }
+
+  /**
+   * Sets the optimized image URL.
+   *
+   * @param imageUrl the image URL
+   */
+  public void setImageUrl(String imageUrl) {
+<span class="nc" id="L54">    this.imageUrl = imageUrl;</span>
+<span class="nc" id="L55">  }</span>
+
+  /**
+   * Gets the copyright information.
+   *
+   * @return the copyright text
+   */
+  public String getCopyright() {
+<span class="nc" id="L63">    return copyright;</span>
+  }
+
+  /**
+   * Sets the copyright information.
+   *
+   * @param copyright the copyright text
+   */
+  public void setCopyright(String copyright) {
+<span class="nc" id="L72">    this.copyright = copyright;</span>
+<span class="nc" id="L73">  }</span>
+
+  /**
+   * Gets the image title.
+   *
+   * @return the title
+   */
+  public String getTitle() {
+<span class="nc" id="L81">    return title;</span>
+  }
+
+  /**
+   * Sets the image title.
+   *
+   * @param title the title
+   */
+  public void setTitle(String title) {
+<span class="nc" id="L90">    this.title = title;</span>
+<span class="nc" id="L91">  }</span>
+
+  /**
+   * Gets the image date.
+   *
+   * @return the date in YYYYMMDD format
+   */
+  public String getDate() {
+<span class="nc" id="L99">    return date;</span>
+  }
+
+  /**
+   * Sets the image date.
+   *
+   * @param date the date in YYYYMMDD format
+   */
+  public void setDate(String date) {
+<span class="nc" id="L108">    this.date = date;</span>
+<span class="nc" id="L109">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
