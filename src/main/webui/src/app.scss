@@ -131,6 +131,11 @@ body {
     grid-template-columns: 1fr !important;
   }
 
+  /* Favorites should still be centered on mobile */
+  #favorites {
+    justify-content: center !important;
+  }
+
   /* Hide settings buttons on mobile */
   .bd-layout-toggle,
   .bd-background-toggle,
@@ -178,6 +183,11 @@ body {
   .application-grid,
   .bookmark-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Favorites should still be centered on mobile landscape */
+  #favorites {
+    justify-content: center !important;
   }
 
   /* Hide settings buttons on mobile landscape */
@@ -292,5 +302,20 @@ body {
 
   .github-corner .octo-arm {
     animation: octocat-wave 560ms ease-in-out
+  }
+}
+/* Favorites Grid Styling */
+#favorites.application-grid {
+  /* Center the favorites grid container */
+  justify-content: center;
+  /* Ensure items maintain their normal appearance */
+  align-items: start;
+}
+
+/* Ensure favorite items maintain standard card appearance on desktop */
+@media (min-width: 1321px) {
+  #favorites.application-grid {
+    /* Center alignment for favorites grid */
+    margin: 0 auto;
   }
 }
