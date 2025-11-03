@@ -7,7 +7,6 @@ import { useMediaQuery } from 'react-responsive';
 import versionCheck from '@version-checker/browser';
 import { Icon } from '@iconify/react';
 import SpotlightSearch from './SpotlightSearch';
-import { useWebSocket } from './useWebSocket';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 import { LayoutSettings } from './LayoutSettings';
@@ -17,6 +16,8 @@ import { BookmarkEditor } from './BookmarkEditor';
 import { client } from './graphql/client';
 import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
+import { APPLICATION_UPDATES_SUBSCRIPTION, BOOKMARK_UPDATES_SUBSCRIPTION } from './graphql/subscriptions';
+import { useSubscription } from './graphql/useSubscription';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -141,7 +142,7 @@ export function App() {
   const [version, setVersion] = useState("dev");
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
-  const [websocketEnabled, setWebsocketEnabled] = useState(false);
+  const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -192,9 +193,9 @@ export function App() {
             setVersion(config.version);
             setCheckForUpdates(config.web.checkForUpdates);
             setRefreshInterval(config.web.refreshInterval || 0);
-            const wsEnabled = config.websocket?.enabled || false;
-            console.log('[INIT] WebSocket enabled:', wsEnabled);
-            setWebsocketEnabled(wsEnabled);
+            const subEnabled = config.graphql?.subscription?.enabled !== false;
+            console.log('[INIT] GraphQL Subscriptions enabled:', subEnabled);
+            setSubscriptionsEnabled(subEnabled);
           }
           
           // Set theme
@@ -282,50 +283,55 @@ export function App() {
     fetchBookmarks();
   };
 
-  // WebSocket connection for real-time updates
-  // Convert relative path to WebSocket URL
-  const websocket = useWebSocket(
-    `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws/updates`,
-    {
-      enabled: websocketEnabled,
-      onMessage: (message) => {
-        console.log('[App] WebSocket event received:', message.type);
-        
-        // Handle different event types - only fetch what changed
-        if (message.type === 'APPLICATION_ADDED' || 
-            message.type === 'APPLICATION_REMOVED' || 
-            message.type === 'APPLICATION_UPDATED' ||
-            message.type === 'STATUS_CHANGED') {
-          // Refresh only applications when app-related changes occur
-          console.log('[App] Refreshing applications due to event:', message.type);
-          // Add a small delay to ensure backend cache is fully updated
-          setTimeout(() => {
-            fetchApplications();
-          }, 100); // 100ms delay to avoid race condition
-        } else if (message.type === 'BOOKMARK_ADDED' || 
-                   message.type === 'BOOKMARK_REMOVED' || 
-                   message.type === 'BOOKMARK_UPDATED') {
-          // Refresh only bookmarks when bookmark-related changes occur
-          console.log('[App] Refreshing bookmarks due to event:', message.type);
-          // Add a small delay to ensure backend cache is fully updated
-          setTimeout(() => {
-            fetchBookmarks();
-          }, 100); // 100ms delay to avoid race condition
-        } else if (message.type === 'CONFIG_CHANGED') {
-          // Reload config and data when configuration changes
-          console.log('[App] Config changed, reloading page');
-          window.location.reload();
-        }
-      },
-      onOpen: () => {
-        console.log('[App] WebSocket connected');
-      }
-    }
+  // GraphQL Subscriptions for real-time updates
+  const tags = getTagsFromUrl();
+  const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
+  
+  // Subscribe to application updates
+  const appSubscription = useSubscription(
+    APPLICATION_UPDATES_SUBSCRIPTION,
+    { namespace: null, tags: tagsArray },
+    subscriptionsEnabled
   );
 
-  // Set up periodic refresh if configured (only when WebSocket is not connected)
+  // Subscribe to bookmark updates
+  const bookmarkSubscription = useSubscription(
+    BOOKMARK_UPDATES_SUBSCRIPTION,
+    {},
+    subscriptionsEnabled
+  );
+
+  // Handle application subscription updates
   useEffect(() => {
-    if (refreshInterval > 0 && (!websocketEnabled || !websocket.isConnected)) {
+    if (appSubscription.data && appSubscription.data.applicationUpdates) {
+      const { type, application } = appSubscription.data.applicationUpdates;
+      console.log('[App] GraphQL subscription - application update:', type, application);
+      
+      // Refresh applications on any change
+      // Add a small delay to ensure backend cache is fully updated
+      setTimeout(() => {
+        fetchApplications();
+      }, 100);
+    }
+  }, [appSubscription.data]);
+
+  // Handle bookmark subscription updates
+  useEffect(() => {
+    if (bookmarkSubscription.data && bookmarkSubscription.data.bookmarkUpdates) {
+      const { type, bookmark } = bookmarkSubscription.data.bookmarkUpdates;
+      console.log('[App] GraphQL subscription - bookmark update:', type, bookmark);
+      
+      // Refresh bookmarks on any change
+      // Add a small delay to ensure backend cache is fully updated
+      setTimeout(() => {
+        fetchBookmarks();
+      }, 100);
+    }
+  }, [bookmarkSubscription.data]);
+
+  // Set up periodic refresh if configured (only when subscriptions are not enabled)
+  useEffect(() => {
+    if (refreshInterval > 0 && !subscriptionsEnabled) {
       const intervalId = setInterval(() => {
         fetchData();
       }, refreshInterval * 1000);
@@ -333,7 +339,7 @@ export function App() {
       // Cleanup function to clear interval on unmount or when refreshInterval changes
       return () => clearInterval(intervalId);
     }
-  }, [refreshInterval, websocketEnabled, websocket.isConnected]);
+  }, [refreshInterval, subscriptionsEnabled]);
 
   const hasApplications = () => {
     return Array.isArray(applicationGroups) &&
@@ -631,7 +637,21 @@ export function App() {
       <BackgroundSettings />
       <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
       
-      {websocketEnabled && <WebSocketHeartIndicator websocket={websocket} />}
+      {/* Show subscription status indicator */}
+      {subscriptionsEnabled && (
+        <WebSocketHeartIndicator 
+          websocket={{
+            status: appSubscription.isSubscribed || bookmarkSubscription.isSubscribed ? 'connected' : 
+                    appSubscription.loading || bookmarkSubscription.loading ? 'connecting' : 
+                    appSubscription.error || bookmarkSubscription.error ? 'error' : 'disconnected',
+            isConnected: appSubscription.isSubscribed || bookmarkSubscription.isSubscribed,
+            isConnecting: appSubscription.loading || bookmarkSubscription.loading,
+            isDisconnected: !appSubscription.isSubscribed && !bookmarkSubscription.isSubscribed && 
+                           !appSubscription.loading && !bookmarkSubscription.loading,
+            hasError: !!(appSubscription.error || bookmarkSubscription.error)
+          }} 
+        />
+      )}
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
