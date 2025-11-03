@@ -41,7 +41,8 @@ describe('Bookmark component', () => {
         const img = screen.getByRole('img', { name: bookmark.name });
         expect(img).toBeInTheDocument();
         expect(img).toHaveAttribute('src', bookmark.icon);
-        expect(img).toHaveClass('me-3');
+        // Icon is now wrapped in a container div with me-1 class
+        expect(img.parentElement).toHaveClass('me-1');
     });
 
     test('renders Icon component with mdi: prefix when icon has no colon', () => {
@@ -53,7 +54,9 @@ describe('Bookmark component', () => {
         const icon = screen.getByTestId('iconify-icon');
         expect(icon).toBeInTheDocument();
         expect(icon).toHaveAttribute('data-icon', `mdi:${bookmark.icon}`);
-        expect(icon).toHaveClass('me-3', 'fs-2', 'text-primary');
+        expect(icon).toHaveClass('fs-2', 'text-primary');
+        // Icon is now wrapped in a container div with me-1 class
+        expect(icon.parentElement).toHaveClass('me-1');
     });
 
     test('renders Icon component directly when icon has colon', () => {

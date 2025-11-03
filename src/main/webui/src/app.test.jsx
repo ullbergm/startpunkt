@@ -1,7 +1,28 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/preact';
-import { App } from './app';
 
 // ---- MOCKS ----
+// Mock the GraphQL client to avoid actual GraphQL calls - MUST be before importing App
+jest.mock('./graphql/client', () => ({
+  client: {
+    query: jest.fn(),
+    mutate: jest.fn(),
+  },
+  setOnPingCallback: jest.fn(),
+}));
+
+// Now import App AFTER setting up the mock
+import { App } from './app';
+import { client } from './graphql/client';
+
+// Mock the useSubscription hook directly to avoid client mocking issues
+jest.mock('./graphql/useSubscription', () => ({
+  useSubscription: () => ({
+    data: null,
+    error: null,
+    loading: false,
+    isSubscribed: false,
+  }),
+}));
 jest.mock('@rehooks/local-storage', () => ({
   useLocalStorage: () => ['auto', jest.fn()],
   writeStorage: jest.fn(),
@@ -66,28 +87,14 @@ jest.mock('./ForkMe', () => ({
   ),
 }));
 
-// Mock GraphQL client
-const mockQuery = jest.fn();
-const mockMutation = jest.fn();
-jest.mock('./graphql/client', () => ({
-  client: {
-    query: jest.fn((query, variables) => ({
-      toPromise: () => mockQuery(query, variables)
-    })),
-    mutation: jest.fn((mutation, variables) => ({
-      toPromise: () => mockMutation(mutation, variables)
-    })),
-  },
-}));
-
 // ---- TEST SETUP ----
 beforeEach(() => {
   jest.clearAllMocks();
   
-  // Setup default GraphQL mock responses
-  mockQuery.mockImplementation((query, variables) => {
-    // GraphQL queries are strings in this app
-    const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
+  // Setup default GraphQL mock responses using the manual mock
+  client.query.mockImplementation(({ query, variables }) => {
+    // Apollo Client queries are DocumentNode objects with loc.source.body containing the query string
+    const queryString = query.loc?.source.body || query.toString();
     
     // Check for the combined INIT_QUERY first (used on app initialization)
     if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
@@ -264,7 +271,7 @@ describe('App', () => {
 
   it('checks for updates and sets ForkMe color to orange if update available', async () => {
     // Override GraphQL mock for this test
-    mockQuery.mockImplementation((query, variables) => {
+    client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
       
       if (queryString.includes('config {')) {
@@ -352,7 +359,7 @@ describe('App', () => {
 
   it('hides applications link when no applications exist', async () => {
     // Mock empty applications but with bookmarks - must return INIT_QUERY format
-    mockQuery.mockImplementation((query, variables) => {
+    client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
       
       //Handle INIT_QUERY
@@ -416,7 +423,7 @@ describe('App', () => {
 
   it('hides bookmarks link when no bookmarks exist', async () => {
     // Mock empty bookmarks but with applications - must return INIT_QUERY format
-    mockQuery.mockImplementation((query, variables) => {
+    client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
       
       // Handle INIT_QUERY
@@ -480,7 +487,7 @@ describe('App', () => {
 
   it('shows improved loading message indicating items may not be configured', async () => {
     // Mock empty responses to test empty state - must return INIT_QUERY format
-    mockQuery.mockImplementation((query, variables) => {
+    client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
       
       // Handle INIT_QUERY with empty data
@@ -537,7 +544,7 @@ describe('App', () => {
 
   it('shows empty state message when no items exist', async () => {
     // Mock empty applications and bookmarks - must return INIT_QUERY format
-    mockQuery.mockImplementation((query, variables) => {
+    client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
       
       // Handle INIT_QUERY with empty data
