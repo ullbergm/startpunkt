@@ -1,16 +1,19 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { useMediaQuery } from 'react-responsive';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
+import { client } from './graphql/client';
+import { BING_IMAGE_QUERY } from './graphql/queries';
 
 /**
  * Background component that applies customizable backgrounds to the page
- * Supports solid colors, gradients, images, and picture of the day
+ * Supports solid colors, gradients, images, picture of the day, and Bing image of the day
  */
 export function Background() {
   const backgroundPrefs = useBackgroundPreferences();
   const [theme] = useLocalStorage('theme', 'auto');
   const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, undefined);
+  const [bingImageUrl, setBingImageUrl] = useState(null);
   
   // Determine if dark mode is active
   const isDarkMode = theme === 'dark' || (theme === 'auto' && systemPrefersDark);
@@ -24,6 +27,35 @@ export function Background() {
       return false;
     }
   };
+
+  // Fetch Bing Image of the Day when type is pictureOfDay and provider is bing
+  useEffect(() => {
+    if (backgroundPrefs.preferences.type === 'pictureOfDay' && 
+        backgroundPrefs.preferences.pictureProvider === 'bing') {
+      // Fetch image via GraphQL - server-side caching and browser HTTP cache will handle performance
+      const fetchBingImage = async () => {
+        try {
+          const result = await client.query({
+            query: BING_IMAGE_QUERY,
+            variables: {
+              width: window.screen.width,
+              height: window.screen.height
+            }
+          });
+
+          if (result.data && result.data.bingImageOfDay) {
+            setBingImageUrl(result.data.bingImageOfDay.imageUrl);
+          } else if (result.error) {
+            console.error('GraphQL error fetching Bing image:', result.error);
+          }
+        } catch (error) {
+          console.error('Error fetching Bing image:', error);
+        }
+      };
+
+      fetchBingImage();
+    }
+  }, [backgroundPrefs.preferences.type, backgroundPrefs.preferences.pictureProvider]);
 
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
@@ -67,12 +99,23 @@ export function Background() {
       } else {
         // Picture of Day or Custom Image
         const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        const imageUrl = backgroundPrefs.preferences.type === 'pictureOfDay' 
-          ? `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`
-          : backgroundPrefs.preferences.imageUrl;
+        let imageUrl;
+        
+        if (backgroundPrefs.preferences.type === 'pictureOfDay') {
+          // Check which provider to use
+          const provider = backgroundPrefs.preferences.pictureProvider || 'picsum';
+          if (provider === 'bing') {
+            imageUrl = bingImageUrl; // Use the fetched Bing image URL
+          } else {
+            // Default to Lorem Picsum
+            imageUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
+          }
+        } else {
+          imageUrl = backgroundPrefs.preferences.imageUrl;
+        }
         
         // Validate URL before using
-        if (isValidUrl(imageUrl)) {
+        if (imageUrl && isValidUrl(imageUrl)) {
           overlay.style.backgroundImage = `url(${encodeURI(imageUrl)})`;
           overlay.style.backgroundSize = 'cover';
           overlay.style.backgroundPosition = 'center';
@@ -197,7 +240,7 @@ export function Background() {
         styleSheet.remove();
       }
     };
-  }, [backgroundPrefs.preferences, isDarkMode]);
+  }, [backgroundPrefs.preferences, isDarkMode, bingImageUrl]);
 
   return null; // This component doesn't render anything
 }

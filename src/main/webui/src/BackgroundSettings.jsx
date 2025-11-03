@@ -58,6 +58,21 @@ export function BackgroundSettings() {
               </select>
             </div>
 
+            {/* Picture Provider Selection */}
+            {preferences.type === 'pictureOfDay' && (
+              <div class="mb-3">
+                <label class="form-label small mb-1"><Text id="background.pictureProvider">Picture Provider</Text></label>
+                <select 
+                  class="form-select form-select-sm"
+                  value={preferences.pictureProvider || 'bing'}
+                  onChange={(e) => updatePreference('pictureProvider', e.target.value)}
+                >
+                  <option value="bing"><Text id="background.providers.bing">Bing</Text></option>
+                  <option value="picsum"><Text id="background.providers.picsum">Lorem Picsum</Text></option>
+                </select>
+              </div>
+            )}
+
             {/* Theme Mode Selection - only show when using theme background */}
             {preferences.type === 'theme' && (
               <div class="mb-3">

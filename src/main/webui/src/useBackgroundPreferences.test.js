@@ -43,7 +43,8 @@ describe('useBackgroundPreferences', () => {
       meshAnimated: true,
       meshComplexity: 'low',
       contentOverlay: false,
-      contentOverlayOpacity: -0.6
+      contentOverlayOpacity: -0.6,
+      pictureProvider: 'bing'
     });
   });
 

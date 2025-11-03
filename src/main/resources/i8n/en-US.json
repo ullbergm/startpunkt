@@ -30,6 +30,11 @@
             "pictureOfDay" : "Picture of the Day",
             "geopattern" : "Geopattern"
         },
+        "pictureProvider" : "Picture Provider",
+        "providers" : {
+            "bing" : "Bing",
+            "picsum" : "Lorem Picsum"
+        },
         "themeMode" : "Theme Mode",
         "color" : "Color",
         "primaryColor" : "Primary Color",
