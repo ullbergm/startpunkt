@@ -3,10 +3,7 @@ package us.ullberg.startpunkt.graphql.types;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Type;
 
-/**
- * GraphQL type for Bookmark data.
- * This is a pure DTO that does not extend from CRD classes.
- */
+/** GraphQL type for Bookmark data. This is a pure DTO that does not extend from CRD classes. */
 @Type("Bookmark")
 @Description("Bookmark with Kubernetes metadata")
 public class BookmarkType {

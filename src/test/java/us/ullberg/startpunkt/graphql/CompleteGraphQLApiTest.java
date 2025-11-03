@@ -6,23 +6,19 @@ import static org.hamcrest.Matchers.*;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
-/**
- * Integration tests for the complete GraphQL API.
- * Tests query execution across all domains.
- */
+/** Integration tests for the complete GraphQL API. Tests query execution across all domains. */
 @QuarkusTest
 class CompleteGraphQLApiTest {
 
-  /**
-   * Helper method to format GraphQL query for REST Assured.
-   */
+  /** Helper method to format GraphQL query for REST Assured. */
   private String formatGraphQLQuery(String query) {
     return "{\"query\": \"" + query.replace("\n", " ").replace("\"", "\\\"") + "\"}";
   }
 
   @Test
   void testBookmarkGroupsQuery() {
-    String query = """
+    String query =
+        """
         {
           bookmarkGroups {
             name
@@ -46,7 +42,8 @@ class CompleteGraphQLApiTest {
 
   @Test
   void testConfigQuery() {
-    String query = """
+    String query =
+        """
         {
           config {
             version
@@ -76,7 +73,8 @@ class CompleteGraphQLApiTest {
 
   @Test
   void testThemeQuery() {
-    String query = """
+    String query =
+        """
         {
           theme {
             light {
@@ -104,7 +102,8 @@ class CompleteGraphQLApiTest {
 
   @Test
   void testTranslationsQuery() {
-    String query = """
+    String query =
+        """
         {
           translations(language: "en-US")
         }
@@ -123,7 +122,8 @@ class CompleteGraphQLApiTest {
   @Test
   void testCombinedQuery() {
     // Test that multiple queries can be fetched in a single request
-    String query = """
+    String query =
+        """
         {
           config {
             version

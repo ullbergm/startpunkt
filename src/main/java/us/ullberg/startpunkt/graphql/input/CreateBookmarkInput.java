@@ -4,9 +4,7 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.NonNull;
 
-/**
- * GraphQL input type for creating a bookmark.
- */
+/** GraphQL input type for creating a bookmark. */
 @Input("CreateBookmarkInput")
 @Description("Input for creating a new bookmark")
 public class CreateBookmarkInput {

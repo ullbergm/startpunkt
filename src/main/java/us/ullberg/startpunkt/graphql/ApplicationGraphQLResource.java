@@ -306,7 +306,9 @@ public class ApplicationGraphQLResource {
   @Description("Create a new application")
   @Timed(value = "graphql.mutation.createApplication")
   public ApplicationType createApplication(@NonNull @Name("input") CreateApplicationInput input) {
-    Log.debugf("GraphQL mutation: createApplication in namespace=%s, name=%s", input.namespace, input.resourceName);
+    Log.debugf(
+        "GraphQL mutation: createApplication in namespace=%s, name=%s",
+        input.namespace, input.resourceName);
 
     // Create ApplicationSpec from input
     ApplicationSpec spec = new ApplicationSpec();
@@ -323,7 +325,8 @@ public class ApplicationGraphQLResource {
     spec.setTags(input.tags);
 
     // Create application via service
-    Application created = applicationService.createApplication(input.namespace, input.resourceName, spec);
+    Application created =
+        applicationService.createApplication(input.namespace, input.resourceName, spec);
 
     // Invalidate cache
     invalidateApplicationCaches();
@@ -348,7 +351,9 @@ public class ApplicationGraphQLResource {
   @Description("Update an existing application")
   @Timed(value = "graphql.mutation.updateApplication")
   public ApplicationType updateApplication(@NonNull @Name("input") UpdateApplicationInput input) {
-    Log.debugf("GraphQL mutation: updateApplication in namespace=%s, name=%s", input.namespace, input.resourceName);
+    Log.debugf(
+        "GraphQL mutation: updateApplication in namespace=%s, name=%s",
+        input.namespace, input.resourceName);
 
     // Create ApplicationSpec from input
     ApplicationSpec spec = new ApplicationSpec();
@@ -365,7 +370,8 @@ public class ApplicationGraphQLResource {
     spec.setTags(input.tags);
 
     // Update application via service
-    Application updated = applicationService.updateApplication(input.namespace, input.resourceName, spec);
+    Application updated =
+        applicationService.updateApplication(input.namespace, input.resourceName, spec);
 
     // Invalidate cache
     invalidateApplicationCaches();
@@ -391,8 +397,7 @@ public class ApplicationGraphQLResource {
   @Description("Delete an application")
   @Timed(value = "graphql.mutation.deleteApplication")
   public Boolean deleteApplication(
-      @NonNull @Name("namespace") String namespace,
-      @NonNull @Name("name") String name) {
+      @NonNull @Name("namespace") String namespace, @NonNull @Name("name") String name) {
     Log.debugf("GraphQL mutation: deleteApplication in namespace=%s, name=%s", namespace, name);
 
     // Delete application via service
@@ -412,20 +417,18 @@ public class ApplicationGraphQLResource {
     return deleted;
   }
 
-  /**
-   * Invalidates the application caches.
-   */
+  /** Invalidates the application caches. */
   private void invalidateApplicationCaches() {
     Cache cache = cacheManager.getCache("getApps").orElse(null);
     if (cache != null) {
       cache.invalidateAll().await().indefinitely();
     }
-    
+
     cache = cacheManager.getCache("getAppsFiltered").orElse(null);
     if (cache != null) {
       cache.invalidateAll().await().indefinitely();
     }
-    
+
     cache = cacheManager.getCache("getApp").orElse(null);
     if (cache != null) {
       cache.invalidateAll().await().indefinitely();

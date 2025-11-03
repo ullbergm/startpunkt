@@ -12,8 +12,8 @@ import org.eclipse.microprofile.graphql.Query;
 import us.ullberg.startpunkt.service.I8nService;
 
 /**
- * GraphQL API resource for internationalization (i18n).
- * Provides queries for retrieving translations in different languages.
+ * GraphQL API resource for internationalization (i18n). Provides queries for retrieving
+ * translations in different languages.
  */
 @GraphQLApi
 @ApplicationScoped
@@ -40,9 +40,10 @@ public class I18nGraphQLResource {
   @Description("Retrieve translations for a specific language")
   @Timed(value = "graphql.query.translations")
   public String getTranslations(
-      @NonNull @Name("language") @Description("Language code (e.g., en-US, de-DE)") String language) {
+      @NonNull @Name("language") @Description("Language code (e.g., en-US, de-DE)")
+          String language) {
     Log.debugf("GraphQL query: translations for language=%s", language);
-    
+
     try {
       return i8nService.getTranslation(language);
     } catch (IOException e) {

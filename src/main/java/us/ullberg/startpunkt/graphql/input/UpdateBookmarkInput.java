@@ -4,9 +4,7 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.NonNull;
 
-/**
- * GraphQL input type for updating a bookmark.
- */
+/** GraphQL input type for updating a bookmark. */
 @Input("UpdateBookmarkInput")
 @Description("Input for updating an existing bookmark")
 public class UpdateBookmarkInput {

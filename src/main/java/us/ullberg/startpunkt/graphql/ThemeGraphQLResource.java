@@ -11,8 +11,8 @@ import us.ullberg.startpunkt.rest.Theme;
 import us.ullberg.startpunkt.rest.ThemeColors;
 
 /**
- * GraphQL API resource for theme configuration.
- * Provides queries for retrieving theme color schemes.
+ * GraphQL API resource for theme configuration. Provides queries for retrieving theme color
+ * schemes.
  */
 @GraphQLApi
 @ApplicationScoped
@@ -58,7 +58,7 @@ public class ThemeGraphQLResource {
   @Timed(value = "graphql.query.theme")
   public Theme getTheme() {
     Log.debug("GraphQL query: theme");
-    
+
     ThemeColors light =
         new ThemeColors(
             lightThemeBodyBg,

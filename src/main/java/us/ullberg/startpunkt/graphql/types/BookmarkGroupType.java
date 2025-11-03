@@ -5,10 +5,7 @@ import java.util.stream.Collectors;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Type;
 
-/**
- * GraphQL type for Bookmark Group.
- * Groups bookmarks by name.
- */
+/** GraphQL type for Bookmark Group. Groups bookmarks by name. */
 @Type("BookmarkGroup")
 @Description("A group of bookmarks, organized by custom grouping")
 public class BookmarkGroupType {
@@ -39,12 +36,16 @@ public class BookmarkGroupType {
    * @param group the BookmarkGroup to convert
    * @return BookmarkGroupType
    */
-  public static BookmarkGroupType fromBookmarkGroup(us.ullberg.startpunkt.objects.BookmarkGroup group) {
+  public static BookmarkGroupType fromBookmarkGroup(
+      us.ullberg.startpunkt.objects.BookmarkGroup group) {
     BookmarkGroupType type = new BookmarkGroupType();
     type.name = group.getName();
-    type.bookmarks = group.getBookmarks().stream()
-        .map(bm -> BookmarkType.fromResponse((us.ullberg.startpunkt.objects.BookmarkResponse) bm))
-        .collect(Collectors.toList());
+    type.bookmarks =
+        group.getBookmarks().stream()
+            .map(
+                bm ->
+                    BookmarkType.fromResponse((us.ullberg.startpunkt.objects.BookmarkResponse) bm))
+            .collect(Collectors.toList());
     return type;
   }
 }

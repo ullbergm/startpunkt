@@ -9,8 +9,8 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
 
 /**
- * GraphQL API resource for application configuration.
- * Provides queries for retrieving configuration settings.
+ * GraphQL API resource for application configuration. Provides queries for retrieving configuration
+ * settings.
  */
 @GraphQLApi
 @ApplicationScoped
@@ -50,9 +50,7 @@ public class ConfigGraphQLResource {
         new WebSocketConfig(websocketEnabled));
   }
 
-  /**
-   * Configuration response type.
-   */
+  /** Configuration response type. */
   public static class ConfigResponse {
     public String version;
     public WebConfig web;
@@ -65,9 +63,7 @@ public class ConfigGraphQLResource {
     }
   }
 
-  /**
-   * Web configuration type.
-   */
+  /** Web configuration type. */
   public static class WebConfig {
     public boolean showGithubLink;
     public boolean checkForUpdates;
@@ -83,9 +79,7 @@ public class ConfigGraphQLResource {
     }
   }
 
-  /**
-   * WebSocket configuration type.
-   */
+  /** WebSocket configuration type. */
   public static class WebSocketConfig {
     public boolean enabled;
 

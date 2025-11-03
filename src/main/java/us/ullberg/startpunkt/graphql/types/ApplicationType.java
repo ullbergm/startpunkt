@@ -3,10 +3,7 @@ package us.ullberg.startpunkt.graphql.types;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Type;
 
-/**
- * GraphQL type for Application data.
- * This is a pure DTO that does not extend from CRD classes.
- */
+/** GraphQL type for Application data. This is a pure DTO that does not extend from CRD classes. */
 @Type("Application")
 @Description("Application with runtime availability status and Kubernetes metadata")
 public class ApplicationType {
@@ -65,7 +62,8 @@ public class ApplicationType {
    * @param response the ApplicationResponse to convert
    * @return ApplicationType
    */
-  public static ApplicationType fromResponse(us.ullberg.startpunkt.objects.ApplicationResponse response) {
+  public static ApplicationType fromResponse(
+      us.ullberg.startpunkt.objects.ApplicationResponse response) {
     ApplicationType type = new ApplicationType();
     type.name = response.getName();
     type.group = response.getGroup();

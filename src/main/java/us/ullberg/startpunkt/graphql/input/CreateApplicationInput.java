@@ -4,9 +4,7 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.NonNull;
 
-/**
- * GraphQL input type for creating an application.
- */
+/** GraphQL input type for creating an application. */
 @Input("CreateApplicationInput")
 @Description("Input for creating a new application")
 public class CreateApplicationInput {

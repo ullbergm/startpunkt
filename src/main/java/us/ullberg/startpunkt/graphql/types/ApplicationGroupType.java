@@ -5,10 +5,7 @@ import java.util.stream.Collectors;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Type;
 
-/**
- * GraphQL type for Application Group.
- * Groups applications by name/namespace.
- */
+/** GraphQL type for Application Group. Groups applications by name/namespace. */
 @Type("ApplicationGroup")
 @Description("A group of applications, organized by namespace or custom grouping")
 public class ApplicationGroupType {
@@ -39,12 +36,17 @@ public class ApplicationGroupType {
    * @param group the ApplicationGroup to convert
    * @return ApplicationGroupType
    */
-  public static ApplicationGroupType fromApplicationGroup(us.ullberg.startpunkt.objects.ApplicationGroup group) {
+  public static ApplicationGroupType fromApplicationGroup(
+      us.ullberg.startpunkt.objects.ApplicationGroup group) {
     ApplicationGroupType type = new ApplicationGroupType();
     type.name = group.getName();
-    type.applications = group.getApplications().stream()
-        .map(app -> ApplicationType.fromResponse((us.ullberg.startpunkt.objects.ApplicationResponse) app))
-        .collect(Collectors.toList());
+    type.applications =
+        group.getApplications().stream()
+            .map(
+                app ->
+                    ApplicationType.fromResponse(
+                        (us.ullberg.startpunkt.objects.ApplicationResponse) app))
+            .collect(Collectors.toList());
     return type;
   }
 }

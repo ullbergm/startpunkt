@@ -4,9 +4,7 @@ import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.Input;
 import org.eclipse.microprofile.graphql.NonNull;
 
-/**
- * GraphQL input type for updating an application.
- */
+/** GraphQL input type for updating an application. */
 @Input("UpdateApplicationInput")
 @Description("Input for updating an existing application")
 public class UpdateApplicationInput {
