@@ -16,7 +16,7 @@ import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
 import { client } from './graphql/client';
 import { THEME_QUERY, TRANSLATIONS_QUERY, CONFIG_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
-import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION } from './graphql/mutations';
+import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
 
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
@@ -386,27 +386,63 @@ export function App() {
   };
 
   const handleSaveApp = async (namespace, name, spec) => {
-    const endpoint = editorMode === 'create' 
-      ? `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
-      : `/api/apps/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const method = editorMode === 'create' ? 'POST' : 'PUT';
-    
-    const response = await fetch(endpoint, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(spec),
-    });
+    try {
+      if (editorMode === 'create') {
+        // Use GraphQL create mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          appName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          iconColor: spec.iconColor,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location,
+          enabled: spec.enabled,
+          rootPath: spec.rootPath,
+          tags: spec.tags
+        };
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to save application');
+        const result = await client.mutation(CREATE_APPLICATION_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to create application');
+        }
+      } else {
+        // Use GraphQL update mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          appName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          iconColor: spec.iconColor,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location,
+          enabled: spec.enabled,
+          rootPath: spec.rootPath,
+          tags: spec.tags
+        };
+
+        const result = await client.mutation(UPDATE_APPLICATION_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to update application');
+        }
+      }
+
+      setShowAppEditor(false);
+      setEditingApp(null);
+      // Refresh data
+      setTimeout(() => fetchData(), 500);
+    } catch (error) {
+      console.error('Error saving application:', error);
+      throw error;
     }
-
-    setShowAppEditor(false);
-    setEditingApp(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
   };
 
   const handleDeleteApp = async (namespace, name) => {
@@ -453,27 +489,55 @@ export function App() {
   };
 
   const handleSaveBookmark = async (namespace, name, spec) => {
-    const endpoint = editorMode === 'create' 
-      ? `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`
-      : `/api/bookmarks/manage?namespace=${encodeURIComponent(namespace)}&name=${encodeURIComponent(name)}`;
-    
-    const method = editorMode === 'create' ? 'POST' : 'PUT';
-    
-    const response = await fetch(endpoint, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(spec),
-    });
+    try {
+      if (editorMode === 'create') {
+        // Use GraphQL create mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          bookmarkName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location
+        };
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Failed to save bookmark');
+        const result = await client.mutation(CREATE_BOOKMARK_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to create bookmark');
+        }
+      } else {
+        // Use GraphQL update mutation
+        const input = {
+          namespace,
+          name,  // This is the resource name
+          bookmarkName: spec.name,  // This is the display name
+          group: spec.group,
+          url: spec.url,
+          icon: spec.icon,
+          info: spec.info,
+          targetBlank: spec.targetBlank,
+          location: spec.location
+        };
+
+        const result = await client.mutation(UPDATE_BOOKMARK_MUTATION, { input }).toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message || 'Failed to update bookmark');
+        }
+      }
+
+      setShowBookmarkEditor(false);
+      setEditingBookmark(null);
+      // Refresh data
+      setTimeout(() => fetchData(), 500);
+    } catch (error) {
+      console.error('Error saving bookmark:', error);
+      throw error;
     }
-
-    setShowBookmarkEditor(false);
-    setEditingBookmark(null);
-    // Refresh data
-    setTimeout(() => fetchData(), 500);
   };
 
   const handleDeleteBookmark = async (namespace, name) => {
