@@ -35,10 +35,13 @@ export function Background() {
       // Fetch image via GraphQL - server-side caching and browser HTTP cache will handle performance
       const fetchBingImage = async () => {
         try {
-          const result = await client.query(BING_IMAGE_QUERY, {
-            width: window.screen.width,
-            height: window.screen.height
-          }).toPromise();
+          const result = await client.query({
+            query: BING_IMAGE_QUERY,
+            variables: {
+              width: window.screen.width,
+              height: window.screen.height
+            }
+          });
 
           if (result.data && result.data.bingImageOfDay) {
             setBingImageUrl(result.data.bingImageOfDay.imageUrl);

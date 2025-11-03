@@ -61,17 +61,6 @@ export const BING_IMAGE_QUERY = gql`
   }
 `;
 
-export const BING_IMAGE_QUERY = gql`
-  query GetBingImageOfDay($width: Int!, $height: Int!) {
-    bingImageOfDay(width: $width, height: $height) {
-      imageUrl
-      copyright
-      title
-      date
-    }
-  }
-`;
-
 export const APPLICATION_GROUPS_QUERY = gql`
   query GetApplicationGroups($tags: [String!]) {
     applicationGroups(tags: $tags) {
