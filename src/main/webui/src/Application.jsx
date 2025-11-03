@@ -103,6 +103,27 @@ export function Application(props) {
           aria-label={`${props.app.name}${props.app.info ? ` - ${props.app.info}` : ''}`}
         />
       )}
+      {editMode && onToggleFavorite && (
+        <button
+          onClick={handleToggleFavorite}
+          class="btn btn-sm btn-link"
+          style={{ 
+            position: 'absolute', 
+            top: '0.25rem',
+            right: '0.25rem',
+            zIndex: 10, 
+            padding: '0.25rem',
+            minWidth: 'auto',
+            lineHeight: 1,
+            color: isFavorite ? '#ffc107' : '#6c757d'
+          }}
+          aria-label={isFavorite ? `Remove ${props.app.name} from favorites` : `Add ${props.app.name} to favorites`}
+          aria-pressed={isFavorite}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Icon icon={isFavorite ? 'mdi:star' : 'mdi:star-outline'} width="20" height="20" />
+        </button>
+      )}
       {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
       <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
         <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
@@ -124,24 +145,6 @@ export function Application(props) {
           <span class="badge bg-warning text-dark mt-1" style={{ fontSize: '0.7rem' }} role="status">Unavailable</span>
         )}
       </div>
-      {editMode && onToggleFavorite && (
-        <button
-          onClick={handleToggleFavorite}
-          class="btn btn-sm btn-link ms-2"
-          style={{ 
-            position: 'relative', 
-            zIndex: 10, 
-            flexShrink: 0, 
-            padding: '0.25rem 0.5rem',
-            color: isFavorite ? '#ffc107' : '#6c757d'
-          }}
-          aria-label={isFavorite ? `Remove ${props.app.name} from favorites` : `Add ${props.app.name} to favorites`}
-          aria-pressed={isFavorite}
-          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          <Icon icon={isFavorite ? 'mdi:star' : 'mdi:star-outline'} width="20" height="20" />
-        </button>
-      )}
     </div>
   );
 }
