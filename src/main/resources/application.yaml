@@ -74,6 +74,12 @@ startpunkt:
     heartbeatInterval: 30s  # Heartbeat interval in seconds to keep connections alive (e.g., 60s, 5m, 1h)
     eventDebounceMs: 500  # Debounce time in milliseconds for events to prevent flooding
 
+  # GraphQL Subscription configuration for real-time updates
+  graphql:
+    subscription:
+      enabled: true  # If true, enable GraphQL subscriptions for real-time updates
+      # GraphQL subscriptions run alongside WebSocket for backward compatibility during migration
+
 # Quarkus configuration
 quarkus:
   # SmallRye GraphQL configuration

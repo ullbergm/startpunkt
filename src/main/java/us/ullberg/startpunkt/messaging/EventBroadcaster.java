@@ -1,12 +1,24 @@
 package us.ullberg.startpunkt.messaging;
 
 import io.quarkus.logging.Log;
+import io.quarkus.arc.Arc;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
+import us.ullberg.startpunkt.graphql.SubscriptionEventEmitter;
+import us.ullberg.startpunkt.graphql.types.ApplicationType;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
+import us.ullberg.startpunkt.graphql.types.BookmarkType;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
+import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
 import us.ullberg.startpunkt.websocket.WebSocketConnectionManager;
 import us.ullberg.startpunkt.websocket.WebSocketEventType;
 import us.ullberg.startpunkt.websocket.WebSocketMessage;
@@ -26,6 +38,9 @@ public class EventBroadcaster {
   @ConfigProperty(name = "startpunkt.websocket.enabled", defaultValue = "true")
   boolean websocketEnabled;
 
+  @ConfigProperty(name = "startpunkt.graphql.subscription.enabled", defaultValue = "true")
+  boolean subscriptionEnabled;
+
   @ConfigProperty(name = "startpunkt.websocket.eventDebounceMs", defaultValue = "500")
   long eventDebounceMs;
 
@@ -39,6 +54,20 @@ public class EventBroadcaster {
    */
   public EventBroadcaster(WebSocketConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
+  }
+
+  /**
+   * Get the subscription event emitter if available using Arc CDI container.
+   *
+   * @return the subscription event emitter or null if not available
+   */
+  private SubscriptionEventEmitter getSubscriptionEventEmitter() {
+    try {
+      return Arc.container().instance(SubscriptionEventEmitter.class).get();
+    } catch (Exception e) {
+      Log.debug("SubscriptionEventEmitter not available", e);
+      return null;
+    }
   }
 
   /**
@@ -96,6 +125,23 @@ public class EventBroadcaster {
    */
   public void broadcastApplicationAdded(Object applicationData) {
     broadcastEvent(WebSocketEventType.APPLICATION_ADDED, applicationData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          ApplicationType appType = convertToApplicationType(applicationData);
+          if (appType != null) {
+            ApplicationUpdateEvent event =
+                new ApplicationUpdateEvent(ApplicationUpdateType.ADDED, appType, Instant.now());
+            emitter.emitApplicationUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting application added event to subscriptions", e);
+        }
+      }
+    }
   }
 
   /**
@@ -105,6 +151,23 @@ public class EventBroadcaster {
    */
   public void broadcastApplicationRemoved(Object applicationData) {
     broadcastEvent(WebSocketEventType.APPLICATION_REMOVED, applicationData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          ApplicationType appType = convertToApplicationType(applicationData);
+          if (appType != null) {
+            ApplicationUpdateEvent event =
+                new ApplicationUpdateEvent(ApplicationUpdateType.REMOVED, appType, Instant.now());
+            emitter.emitApplicationUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting application removed event to subscriptions", e);
+        }
+      }
+    }
   }
 
   /**
@@ -114,6 +177,23 @@ public class EventBroadcaster {
    */
   public void broadcastApplicationUpdated(Object applicationData) {
     broadcastEvent(WebSocketEventType.APPLICATION_UPDATED, applicationData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          ApplicationType appType = convertToApplicationType(applicationData);
+          if (appType != null) {
+            ApplicationUpdateEvent event =
+                new ApplicationUpdateEvent(ApplicationUpdateType.UPDATED, appType, Instant.now());
+            emitter.emitApplicationUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting application updated event to subscriptions", e);
+        }
+      }
+    }
   }
 
   /**
@@ -141,6 +221,23 @@ public class EventBroadcaster {
    */
   public void broadcastBookmarkAdded(Object bookmarkData) {
     broadcastEvent(WebSocketEventType.BOOKMARK_ADDED, bookmarkData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+          if (bookmarkType != null) {
+            BookmarkUpdateEvent event =
+                new BookmarkUpdateEvent(BookmarkUpdateType.ADDED, bookmarkType, Instant.now());
+            emitter.emitBookmarkUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting bookmark added event to subscriptions", e);
+        }
+      }
+    }
   }
 
   /**
@@ -150,6 +247,23 @@ public class EventBroadcaster {
    */
   public void broadcastBookmarkRemoved(Object bookmarkData) {
     broadcastEvent(WebSocketEventType.BOOKMARK_REMOVED, bookmarkData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+          if (bookmarkType != null) {
+            BookmarkUpdateEvent event =
+                new BookmarkUpdateEvent(BookmarkUpdateType.REMOVED, bookmarkType, Instant.now());
+            emitter.emitBookmarkUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting bookmark removed event to subscriptions", e);
+        }
+      }
+    }
   }
 
   /**
@@ -159,5 +273,79 @@ public class EventBroadcaster {
    */
   public void broadcastBookmarkUpdated(Object bookmarkData) {
     broadcastEvent(WebSocketEventType.BOOKMARK_UPDATED, bookmarkData);
+
+    // Also emit to GraphQL subscriptions
+    if (subscriptionEnabled) {
+      SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();
+      if (emitter != null) {
+        try {
+          BookmarkType bookmarkType = convertToBookmarkType(bookmarkData);
+          if (bookmarkType != null) {
+            BookmarkUpdateEvent event =
+                new BookmarkUpdateEvent(BookmarkUpdateType.UPDATED, bookmarkType, Instant.now());
+            emitter.emitBookmarkUpdate(event);
+          }
+        } catch (Exception e) {
+          Log.error("Error emitting bookmark updated event to subscriptions", e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Converts application data to ApplicationType for GraphQL subscriptions.
+   *
+   * @param applicationData the application data (Application CRD or Map)
+   * @return ApplicationType or null if conversion fails
+   */
+  private ApplicationType convertToApplicationType(Object applicationData) {
+    if (applicationData == null) {
+      return null;
+    }
+
+    if (applicationData instanceof Application app) {
+      // Convert Application CRD to ApplicationResponse then to ApplicationType
+      ApplicationResponse response = new ApplicationResponse(app.getSpec());
+      response.setNamespace(app.getMetadata().getNamespace());
+      response.setResourceName(app.getMetadata().getName());
+      return ApplicationType.fromResponse(response);
+    } else if (applicationData instanceof Map) {
+      // For delete events, we get a Map with namespace and name
+      // We can't construct a full ApplicationType, so return null
+      // Subscriptions will need to handle REMOVED events differently
+      Log.debug("Cannot convert Map to ApplicationType for subscription");
+      return null;
+    }
+
+    Log.warnf("Unknown application data type for subscription: %s", applicationData.getClass());
+    return null;
+  }
+
+  /**
+   * Converts bookmark data to BookmarkType for GraphQL subscriptions.
+   *
+   * @param bookmarkData the bookmark data (Bookmark CRD or Map)
+   * @return BookmarkType or null if conversion fails
+   */
+  private BookmarkType convertToBookmarkType(Object bookmarkData) {
+    if (bookmarkData == null) {
+      return null;
+    }
+
+    if (bookmarkData instanceof Bookmark bookmark) {
+      // Convert Bookmark CRD to BookmarkResponse then to BookmarkType
+      BookmarkResponse response = new BookmarkResponse(bookmark.getSpec());
+      response.setNamespace(bookmark.getMetadata().getNamespace());
+      response.setResourceName(bookmark.getMetadata().getName());
+      return BookmarkType.fromResponse(response);
+    } else if (bookmarkData instanceof Map) {
+      // For delete events, we get a Map with namespace and name
+      // We can't construct a full BookmarkType, so return null
+      Log.debug("Cannot convert Map to BookmarkType for subscription");
+      return null;
+    }
+
+    Log.warnf("Unknown bookmark data type for subscription: %s", bookmarkData.getClass());
+    return null;
   }
 }
