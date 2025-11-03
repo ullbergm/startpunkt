@@ -96,6 +96,12 @@ quarkus:
     #   get:
     #     enabled: true
 
+  # Cache configuration
+  cache:
+    caffeine:
+      "bing-image-base-cache":
+        expire-after-write: 1H  # Cache Bing base URL data for 1 hour
+
 # Logging configuration (uncomment to enable debug logging)
 # quarkus:
 #   log:

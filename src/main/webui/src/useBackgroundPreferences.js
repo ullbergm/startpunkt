@@ -6,6 +6,7 @@ import GeoPattern from 'geopattern';
  * 
  * Background preferences include:
  * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern' | 'theme' | 'timeGradient' | 'meshGradient'
+ * - pictureProvider: 'picsum' | 'bing' (for pictureOfDay type)
  * - color: string (hex color)
  * - secondaryColor: string (hex color for gradients)
  * - gradientDirection: string (CSS gradient direction)
@@ -20,6 +21,7 @@ import GeoPattern from 'geopattern';
 
 const DEFAULT_PREFERENCES = {
   type: 'theme',
+  pictureProvider: 'bing', // 'bing' or 'picsum'
   color: '#F8F6F1',
   secondaryColor: '#FFFFFF',
   gradientDirection: 'to bottom right',
@@ -273,6 +275,19 @@ export function useBackgroundPreferences() {
             style.backgroundColor = baseColor;
           }
         }
+        break;
+      
+      case 'bingImageOfDay':
+        // Bing Image of the Day will be fetched asynchronously
+        // The actual image URL will be set by the Background component
+        // For now, set a placeholder style
+        style.backgroundSize = 'cover';
+        style.backgroundPosition = 'center';
+        style.backgroundRepeat = 'no-repeat';
+        if (preferences.blur) {
+          style.filter = 'blur(5px)';
+        }
+        style.opacity = opacity;
         break;
       
       case 'geopattern': {

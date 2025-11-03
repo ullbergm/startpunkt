@@ -34,7 +34,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs, onEdit } = props;
+  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite } = props;
   const isUnavailable = props.app.available === false;
   const isEditable = !props.app.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode;
@@ -77,6 +77,14 @@ export function Application(props) {
     }
   };
   
+  const handleToggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite(props.app);
+    }
+  };
+  
   // Standard card layout
   return (
     <div 
@@ -94,6 +102,27 @@ export function Application(props) {
           rel="external noopener noreferrer"
           aria-label={`${props.app.name}${props.app.info ? ` - ${props.app.info}` : ''}`}
         />
+      )}
+      {editMode && onToggleFavorite && (
+        <button
+          onClick={handleToggleFavorite}
+          class="btn btn-sm btn-link"
+          style={{ 
+            position: 'absolute', 
+            top: '0.25rem',
+            right: '0.25rem',
+            zIndex: 10, 
+            padding: '0.25rem',
+            minWidth: 'auto',
+            lineHeight: 1,
+            color: isFavorite ? '#ffc107' : '#6c757d'
+          }}
+          aria-label={isFavorite ? `Remove ${props.app.name} from favorites` : `Add ${props.app.name} to favorites`}
+          aria-pressed={isFavorite}
+          title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Icon icon={isFavorite ? 'mdi:star' : 'mdi:star-outline'} width="20" height="20" />
+        </button>
       )}
       {renderIcon(props.app.icon, props.app.iconColor, props.app.name, isUnavailable)}
       <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>

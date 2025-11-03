@@ -589,6 +589,7 @@
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-health</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-scheduler</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-messaging</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-graphql</ignoredUnusedDeclaredDependency>
 
                 <!-- Quarkiverse -->
                 <ignoredUnusedDeclaredDependency>io.quarkiverse.quinoa:quarkus-quinoa</ignoredUnusedDeclaredDependency>
@@ -604,12 +605,23 @@
                 <!-- Jackson -->
                 <ignoredUnusedDeclaredDependency>com.fasterxml.jackson.core:jackson-core</ignoredUnusedDeclaredDependency>
 
+                <!-- Test dependencies -->
+                <ignoredUnusedDeclaredDependency>io.smallrye:smallrye-graphql-client</ignoredUnusedDeclaredDependency>
+
+                <!-- API dependencies used indirectly -->
+                <ignoredUnusedDeclaredDependency>jakarta.ws.rs:jakarta.ws.rs-api</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.smallrye.common:smallrye-common-annotation</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus.resteasy.reactive:resteasy-reactive-common</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>org.eclipse.microprofile.openapi:microprofile-openapi-api</ignoredUnusedDeclaredDependency>
+
                 <!-- Explicitly used but Maven misses it -->
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
               <ignoredUsedUndeclaredDependencies>
                 <!-- Transitively provided by quarkus-scheduler -->
                 <ignoredUsedUndeclaredDependency>io.quarkus:quarkus-scheduler-api</ignoredUsedUndeclaredDependency>
+                <!-- Transitively provided by quarkus-smallrye-graphql -->
+                <ignoredUsedUndeclaredDependency>org.eclipse.microprofile.graphql:microprofile-graphql-api</ignoredUsedUndeclaredDependency>
               </ignoredUsedUndeclaredDependencies>
 
             </configuration>
