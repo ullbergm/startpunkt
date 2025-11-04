@@ -33,7 +33,6 @@ import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
 import { ContentOverlay } from './ContentOverlay';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
-import { PageSkeleton } from './components/Skeleton';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -195,11 +194,6 @@ export function App() {
       query: INIT_QUERY,
       variables: { language: lang, tags: tagsArray }
     }).then((result) => {
-        // Add 0.1 second delay to see skeleton loading state
-        return new Promise(resolve => {
-          setTimeout(() => resolve(result), 100);
-        });
-      }).then((result) => {
         if (result.data) {
           console.log('[INIT] Received data:', result.data);
           
@@ -421,7 +415,7 @@ export function App() {
     return "empty";
   };
 
-  const [currentPage, setCurrentPage] = useState("loading");
+  const [currentPage, setCurrentPage] = useState("empty");
 
   useEffect(() => {
     if (applicationGroups === null || bookmarkGroups === null) {
@@ -430,16 +424,15 @@ export function App() {
 
     const defaultPage = getDefaultPage();
 
-    if (currentPage === "loading") {
+    // Update page based on available content
+    if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+      setCurrentPage("bookmarks");
+    } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+      setCurrentPage("applications");
+    } else if (!hasApplications() && !hasBookmarks()) {
+      setCurrentPage("empty");
+    } else if (currentPage === "empty" && (hasApplications() || hasBookmarks())) {
       setCurrentPage(defaultPage);
-    } else {
-      if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
-        setCurrentPage("bookmarks");
-      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
-        setCurrentPage("applications");
-      } else if (currentPage !== "empty" && defaultPage === "empty") {
-        setCurrentPage("empty");
-      }
     }
   }, [applicationGroups, bookmarkGroups]);
 
@@ -740,11 +733,6 @@ export function App() {
         <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
           {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
-          {currentPage === "loading" && (
-            <div role="status" aria-live="polite" aria-label="Loading content">
-              <PageSkeleton type="applications" layoutPrefs={layoutPrefs} />
-            </div>
-          )}
           {currentPage === "empty" && (
             <div class="text-center" role="status">
               <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
