@@ -1,73 +1,13 @@
 /**
  * What's New Modal - Shows changelog when app version changes
  * Displays new features, improvements, and bug fixes for each version
+ * Fetches changelog from GitHub releases API
  */
 
 import { useEffect, useState } from 'preact/hooks';
 import { Text } from 'preact-i18n';
+import { getLatestRelease } from '../services/changelogService';
 import './WhatsNewModal.scss';
-
-/**
- * Changelog data structure
- * Add new versions at the top of the array
- */
-const CHANGELOG = [
-  {
-    version: '4.1.0',
-    date: '2025-11-03',
-    highlights: [
-      {
-        type: 'feature',
-        title: 'Tailwind-Inspired Skeleton Loading',
-        description: 'Beautiful shimmer animations during data loading with utility-first styling'
-      },
-      {
-        type: 'improvement',
-        title: 'Enhanced Form Validation',
-        description: 'Real-time field validation with visual feedback in application and bookmark editors'
-      },
-      {
-        type: 'improvement',
-        title: 'Improved Accessibility',
-        description: 'Better ARIA labels, keyboard navigation, and screen reader support'
-      }
-    ],
-    allChanges: [
-      'Added Tailwind CSS-inspired utility classes',
-      'Implemented skeleton loading components with shimmer animation',
-      'Real-time form validation with field-level error messages',
-      'Visual error states in all form inputs',
-      'Helper text for all form fields',
-      'Changed targetBlank default to false for security',
-      'Standardized class vs className usage across components',
-      'Enhanced dark mode support for skeleton loading',
-      'Improved high contrast mode accessibility',
-      'Support for reduced motion preferences'
-    ]
-  },
-  {
-    version: '4.0.0',
-    date: '2025-10-15',
-    highlights: [
-      {
-        type: 'feature',
-        title: 'GraphQL API',
-        description: 'New GraphQL endpoint with real-time subscriptions'
-      },
-      {
-        type: 'feature',
-        title: 'WebSocket Support',
-        description: 'Live updates without page refresh'
-      }
-    ],
-    allChanges: [
-      'Migrated from REST to GraphQL API',
-      'Added real-time updates via WebSocket subscriptions',
-      'Improved performance with optimized queries',
-      'Better error handling and retry logic'
-    ]
-  }
-];
 
 /**
  * Get stored last seen version from localStorage
@@ -132,9 +72,13 @@ function getChangeTypeIcon(type) {
 /**
  * What's New Modal Component
  */
-export function WhatsNewModal({ currentVersion, onClose }) {
+export function WhatsNewModal({ release, onClose }) {
   const [showDetails, setShowDetails] = useState(false);
-  const latestChangelog = CHANGELOG[0];
+  
+  // Show loading state if no release data
+  if (!release) {
+    return null;
+  }
   
   useEffect(() => {
     // Prevent body scroll when modal is open
@@ -145,7 +89,7 @@ export function WhatsNewModal({ currentVersion, onClose }) {
   }, []);
   
   const handleClose = () => {
-    setLastSeenVersion(currentVersion);
+    setLastSeenVersion(release.version);
     onClose();
   };
   
@@ -178,7 +122,7 @@ export function WhatsNewModal({ currentVersion, onClose }) {
               <Text id="whatsNew.title">What's New</Text>
             </h2>
             <p class="whats-new-version">
-              Version {latestChangelog.version} • {latestChangelog.date}
+              Version {release.version} • {release.date}
             </p>
           </div>
           <button
@@ -194,7 +138,7 @@ export function WhatsNewModal({ currentVersion, onClose }) {
         <div class="whats-new-content">
           {/* Highlights Section */}
           <div class="whats-new-highlights">
-            {latestChangelog.highlights.map((highlight, index) => (
+            {release.highlights.map((highlight, index) => (
               <div key={index} class="whats-new-highlight">
                 <div class="whats-new-highlight-icon">
                   {getChangeTypeIcon(highlight.type)}
@@ -216,13 +160,13 @@ export function WhatsNewModal({ currentVersion, onClose }) {
           >
             <span>{showDetails ? '▼' : '▶'}</span>
             <Text id="whatsNew.allChanges">All Changes</Text>
-            <span class="whats-new-badge">{latestChangelog.allChanges.length}</span>
+            <span class="whats-new-badge">{release.allChanges.length}</span>
           </button>
           
           {/* All Changes List */}
           {showDetails && (
             <ul class="whats-new-changes-list">
-              {latestChangelog.allChanges.map((change, index) => (
+              {release.allChanges.map((change, index) => (
                 <li key={index} class="whats-new-change-item">
                   <span class="whats-new-change-bullet">•</span>
                   {change}
@@ -248,33 +192,66 @@ export function WhatsNewModal({ currentVersion, onClose }) {
 
 /**
  * Hook to manage What's New modal state
+ * Fetches latest release from GitHub and determines if modal should show
  */
-export function useWhatsNew(currentVersion) {
+export function useWhatsNew() {
   const [shouldShow, setShouldShow] = useState(false);
+  const [latestRelease, setLatestRelease] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    if (!currentVersion) return;
-    
-    const lastSeenVersion = getLastSeenVersion();
-    
-    // Show modal if:
-    // 1. Never seen before (first time user)
-    // 2. Current version is newer than last seen version
-    if (isNewerVersion(currentVersion, lastSeenVersion)) {
-      // Small delay to let the app load first
-      const timer = setTimeout(() => {
-        setShouldShow(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+    async function checkForNewVersion() {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch latest release from GitHub
+        const release = await getLatestRelease();
+        
+        if (!release) {
+          console.warn('No release data available');
+          setLoading(false);
+          return;
+        }
+        
+        setLatestRelease(release);
+        
+        const lastSeenVersion = getLastSeenVersion();
+        const currentVersion = release.version;
+        
+        // Show modal if:
+        // 1. Never seen before (first time user)
+        // 2. Current version is newer than last seen version
+        if (isNewerVersion(currentVersion, lastSeenVersion)) {
+          // Small delay to let the app load first
+          setTimeout(() => {
+            setShouldShow(true);
+          }, 1000);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to check for new version:', err);
+        setError(err.message);
+        setLoading(false);
+      }
     }
-  }, [currentVersion]);
+    
+    checkForNewVersion();
+  }, []);
   
   const hideModal = () => {
     setShouldShow(false);
   };
   
-  return { shouldShow, hideModal };
+  return { 
+    shouldShow, 
+    latestRelease, 
+    loading, 
+    error, 
+    hideModal 
+  };
 }
 
 export default WhatsNewModal;

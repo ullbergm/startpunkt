@@ -23,7 +23,7 @@ import { useSubscription } from './graphql/useSubscription';
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
 
-import startpunktLogo from './assets/logo.png';
+import startpunktLogo from './assets/logo.svg';
 import './app.scss';
 
 import { ApplicationGroupList } from './ApplicationGroupList';
@@ -147,7 +147,7 @@ export function App() {
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
 
   // What's New modal
-  const { shouldShow: showWhatsNew, hideModal: hideWhatsNew } = useWhatsNew(version);
+  const { shouldShow: showWhatsNew, latestRelease, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -825,9 +825,9 @@ export function App() {
       )}
 
       {/* What's New Modal */}
-      {showWhatsNew && (
+      {showWhatsNew && latestRelease && (
         <WhatsNewModal
-          currentVersion={version}
+          release={latestRelease}
           onClose={hideWhatsNew}
         />
       )}
