@@ -108,6 +108,15 @@ export const BOOKMARK_GROUPS_QUERY = gql`
 
 // Combined initialization query - fetches all required data in one request
 // This reduces the number of round trips from 5 to 1, improving initial page load performance
+export const ICONIFY_SEARCH_QUERY = gql`
+  query SearchIcons($query: String!, $limit: Int) {
+    searchIcons(query: $query, limit: $limit) {
+      icons
+      total
+    }
+  }
+`;
+
 export const INIT_QUERY = gql`
   query InitApp($language: String!, $tags: [String!]) {
     config {

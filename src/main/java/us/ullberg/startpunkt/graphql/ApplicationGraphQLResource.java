@@ -1,6 +1,7 @@
 package us.ullberg.startpunkt.graphql;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
@@ -21,6 +22,7 @@ import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
+import us.ullberg.startpunkt.graphql.exception.ApplicationConflictException;
 import us.ullberg.startpunkt.graphql.input.CreateApplicationInput;
 import us.ullberg.startpunkt.graphql.input.UpdateApplicationInput;
 import us.ullberg.startpunkt.graphql.types.ApplicationGroupType;
@@ -332,21 +334,36 @@ public class ApplicationGraphQLResource {
     spec.setRootPath(input.rootPath);
     spec.setTags(input.tags);
 
-    // Create application via service
-    Application created =
-        applicationService.createApplication(input.namespace, input.resourceName, spec);
+    try {
+      // Create application via service
+      Application created =
+          applicationService.createApplication(input.namespace, input.resourceName, spec);
 
-    // Invalidate cache
-    invalidateApplicationCaches();
+      // Invalidate cache
+      invalidateApplicationCaches();
 
-    // Broadcast event
-    eventBroadcaster.broadcastApplicationAdded(created);
+      // Broadcast event
+      eventBroadcaster.broadcastApplicationAdded(created);
 
-    // Convert to GraphQL type
-    ApplicationResponse response = new ApplicationResponse(spec);
-    response.setNamespace(input.namespace);
-    response.setResourceName(input.resourceName);
-    return ApplicationType.fromResponse(response);
+      // Convert to GraphQL type
+      ApplicationResponse response = new ApplicationResponse(spec);
+      response.setNamespace(input.namespace);
+      response.setResourceName(input.resourceName);
+      return ApplicationType.fromResponse(response);
+    } catch (KubernetesClientException e) {
+      if (e.getCode() == 409) {
+        String message =
+            String.format(
+                "An application with the name '%s' already exists in namespace '%s'. Please use a"
+                    + " different resource name.",
+                input.resourceName, input.namespace);
+        Log.warnf("Conflict creating application: %s", message);
+        throw new ApplicationConflictException(message, e);
+      }
+      // Re-throw other Kubernetes errors
+      Log.errorf(e, "Failed to create application: %s", e.getMessage());
+      throw new RuntimeException("Failed to create application: " + e.getMessage(), e);
+    }
   }
 
   /**

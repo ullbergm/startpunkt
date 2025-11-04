@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Text } from 'preact-i18n';
+import { Toggle } from './components/Toggle';
+import { IconPicker } from './components/IconPicker';
 
 /**
  * Modal editor component for creating and editing Bookmark CRDs.
@@ -104,8 +106,8 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
   };
 
   return (
-    <div class="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1" role="dialog" aria-labelledby="bookmarkEditorTitle" aria-modal="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1050, overflowY: 'auto' }} tabIndex="-1" role="dialog" aria-labelledby="bookmarkEditorTitle" aria-modal="true">
+      <div class="modal-dialog modal-lg" role="document" style={{ margin: '1.75rem auto' }}>
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="bookmarkEditorTitle">
@@ -123,37 +125,50 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
                 </div>
               )}
 
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label htmlFor="namespace" class="form-label">Namespace *</label>
-                  <input
-                    type="text"
-                    class={`form-control ${errors.namespace ? 'is-invalid' : ''}`}
-                    id="namespace"
-                    value={formData.namespace}
-                    onInput={(e) => updateField('namespace', e.target.value)}
-                    disabled={mode === 'edit' || isReadOnly}
-                    aria-required="true"
-                    aria-invalid={!!errors.namespace}
-                  />
-                  {errors.namespace && <div class="invalid-feedback">{errors.namespace}</div>}
+              {/* Kubernetes Resource Information */}
+              <div class="mb-4">
+                <h6 class="text-muted text-uppercase mb-3" style={{ fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
+                  Kubernetes Resource
+                </h6>
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label htmlFor="namespace" class="form-label">Namespace *</label>
+                    <input
+                      type="text"
+                      class={`form-control ${errors.namespace ? 'is-invalid' : ''}`}
+                      id="namespace"
+                      value={formData.namespace}
+                      onInput={(e) => updateField('namespace', e.target.value)}
+                      disabled={mode === 'edit' || isReadOnly}
+                      aria-required="true"
+                      aria-invalid={!!errors.namespace}
+                    />
+                    {errors.namespace && <div class="invalid-feedback">{errors.namespace}</div>}
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label htmlFor="resourceName" class="form-label">Resource Name *</label>
+                    <input
+                      type="text"
+                      class={`form-control ${errors.resourceName ? 'is-invalid' : ''}`}
+                      id="resourceName"
+                      value={formData.resourceName}
+                      onInput={(e) => updateField('resourceName', e.target.value)}
+                      disabled={mode === 'edit' || isReadOnly}
+                      aria-required="true"
+                      aria-invalid={!!errors.resourceName}
+                    />
+                    {errors.resourceName && <div class="invalid-feedback">{errors.resourceName}</div>}
+                    <small class="form-text text-muted">Kubernetes resource name (lowercase, no spaces)</small>
+                  </div>
                 </div>
-                
-                <div class="col-md-6">
-                  <label htmlFor="resourceName" class="form-label">Resource Name *</label>
-                  <input
-                    type="text"
-                    class={`form-control ${errors.resourceName ? 'is-invalid' : ''}`}
-                    id="resourceName"
-                    value={formData.resourceName}
-                    onInput={(e) => updateField('resourceName', e.target.value)}
-                    disabled={mode === 'edit' || isReadOnly}
-                    aria-required="true"
-                    aria-invalid={!!errors.resourceName}
-                  />
-                  {errors.resourceName && <div class="invalid-feedback">{errors.resourceName}</div>}
-                  <small class="form-text text-muted">Kubernetes resource name (lowercase, no spaces)</small>
-                </div>
+              </div>
+
+              {/* Bookmark Information */}
+              <div class="mb-3">
+                <h6 class="text-muted text-uppercase mb-3" style={{ fontSize: '0.875rem', fontWeight: 600, letterSpacing: '0.05em' }}>
+                  Bookmark Details
+                </h6>
               </div>
 
               <div class="mb-3">
@@ -202,19 +217,13 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
                 {errors.url && <div class="invalid-feedback">{errors.url}</div>}
               </div>
 
-              <div class="mb-3">
-                <label htmlFor="icon" class="form-label">Icon</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="icon"
-                  value={formData.icon}
-                  onInput={(e) => updateField('icon', e.target.value)}
-                  disabled={isReadOnly}
-                  placeholder="mdi:bookmark or https://..."
-                />
-                <small class="form-text text-muted">Icon name (e.g., mdi:bookmark) or URL</small>
-              </div>
+              <IconPicker
+                id="icon"
+                label="Icon"
+                value={formData.icon}
+                onChange={(value) => updateField('icon', value)}
+                disabled={isReadOnly}
+              />
 
               <div class="mb-3">
                 <label htmlFor="info" class="form-label">Description</label>
@@ -242,18 +251,15 @@ export function BookmarkEditor({ bookmark, onSave, onCancel, onDelete, mode = 'c
                 </div>
                 
                 <div class="col-md-6">
-                  <div class="form-check mt-4">
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
+                  <label class="form-label d-block">&nbsp;</label>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <Toggle
                       id="targetBlank"
+                      label="Open in new tab"
                       checked={formData.targetBlank}
-                      onChange={(e) => updateField('targetBlank', e.target.checked)}
+                      onChange={(checked) => updateField('targetBlank', checked)}
                       disabled={isReadOnly}
                     />
-                    <label class="form-check-label" htmlFor="targetBlank">
-                      Open in new tab
-                    </label>
                   </div>
                 </div>
               </div>
