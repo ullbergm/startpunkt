@@ -52,7 +52,7 @@ export function AccessibilitySettings() {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-accessibility-toggle" style="margin-right: 0.75rem !important;">
+      <div class="dropdown bd-accessibility-toggle">
         <button 
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-accessibility" 
@@ -70,7 +70,7 @@ export function AccessibilitySettings() {
         <div 
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-accessibility-text"
-          style="min-width: 250px;"
+          style="width: 275px; max-height: 80vh; overflow-y: auto;"
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">

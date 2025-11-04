@@ -317,5 +317,106 @@ describe('ApplicationGroup component', () => {
       // Check that cursor is set to move
       expect(listItems[0].style.cursor).toBe('move');
     });
+
+    test('uses dynamic column count for favorites based on number of items', () => {
+      const onReorderFavorites = jest.fn();
+      const threeApps = [apps[0], apps[1], { ...apps[0], name: 'App Three' }];
+      const { container } = render(
+        <ApplicationGroup 
+          group={null}
+          applications={threeApps} 
+          isCollapsed={false}
+          isFavorites={true}
+          layoutPrefs={layoutPrefs}
+          onReorderFavorites={onReorderFavorites}
+        />
+      );
+      
+      const grid = container.querySelector('.application-grid');
+      // With 3 favorites and columnCount 5, should use 3 columns
+      expect(grid.style.gridTemplateColumns).toBe('repeat(3, 1fr)');
+    });
+
+    test('caps favorites columns at configured column count', () => {
+      const onReorderFavorites = jest.fn();
+      const sixApps = [
+        ...apps,
+        { ...apps[0], name: 'App Three' },
+        { ...apps[0], name: 'App Four' },
+        { ...apps[0], name: 'App Five' },
+        { ...apps[0], name: 'App Six' }
+      ];
+      const { container } = render(
+        <ApplicationGroup 
+          group={null}
+          applications={sixApps} 
+          isCollapsed={false}
+          isFavorites={true}
+          layoutPrefs={layoutPrefs}
+          onReorderFavorites={onReorderFavorites}
+        />
+      );
+      
+      const grid = container.querySelector('.application-grid');
+      // With 6 favorites but columnCount 5, should cap at 5 columns
+      expect(grid.style.gridTemplateColumns).toBe('repeat(5, 1fr)');
+    });
+
+    test('centers favorites grid with justify-content', () => {
+      const onReorderFavorites = jest.fn();
+      const { container } = render(
+        <ApplicationGroup 
+          group={null}
+          applications={apps} 
+          isCollapsed={false}
+          isFavorites={true}
+          layoutPrefs={layoutPrefs}
+          onReorderFavorites={onReorderFavorites}
+        />
+      );
+      
+      const grid = container.querySelector('.application-grid');
+      // Favorites should have centered justification
+      expect(grid.style.justifyContent).toBe('center');
+    });
+  });
+
+  describe('regular groups use configured column count', () => {
+    const layoutPrefs = {
+      preferences: { compactMode: false, columnCount: 5 },
+      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' })
+    };
+
+    test('regular groups use full configured column count', () => {
+      const { container } = render(
+        <ApplicationGroup 
+          group="Regular Group"
+          applications={apps} 
+          isCollapsed={false}
+          isFavorites={false}
+          layoutPrefs={layoutPrefs}
+        />
+      );
+      
+      const grid = container.querySelector('.application-grid');
+      // Regular groups should always use the configured columnCount
+      expect(grid.style.gridTemplateColumns).toBe('repeat(5, 1fr)');
+    });
+
+    test('regular groups have start justification', () => {
+      const { container } = render(
+        <ApplicationGroup 
+          group="Regular Group"
+          applications={apps} 
+          isCollapsed={false}
+          isFavorites={false}
+          layoutPrefs={layoutPrefs}
+        />
+      );
+      
+      const grid = container.querySelector('.application-grid');
+      // Regular groups should have start justification (not centered)
+      expect(grid.style.justifyContent).toBe('start');
+    });
   });
 });

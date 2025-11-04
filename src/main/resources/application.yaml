@@ -91,6 +91,7 @@ quarkus:
       enabled: true  # Enable tracing for GraphQL queries
     schema-include-directives: true  # Include directives in schema
     error-extension-fields: ["classification", "code"]  # Include error details in response
+    show-runtime-exception-message: ["us.ullberg.startpunkt.graphql.exception.ApplicationConflictException", "us.ullberg.startpunkt.graphql.exception.BookmarkConflictException"]  # Show exception messages for our custom exceptions
     # DO NOT enable GET - it causes issues with named operations
     # http:
     #   get:

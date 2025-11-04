@@ -33,7 +33,7 @@ export function LayoutSettings({ layoutPrefs }) {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-layout-toggle" style="margin-right: 4.5rem !important;">
+      <div class="dropdown bd-layout-toggle">
         <button 
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-layout" 
@@ -51,7 +51,7 @@ export function LayoutSettings({ layoutPrefs }) {
         <div 
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-layout-text"
-          style="max-width: 300px; max-height: 80vh; overflow-y: auto;"
+          style="width: 275px; max-height: 80vh; overflow-y: auto;"
           onClick={(e) => e.stopPropagation()}
         >
           <div class="px-3 py-2">

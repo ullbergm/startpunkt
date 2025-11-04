@@ -1,5 +1,6 @@
 package us.ullberg.startpunkt.graphql;
 
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
 import io.quarkus.cache.CacheManager;
@@ -20,6 +21,7 @@ import org.eclipse.microprofile.graphql.NonNull;
 import org.eclipse.microprofile.graphql.Query;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
+import us.ullberg.startpunkt.graphql.exception.BookmarkConflictException;
 import us.ullberg.startpunkt.graphql.input.CreateBookmarkInput;
 import us.ullberg.startpunkt.graphql.input.UpdateBookmarkInput;
 import us.ullberg.startpunkt.graphql.types.BookmarkGroupType;
@@ -131,20 +133,36 @@ public class BookmarkGraphQLResource {
             input.targetBlank,
             input.location != null ? input.location : 1000);
 
-    // Create bookmark via management service
-    Bookmark created = bookmarkManagementService.createBookmark(input.namespace, input.name, spec);
+    try {
+      // Create bookmark via management service
+      Bookmark created =
+          bookmarkManagementService.createBookmark(input.namespace, input.name, spec);
 
-    // Invalidate cache
-    invalidateBookmarkCache();
+      // Invalidate cache
+      invalidateBookmarkCache();
 
-    // Broadcast event
-    eventBroadcaster.broadcastBookmarkAdded(created);
+      // Broadcast event
+      eventBroadcaster.broadcastBookmarkAdded(created);
 
-    // Convert to GraphQL type
-    BookmarkResponse response = new BookmarkResponse(spec);
-    response.setNamespace(input.namespace);
-    response.setResourceName(input.name);
-    return BookmarkType.fromResponse(response);
+      // Convert to GraphQL type
+      BookmarkResponse response = new BookmarkResponse(spec);
+      response.setNamespace(input.namespace);
+      response.setResourceName(input.name);
+      return BookmarkType.fromResponse(response);
+    } catch (KubernetesClientException e) {
+      if (e.getCode() == 409) {
+        String message =
+            String.format(
+                "A bookmark with the name '%s' already exists in namespace '%s'. Please use a"
+                    + " different resource name.",
+                input.name, input.namespace);
+        Log.warnf("Conflict creating bookmark: %s", message);
+        throw new BookmarkConflictException(message, e);
+      }
+      // Re-throw other Kubernetes errors
+      Log.errorf(e, "Failed to create bookmark: %s", e.getMessage());
+      throw new RuntimeException("Failed to create bookmark: " + e.getMessage(), e);
+    }
   }
 
   /**

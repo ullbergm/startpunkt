@@ -124,5 +124,10 @@
             "bookmark" : "Bookmark",
             "app" : "App"
         }
+    },
+    "whatsNew" : {
+        "title" : "What's New",
+        "allChanges" : "All Changes",
+        "gotIt" : "Got it, thanks!"
     }
 }

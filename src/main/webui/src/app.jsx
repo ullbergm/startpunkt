@@ -13,6 +13,8 @@ import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
+import { WhatsNewModal, useWhatsNew } from './components/WhatsNewModal';
+import { getLatestRelease } from './services/changelogService';
 import { client, setOnPingCallback } from './graphql/client';
 import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
@@ -22,7 +24,7 @@ import { useSubscription } from './graphql/useSubscription';
 // This is required for Bootstrap to work
 import * as bootstrap from 'bootstrap'
 
-import startpunktLogo from './assets/logo.png';
+import startpunktLogo from './assets/logo.svg';
 import './app.scss';
 
 import { ApplicationGroupList } from './ApplicationGroupList';
@@ -144,6 +146,30 @@ export function App() {
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
+
+  // What's New modal
+  const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
+  const [manualShowWhatsNew, setManualShowWhatsNew] = useState(false);
+  const [manualReleases, setManualReleases] = useState(null);
+  
+  const openChangelog = async () => {
+    // Fetch the current version (latest release) to show in the modal
+    try {
+      const latestRelease = await getLatestRelease();
+      setManualReleases([latestRelease]);
+      setManualShowWhatsNew(true);
+    } catch (error) {
+      console.error('Failed to fetch latest release for changelog:', error);
+      // Fall back to showing whatever releases we have
+      setManualShowWhatsNew(true);
+    }
+  };
+  
+  const closeChangelog = () => {
+    setManualShowWhatsNew(false);
+    setManualReleases(null);
+    hideWhatsNew(); // Also hide the automatic modal if it's showing
+  };
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -412,7 +438,7 @@ export function App() {
     return "empty";
   };
 
-  const [currentPage, setCurrentPage] = useState("loading");
+  const [currentPage, setCurrentPage] = useState("empty");
 
   useEffect(() => {
     if (applicationGroups === null || bookmarkGroups === null) {
@@ -421,16 +447,15 @@ export function App() {
 
     const defaultPage = getDefaultPage();
 
-    if (currentPage === "loading") {
+    // Update page based on available content
+    if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+      setCurrentPage("bookmarks");
+    } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+      setCurrentPage("applications");
+    } else if (!hasApplications() && !hasBookmarks()) {
+      setCurrentPage("empty");
+    } else if (currentPage === "empty" && (hasApplications() || hasBookmarks())) {
       setCurrentPage(defaultPage);
-    } else {
-      if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
-        setCurrentPage("bookmarks");
-      } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
-        setCurrentPage("applications");
-      } else if (currentPage !== "empty" && defaultPage === "empty") {
-        setCurrentPage("empty");
-      }
     }
   }, [applicationGroups, bookmarkGroups]);
 
@@ -700,17 +725,24 @@ export function App() {
       <Background />
       <ContentOverlay />
       <PreferenceButtonsStyler />
-      <AccessibilitySettings />
-      <LayoutSettings layoutPrefs={layoutPrefs} />
-      <BackgroundSettings />
-      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
       
-      {/* Show subscription status indicator */}
-      {subscriptionsEnabled && (
-        <WebSocketHeartIndicator 
-          websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
-        />
-      )}
+      {/* Preference buttons container - horizontal layout */}
+      <div class="position-fixed bottom-0 end-0 mb-3 me-3 d-flex gap-2 align-items-center" style="z-index: 1000;">
+        <BackgroundSettings />
+        <LayoutSettings layoutPrefs={layoutPrefs} />
+        <AccessibilitySettings />
+        {/* Show subscription status indicator */}
+        {subscriptionsEnabled && (
+          <div class="bd-websocket-heart">
+            <WebSocketHeartIndicator 
+              websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
+              onClick={openChangelog}
+            />
+          </div>
+        )}
+      </div>
+      
+      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
@@ -732,13 +764,6 @@ export function App() {
         <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
           {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
-          {currentPage === "loading" && (
-            <div class="text-center" role="status" aria-live="polite">
-              <h1 class="display-4"><Text id="home.loading">Loading...</Text></h1>
-              <p class="lead"><Text id="home.checkingForItems">Checking for configured applications and bookmarks...</Text></p>
-              <p><Text id="home.noItemsHelp">If none are found, you can add them to get started.</Text></p>
-            </div>
-          )}
           {currentPage === "empty" && (
             <div class="text-center" role="status">
               <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
@@ -815,6 +840,14 @@ export function App() {
           onCancel={() => { setShowBookmarkEditor(false); setEditingBookmark(null); }}
           onDelete={handleDeleteBookmark}
           mode={editorMode}
+        />
+      )}
+
+      {/* What's New Modal */}
+      {(showWhatsNew || manualShowWhatsNew) && (
+        <WhatsNewModal
+          releases={manualShowWhatsNew && manualReleases ? manualReleases : releases}
+          onClose={closeChangelog}
         />
       )}
     </IntlProvider>

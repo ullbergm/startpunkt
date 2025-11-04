@@ -1,0 +1,114 @@
+.color-picker-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.color-picker-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.color-preview-button {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.375rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--bs-primary, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--bs-primary, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.color-preview-swatch {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.color-picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  margin-top: 0.25rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+}
+
+.color-picker-presets {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.color-preset-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--bs-primary, #0d6efd);
+    transform: scale(1.1);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--bs-primary, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+}
+
+.color-selected-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.color-picker-custom {
+  padding-top: 1rem;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+
+  .form-label {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control-color {
+    width: 100%;
+    height: 40px;
+  }
+}

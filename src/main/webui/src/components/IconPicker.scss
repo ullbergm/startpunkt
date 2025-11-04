@@ -1,0 +1,116 @@
+.icon-picker-container {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.icon-picker-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.375rem;
+  background: white;
+
+  .icon-preview-iconify {
+    font-size: 24px;
+    color: var(--bs-body-color, #212529);
+  }
+
+  .icon-preview-image {
+    max-width: 32px;
+    max-height: 32px;
+    object-fit: contain;
+  }
+
+  .icon-preview-placeholder {
+    font-size: 20px;
+    color: #6c757d;
+  }
+}
+
+.icon-picker-spinner {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  color: #6c757d;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+.icon-picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin-top: 0.25rem;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.icon-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover,
+  &.selected {
+    background-color: #e9ecef;
+  }
+
+  &:focus {
+    outline: none;
+    background-color: #e9ecef;
+  }
+}
+
+.icon-option-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  color: var(--bs-body-color, #212529);
+  flex-shrink: 0;
+}
+
+.icon-option-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--bs-body-color, #212529);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

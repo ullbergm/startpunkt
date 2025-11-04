@@ -8,17 +8,27 @@ export function ApplicationGroup(props) {
   
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
-  const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(5, 1fr)';
+  const configuredColumnCount = layoutPrefs?.preferences.columnCount || 5;
+  
+  // For favorites, use the number of favorites as column count (capped at configured max)
+  const favoriteCount = isFavorites ? (props.applications?.length || 0) : 0;
+  const effectiveColumnCount = isFavorites 
+    ? Math.min(favoriteCount, configuredColumnCount)
+    : configuredColumnCount;
+  
+  const gridTemplate = `repeat(${effectiveColumnCount}, 1fr)`;
   
   // Determine padding class based on compact mode
   const paddingClass = layoutPrefs?.preferences.compactMode ? 'py-3' : 'py-5';
   
   // Use CSS Grid with responsive columns
   // The gridTemplateColumns will be overridden by CSS media queries for mobile
+  // For favorites, center the grid and ensure items look normal
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: gridTemplate,
     gap: cssVars['--card-gap'] || '1rem',
+    justifyContent: isFavorites ? 'center' : 'start',
     ...cssVars
   };
 
