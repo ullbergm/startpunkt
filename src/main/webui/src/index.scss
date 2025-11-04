@@ -1,7 +1,7 @@
 :root {
-  --color-background: #F8F6F1;
-  --color-text-pri: #4C432E;
-  --color-text-acc: #AA9A73;
+  --color-background: #232530;
+  --color-text-pri: #FAB795;
+  --color-text-acc: #E95678;
 
   font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Roboto, sans-serif;
 
@@ -142,6 +142,10 @@ body.high-contrast *:focus-visible {
   outline-offset: 3px;
 }
 
+/* Disabled prefers-color-scheme media query to prevent white flash on page load.
+   Theme colors are now controlled entirely by JavaScript in app.jsx ThemeApplier component.
+   This prevents the CSS from applying a white background before JS loads. */
+/*
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -154,6 +158,7 @@ body.high-contrast *:focus-visible {
     background-color: #f9f9f9;
   }
 }
+*/
 
 
 .bd-placeholder-img {
