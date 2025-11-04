@@ -3,6 +3,7 @@ us.ullberg.startpunkt.crd.v1alpha2
 us.ullberg.startpunkt.crd.v1alpha3
 us.ullberg.startpunkt.crd.v1alpha4
 us.ullberg.startpunkt.graphql
+us.ullberg.startpunkt.graphql.exception
 us.ullberg.startpunkt.graphql.input
 us.ullberg.startpunkt.graphql.types
 us.ullberg.startpunkt.health

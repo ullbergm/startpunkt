@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IconifyGraphQLResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.graphql</a> &gt; <span class="el_source">IconifyGraphQLResource.java</span></div><h1>IconifyGraphQLResource.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.graphql;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.annotation.Timed;
+import io.quarkus.cache.CacheResult;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.MediaType;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.Query;
+
+/**
+ * GraphQL API resource for Iconify icon search. Proxies requests to the Iconify API to avoid CORS
+ * issues.
+ */
+@GraphQLApi
+@ApplicationScoped
+public class IconifyGraphQLResource {
+
+  private static final String ICONIFY_API_URL = &quot;https://api.iconify.design/search&quot;;
+  private static final int DEFAULT_LIMIT = 20;
+  private static final int MAX_LIMIT = 100;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
+
+  /** Constructor for IconifyGraphQLResource. Initializes HTTP client and JSON object mapper. */
+<span class="nc" id="L39">  public IconifyGraphQLResource() {</span>
+<span class="nc" id="L40">    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();</span>
+<span class="nc" id="L41">    this.objectMapper = new ObjectMapper();</span>
+<span class="nc" id="L42">  }</span>
+
+  /**
+   * Search for icons using the Iconify API.
+   *
+   * @param query The search query
+   * @param limit Maximum number of results (default: 20, max: 100)
+   * @return List of icon identifiers (e.g., &quot;mdi:home&quot;, &quot;fa:star&quot;)
+   */
+  @Query(&quot;searchIcons&quot;)
+  @Description(&quot;Search for icons from Iconify&quot;)
+  @Timed(value = &quot;iconify.search&quot;, description = &quot;Time spent searching icons&quot;)
+  @CacheResult(cacheName = &quot;iconify-search-cache&quot;)
+  public IconSearchResult searchIcons(@Name(&quot;query&quot;) String query, @Name(&quot;limit&quot;) Integer limit) {
+
+<span class="nc bnc" id="L57" title="All 4 branches missed.">    if (query == null || query.trim().isEmpty()) {</span>
+<span class="nc" id="L58">      Log.debug(&quot;Empty search query provided&quot;);</span>
+<span class="nc" id="L59">      return new IconSearchResult(new ArrayList&lt;&gt;(), 0);</span>
+    }
+
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    int actualLimit = limit != null ? Math.min(limit, MAX_LIMIT) : DEFAULT_LIMIT;</span>
+
+    try {
+<span class="nc" id="L65">      String encodedQuery = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8);</span>
+<span class="nc" id="L66">      String url =</span>
+<span class="nc" id="L67">          String.format(&quot;%s?query=%s&amp;limit=%d&quot;, ICONIFY_API_URL, encodedQuery, actualLimit);</span>
+
+      HttpRequest request =
+<span class="nc" id="L70">          HttpRequest.newBuilder()</span>
+<span class="nc" id="L71">              .uri(URI.create(url))</span>
+<span class="nc" id="L72">              .header(&quot;Accept&quot;, MediaType.APPLICATION_JSON)</span>
+<span class="nc" id="L73">              .timeout(Duration.ofSeconds(5))</span>
+<span class="nc" id="L74">              .GET()</span>
+<span class="nc" id="L75">              .build();</span>
+
+<span class="nc" id="L77">      HttpResponse&lt;String&gt; response =</span>
+<span class="nc" id="L78">          httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+
+<span class="nc bnc" id="L80" title="All 2 branches missed.">      if (response.statusCode() == 200) {</span>
+<span class="nc" id="L81">        JsonNode root = objectMapper.readTree(response.body());</span>
+<span class="nc" id="L82">        List&lt;String&gt; icons = new ArrayList&lt;&gt;();</span>
+
+        // Parse the Iconify API response
+        // Response format: { &quot;icons&quot;: [&quot;mdi:home&quot;, &quot;fa:house&quot;, ...], &quot;total&quot;: 100 }
+<span class="nc bnc" id="L86" title="All 4 branches missed.">        if (root.has(&quot;icons&quot;) &amp;&amp; root.get(&quot;icons&quot;).isArray()) {</span>
+<span class="nc" id="L87">          root.get(&quot;icons&quot;).forEach(icon -&gt; icons.add(icon.asText()));</span>
+        }
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        int total = root.has(&quot;total&quot;) ? root.get(&quot;total&quot;).asInt() : icons.size();</span>
+
+<span class="nc" id="L92">        Log.debugf(&quot;Found %d icons for query: %s&quot;, icons.size(), query);</span>
+<span class="nc" id="L93">        return new IconSearchResult(icons, total);</span>
+      } else {
+<span class="nc" id="L95">        Log.warnf(&quot;Iconify API returned status %d for query: %s&quot;, response.statusCode(), query);</span>
+<span class="nc" id="L96">        return new IconSearchResult(new ArrayList&lt;&gt;(), 0);</span>
+      }
+<span class="nc" id="L98">    } catch (Exception e) {</span>
+<span class="nc" id="L99">      Log.errorf(e, &quot;Error searching icons for query: %s&quot;, query);</span>
+<span class="nc" id="L100">      return new IconSearchResult(new ArrayList&lt;&gt;(), 0);</span>
+    }
+  }
+
+  /** Result object for icon search. */
+  public static class IconSearchResult {
+    private final List&lt;String&gt; icons;
+    private final int total;
+
+<span class="nc" id="L109">    public IconSearchResult(List&lt;String&gt; icons, int total) {</span>
+<span class="nc" id="L110">      this.icons = icons;</span>
+<span class="nc" id="L111">      this.total = total;</span>
+<span class="nc" id="L112">    }</span>
+
+    @Description(&quot;List of icon identifiers&quot;)
+    public List&lt;String&gt; getIcons() {
+<span class="nc" id="L116">      return icons;</span>
+    }
+
+    @Description(&quot;Total number of matching icons&quot;)
+    public int getTotal() {
+<span class="nc" id="L121">      return total;</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
