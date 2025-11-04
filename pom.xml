@@ -643,7 +643,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence></dependencyConvergence>
+                <dependencyConvergence />
               </rules>
               <fail>true</fail>
             </configuration>
@@ -656,8 +656,8 @@
         <version>3.0.0</version>
         <configuration>
           <java>
-            <googleJavaFormat></googleJavaFormat>
-            <removeUnusedImports></removeUnusedImports>
+            <googleJavaFormat />
+            <removeUnusedImports />
           </java>
         </configuration>
         <executions>
