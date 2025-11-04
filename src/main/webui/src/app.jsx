@@ -32,6 +32,7 @@ import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
 import { ContentOverlay } from './ContentOverlay';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
+import { PageSkeleton } from './components/Skeleton';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -190,6 +191,11 @@ export function App() {
       query: INIT_QUERY,
       variables: { language: lang, tags: tagsArray }
     }).then((result) => {
+        // Add 0.1 second delay to see skeleton loading state
+        return new Promise(resolve => {
+          setTimeout(() => resolve(result), 100);
+        });
+      }).then((result) => {
         if (result.data) {
           console.log('[INIT] Received data:', result.data);
           
@@ -731,10 +737,8 @@ export function App() {
           {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
           {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
           {currentPage === "loading" && (
-            <div class="text-center" role="status" aria-live="polite">
-              <h1 class="display-4"><Text id="home.loading">Loading...</Text></h1>
-              <p class="lead"><Text id="home.checkingForItems">Checking for configured applications and bookmarks...</Text></p>
-              <p><Text id="home.noItemsHelp">If none are found, you can add them to get started.</Text></p>
+            <div role="status" aria-live="polite" aria-label="Loading content">
+              <PageSkeleton type="applications" layoutPrefs={layoutPrefs} />
             </div>
           )}
           {currentPage === "empty" && (
