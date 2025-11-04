@@ -579,14 +579,6 @@ main#main-content .main-content-wrapper {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
                  0 2px 6px rgba(0, 0, 0, 0.6) !important;
   }
-
-  /* Application title text shadow for better readability */
-  h4.text-body-emphasis,
-  .application-grid h4,
-  .bookmark-grid h4 {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
-                 0 2px 6px rgba(0, 0, 0, 0.5) !important;
-  }
 }
 
 /* Mobile adjustments for navigation handled above in media queries */
