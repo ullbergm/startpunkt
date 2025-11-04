@@ -715,10 +715,10 @@ export function App() {
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
           <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
-            <h3 class="mb-2 mb-md-0 me-md-auto">
-              <img src={startpunktLogo} alt="Startpunkt logo" width="48" height="48" />&nbsp;{title}{layoutPrefs?.preferences.editMode && ' (Edit Mode)'}
-            </h3>
-            <nav class="nav nav-masthead justify-content-center mt-2 mt-md-0" role="navigation" aria-label="Main navigation">
+            <h1 class="mb-2 mb-md-1 me-md-auto">
+              <img src={startpunktLogo} alt="Startpunkt logo" width="72" height="72" />&nbsp;{title}{layoutPrefs?.preferences.editMode && ' (Edit Mode)'}
+            </h1>
+            <nav class="nav nav-masthead justify-content-center mt-2 mt-md-4" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
                 <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
               )}
