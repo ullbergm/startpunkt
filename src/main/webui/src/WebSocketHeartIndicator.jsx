@@ -59,7 +59,7 @@ export function WebSocketHeartIndicator({ websocket }) {
 
   return (
     <div 
-      className={`websocket-heart-indicator ${isBeating ? 'beating' : ''}`}
+      class={`websocket-heart-indicator ${isBeating ? 'beating' : ''}`}
       title={heartState.title}
       role="status"
       aria-label={heartState.title}
