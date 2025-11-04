@@ -31,6 +31,7 @@ import { ForkMe } from './ForkMe';
 import { Background } from './Background';
 import { BackgroundSettings } from './BackgroundSettings';
 import { ContentOverlay } from './ContentOverlay';
+import { PreferenceButtonsStyler } from './PreferenceButtonsStyler';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
 
 /**
@@ -698,6 +699,7 @@ export function App() {
       <ThemeApplier themes={themes} />
       <Background />
       <ContentOverlay />
+      <PreferenceButtonsStyler />
       <AccessibilitySettings />
       <LayoutSettings layoutPrefs={layoutPrefs} />
       <BackgroundSettings />
