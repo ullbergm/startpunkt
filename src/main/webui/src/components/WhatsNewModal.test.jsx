@@ -170,8 +170,8 @@ describe('WhatsNewModal', () => {
     let TestComponent;
 
     beforeEach(() => {
-      TestComponent = () => {
-        const { shouldShow, releases, loading, error, hideModal } = useWhatsNew();
+      TestComponent = ({ currentVersion = '4.1.0' }) => {
+        const { shouldShow, releases, loading, error, hideModal } = useWhatsNew(currentVersion);
         return (
           <div>
             <div data-testid="should-show">{shouldShow.toString()}</div>
@@ -184,53 +184,69 @@ describe('WhatsNewModal', () => {
       };
     });
 
-    it('should show modal for first time users', async () => {
+    it('should show modal for first time users with matching version', async () => {
       localStorage.removeItem('startpunkt-last-seen-version');
+      mockGetNewReleasesSince.mockResolvedValueOnce([mockRelease]); // Returns 4.1.0
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       await waitFor(() => {
         expect(screen.getByTestId('should-show').textContent).toBe('true');
       }, { timeout: 3000 });
       
       expect(screen.getByTestId('version').textContent).toBe('4.1.0');
+      expect(mockGetNewReleasesSince).toHaveBeenCalledWith(null, '4.1.0');
     });
 
-    it('should show modal when version is newer', async () => {
+    it('should show modal when version is newer than last seen', async () => {
       localStorage.setItem('startpunkt-last-seen-version', '4.0.0');
+      mockGetNewReleasesSince.mockResolvedValueOnce([mockRelease]); // Returns 4.1.0
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       await waitFor(() => {
         expect(screen.getByTestId('should-show').textContent).toBe('true');
       }, { timeout: 3000 });
+      
+      expect(mockGetNewReleasesSince).toHaveBeenCalledWith('4.0.0', '4.1.0');
     });
 
-    it('should not show modal when version is same', async () => {
+    it('should not show modal when version is same as last seen', async () => {
       localStorage.setItem('startpunkt-last-seen-version', '4.1.0');
       mockGetNewReleasesSince.mockResolvedValueOnce([]); // No new releases
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       // Wait a bit to ensure it stays false
       await new Promise(resolve => setTimeout(resolve, 1500));
       expect(screen.getByTestId('should-show').textContent).toBe('false');
     });
 
-    it('should not show modal when version is older', async () => {
+    it('should not show modal when running older version than last seen', async () => {
       localStorage.setItem('startpunkt-last-seen-version', '4.2.0');
       mockGetNewReleasesSince.mockResolvedValueOnce([]); // No new releases
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      expect(screen.getByTestId('should-show').textContent).toBe('false');
+    });
+
+    it('should not show modal for dev version', async () => {
+      localStorage.removeItem('startpunkt-last-seen-version');
+      
+      render(<TestComponent currentVersion="dev" />);
+      
+      // Wait a bit to ensure it stays false
       await new Promise(resolve => setTimeout(resolve, 1500));
       expect(screen.getByTestId('should-show').textContent).toBe('false');
     });
 
     it('should hide modal when hideModal is called', async () => {
       localStorage.removeItem('startpunkt-last-seen-version');
+      mockGetNewReleasesSince.mockResolvedValueOnce([mockRelease]);
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       await waitFor(() => {
         expect(screen.getByTestId('should-show').textContent).toBe('true');
@@ -243,7 +259,7 @@ describe('WhatsNewModal', () => {
     });
     
     it('should handle loading state', () => {
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       // Initially should be loading
       expect(screen.getByTestId('loading').textContent).toBe('true');
@@ -252,7 +268,7 @@ describe('WhatsNewModal', () => {
     it('should handle API errors gracefully', async () => {
       mockGetNewReleasesSince.mockRejectedValueOnce(new Error('API Error'));
       
-      render(<TestComponent />);
+      render(<TestComponent currentVersion="4.1.0" />);
       
       await waitFor(() => {
         expect(screen.getByTestId('error').textContent).toBe('API Error');
@@ -269,7 +285,7 @@ describe('WhatsNewModal', () => {
       mockGetNewReleasesSince.mockResolvedValueOnce([{ ...mockRelease, version: '4.0.0' }]);
       
       const TestComp = () => {
-        const { shouldShow, hideModal } = useWhatsNew();
+        const { shouldShow, hideModal } = useWhatsNew('4.0.0');
         return (
           <div>
             <div data-testid="should-show">{shouldShow.toString()}</div>
@@ -288,9 +304,10 @@ describe('WhatsNewModal', () => {
 
     it('should handle major version changes', async () => {
       localStorage.setItem('startpunkt-last-seen-version', '3.6.0');
+      mockGetNewReleasesSince.mockResolvedValueOnce([mockRelease]);
       
       const TestComp = () => {
-        const { shouldShow, hideModal } = useWhatsNew();
+        const { shouldShow, hideModal } = useWhatsNew('4.1.0');
         return (
           <div>
             <div data-testid="should-show">{shouldShow.toString()}</div>
@@ -308,9 +325,10 @@ describe('WhatsNewModal', () => {
 
     it('should handle minor version changes', async () => {
       localStorage.setItem('startpunkt-last-seen-version', '4.0.0');
+      mockGetNewReleasesSince.mockResolvedValueOnce([mockRelease]);
       
       const TestComp = () => {
-        const { shouldShow, hideModal } = useWhatsNew();
+        const { shouldShow, hideModal } = useWhatsNew('4.1.0');
         return (
           <div>
             <div data-testid="should-show">{shouldShow.toString()}</div>
@@ -331,7 +349,7 @@ describe('WhatsNewModal', () => {
       mockGetNewReleasesSince.mockResolvedValueOnce([{ ...mockRelease, version: '4.1.1' }]);
       
       const TestComp = () => {
-        const { shouldShow, hideModal } = useWhatsNew();
+        const { shouldShow, hideModal } = useWhatsNew('4.1.1');
         return (
           <div>
             <div data-testid="should-show">{shouldShow.toString()}</div>

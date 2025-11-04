@@ -301,19 +301,44 @@ function compareVersions(v1, v2) {
 
 /**
  * Get new releases since a specific version (not including that version)
- * If lastSeenVersion is null, returns only the latest release
+ * If lastSeenVersion is null, returns only releases up to and including the current running version
+ * @param {string} lastSeenVersion - The last version the user saw (from localStorage)
+ * @param {string} currentVersion - The current running application version
  */
-export async function getNewReleasesSince(lastSeenVersion) {
+export async function getNewReleasesSince(lastSeenVersion, currentVersion) {
   const changelog = await fetchChangelog();
   
-  // If no last seen version (first time user), return only the latest
+  // Clean up the current version (remove -SNAPSHOT suffix if present)
+  const cleanCurrentVersion = currentVersion ? currentVersion.replace('-SNAPSHOT', '') : null;
+  
+  // If no last seen version (first time user), return only releases up to current version
   if (!lastSeenVersion) {
-    return changelog.slice(0, 1);
+    if (!cleanCurrentVersion) {
+      // If we don't have a current version either, return latest
+      return changelog.slice(0, 1);
+    }
+    
+    // For first-time users, show only the release that matches the running version
+    const matchingRelease = changelog.find(release => {
+      return compareVersions(release.version, cleanCurrentVersion) === 0;
+    });
+    
+    // If exact match found, return it; otherwise return nothing
+    return matchingRelease ? [matchingRelease] : [];
   }
   
-  // Filter releases that are newer than lastSeenVersion
+  // Filter releases that are newer than lastSeenVersion but not newer than current version
   const newReleases = changelog.filter(release => {
-    return compareVersions(release.version, lastSeenVersion) > 0;
+    const isNewerThanLastSeen = compareVersions(release.version, lastSeenVersion) > 0;
+    
+    // If we have a current version, also check that the release is not newer than it
+    if (cleanCurrentVersion) {
+      const isNotNewerThanCurrent = compareVersions(release.version, cleanCurrentVersion) <= 0;
+      return isNewerThanLastSeen && isNotNewerThanCurrent;
+    }
+    
+    // If no current version specified, just return releases newer than last seen
+    return isNewerThanLastSeen;
   });
   
   return newReleases;
