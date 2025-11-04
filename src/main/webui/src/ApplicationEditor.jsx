@@ -19,7 +19,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
     iconColor: application?.spec?.iconColor || '',
     url: application?.spec?.url || '',
     info: application?.spec?.info || '',
-    targetBlank: application?.spec?.targetBlank !== false,
+    targetBlank: application?.spec?.targetBlank ?? false, // Changed default to false
     location: application?.spec?.location || 1000,
     enabled: application?.spec?.enabled !== false,
     rootPath: application?.spec?.rootPath || '',
@@ -27,6 +27,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
   });
 
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
 
@@ -37,24 +38,57 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
     }
   }, [application]);
 
+  // Validate individual field
+  const validateField = (field, value) => {
+    let error = null;
+    
+    switch (field) {
+      case 'namespace':
+        if (!value.trim()) {
+          error = 'Namespace is required';
+        } else if (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(value)) {
+          error = 'Must be lowercase alphanumeric with hyphens';
+        }
+        break;
+      case 'resourceName':
+        if (!value.trim()) {
+          error = 'Resource name is required';
+        } else if (!/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/.test(value)) {
+          error = 'Must be lowercase alphanumeric with hyphens';
+        }
+        break;
+      case 'name':
+        if (!value.trim()) {
+          error = 'Display name is required';
+        }
+        break;
+      case 'url':
+        if (!value.trim()) {
+          error = 'URL is required';
+        } else if (!/^https?:\/\/.+/.test(value)) {
+          error = 'Must be a valid URL starting with http:// or https://';
+        }
+        break;
+      case 'group':
+        if (!value.trim()) {
+          error = 'Group is required';
+        }
+        break;
+    }
+    
+    return error;
+  };
+
+  // Validate all required fields
   const validate = () => {
     const newErrors = {};
     
-    if (!formData.namespace.trim()) {
-      newErrors.namespace = 'Namespace is required';
-    }
-    if (!formData.resourceName.trim()) {
-      newErrors.resourceName = 'Resource name is required';
-    }
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    if (!formData.url.trim()) {
-      newErrors.url = 'URL is required';
-    }
-    if (!formData.group.trim()) {
-      newErrors.group = 'Group is required';
-    }
+    ['namespace', 'resourceName', 'name', 'url', 'group'].forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -110,9 +144,19 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
 
   const updateField = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: null });
-    }
+    
+    // Mark field as touched
+    setTouched({ ...touched, [field]: true });
+    
+    // Validate field in real-time
+    const error = validateField(field, value);
+    setErrors({ ...errors, [field]: error });
+  };
+
+  const handleBlur = (field) => {
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, formData[field]);
+    setErrors({ ...errors, [field]: error });
   };
 
   return (
@@ -145,31 +189,36 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                     <label htmlFor="namespace" class="form-label">Namespace *</label>
                     <input
                       type="text"
-                      class={`form-control ${errors.namespace ? 'is-invalid' : ''}`}
+                      class={`form-control ${touched.namespace && errors.namespace ? 'is-invalid' : ''}`}
                       id="namespace"
                       value={formData.namespace}
                       onInput={(e) => updateField('namespace', e.target.value)}
+                      onBlur={() => handleBlur('namespace')}
                       disabled={mode === 'edit' || isReadOnly}
                       aria-required="true"
-                      aria-invalid={!!errors.namespace}
+                      aria-invalid={!!(touched.namespace && errors.namespace)}
+                      aria-describedby="namespace-help namespace-error"
                     />
-                    {errors.namespace && <div class="invalid-feedback">{errors.namespace}</div>}
+                    <small id="namespace-help" class="form-text text-muted">Kubernetes namespace (lowercase, alphanumeric, hyphens)</small>
+                    {touched.namespace && errors.namespace && <div id="namespace-error" class="invalid-feedback">{errors.namespace}</div>}
                   </div>
                   
                   <div class="col-md-6">
                     <label htmlFor="resourceName" class="form-label">Resource Name *</label>
                     <input
                       type="text"
-                      class={`form-control ${errors.resourceName ? 'is-invalid' : ''}`}
+                      class={`form-control ${touched.resourceName && errors.resourceName ? 'is-invalid' : ''}`}
                       id="resourceName"
                       value={formData.resourceName}
                       onInput={(e) => updateField('resourceName', e.target.value)}
+                      onBlur={() => handleBlur('resourceName')}
                       disabled={mode === 'edit' || isReadOnly}
                       aria-required="true"
-                      aria-invalid={!!errors.resourceName}
+                      aria-invalid={!!(touched.resourceName && errors.resourceName)}
+                      aria-describedby="resourceName-help resourceName-error"
                     />
-                    {errors.resourceName && <div class="invalid-feedback">{errors.resourceName}</div>}
-                    <small class="form-text text-muted">Kubernetes resource name (lowercase, no spaces)</small>
+                    <small id="resourceName-help" class="form-text text-muted">Kubernetes resource name (lowercase, alphanumeric, hyphens)</small>
+                    {touched.resourceName && errors.resourceName && <div id="resourceName-error" class="invalid-feedback">{errors.resourceName}</div>}
                   </div>
                 </div>
               </div>
@@ -185,46 +234,55 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                 <label htmlFor="name" class="form-label">Display Name *</label>
                 <input
                   type="text"
-                  class={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                  class={`form-control ${touched.name && errors.name ? 'is-invalid' : ''}`}
                   id="name"
                   value={formData.name}
                   onInput={(e) => updateField('name', e.target.value)}
+                  onBlur={() => handleBlur('name')}
                   disabled={isReadOnly}
                   aria-required="true"
-                  aria-invalid={!!errors.name}
+                  aria-invalid={!!(touched.name && errors.name)}
+                  aria-describedby="name-help name-error"
                 />
-                {errors.name && <div class="invalid-feedback">{errors.name}</div>}
+                <small id="name-help" class="form-text text-muted">Human-readable name shown in the UI</small>
+                {touched.name && errors.name && <div id="name-error" class="invalid-feedback">{errors.name}</div>}
               </div>
 
               <div class="mb-3">
                 <label htmlFor="group" class="form-label">Group *</label>
                 <input
                   type="text"
-                  class={`form-control ${errors.group ? 'is-invalid' : ''}`}
+                  class={`form-control ${touched.group && errors.group ? 'is-invalid' : ''}`}
                   id="group"
                   value={formData.group}
                   onInput={(e) => updateField('group', e.target.value)}
+                  onBlur={() => handleBlur('group')}
                   disabled={isReadOnly}
                   aria-required="true"
-                  aria-invalid={!!errors.group}
+                  aria-invalid={!!(touched.group && errors.group)}
+                  aria-describedby="group-help group-error"
                 />
-                {errors.group && <div class="invalid-feedback">{errors.group}</div>}
+                <small id="group-help" class="form-text text-muted">Category to organize applications (e.g., "monitoring", "databases")</small>
+                {touched.group && errors.group && <div id="group-error" class="invalid-feedback">{errors.group}</div>}
               </div>
 
               <div class="mb-3">
                 <label htmlFor="url" class="form-label">URL *</label>
                 <input
                   type="url"
-                  class={`form-control ${errors.url ? 'is-invalid' : ''}`}
+                  class={`form-control ${touched.url && errors.url ? 'is-invalid' : ''}`}
                   id="url"
                   value={formData.url}
                   onInput={(e) => updateField('url', e.target.value)}
+                  onBlur={() => handleBlur('url')}
                   disabled={isReadOnly}
                   placeholder="https://example.com"
                   aria-required="true"
-                  aria-invalid={!!errors.url}
+                  aria-invalid={!!(touched.url && errors.url)}
+                  aria-describedby="url-help url-error"
                 />
-                {errors.url && <div class="invalid-feedback">{errors.url}</div>}
+                <small id="url-help" class="form-text text-muted">Full URL including protocol (http:// or https://)</small>
+                {touched.url && errors.url && <div id="url-error" class="invalid-feedback">{errors.url}</div>}
               </div>
 
               <div class="row mb-3">
@@ -258,7 +316,9 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                   value={formData.info}
                   onInput={(e) => updateField('info', e.target.value)}
                   disabled={isReadOnly}
+                  aria-describedby="info-help"
                 />
+                <small id="info-help" class="form-text text-muted">Optional short description or subtitle</small>
               </div>
 
               <TagInput
@@ -269,6 +329,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                 disabled={isReadOnly}
                 placeholder="Add tag..."
               />
+              <small class="form-text text-muted d-block mb-3">Optional comma-separated tags for filtering</small>
 
               <div class="mb-3">
                 <label htmlFor="rootPath" class="form-label">Root Path</label>
@@ -280,8 +341,9 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                   onInput={(e) => updateField('rootPath', e.target.value)}
                   disabled={isReadOnly}
                   placeholder="/path"
+                  aria-describedby="rootPath-help"
                 />
-                <small class="form-text text-muted">Path to append to URL</small>
+                <small id="rootPath-help" class="form-text text-muted">Optional path to append to URL (e.g., "/admin")</small>
               </div>
 
               <div class="row mb-3">
@@ -294,7 +356,9 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                     value={formData.location}
                     onInput={(e) => updateField('location', e.target.value)}
                     disabled={isReadOnly}
+                    aria-describedby="location-help"
                   />
+                  <small id="location-help" class="form-text text-muted">Lower numbers appear first</small>
                 </div>
                 
                 <div class="col-md-4">
@@ -306,6 +370,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                       checked={formData.targetBlank}
                       onChange={(checked) => updateField('targetBlank', checked)}
                       disabled={isReadOnly}
+                      ariaLabel="Toggle whether application opens in a new browser tab"
                     />
                   </div>
                 </div>
@@ -319,6 +384,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                       checked={formData.enabled}
                       onChange={(checked) => updateField('enabled', checked)}
                       disabled={isReadOnly}
+                      ariaLabel="Toggle whether application is visible in the UI"
                     />
                   </div>
                 </div>
