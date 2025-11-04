@@ -746,11 +746,17 @@ export function App() {
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
-          <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start">
-            <h1 class="mb-2 mb-md-1 me-md-auto">
+          <div class="d-flex flex-column flex-md-row align-items-center justify-content-center">
+            <h1 class="mb-2 mb-md-1">
               <img src={startpunktLogo} alt="Startpunkt logo" width="72" height="72" />&nbsp;{title}{layoutPrefs?.preferences.editMode && ' (Edit Mode)'}
             </h1>
-            <nav class="nav nav-masthead justify-content-center mt-2 mt-md-4" role="navigation" aria-label="Main navigation">
+          </div>
+        </header>
+
+        <main class="px-3 position-relative" id="main-content" role="main" aria-live="polite" aria-atomic="false">
+          {/* Navigation links inside application area - top right */}
+          {(hasApplications() || hasBookmarks()) && (
+            <nav class="nav nav-masthead app-navigation" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
                 <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
               )}
@@ -758,19 +764,18 @@ export function App() {
                 <a class={bookmarksClass} aria-current={currentPage === "bookmarks" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("bookmarks"); }}><Text id="home.bookmarks">Bookmarks</Text></a>
               )}
             </nav>
-          </div>
-        </header>
-
-        <main class="px-3" id="main-content" role="main" aria-live="polite" aria-atomic="false">
-          {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
-          {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
-          {currentPage === "empty" && (
-            <div class="text-center" role="status">
-              <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
-              <p class="lead"><Text id="home.noItemsConfigured">There are currently no applications or bookmarks configured.</Text></p>
-              <p><Text id="home.pleaseAddItems">Please add some applications or bookmarks to get started.</Text></p>
-            </div>
           )}
+          <div class="main-content-wrapper">
+            {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
+            {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
+            {currentPage === "empty" && (
+              <div class="text-center" role="status">
+                <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
+                <p class="lead"><Text id="home.noItemsConfigured">There are currently no applications or bookmarks configured.</Text></p>
+                <p><Text id="home.pleaseAddItems">Please add some applications or bookmarks to get started.</Text></p>
+              </div>
+            )}
+          </div>
         </main>
 
         <footer class="mt-auto text-white-50" role="contentinfo">

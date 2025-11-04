@@ -592,10 +592,9 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText(/No Items Available/i)).toBeInTheDocument();
       expect(screen.getByText(/There are currently no applications or bookmarks configured/i)).toBeInTheDocument();
-      // Check that nav element exists but has no links
-      const nav = screen.getByRole('navigation', { name: /main navigation/i });
-      const navLinks = nav.querySelectorAll('a');
-      expect(navLinks.length).toBe(0);
+      // Navigation should not be rendered when no items exist
+      const nav = screen.queryByRole('navigation', { name: /main navigation/i });
+      expect(nav).not.toBeInTheDocument();
     });
   });
 

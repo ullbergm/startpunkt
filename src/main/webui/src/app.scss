@@ -35,13 +35,43 @@ body {
 
   .cover-container {
     padding: 1rem 0.75rem !important;
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* Center header content on mobile */
+  header {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  header .d-flex {
+    justify-content: center !important;
+    width: 100%;
+  }
+
+  header h1 {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center;
   }
 
   /* Make navigation more mobile-friendly */
   .nav-masthead {
+    position: static !important;
     flex-direction: row;
-    justify-content: center;
+    justify-content: center !important;
     flex-wrap: wrap;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
+    padding-bottom: 1rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 100%;
   }
 
   .nav-masthead .nav-link {
@@ -50,8 +80,32 @@ body {
     margin: 0.25rem;
   }
 
-  .nav-masthead .nav-link + .nav-link {
-    margin-left: 0.25rem;
+  /* Center main content area on mobile */
+  main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Add spacing below navigation on mobile */
+  .main-content-wrapper {
+    padding-top: 0 !important;
+    text-align: center;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Ensure application and bookmark grids are centered */
+  .application-grid,
+  .bookmark-grid {
+    margin: 0 auto;
+    justify-content: center;
   }
 
   /* Header adjustments for mobile */
@@ -153,19 +207,47 @@ body {
 
   .cover-container {
     padding: 1rem 0.75rem !important;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Center header content on mobile */
+  header {
+    text-align: center;
+  }
+
+  header .d-flex {
+    justify-content: center !important;
+  }
+
+  header h1 {
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 
   /* Make navigation more mobile-friendly */
   .nav-masthead {
+    position: static !important;
     flex-direction: row;
-    justify-content: center;
+    justify-content: center !important;
     flex-wrap: wrap;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    padding-bottom: 1rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .nav-masthead .nav-link {
     font-size: 1rem;
     padding: 0.5rem 0.75rem;
     margin: 0.25rem;
+  }
+
+  /* Add spacing below navigation on mobile */
+  .main-content-wrapper {
+    padding-top: 0 !important;
   }
 
   /* Header adjustments */
@@ -319,3 +401,123 @@ body {
     margin: 0 auto;
   }
 }
+
+/* Navigation positioning inside application area */
+.nav-masthead {
+  /* Desktop: positioned in top right of main content */
+  &.position-absolute {
+    z-index: 10;
+  }
+  
+  .nav-link {
+    transition: all 0.2s ease;
+  }
+}
+
+/* Navigation responsive positioning */
+.app-navigation {
+  // Desktop: absolute positioned in top right
+  @media (min-width: 1321px) {
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    margin-right: 3rem;
+    margin-bottom: 0.75rem;
+    z-index: 10;
+    justify-content: flex-end;
+  }
+
+  // Mobile landscape and tablet: centered with separator
+  @media (min-width: 577px) and (max-width: 1320px) {
+    position: static !important;
+    justify-content: center !important;
+    margin: 0 auto 0.5rem auto;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  // Mobile portrait: centered with separator
+  @media (max-width: 576px) {
+    position: static !important;
+    justify-content: center !important;
+    margin: 0 auto 0.25rem auto !important;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Mobile portrait view adjustments */
+@media (max-width: 576px) {
+  .cover-container {
+    text-align: center;
+    padding: 0 !important;
+  }
+
+  .masthead {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0 !important;
+    padding: 0.25rem 0 !important;
+  }
+  
+  header.mb-auto {
+    margin-bottom: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .main-content-wrapper {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Mobile landscape view adjustments */
+@media (min-width: 577px) and (max-width: 1320px) {
+  .cover-container {
+    max-width: 100%;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  .masthead {
+    margin-bottom: 0.25rem !important;
+  }
+
+  main {
+    padding-top: 0.25rem !important;
+    margin-top: 0 !important;
+  }
+
+  .main-content-wrapper {
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+/* Main content wrapper */
+.main-content-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  // Desktop needs padding to avoid overlap with absolute nav
+  @media (min-width: 1321px) {
+    padding-top: 0.5rem;
+  }
+}
+
+/* Mobile adjustments for navigation handled above in media queries */
