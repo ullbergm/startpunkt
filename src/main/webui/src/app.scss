@@ -527,6 +527,41 @@ body {
   }
 }
 
+/* Animated grow effect for the main content box with overlay */
+main#main-content {
+  animation: growBox 0.125s ease-out;
+  transform-origin: center;
+}
+
+@keyframes growBox {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Fade transition for switching between applications and bookmarks */
+/* Apply to both the wrapper content and the main content box */
+.main-content-wrapper > div,
+main#main-content .main-content-wrapper {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Text shadows for better readability - desktop only */
 @media (min-width: 1321px) {
   /* Main header title text shadow for better readability */
