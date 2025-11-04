@@ -12,17 +12,20 @@ export function PreferenceButtonsStyler() {
   const { preferences } = useBackgroundPreferences();
 
   useEffect(() => {
+    // Query buttons once at the start
+    const buttons = document.querySelectorAll(
+      '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn'
+    );
+    
     // Don't apply overlay styling for theme backgrounds
     if (preferences.type === 'theme') {
       // Reset to default white background styling
-      const buttons = document.querySelectorAll(
-        '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn'
-      );
       buttons.forEach(btn => {
         btn.style.backgroundColor = '';
         btn.style.color = '';
         btn.style.borderColor = '';
         btn.style.boxShadow = '';
+        btn.style.backdropFilter = '';
       });
       return;
     }
@@ -31,14 +34,12 @@ export function PreferenceButtonsStyler() {
     
     // Middle position (0) = transparent, use default white styling
     if (opacity === 0) {
-      const buttons = document.querySelectorAll(
-        '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn'
-      );
       buttons.forEach(btn => {
         btn.style.backgroundColor = '';
         btn.style.color = '';
         btn.style.borderColor = '';
         btn.style.boxShadow = '';
+        btn.style.backdropFilter = '';
       });
       return;
     }
@@ -59,10 +60,6 @@ export function PreferenceButtonsStyler() {
     }
     
     // Apply styling to all preference buttons
-    const buttons = document.querySelectorAll(
-      '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn'
-    );
-    
     buttons.forEach(btn => {
       btn.style.backgroundColor = backgroundColor;
       btn.style.color = textColor;
@@ -98,7 +95,7 @@ export function PreferenceButtonsStyler() {
       btn.addEventListener('mouseleave', handleMouseLeave);
     });
 
-    // Cleanup function
+    // Cleanup function - removes event listeners from the same buttons captured above
     return () => {
       buttons.forEach(btn => {
         btn.removeEventListener('mouseenter', handleMouseEnter);
