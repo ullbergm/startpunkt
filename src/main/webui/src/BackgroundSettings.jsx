@@ -15,7 +15,7 @@ export function BackgroundSettings() {
         </symbol>
       </svg>
 
-      <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-background-toggle" style="margin-right: 8.25rem !important;">
+      <div class="dropdown bd-background-toggle">
         <button 
           class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
           id="bd-background" 

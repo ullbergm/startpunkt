@@ -14,6 +14,7 @@ import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
 import { WhatsNewModal, useWhatsNew } from './components/WhatsNewModal';
+import { getLatestRelease } from './services/changelogService';
 import { client, setOnPingCallback } from './graphql/client';
 import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
@@ -148,6 +149,27 @@ export function App() {
 
   // What's New modal
   const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
+  const [manualShowWhatsNew, setManualShowWhatsNew] = useState(false);
+  const [manualReleases, setManualReleases] = useState(null);
+  
+  const openChangelog = async () => {
+    // Fetch the current version (latest release) to show in the modal
+    try {
+      const latestRelease = await getLatestRelease();
+      setManualReleases([latestRelease]);
+      setManualShowWhatsNew(true);
+    } catch (error) {
+      console.error('Failed to fetch latest release for changelog:', error);
+      // Fall back to showing whatever releases we have
+      setManualShowWhatsNew(true);
+    }
+  };
+  
+  const closeChangelog = () => {
+    setManualShowWhatsNew(false);
+    setManualReleases(null);
+    hideWhatsNew(); // Also hide the automatic modal if it's showing
+  };
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -703,17 +725,24 @@ export function App() {
       <Background />
       <ContentOverlay />
       <PreferenceButtonsStyler />
-      <AccessibilitySettings />
-      <LayoutSettings layoutPrefs={layoutPrefs} />
-      <BackgroundSettings />
-      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
       
-      {/* Show subscription status indicator */}
-      {subscriptionsEnabled && (
-        <WebSocketHeartIndicator 
-          websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
-        />
-      )}
+      {/* Preference buttons container - horizontal layout */}
+      <div class="position-fixed bottom-0 end-0 mb-3 me-3 d-flex gap-2 align-items-center" style="z-index: 1000;">
+        <BackgroundSettings />
+        <LayoutSettings layoutPrefs={layoutPrefs} />
+        <AccessibilitySettings />
+        {/* Show subscription status indicator */}
+        {subscriptionsEnabled && (
+          <div class="bd-websocket-heart">
+            <WebSocketHeartIndicator 
+              websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
+              onClick={openChangelog}
+            />
+          </div>
+        )}
+      </div>
+      
+      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
@@ -815,10 +844,10 @@ export function App() {
       )}
 
       {/* What's New Modal */}
-      {showWhatsNew && releases && releases.length > 0 && (
+      {(showWhatsNew || manualShowWhatsNew) && (
         <WhatsNewModal
-          releases={releases}
-          onClose={hideWhatsNew}
+          releases={manualShowWhatsNew && manualReleases ? manualReleases : releases}
+          onClose={closeChangelog}
         />
       )}
     </IntlProvider>
