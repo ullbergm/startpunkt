@@ -747,7 +747,7 @@ export function App() {
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
           <div class="d-flex flex-column flex-md-row align-items-center justify-content-center">
-            <h1 class="mb-2 mb-md-1">
+            <h1 class="mb-2 mb-md-1 pb-4">
               <img src={startpunktLogo} alt="Startpunkt logo" width="72" height="72" />&nbsp;{title}{layoutPrefs?.preferences.editMode && ' (Edit Mode)'}
             </h1>
           </div>
@@ -778,7 +778,7 @@ export function App() {
           </div>
         </main>
 
-        <footer class="mt-auto text-white-50" role="contentinfo">
+        <footer class="mt-auto mx-auto text-white-50" role="contentinfo">
           <p><a href="https://github.com/ullbergm/startpunkt" class="text-white-50" target="_blank" rel="noopener noreferrer">Startpunkt</a> v{version}, by <a href="https://ullberg.us" class="text-white-50" target="_blank" rel="noopener noreferrer">Magnus Ullberg</a>.</p>
         </footer>
       </div>
