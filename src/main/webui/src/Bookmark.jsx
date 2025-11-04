@@ -10,7 +10,6 @@ export function Bookmark(props) {
   const viewMode = layoutPrefs?.preferences.viewMode || 'grid';
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
   const iconSize = layoutPrefs?.getCSSVariables()['--card-icon-size']?.replace('px', '') || '48';
-  const fontSize = layoutPrefs?.getCSSVariables()['--card-font-size'] || '1rem';
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
   
   // Build container style
@@ -98,11 +97,11 @@ export function Bookmark(props) {
           />
         )}
         {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
-        <div class="d-flex align-items-center flex-grow-1">
+        <div class="d-flex align-items-center flex-grow-1" style={{ fontSize: '0.875rem' }}>
           <div>
-            <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
+            <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
               {props.bookmark.name}
-            </h3>
+            </h4>
           </div>
         </div>
       </div>
@@ -128,10 +127,10 @@ export function Bookmark(props) {
         />
       )}
       {renderIcon(props.bookmark.icon, props.bookmark.name, iconSize)}
-      <div class="px-2" style={{ flexGrow: 1 }}>
-        <h3 class="fw-normal mb-0 text-body-emphasis text-uppercase" style={{ fontSize }}>
+      <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
+        <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
           {props.bookmark.name}
-        </h3>
+        </h4>
         {showDescription && props.bookmark.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
