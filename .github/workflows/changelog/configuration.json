@@ -1,79 +1,20 @@
 {
     "categories": [
         {
-            "title": "## 🚨 BREAKING CHANGES",
+            "title": "## Features",
             "labels": [],
             "rules": [
                 {
-                    "pattern": ".*!:.*",
-                    "on_property": "title"
+                    "pattern": "^feat.*",
+                    "on_property": "title",
+                    "flags": "i"
                 }
             ]
         },
         {
-            "title": "## 📦 Enhancements",
-            "labels": [
-                "feat",
-                "fix",
-                "refactor",
-                "perf",
-                "enhancement"
-            ]
-        },
-        {
-            "title": "## 📦 Dependencies",
-            "labels": [
-                "chore",
-                "renovate/container",
-                "renovate/github-action",
-                "renovate/github-release",
-                "renovate/helm",
-                "renovate/js",
-                "renovate/go"
-            ]
-        },
-        {
-            "title": "## 📚 Documentation",
-            "labels": [
-                "docs"
-            ]
-        },
-        {
-            "title": "## 🧪 Tests",
-            "labels": [
-                "test"
-            ]
-        },
-        {
-            "title": "## 🔧 Build & CI",
-            "labels": [
-                "build",
-                "ci"
-            ]
-        },
-        {
-            "title": "## 🎨 Styling",
-            "labels": [
-                "style"
-            ]
-        },
-        {
-            "title": "## 🐛 Bug Fixes",
-            "labels": [
-                "bug"
-            ]
-        },
-        {
-            "title": "## ↩️ Reverts",
-            "labels": [
-                "revert"
-            ]
-        },
-        {
-            "title": "## Other Changes",
+            "title": "## All Changes",
             "exhaustive": true,
-            "exhaustive_rules": false,
-            "empty_content": "- No other changes"
+            "exhaustive_rules": "false"
         }
     ],
     "label_extractor": [
@@ -88,10 +29,9 @@
         "order": "ASC",
         "on_property": "mergedAt"
     },
-    "template": "#{{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+    "template": "#{{CHANGELOG}}",
     "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
-    "commit_template": "- #{{TITLE}} by @#{{AUTHOR}} in #{{SHA}}",
-    "empty_template": "- no changes",
+    "empty_template": "- No changes",
     "includeOpen": false,
     "trim_values": false,
     "max_tags_to_fetch": 200,
