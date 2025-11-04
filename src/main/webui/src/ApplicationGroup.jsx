@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { Application } from './Application';
 
 export function ApplicationGroup(props) {
-  const { layoutPrefs, isCollapsed, onToggle, onEditApp, isFavorite, onToggleFavorite, isFavorites, onReorderFavorites } = props;
+  const { layoutPrefs, isCollapsed, onToggle, onEditApp, isFavorite, onToggleFavorite, isFavorites, onReorderFavorites, skeleton } = props;
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   
@@ -31,6 +31,56 @@ export function ApplicationGroup(props) {
     justifyContent: isFavorites ? 'center' : 'start',
     ...cssVars
   };
+
+  // Skeleton mode rendering
+  if (skeleton) {
+    const showHeading = props.group !== null && !isFavorites;
+    
+    return (
+      <div style={{ marginBottom: cssVars['--group-spacing'] || '3rem' }}>
+        {showHeading && (
+          <h3 
+            class="pb-2 border-bottom text-uppercase" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <span 
+              style={{ fontSize: '0.8em' }}
+              aria-hidden="true"
+            >
+              ▼
+            </span>
+            <span 
+              style={{ 
+                width: '150px', 
+                height: '1.75rem',
+                backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                borderRadius: '4px',
+                display: 'inline-block'
+              }}
+              class="skeleton-pulse"
+            />
+          </h3>
+        )}
+
+        <div 
+          class={`${paddingClass} application-grid`}
+          style={gridStyle}
+          role="list"
+          aria-label={isFavorites ? 'Loading favorite applications' : `Loading ${props.group} applications`}
+        >
+          {Array.isArray(props.applications) && props.applications.map((app, index) => (
+            <div role="listitem" key={`skeleton-${index}`}>
+              <Application 
+                app={app} 
+                layoutPrefs={layoutPrefs}
+                skeleton={true}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const handleToggle = () => {
     if (onToggle) {

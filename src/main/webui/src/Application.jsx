@@ -1,5 +1,6 @@
 import { Icon } from '@iconify/react';
 import { Text } from 'preact-i18n';
+import './components/SkeletonLoader.scss';
 
 function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
   const opacity = isUnavailable ? 0.4 : 1;
@@ -34,10 +35,10 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite } = props;
-  const isUnavailable = props.app.available === false;
-  const isEditable = !props.app.hasOwnerReferences;
-  const editMode = layoutPrefs?.preferences.editMode;
+  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite, skeleton } = props;
+  const isUnavailable = props.app?.available === false;
+  const isEditable = !props.app?.hasOwnerReferences;
+  const editMode = layoutPrefs?.preferences.editMode && !skeleton;
   
   // Get preferences with defaults
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
@@ -84,6 +85,125 @@ export function Application(props) {
       onToggleFavorite(props.app);
     }
   };
+  
+  // Skeleton mode - render placeholder UI
+  if (skeleton) {
+    // Use actual text lengths to determine skeleton widths for realistic sizing
+    // Approximate character widths: ~8px per character for names, ~6px per character for descriptions
+    const nameLength = props.app.name.length;
+    const descriptionLength = props.app.info ? props.app.info.length : 0;
+    const nameHash = props.app.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    // Calculate widths based on actual text length
+    const nameWidthPx = nameLength * 8; // ~8px per character for uppercase names
+    const descWidthPx = descriptionLength * 6; // ~6px per character for descriptions
+    
+    // Split description into words for skeleton rendering
+    const descWords = props.app.info ? props.app.info.split(' ') : [];
+
+    return (
+      <div 
+        class="d-flex align-items-start skeleton-application" 
+        style={{
+          transform: 'rotate(0)',
+          padding: padding
+        }}
+        role="article" 
+        aria-hidden="true"
+      >
+        {/* Icon skeleton */}
+        <div 
+          class="skeleton-icon skeleton-pulse me-1" 
+          style={{ 
+            minWidth: '48px', 
+            minHeight: '48px', 
+            maxWidth: '48px', 
+            maxHeight: '48px', 
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(128, 128, 128, 0.3)',
+            borderRadius: '8px'
+          }} 
+        />
+        
+        <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
+          {/* Name skeleton - using h4 to match real component, width based on actual name length */}
+          <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
+            <span
+              class="skeleton-text skeleton-pulse" 
+              style={{ 
+                height: '1.5rem', 
+                width: `${nameWidthPx}px`,
+                minWidth: '60px',
+                backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                borderRadius: '3px',
+                display: 'inline-block'
+              }} 
+            />
+          </h4>
+          
+          {/* Description skeleton - using p to match real component, render word-like blocks based on actual words */}
+          {showDescription && descWords.length > 0 && (
+            <p class="accent text-uppercase" style={{ marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: '0.3rem', alignItems: 'center' }}>
+              {descWords.map((word, index) => (
+                <span
+                  key={index}
+                  class="skeleton-text skeleton-pulse" 
+                  style={{ 
+                    height: '0.9rem', 
+                    width: `${word.length * 6}px`, // ~6px per character for description text
+                    minWidth: '15px',
+                    backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                    borderRadius: '3px',
+                    display: 'inline-block'
+                  }} 
+                />
+              ))}
+            </p>
+          )}
+          
+          {/* Tags skeleton - only if showTags is true and 25% chance */}
+          {showTags && (nameHash % 4 === 0) && (
+            <div class="d-flex gap-1 mt-1" style={{ flexWrap: 'wrap' }}>
+              <div 
+                class="skeleton-badge skeleton-pulse" 
+                style={{ 
+                  height: '1rem', 
+                  width: '3rem',
+                  backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                  borderRadius: '12px'
+                }} 
+              />
+              <div 
+                class="skeleton-badge skeleton-pulse" 
+                style={{ 
+                  height: '1rem', 
+                  width: '2.5rem',
+                  backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                  borderRadius: '12px'
+                }} 
+              />
+            </div>
+          )}
+          
+          {/* Status badge skeleton - only if showStatus is true and 10% chance */}
+          {showStatus && (nameHash % 10 === 0) && (
+            <div 
+              class="skeleton-badge skeleton-pulse mt-1" 
+              style={{ 
+                height: '1.2rem', 
+                width: '4rem',
+                backgroundColor: 'rgba(128, 128, 128, 0.3)',
+                borderRadius: '12px'
+              }} 
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
   
   // Standard card layout
   return (
