@@ -527,28 +527,31 @@ body {
   }
 }
 
-/* Main header title text shadow for better readability */
-header h1 {
-  color: rgba(255, 255, 255, 0.9) !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8),
-               0 3px 8px rgba(0, 0, 0, 0.6) !important;
-}
+/* Text shadows for better readability - desktop only */
+@media (min-width: 1321px) {
+  /* Main header title text shadow for better readability */
+  header h1 {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8),
+                 0 3px 8px rgba(0, 0, 0, 0.6) !important;
+  }
 
-/* Footer text shadow and brighter color for better readability */
-footer[role="contentinfo"],
-footer[role="contentinfo"] p,
-footer[role="contentinfo"] a {
-  color: rgba(255, 255, 255, 0.9) !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
-               0 2px 6px rgba(0, 0, 0, 0.6) !important;
-}
+  /* Footer text shadow and brighter color for better readability */
+  footer[role="contentinfo"],
+  footer[role="contentinfo"] p,
+  footer[role="contentinfo"] a {
+    color: rgba(255, 255, 255, 0.9) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
+                 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+  }
 
-/* Application title text shadow for better readability */
-h4.text-body-emphasis,
-.application-grid h4,
-.bookmark-grid h4 {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
-               0 2px 6px rgba(0, 0, 0, 0.5) !important;
+  /* Application title text shadow for better readability */
+  h4.text-body-emphasis,
+  .application-grid h4,
+  .bookmark-grid h4 {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8),
+                 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+  }
 }
 
 /* Mobile adjustments for navigation handled above in media queries */
