@@ -319,12 +319,12 @@ export async function getNewReleasesSince(lastSeenVersion, currentVersion) {
     }
     
     // For first-time users, show only the release that matches the running version
-    const matchingRelease = changelog.filter(release => {
+    const matchingRelease = changelog.find(release => {
       return compareVersions(release.version, cleanCurrentVersion) === 0;
     });
     
     // If exact match found, return it; otherwise return nothing
-    return matchingRelease.length > 0 ? matchingRelease : [];
+    return matchingRelease ? [matchingRelease] : [];
   }
   
   // Filter releases that are newer than lastSeenVersion but not newer than current version

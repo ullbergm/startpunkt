@@ -10,6 +10,12 @@ import { getNewReleasesSince } from '../services/changelogService';
 import './WhatsNewModal.scss';
 
 /**
+ * Version string used to identify development builds
+ * Development builds skip the What's New check
+ */
+const DEV_VERSION = 'dev';
+
+/**
  * Get stored last seen version from localStorage
  */
 function getLastSeenVersion() {
@@ -231,7 +237,7 @@ export function useWhatsNew(currentVersion) {
         setError(null);
         
         // Don't check until we have a current version (avoid showing wrong version)
-        if (!currentVersion || currentVersion === 'dev') {
+        if (!currentVersion || currentVersion === DEV_VERSION) {
           console.log('[WhatsNew] Skipping check - version not available or is dev');
           setLoading(false);
           return;
