@@ -5,9 +5,35 @@
     <!-- <link rel="icon" type="image/svg+xml" href="/src/assets/logo.png" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Startpunkt</title>
+    <!-- Immediate theme application - runs before ANY other script -->
+    <script>
+      // This runs immediately, blocking render until complete
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        let bgColor = '#111827'; // default dark
+        let themeClass = 'dark';
+        
+        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
+          bgColor = '#ffffff';
+          themeClass = 'light';
+        } else if (savedTheme === 'high-contrast') {
+          bgColor = '#000000';
+          themeClass = 'high-contrast';
+        }
+        
+        // Apply immediately to prevent any flash
+        document.documentElement.style.backgroundColor = bgColor;
+        document.documentElement.className = themeClass;
+        
+        // Also set a data attribute for debugging
+        document.documentElement.setAttribute('data-theme', themeClass);
+      })();
+    </script>
   </head>
-  <body bgcolor="#232530">
-    <div id="app"></div>
+  <body style="margin: 0; background-color: inherit;">
+    <div id="app" style="min-height: 100vh; background-color: inherit;"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
