@@ -13,6 +13,7 @@ import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
 import { BookmarkEditor } from './BookmarkEditor';
+import { WhatsNewModal, useWhatsNew } from './components/WhatsNewModal';
 import { client, setOnPingCallback } from './graphql/client';
 import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
@@ -144,6 +145,9 @@ export function App() {
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
+
+  // What's New modal
+  const { shouldShow: showWhatsNew, hideModal: hideWhatsNew } = useWhatsNew(version);
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -817,6 +821,14 @@ export function App() {
           onCancel={() => { setShowBookmarkEditor(false); setEditingBookmark(null); }}
           onDelete={handleDeleteBookmark}
           mode={editorMode}
+        />
+      )}
+
+      {/* What's New Modal */}
+      {showWhatsNew && (
+        <WhatsNewModal
+          currentVersion={version}
+          onClose={hideWhatsNew}
         />
       )}
     </IntlProvider>
