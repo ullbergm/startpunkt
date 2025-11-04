@@ -35,6 +35,7 @@ import { BackgroundSettings } from './BackgroundSettings';
 import { ContentOverlay } from './ContentOverlay';
 import { PreferenceButtonsStyler } from './PreferenceButtonsStyler';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
+import { SkeletonLoader } from './components/SkeletonLoader';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -131,6 +132,9 @@ export function App() {
 
   // Initialize layout preferences hook
   const layoutPrefs = useLayoutPreferences();
+  
+  // Initialize background preferences hook for skeleton loader
+  const { preferences: backgroundPrefs } = useBackgroundPreferences();
 
   // Editor states
   const [showAppEditor, setShowAppEditor] = useState(false);
@@ -755,7 +759,36 @@ export function App() {
 
         <main class="px-3 position-relative" id="main-content" role="main" aria-live="polite" aria-atomic="false">
           {/* Navigation links inside application area - top right */}
-          {(hasApplications() || hasBookmarks()) && (
+          {/* Show skeleton navigation while loading */}
+          {(applicationGroups === null || bookmarkGroups === null) && (
+            <nav class="nav nav-masthead app-navigation" role="navigation" aria-label="Main navigation">
+              <span 
+                style={{ 
+                  width: '100px', 
+                  height: '1.5rem',
+                  backgroundColor: 'rgba(128, 128, 128, 0.2)',
+                  borderRadius: '4px',
+                  display: 'inline-block',
+                  marginRight: '1rem'
+                }}
+                class="skeleton-pulse"
+                aria-hidden="true"
+              />
+              <span 
+                style={{ 
+                  width: '100px', 
+                  height: '1.5rem',
+                  backgroundColor: 'rgba(128, 128, 128, 0.2)',
+                  borderRadius: '4px',
+                  display: 'inline-block'
+                }}
+                class="skeleton-pulse"
+                aria-hidden="true"
+              />
+            </nav>
+          )}
+          {/* Show actual navigation when loaded */}
+          {(hasApplications() || hasBookmarks()) && applicationGroups !== null && bookmarkGroups !== null && (
             <nav class="nav nav-masthead app-navigation" role="navigation" aria-label="Main navigation">
               {hasApplications() && (
                 <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
@@ -766,14 +799,24 @@ export function App() {
             </nav>
           )}
           <div class="main-content-wrapper">
-            {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
-            {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
-            {currentPage === "empty" && (
-              <div class="text-center" role="status">
-                <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
-                <p class="lead"><Text id="home.noItemsConfigured">There are currently no applications or bookmarks configured.</Text></p>
-                <p><Text id="home.pleaseAddItems">Please add some applications or bookmarks to get started.</Text></p>
-              </div>
+            {/* Show skeleton loader while data is being fetched */}
+            {(applicationGroups === null || bookmarkGroups === null) && (
+              <SkeletonLoader layoutPrefs={layoutPrefs} backgroundPrefs={backgroundPrefs} />
+            )}
+            
+            {/* Show actual content once loaded */}
+            {applicationGroups !== null && bookmarkGroups !== null && (
+              <>
+                {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
+                {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
+                {currentPage === "empty" && (
+                  <div class="text-center" role="status">
+                    <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>
+                    <p class="lead"><Text id="home.noItemsConfigured">There are currently no applications or bookmarks configured.</Text></p>
+                    <p><Text id="home.pleaseAddItems">Please add some applications or bookmarks to get started.</Text></p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>

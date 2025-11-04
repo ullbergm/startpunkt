@@ -1,0 +1,163 @@
+// SkeletonLoader.scss
+// Skeleton loading animations and styles
+
+// Base skeleton animation
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-loader {
+  width: 100%;
+  
+  // Pulse animation for all skeleton elements
+  .skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+  
+  // Base skeleton element styles
+  .skeleton-text,
+  .skeleton-icon,
+  .skeleton-badge,
+  .skeleton-heading {
+    border-radius: 4px;
+    display: block;
+  }
+  
+  .skeleton-text {
+    border-radius: 3px;
+  }
+  
+  .skeleton-badge {
+    border-radius: 12px;
+  }
+  
+  .skeleton-icon {
+    border-radius: 8px;
+  }
+  
+  .skeleton-heading {
+    border-radius: 4px;
+  }
+  
+  // Theme-specific colors
+  // Light theme (for dark backgrounds)
+  .skeleton-theme-light {
+    &.skeleton-card {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+    }
+    
+    &.skeleton-text,
+    &.skeleton-icon,
+    &.skeleton-badge,
+    &.skeleton-heading {
+      background-color: rgba(255, 255, 255, 0.2);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
+    }
+  }
+  
+  // Dark theme (for light backgrounds)
+  .skeleton-theme-dark {
+    &.skeleton-card {
+      background-color: rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    
+    &.skeleton-text,
+    &.skeleton-icon,
+    &.skeleton-badge,
+    &.skeleton-heading {
+      background-color: rgba(0, 0, 0, 0.1);
+      background-image: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.15) 50%,
+        rgba(0, 0, 0, 0) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
+    }
+  }
+  
+  // Auto/neutral theme (gray - works on most backgrounds)
+  .skeleton-theme-auto {
+    &.skeleton-card {
+      background-color: rgba(128, 128, 128, 0.1);
+      border: 1px solid rgba(128, 128, 128, 0.15);
+      border-radius: 8px;
+    }
+    
+    &.skeleton-text,
+    &.skeleton-icon,
+    &.skeleton-badge,
+    &.skeleton-heading {
+      background-color: rgba(128, 128, 128, 0.15);
+      background-image: linear-gradient(
+        90deg,
+        rgba(128, 128, 128, 0) 0%,
+        rgba(128, 128, 128, 0.25) 50%,
+        rgba(128, 128, 128, 0) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
+    }
+  }
+  
+  // Ensure skeleton cards maintain structure
+  .skeleton-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+  }
+  
+  // Grid responsiveness
+  .skeleton-grid {
+    @media (max-width: 767px) {
+      grid-template-columns: 1fr !important;
+    }
+    
+    @media (min-width: 768px) and (max-width: 991px) {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+}
+
+// Accessibility: Respect prefers-reduced-motion
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-loader {
+    .skeleton-pulse {
+      animation: none;
+    }
+    
+    .skeleton-text,
+    .skeleton-icon,
+    .skeleton-badge,
+    .skeleton-heading {
+      animation: none;
+      opacity: 0.7;
+    }
+  }
+}
