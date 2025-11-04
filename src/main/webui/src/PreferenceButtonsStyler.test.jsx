@@ -59,7 +59,7 @@ describe('PreferenceButtonsStyler', () => {
     });
   });
 
-  test('does not apply overlay styling when opacity is 0 (transparent)', async () => {
+  test('applies transparent styling when opacity is 0 (transparent)', async () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
@@ -71,7 +71,11 @@ describe('PreferenceButtonsStyler', () => {
 
     await waitFor(() => {
       mockButtons.forEach(btn => {
-        expect(btn.style.backgroundColor).toBe('');
+        expect(btn.style.backgroundColor).toBe('transparent');
+        expect(btn.style.color).toBe('rgb(113, 44, 249)');
+        expect(btn.style.borderColor).toBe('transparent');
+        expect(btn.style.boxShadow).toBe('none');
+        expect(btn.style.backdropFilter).toBe('none');
       });
     });
   });

@@ -3,8 +3,14 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
 
 /**
  * PreferenceButtonsStyler component applies the content overlay opacity
- * to the preference buttons (Background, Layout, Accessibility settings)
+ * to the preference buttons (Background, Layout, Accessibility, WebSocket heart)
  * so they follow the same overlay styling as the main content.
+ * 
+ * Opacity behavior:
+ * - Theme backgrounds: Default white button styling
+ * - 0 (center): Fully transparent with icon only, subtle hover effect
+ * - Negative values: White background with opacity (light theme)
+ * - Positive values: Black background with opacity (dark theme)
  * 
  * This component doesn't render anything - it just applies dynamic styles.
  */
@@ -14,7 +20,7 @@ export function PreferenceButtonsStyler() {
   useEffect(() => {
     // Query buttons once at the start
     const buttons = document.querySelectorAll(
-      '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn'
+      '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn, .bd-websocket-heart .btn'
     );
     
     // Don't apply overlay styling for theme backgrounds
@@ -32,16 +38,39 @@ export function PreferenceButtonsStyler() {
 
     const opacity = preferences.contentOverlayOpacity !== undefined ? preferences.contentOverlayOpacity : -0.6;
     
-    // Middle position (0) = transparent, use default white styling
+    // Middle position (0) = transparent, truly transparent with only icons visible
     if (opacity === 0) {
       buttons.forEach(btn => {
-        btn.style.backgroundColor = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.style.boxShadow = '';
-        btn.style.backdropFilter = '';
+        btn.style.backgroundColor = 'transparent';
+        btn.style.color = '#712cf9'; // Keep primary purple for icon/text
+        btn.style.borderColor = 'transparent';
+        btn.style.boxShadow = 'none';
+        btn.style.backdropFilter = 'none';
+        btn.style.transition = 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease';
       });
-      return;
+      
+      // Add subtle hover effect for transparent buttons
+      const handleMouseEnter = (e) => {
+        e.currentTarget.style.backgroundColor = 'rgba(113, 44, 249, 0.1)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(113, 44, 249, 0.2)';
+      };
+
+      const handleMouseLeave = (e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+        e.currentTarget.style.boxShadow = 'none';
+      };
+
+      buttons.forEach(btn => {
+        btn.addEventListener('mouseenter', handleMouseEnter);
+        btn.addEventListener('mouseleave', handleMouseLeave);
+      });
+
+      return () => {
+        buttons.forEach(btn => {
+          btn.removeEventListener('mouseenter', handleMouseEnter);
+          btn.removeEventListener('mouseleave', handleMouseLeave);
+        });
+      };
     }
     
     // Determine background color and text color based on slider value

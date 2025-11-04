@@ -5,6 +5,8 @@ import './WebSocketHeartIndicator.scss';
 /**
  * WebSocket Heart Indicator component
  * Displays a heart icon in the bottom left corner to indicate GraphQL subscription status
+ * - Styled to match the preferences buttons (Background, Layout, Accessibility)
+ * - Respects the content overlay opacity settings via PreferenceButtonsStyler
  * - Beats when real-time data is received OR when keepalive pings are sent
  * - Shows green heart when successfully connected
  * - Shows broken red heart when connecting, disconnected, or has errors
@@ -58,18 +60,23 @@ export function WebSocketHeartIndicator({ websocket }) {
   const heartState = getHeartState();
 
   return (
-    <div 
-      className={`websocket-heart-indicator ${isBeating ? 'beating' : ''}`}
-      title={heartState.title}
-      role="status"
-      aria-label={heartState.title}
-    >
-      <Icon 
-        icon={heartState.icon} 
-        style={{ color: heartState.color }}
-        width="32"
-        height="32"
-      />
+    <div class="bd-websocket-heart position-fixed bottom-0 start-0 mb-3 ms-3" style="z-index: 1000;">
+      <button 
+        className={`btn btn-bd-primary py-2 d-flex align-items-center ${isBeating ? 'beating' : ''}`}
+        title={heartState.title}
+        role="status"
+        aria-label={heartState.title}
+        style={{ cursor: 'help' }}
+        type="button"
+      >
+        <Icon 
+          icon={heartState.icon} 
+          style={{ color: heartState.color }}
+          width="20"
+          height="20"
+          class="my-1"
+        />
+      </button>
     </div>
   );
 }
