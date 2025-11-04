@@ -356,6 +356,13 @@ body {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
 
+.github-corner {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+}
+
 .github-corner:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out
 }
