@@ -216,8 +216,9 @@ export function WhatsNewModal({ releases, onClose }) {
 /**
  * Hook to manage What's New modal state
  * Fetches new releases since last seen version from GitHub
+ * @param {string} currentVersion - The current running application version
  */
-export function useWhatsNew() {
+export function useWhatsNew(currentVersion) {
   const [shouldShow, setShouldShow] = useState(false);
   const [newReleases, setNewReleases] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -229,11 +230,17 @@ export function useWhatsNew() {
         setLoading(true);
         setError(null);
         
+        // Don't check until we have a current version (avoid showing wrong version)
+        if (!currentVersion || currentVersion === 'dev') {
+          console.log('[WhatsNew] Skipping check - version not available or is dev');
+          setLoading(false);
+          return;
+        }
+        
         const lastSeenVersion = getLastSeenVersion();
         
-        // Fetch new releases since last seen version
-        // If never seen before, this returns only the latest release
-        const releases = await getNewReleasesSince(lastSeenVersion);
+        // Fetch new releases since last seen version, up to current version
+        const releases = await getNewReleasesSince(lastSeenVersion, currentVersion);
         
         if (!releases || releases.length === 0) {
           console.log('[WhatsNew] No new releases to show');
@@ -241,7 +248,7 @@ export function useWhatsNew() {
           return;
         }
         
-        console.log(`[WhatsNew] Found ${releases.length} new release(s) since ${lastSeenVersion || 'never'}`);
+        console.log(`[WhatsNew] Found ${releases.length} new release(s) for version ${currentVersion} (last seen: ${lastSeenVersion || 'never'})`);
         setNewReleases(releases);
         
         // Show modal if there are new releases
@@ -259,7 +266,7 @@ export function useWhatsNew() {
     }
     
     checkForNewVersions();
-  }, []);
+  }, [currentVersion]);
   
   const hideModal = () => {
     setShouldShow(false);

@@ -147,8 +147,8 @@ export function App() {
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
 
-  // What's New modal
-  const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
+  // What's New modal - pass the current version so it shows the right release
+  const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew(version);
   const [manualShowWhatsNew, setManualShowWhatsNew] = useState(false);
   const [manualReleases, setManualReleases] = useState(null);
   
