@@ -147,7 +147,7 @@ export function App() {
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
 
   // What's New modal
-  const { shouldShow: showWhatsNew, latestRelease, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
+  const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew();
 
   // Theme state
   const [themes, setThemes] = useState(null);
@@ -825,9 +825,9 @@ export function App() {
       )}
 
       {/* What's New Modal */}
-      {showWhatsNew && latestRelease && (
+      {showWhatsNew && releases && releases.length > 0 && (
         <WhatsNewModal
-          release={latestRelease}
+          releases={releases}
           onClose={hideWhatsNew}
         />
       )}

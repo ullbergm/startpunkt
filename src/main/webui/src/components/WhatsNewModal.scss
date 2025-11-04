@@ -33,7 +33,7 @@
   background: var(--bs-body-bg, white);
   border-radius: 1rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
   max-height: 90vh;
   display: flex;
@@ -114,6 +114,40 @@
   padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
+}
+
+/* Release Container (for multiple releases) */
+.whats-new-release {
+  & + & {
+    margin-top: 1.5rem;
+  }
+}
+
+.whats-new-release-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+}
+
+.whats-new-release-version {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--bs-emphasis-color, #000);
+}
+
+.whats-new-release-date {
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.whats-new-separator {
+  border: none;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+  margin: 1.5rem 0;
 }
 
 /* Highlights */
@@ -223,6 +257,46 @@
   color: var(--bs-primary, #0d6efd);
   font-weight: 700;
   flex-shrink: 0;
+}
+
+/* Issue/PR Links */
+:global(.issue-link) {
+  color: var(--bs-primary, #0d6efd);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+:global(.issue-link):hover {
+  color: var(--bs-primary-dark, #0b5ed7);
+  border-bottom-color: var(--bs-primary, #0d6efd);
+}
+
+:global(.issue-link):focus {
+  outline: 2px solid var(--bs-primary, #0d6efd);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Username Links */
+:global(.username-link) {
+  color: var(--bs-info, #0dcaf0);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+:global(.username-link):hover {
+  color: var(--bs-info-dark, #0aa2c0);
+  border-bottom-color: var(--bs-info, #0dcaf0);
+}
+
+:global(.username-link):focus {
+  outline: 2px solid var(--bs-info, #0dcaf0);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Footer */

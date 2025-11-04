@@ -9,6 +9,43 @@ const CACHE_KEY = 'startpunkt-changelog-cache';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 /**
+ * Process text to linkify issue/PR references (#123)
+ */
+function linkifyIssues(text) {
+  // Replace #123 with clickable links to GitHub issues/PRs
+  return text.replace(/#(\d+)/g, (match, issueNumber) => {
+    return `<a href="https://github.com/${GITHUB_REPO}/issues/${issueNumber}" target="_blank" rel="noopener noreferrer" class="issue-link">${match}</a>`;
+  });
+}
+
+/**
+ * Process text to linkify GitHub usernames (@username)
+ * Excludes bot accounts like Copilot
+ */
+function linkifyUsernames(text) {
+  // Replace @username with clickable links to GitHub profiles
+  // Skip bot accounts (copilot, renovate, dependabot, github-actions, imgbot)
+  return text.replace(/@(\w+(?:-\w+)*)/g, (match, username) => {
+    const lowerUsername = username.toLowerCase();
+    const botPatterns = ['copilot', 'renovate', 'dependabot', 'github-actions', 'imgbot'];
+    
+    // Skip if it's a bot account
+    if (botPatterns.some(bot => lowerUsername.includes(bot))) {
+      return match;
+    }
+    
+    return `<a href="https://github.com/${username}" target="_blank" rel="noopener noreferrer" class="username-link">${match}</a>`;
+  });
+}
+
+/**
+ * Process text to linkify both issues and usernames
+ */
+function linkifyText(text) {
+  return linkifyUsernames(linkifyIssues(text));
+}
+
+/**
  * Fallback changelog data (used when GitHub API fails)
  */
 const FALLBACK_CHANGELOG = [
@@ -32,7 +69,15 @@ const FALLBACK_CHANGELOG = [
       'Align bookmark font size with applications'
     ]
   }
-];
+].map(release => ({
+  ...release,
+  highlights: release.highlights.map(h => ({
+    ...h,
+    title: linkifyText(h.title),
+    description: linkifyText(h.description)
+  })),
+  allChanges: release.allChanges.map(change => linkifyText(change))
+}));
 
 /**
  * Parse GitHub release body to extract structured information
@@ -134,10 +179,12 @@ function transformGitHubRelease(release) {
     version: release.tag_name.replace(/^v/, ''), // Remove 'v' prefix
     date: release.published_at.split('T')[0], // Extract date only
     url: release.html_url,
-    highlights,
-    allChanges: allChanges.length > 0 ? allChanges : [
-      'See full release notes on GitHub for details'
-    ]
+    highlights: highlights.map(h => ({
+      ...h,
+      title: linkifyText(h.title),
+      description: linkifyText(h.description)
+    })),
+    allChanges: allChanges.map(change => linkifyText(change))
   };
 }
 
@@ -235,6 +282,44 @@ export async function getLatestRelease() {
 }
 
 /**
+ * Compare version strings (semantic versioning)
+ * Returns: 1 if v1 > v2, -1 if v1 < v2, 0 if equal
+ */
+function compareVersions(v1, v2) {
+  const parts1 = v1.split('.').map(Number);
+  const parts2 = v2.split('.').map(Number);
+  
+  for (let i = 0; i < 3; i++) {
+    const p1 = parts1[i] || 0;
+    const p2 = parts2[i] || 0;
+    if (p1 > p2) return 1;
+    if (p1 < p2) return -1;
+  }
+  
+  return 0;
+}
+
+/**
+ * Get new releases since a specific version (not including that version)
+ * If lastSeenVersion is null, returns only the latest release
+ */
+export async function getNewReleasesSince(lastSeenVersion) {
+  const changelog = await fetchChangelog();
+  
+  // If no last seen version (first time user), return only the latest
+  if (!lastSeenVersion) {
+    return changelog.slice(0, 1);
+  }
+  
+  // Filter releases that are newer than lastSeenVersion
+  const newReleases = changelog.filter(release => {
+    return compareVersions(release.version, lastSeenVersion) > 0;
+  });
+  
+  return newReleases;
+}
+
+/**
  * Clear cached changelog (useful for testing)
  */
 export function clearChangelogCache() {
@@ -249,5 +334,6 @@ export function clearChangelogCache() {
 export default {
   fetchChangelog,
   getLatestRelease,
+  getNewReleasesSince,
   clearChangelogCache
 };
