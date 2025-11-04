@@ -1,18 +1,8 @@
-.websocket-heart-indicator {
-  position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  z-index: 1000;
-  cursor: help;
-  transition: transform 0.2s ease-in-out;
+// WebSocket Heart Indicator styles
+// Now using consistent button styling with preferences buttons
 
-  &:hover {
-    transform: scale(1.1);
-  }
-
-  &.beating {
-    animation: heartbeat 0.5s ease-in-out;
-  }
+.btn.beating {
+  animation: heartbeat 0.5s ease-in-out;
 }
 
 @keyframes heartbeat {
