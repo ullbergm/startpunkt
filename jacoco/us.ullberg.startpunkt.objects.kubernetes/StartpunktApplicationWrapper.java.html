@@ -173,7 +173,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
 <span class="fc" id="L173">      String namespace = (String) urlFromMap.get(&quot;namespace&quot;);</span>
 <span class="fc" id="L174">      String property = (String) urlFromMap.get(&quot;property&quot;);</span>
 <span class="fc" id="L175">      String apiGroup = (String) urlFromMap.get(&quot;apiGroup&quot;);</span>
-<span class="fc" id="L176">      String urlTemplate = (String) urlFromMap.get(&quot;urlTemplate&quot;);</span>
+<span class="fc" id="L176">      final String urlTemplate = (String) urlFromMap.get(&quot;urlTemplate&quot;);</span>
 
 <span class="pc bpc" id="L178" title="4 of 8 branches missed.">      if (apiVersion == null || kind == null || name == null || property == null) {</span>
 <span class="nc" id="L179">        Log.warn(&quot;urlFrom is missing required fields (apiVersion, kind, name, or property)&quot;);</span>
