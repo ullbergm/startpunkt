@@ -173,7 +173,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
       String namespace = (String) urlFromMap.get("namespace");
       String property = (String) urlFromMap.get("property");
       String apiGroup = (String) urlFromMap.get("apiGroup");
-      String urlTemplate = (String) urlFromMap.get("urlTemplate");
+      final String urlTemplate = (String) urlFromMap.get("urlTemplate");
 
       if (apiVersion == null || kind == null || name == null || property == null) {
         Log.warn("urlFrom is missing required fields (apiVersion, kind, name, or property)");
