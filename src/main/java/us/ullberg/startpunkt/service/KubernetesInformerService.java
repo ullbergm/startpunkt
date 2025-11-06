@@ -115,7 +115,10 @@ public class KubernetesInformerService {
     this.bookmarkService = bookmarkService;
   }
 
-  /** Initializes informers and starts watching Kubernetes resources on application startup. */
+  /**
+   * Initializes informers and starts watching Kubernetes resources on application startup.
+   * Informers are started asynchronously to avoid blocking application startup.
+   */
   void onStart(@Observes StartupEvent event) {
     Log.info("Initializing Kubernetes Informer service");
 
@@ -124,42 +127,53 @@ public class KubernetesInformerService {
       return;
     }
 
-    try {
-      // Start informers for different resource types
-      startApplicationInformer();
-      startBookmarkInformer();
+    // Start informers asynchronously to avoid blocking startup
+    // This is especially important for native mode where K8s API may not be available
+    new Thread(
+            () -> {
+              try {
+                // Start informers for different resource types
+                startApplicationInformer();
+                startBookmarkInformer();
 
-      if (hajimariEnabled) {
-        startHajimariBookmarkInformer();
-      }
+                if (hajimariEnabled) {
+                  startHajimariBookmarkInformer();
+                }
 
-      if (ingressEnabled) {
-        startIngressInformer();
-      }
+                if (ingressEnabled) {
+                  startIngressInformer();
+                }
 
-      if (openshiftEnabled) {
-        startRouteInformer();
-      }
+                if (openshiftEnabled) {
+                  startRouteInformer();
+                }
 
-      if (istioVirtualServiceEnabled) {
-        startVirtualServiceInformer();
-      }
+                if (istioVirtualServiceEnabled) {
+                  startVirtualServiceInformer();
+                }
 
-      if (gatewayApiEnabled) {
-        startHttpRouteInformer();
-      }
+                if (gatewayApiEnabled) {
+                  startHttpRouteInformer();
+                }
 
-      Log.infof("Kubernetes Informer service initialized with %d informers", informers.size());
+                Log.infof(
+                    "Kubernetes Informer service initialized with %d informers", informers.size());
 
-      // Perform initial cache load from all Informers, then mark sync complete
-      Log.info("Performing initial cache load...");
-      reloadApplicationCache();
-      reloadBookmarkCache();
-      initialSyncComplete = true;
-      Log.info("Initial sync complete - Informers now active for real-time updates");
-    } catch (Exception e) {
-      Log.error("Failed to initialize Kubernetes Informer service", e);
-    }
+                // Perform initial cache load from all Informers, then mark sync complete
+                Log.info("Performing initial cache load...");
+                reloadApplicationCache();
+                reloadBookmarkCache();
+                initialSyncComplete = true;
+                Log.info("Initial sync complete - Informers now active for real-time updates");
+              } catch (Exception e) {
+                Log.error("Failed to initialize Kubernetes Informer service", e);
+                Log.warn("Application will continue without Kubernetes resource watching");
+              }
+            },
+            "informer-init")
+        .start();
+
+    Log.info("Kubernetes Informer service initialization started in background");
   }
 
   /** Stops all informers on application shutdown. */
