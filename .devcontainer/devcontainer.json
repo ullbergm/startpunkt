@@ -8,7 +8,7 @@
 		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
 			"version": "latest",
-			"dockerDashComposeVersion": "v2"
+			"dockerComposeVersion": "v2"
 		},
 		"ghcr.io/devcontainers/features/git:1": {
 			"version": "latest"
@@ -133,6 +133,7 @@
 
 	"remoteUser": "vscode",
 
+	// Mount Maven cache from host to speed up builds (matches remoteUser home directory)
 	"mounts": [
 		"source=${localWorkspaceFolder}/.m2,target=/home/vscode/.m2,type=bind,consistency=cached"
 	]

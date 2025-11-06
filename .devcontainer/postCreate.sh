@@ -18,7 +18,11 @@ fi
 # Download Maven dependencies
 echo "📦 Downloading Maven dependencies..."
 chmod +x ./mvnw
-./mvnw dependency:go-offline -B 2>&1 | grep -v "Download" || echo "Maven dependencies download completed (some may have been cached)"
+if ./mvnw dependency:go-offline -B 2>&1 | grep -v "^\[INFO\] Downloading\|^\[INFO\] Downloaded"; then
+    echo "Maven dependencies downloaded successfully"
+else
+    echo "⚠️  Some Maven dependencies may not have been downloaded (this is often okay if they were cached)"
+fi
 
 # Set up git hooks (if pre-commit is configured)
 if [ -f ".pre-commit-config.yaml" ]; then
