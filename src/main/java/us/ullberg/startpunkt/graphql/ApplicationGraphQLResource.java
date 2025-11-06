@@ -32,20 +32,12 @@ import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
-import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
-import us.ullberg.startpunkt.objects.kubernetes.GatewayApiHttpRouteWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 import us.ullberg.startpunkt.service.ApplicationCacheService;
 import us.ullberg.startpunkt.service.ApplicationService;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
 
 /**
- * GraphQL API resource for applications. Provides queries for retrieving
- * applications with optional
+ * GraphQL API resource for applications. Provides queries for retrieving applications with optional
  * tag filtering and grouping.
  */
 @GraphQLApi
@@ -99,16 +91,13 @@ public class ApplicationGraphQLResource {
   /**
    * Constructor with injected dependencies.
    *
-   * @param kubernetesClient         the Kubernetes client
+   * @param kubernetesClient the Kubernetes client
    * @param availabilityCheckService the availability check service
-   * @param applicationService       the application service for CRUD operations
-   * @param eventBroadcaster         the event broadcaster for WebSocket
-   *                                 notifications
-   * @param cacheManager             the cache manager for manual cache
-   *                                 invalidation
-   * @param subscriptionEventEmitter the subscription event emitter for GraphQL
-   *                                 subscriptions
-   * @param applicationCacheService  the application cache service
+   * @param applicationService the application service for CRUD operations
+   * @param eventBroadcaster the event broadcaster for WebSocket notifications
+   * @param cacheManager the cache manager for manual cache invalidation
+   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
+   * @param applicationCacheService the application cache service
    */
   public ApplicationGraphQLResource(
       KubernetesClient kubernetesClient,
@@ -180,7 +169,7 @@ public class ApplicationGraphQLResource {
    * Retrieve a single application by group and name.
    *
    * @param groupName the group name
-   * @param appName   the application name
+   * @param appName the application name
    * @return the application if found, null otherwise
    */
   @Query("application")
@@ -226,11 +215,12 @@ public class ApplicationGraphQLResource {
       return applications;
     }
 
-    var filterTagSet = java.util.Arrays.stream(filterTags.split(","))
-        .map(String::trim)
-        .map(String::toLowerCase)
-        .filter(tag -> !tag.isEmpty())
-        .collect(java.util.stream.Collectors.toSet());
+    var filterTagSet =
+        java.util.Arrays.stream(filterTags.split(","))
+            .map(String::trim)
+            .map(String::toLowerCase)
+            .filter(tag -> !tag.isEmpty())
+            .collect(java.util.stream.Collectors.toSet());
 
     if (filterTagSet.isEmpty()) {
       return applications;
@@ -244,11 +234,12 @@ public class ApplicationGraphQLResource {
         continue;
       }
 
-      var appTagSet = java.util.Arrays.stream(app.getTags().split(","))
-          .map(String::trim)
-          .map(String::toLowerCase)
-          .filter(tag -> !tag.isEmpty())
-          .collect(java.util.stream.Collectors.toSet());
+      var appTagSet =
+          java.util.Arrays.stream(app.getTags().split(","))
+              .map(String::trim)
+              .map(String::toLowerCase)
+              .filter(tag -> !tag.isEmpty())
+              .collect(java.util.stream.Collectors.toSet());
 
       boolean hasMatchingTag = appTagSet.stream().anyMatch(filterTagSet::contains);
       if (hasMatchingTag) {
@@ -302,7 +293,8 @@ public class ApplicationGraphQLResource {
 
     try {
       // Create application via service
-      Application created = applicationService.createApplication(input.namespace, input.resourceName, spec);
+      Application created =
+          applicationService.createApplication(input.namespace, input.resourceName, spec);
 
       // Invalidate cache
       invalidateApplicationCaches();
@@ -317,10 +309,11 @@ public class ApplicationGraphQLResource {
       return ApplicationType.fromResponse(response);
     } catch (KubernetesClientException e) {
       if (e.getCode() == 409) {
-        String message = String.format(
-            "An application with the name '%s' already exists in namespace '%s'. Please use a"
-                + " different resource name.",
-            input.resourceName, input.namespace);
+        String message =
+            String.format(
+                "An application with the name '%s' already exists in namespace '%s'. Please use a"
+                    + " different resource name.",
+                input.resourceName, input.namespace);
         Log.warnf("Conflict creating application: %s", message);
         throw new ApplicationConflictException(message, e);
       }
@@ -359,7 +352,8 @@ public class ApplicationGraphQLResource {
     spec.setTags(input.tags);
 
     // Update application via service
-    Application updated = applicationService.updateApplication(input.namespace, input.resourceName, spec);
+    Application updated =
+        applicationService.updateApplication(input.namespace, input.resourceName, spec);
 
     // Invalidate cache
     invalidateApplicationCaches();
@@ -378,7 +372,7 @@ public class ApplicationGraphQLResource {
    * Delete an application.
    *
    * @param namespace the namespace of the application
-   * @param name      the name of the application resource
+   * @param name the name of the application resource
    * @return true if deleted successfully
    */
   @Mutation("deleteApplication")
@@ -432,14 +426,11 @@ public class ApplicationGraphQLResource {
   /**
    * Subscribe to real-time application updates.
    *
-   * <p>
-   * Clients can subscribe to this to receive notifications when applications are
-   * added, updated,
+   * <p>Clients can subscribe to this to receive notifications when applications are added, updated,
    * or removed. Optional filtering by namespace and tags is supported.
    *
-   * @param namespace optional namespace filter (only events for this namespace
-   *                  will be sent)
-   * @param tags      optional list of tags to filter applications
+   * @param namespace optional namespace filter (only events for this namespace will be sent)
+   * @param tags optional list of tags to filter applications
    * @return Multi stream of application update events
    */
   @Subscription("applicationUpdates")
@@ -455,44 +446,48 @@ public class ApplicationGraphQLResource {
     // Apply namespace filter if provided
     if (namespace != null && !namespace.trim().isEmpty()) {
       final String ns = namespace.trim();
-      stream = stream.filter(
-          event -> {
-            ApplicationType app = event.getApplication();
-            return app != null && ns.equals(app.namespace);
-          });
+      stream =
+          stream.filter(
+              event -> {
+                ApplicationType app = event.getApplication();
+                return app != null && ns.equals(app.namespace);
+              });
     }
 
     // Apply tags filter if provided
     if (tags != null && !tags.isEmpty()) {
-      final List<String> lowerCaseTags = tags.stream()
-          .map(String::trim)
-          .map(String::toLowerCase)
-          .filter(tag -> !tag.isEmpty())
-          .toList();
+      final List<String> lowerCaseTags =
+          tags.stream()
+              .map(String::trim)
+              .map(String::toLowerCase)
+              .filter(tag -> !tag.isEmpty())
+              .toList();
 
       if (!lowerCaseTags.isEmpty()) {
-        stream = stream.filter(
-            event -> {
-              ApplicationType app = event.getApplication();
-              if (app == null) {
-                return false;
-              }
+        stream =
+            stream.filter(
+                event -> {
+                  ApplicationType app = event.getApplication();
+                  if (app == null) {
+                    return false;
+                  }
 
-              // Include apps without tags (per tag filtering rules in
-              // docs/object-tag-filtering.md)
-              if (app.tags == null || app.tags.trim().isEmpty()) {
-                return true;
-              }
+                  // Include apps without tags (per tag filtering rules in
+                  // docs/object-tag-filtering.md)
+                  if (app.tags == null || app.tags.trim().isEmpty()) {
+                    return true;
+                  }
 
-              // Check if app has any of the requested tags
-              List<String> appTags = java.util.Arrays.stream(app.tags.split(","))
-                  .map(String::trim)
-                  .map(String::toLowerCase)
-                  .filter(tag -> !tag.isEmpty())
-                  .toList();
+                  // Check if app has any of the requested tags
+                  List<String> appTags =
+                      java.util.Arrays.stream(app.tags.split(","))
+                          .map(String::trim)
+                          .map(String::toLowerCase)
+                          .filter(tag -> !tag.isEmpty())
+                          .toList();
 
-              return appTags.stream().anyMatch(lowerCaseTags::contains);
-            });
+                  return appTags.stream().anyMatch(lowerCaseTags::contains);
+                });
       }
     }
 

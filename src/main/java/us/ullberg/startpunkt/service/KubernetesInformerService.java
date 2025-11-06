@@ -1,13 +1,5 @@
 package us.ullberg.startpunkt.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
@@ -18,6 +10,12 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
@@ -32,784 +30,776 @@ import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 
 /**
- * Service that uses Kubernetes Informers to watch resources and maintain the
- * application and bookmark caches.
+ * Service that uses Kubernetes Informers to watch resources and maintain the application and
+ * bookmark caches.
  *
- * <p>
- * Informers provide automatic reconnection, resync, and resource version
- * management,
- * eliminating the need for manual watch restart logic.
+ * <p>Informers provide automatic reconnection, resync, and resource version management, eliminating
+ * the need for manual watch restart logic.
  *
- * <p>
- * Informers are established for:
- * - Application CRDs (startpunkt.ullberg.us)
- * - Bookmark CRDs (startpunkt.ullberg.us and hajimari.io)
- * - Ingress resources (if enabled)
- * - Route resources (OpenShift, if enabled)
- * - VirtualService resources (Istio, if enabled)
- * - HTTPRoute resources (Gateway API, if enabled)
+ * <p>Informers are established for: - Application CRDs (startpunkt.ullberg.us) - Bookmark CRDs
+ * (startpunkt.ullberg.us and hajimari.io) - Ingress resources (if enabled) - Route resources
+ * (OpenShift, if enabled) - VirtualService resources (Istio, if enabled) - HTTPRoute resources
+ * (Gateway API, if enabled)
  */
 @ApplicationScoped
 public class KubernetesInformerService {
 
-    private final KubernetesClient kubernetesClient;
-    private final ApplicationCacheService applicationCacheService;
-    private final BookmarkCacheService bookmarkCacheService;
-    private final EventBroadcaster eventBroadcaster;
-    private final AvailabilityCheckService availabilityCheckService;
-    private final BookmarkService bookmarkService;
+  private final KubernetesClient kubernetesClient;
+  private final ApplicationCacheService applicationCacheService;
+  private final BookmarkCacheService bookmarkCacheService;
+  private final EventBroadcaster eventBroadcaster;
+  private final AvailabilityCheckService availabilityCheckService;
+  private final BookmarkService bookmarkService;
 
-    // List to hold all active informers for cleanup on shutdown
-    private final List<SharedIndexInformer<?>> informers = new CopyOnWriteArrayList<>();
+  // List to hold all active informers for cleanup on shutdown
+  private final List<SharedIndexInformer<?>> informers = new CopyOnWriteArrayList<>();
 
-    // Flag to suppress cache reload during initial sync
-    private volatile boolean initialSyncComplete = false;
+  // Flag to suppress cache reload during initial sync
+  private volatile boolean initialSyncComplete = false;
 
-    @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
-    boolean hajimariEnabled;
+  @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
+  boolean hajimariEnabled;
 
-    @ConfigProperty(name = "startpunkt.ingress.enabled", defaultValue = "false")
-    boolean ingressEnabled;
+  @ConfigProperty(name = "startpunkt.ingress.enabled", defaultValue = "false")
+  boolean ingressEnabled;
 
-    @ConfigProperty(name = "startpunkt.ingress.onlyAnnotated", defaultValue = "true")
-    boolean ingressOnlyAnnotated;
+  @ConfigProperty(name = "startpunkt.ingress.onlyAnnotated", defaultValue = "true")
+  boolean ingressOnlyAnnotated;
 
-    @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
-    boolean openshiftEnabled;
+  @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
+  boolean openshiftEnabled;
 
-    @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "true")
-    boolean openshiftOnlyAnnotated;
+  @ConfigProperty(name = "startpunkt.openshift.onlyAnnotated", defaultValue = "true")
+  boolean openshiftOnlyAnnotated;
 
-    @ConfigProperty(name = "startpunkt.istio.virtualservice.enabled", defaultValue = "false")
-    boolean istioVirtualServiceEnabled;
+  @ConfigProperty(name = "startpunkt.istio.virtualservice.enabled", defaultValue = "false")
+  boolean istioVirtualServiceEnabled;
 
-    @ConfigProperty(name = "startpunkt.istio.virtualservice.onlyAnnotated", defaultValue = "true")
-    boolean istioVirtualServiceOnlyAnnotated;
+  @ConfigProperty(name = "startpunkt.istio.virtualservice.onlyAnnotated", defaultValue = "true")
+  boolean istioVirtualServiceOnlyAnnotated;
 
-    @ConfigProperty(name = "startpunkt.gatewayapi.httproute.enabled", defaultValue = "false")
-    boolean gatewayApiEnabled;
+  @ConfigProperty(name = "startpunkt.gatewayapi.httproute.enabled", defaultValue = "false")
+  boolean gatewayApiEnabled;
 
-    @ConfigProperty(name = "startpunkt.gatewayapi.httproute.onlyAnnotated", defaultValue = "true")
-    boolean gatewayApiHttpRouteOnlyAnnotated;
+  @ConfigProperty(name = "startpunkt.gatewayapi.httproute.onlyAnnotated", defaultValue = "true")
+  boolean gatewayApiHttpRouteOnlyAnnotated;
 
-    @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
-    boolean anyNamespace;
+  @ConfigProperty(name = "startpunkt.namespaceSelector.any", defaultValue = "true")
+  boolean anyNamespace;
 
-    @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
-    Optional<List<String>> matchNames;
+  @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
+  Optional<List<String>> matchNames;
 
-    @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
-    String defaultProtocol;
+  @ConfigProperty(name = "startpunkt.defaultProtocol", defaultValue = "http")
+  String defaultProtocol;
 
-    @ConfigProperty(name = "startpunkt.watch.enabled", defaultValue = "true")
-    boolean watchEnabled;
+  @ConfigProperty(name = "startpunkt.watch.enabled", defaultValue = "true")
+  boolean watchEnabled;
 
-    @ConfigProperty(name = "startpunkt.watch.resyncPeriodSeconds", defaultValue = "300")
-    long resyncPeriodSeconds;
+  @ConfigProperty(name = "startpunkt.watch.resyncPeriodSeconds", defaultValue = "300")
+  long resyncPeriodSeconds;
 
-    /**
-     * Constructor with injected dependencies.
-     */
-    public KubernetesInformerService(
-            KubernetesClient kubernetesClient,
-            ApplicationCacheService applicationCacheService,
-            BookmarkCacheService bookmarkCacheService,
-            EventBroadcaster eventBroadcaster,
-            AvailabilityCheckService availabilityCheckService,
-            BookmarkService bookmarkService) {
-        this.kubernetesClient = kubernetesClient;
-        this.applicationCacheService = applicationCacheService;
-        this.bookmarkCacheService = bookmarkCacheService;
-        this.eventBroadcaster = eventBroadcaster;
-        this.availabilityCheckService = availabilityCheckService;
-        this.bookmarkService = bookmarkService;
+  /** Constructor with injected dependencies. */
+  public KubernetesInformerService(
+      KubernetesClient kubernetesClient,
+      ApplicationCacheService applicationCacheService,
+      BookmarkCacheService bookmarkCacheService,
+      EventBroadcaster eventBroadcaster,
+      AvailabilityCheckService availabilityCheckService,
+      BookmarkService bookmarkService) {
+    this.kubernetesClient = kubernetesClient;
+    this.applicationCacheService = applicationCacheService;
+    this.bookmarkCacheService = bookmarkCacheService;
+    this.eventBroadcaster = eventBroadcaster;
+    this.availabilityCheckService = availabilityCheckService;
+    this.bookmarkService = bookmarkService;
+  }
+
+  /** Initializes informers and starts watching Kubernetes resources on application startup. */
+  void onStart(@Observes StartupEvent event) {
+    Log.info("Initializing Kubernetes Informer service");
+
+    if (!watchEnabled) {
+      Log.info("Kubernetes informers disabled by configuration");
+      return;
     }
 
-    /**
-     * Initializes informers and starts watching Kubernetes resources on application
-     * startup.
-     */
-    void onStart(@Observes StartupEvent event) {
-        Log.info("Initializing Kubernetes Informer service");
+    try {
+      // Start informers for different resource types
+      startApplicationInformer();
+      startBookmarkInformer();
 
-        if (!watchEnabled) {
-            Log.info("Kubernetes informers disabled by configuration");
-            return;
-        }
+      if (hajimariEnabled) {
+        startHajimariBookmarkInformer();
+      }
 
-        try {
-            // Start informers for different resource types
-            startApplicationInformer();
-            startBookmarkInformer();
+      if (ingressEnabled) {
+        startIngressInformer();
+      }
 
-            if (hajimariEnabled) {
-                startHajimariBookmarkInformer();
-            }
+      if (openshiftEnabled) {
+        startRouteInformer();
+      }
 
-            if (ingressEnabled) {
-                startIngressInformer();
-            }
+      if (istioVirtualServiceEnabled) {
+        startVirtualServiceInformer();
+      }
 
-            if (openshiftEnabled) {
-                startRouteInformer();
-            }
+      if (gatewayApiEnabled) {
+        startHttpRouteInformer();
+      }
 
-            if (istioVirtualServiceEnabled) {
-                startVirtualServiceInformer();
-            }
+      Log.infof("Kubernetes Informer service initialized with %d informers", informers.size());
 
-            if (gatewayApiEnabled) {
-                startHttpRouteInformer();
-            }
+      // Perform initial cache load from all Informers, then mark sync complete
+      Log.info("Performing initial cache load...");
+      reloadApplicationCache();
+      reloadBookmarkCache();
+      initialSyncComplete = true;
+      Log.info("Initial sync complete - Informers now active for real-time updates");
+    } catch (Exception e) {
+      Log.error("Failed to initialize Kubernetes Informer service", e);
+    }
+  }
 
-            Log.infof("Kubernetes Informer service initialized with %d informers", informers.size());
+  /** Stops all informers on application shutdown. */
+  void onStop(@Observes ShutdownEvent event) {
+    Log.info("Stopping Kubernetes Informer service");
+    stopInformers();
+  }
 
-            // Perform initial cache load from all Informers, then mark sync complete
-            Log.info("Performing initial cache load...");
-            reloadApplicationCache();
-            reloadBookmarkCache();
-            initialSyncComplete = true;
-            Log.info("Initial sync complete - Informers now active for real-time updates");
-        } catch (Exception e) {
-            Log.error("Failed to initialize Kubernetes Informer service", e);
-        }
+  /** Starts the Application CRD informer. */
+  private void startApplicationInformer() {
+    try {
+      SharedIndexInformer<Application> informer =
+          kubernetesClient
+              .resources(Application.class)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<Application>() {
+                    @Override
+                    public void onAdd(Application application) {
+                      handleApplicationAdded(application);
+                    }
+
+                    @Override
+                    public void onUpdate(Application oldApp, Application newApp) {
+                      handleApplicationUpdated(newApp);
+                    }
+
+                    @Override
+                    public void onDelete(
+                        Application application, boolean deletedFinalStateUnknown) {
+                      handleApplicationDeleted(application);
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started Application CRD informer");
+    } catch (Exception e) {
+      Log.error("Failed to start Application informer", e);
+    }
+  }
+
+  /** Starts the Bookmark CRD informer. */
+  private void startBookmarkInformer() {
+    try {
+      SharedIndexInformer<Bookmark> informer =
+          kubernetesClient
+              .resources(Bookmark.class)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<Bookmark>() {
+                    @Override
+                    public void onAdd(Bookmark bookmark) {
+                      handleBookmarkAdded(bookmark);
+                    }
+
+                    @Override
+                    public void onUpdate(Bookmark oldBookmark, Bookmark newBookmark) {
+                      handleBookmarkUpdated(newBookmark);
+                    }
+
+                    @Override
+                    public void onDelete(Bookmark bookmark, boolean deletedFinalStateUnknown) {
+                      handleBookmarkDeleted(bookmark);
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started Bookmark CRD informer");
+    } catch (Exception e) {
+      Log.error("Failed to start Bookmark informer", e);
+    }
+  }
+
+  /** Starts the Hajimari Bookmark informer. */
+  private void startHajimariBookmarkInformer() {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("hajimari.io")
+              .withVersion("v1alpha1")
+              .withPlural("bookmarks")
+              .withNamespaced(true)
+              .build();
+
+      SharedIndexInformer<GenericKubernetesResource> informer =
+          kubernetesClient
+              .genericKubernetesResources(ctx)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<GenericKubernetesResource>() {
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+                      if (initialSyncComplete) {
+                        handleGenericBookmarkEvent("hajimari");
+                      }
+                    }
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+                      if (initialSyncComplete) {
+                        handleGenericBookmarkEvent("hajimari");
+                      }
+                    }
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+                      if (initialSyncComplete) {
+                        handleGenericBookmarkEvent("hajimari");
+                      }
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started Hajimari Bookmark informer");
+    } catch (Exception e) {
+      Log.error("Failed to start Hajimari Bookmark informer", e);
+    }
+  }
+
+  /** Starts the Ingress informer. */
+  private void startIngressInformer() {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("networking.k8s.io")
+              .withVersion("v1")
+              .withPlural("ingresses")
+              .withNamespaced(true)
+              .build();
+
+      SharedIndexInformer<GenericKubernetesResource> informer =
+          kubernetesClient
+              .genericKubernetesResources(ctx)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<GenericKubernetesResource>() {
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("ingress");
+                      }
+                    }
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("ingress");
+                      }
+                    }
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("ingress");
+                      }
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started Ingress informer");
+    } catch (Exception e) {
+      Log.error("Failed to start Ingress informer", e);
+    }
+  }
+
+  /** Starts the OpenShift Route informer. */
+  private void startRouteInformer() {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("route.openshift.io")
+              .withVersion("v1")
+              .withPlural("routes")
+              .withNamespaced(true)
+              .build();
+
+      SharedIndexInformer<GenericKubernetesResource> informer =
+          kubernetesClient
+              .genericKubernetesResources(ctx)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<GenericKubernetesResource>() {
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("route");
+                      }
+                    }
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("route");
+                      }
+                    }
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("route");
+                      }
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started Route informer");
+    } catch (Exception e) {
+      Log.error("Failed to start Route informer", e);
+    }
+  }
+
+  /** Starts the Istio VirtualService informer. */
+  private void startVirtualServiceInformer() {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("networking.istio.io")
+              .withVersion("v1")
+              .withPlural("virtualservices")
+              .withNamespaced(true)
+              .build();
+
+      SharedIndexInformer<GenericKubernetesResource> informer =
+          kubernetesClient
+              .genericKubernetesResources(ctx)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<GenericKubernetesResource>() {
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("virtualservice");
+                      }
+                    }
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("virtualservice");
+                      }
+                    }
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("virtualservice");
+                      }
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started VirtualService informer");
+    } catch (Exception e) {
+      Log.warnf("VirtualService CRD not found (Istio not installed?) - skipping informer");
+      Log.debugf(e, "VirtualService informer exception details");
+    }
+  }
+
+  /** Starts the Gateway API HTTPRoute informer. */
+  private void startHttpRouteInformer() {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup("gateway.networking.k8s.io")
+              .withVersion("v1")
+              .withPlural("httproutes")
+              .withNamespaced(true)
+              .build();
+
+      SharedIndexInformer<GenericKubernetesResource> informer =
+          kubernetesClient
+              .genericKubernetesResources(ctx)
+              .inAnyNamespace()
+              .inform(
+                  new ResourceEventHandler<GenericKubernetesResource>() {
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("httproute");
+                      }
+                    }
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("httproute");
+                      }
+                    }
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+                      if (initialSyncComplete) {
+                        handleGenericApplicationEvent("httproute");
+                      }
+                    }
+                  },
+                  resyncPeriodSeconds * 1000);
+
+      informers.add(informer);
+      Log.info("Started HTTPRoute informer");
+    } catch (Exception e) {
+      Log.error("Failed to start HTTPRoute informer", e);
+    }
+  }
+
+  /** Handles Application CRD addition events. */
+  private void handleApplicationAdded(Application application) {
+    if (application == null || application.getMetadata() == null || application.getSpec() == null) {
+      return;
     }
 
-    /**
-     * Stops all informers on application shutdown.
-     */
-    void onStop(@Observes ShutdownEvent event) {
-        Log.info("Stopping Kubernetes Informer service");
-        stopInformers();
+    try {
+      String namespace = application.getMetadata().getNamespace();
+      String name = application.getMetadata().getName();
+
+      Log.debugf("Application added: %s/%s", namespace, name);
+
+      // Create ApplicationResponse from spec
+      ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());
+      appResponse.setNamespace(namespace);
+      appResponse.setResourceName(name);
+      appResponse.setHasOwnerReferences(
+          application.getMetadata().getOwnerReferences() != null
+              && !application.getMetadata().getOwnerReferences().isEmpty());
+
+      // Enrich with availability checking
+      List<ApplicationResponse> enriched =
+          availabilityCheckService.enrichWithAvailability(List.of(appResponse));
+
+      if (!enriched.isEmpty()) {
+        appResponse = enriched.get(0);
+      }
+
+      // Register URL for availability checking
+      if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
+        availabilityCheckService.registerUrl(appResponse.getUrl());
+      }
+
+      // Store in cache
+      applicationCacheService.put(appResponse);
+
+      // Broadcast event
+      eventBroadcaster.broadcastApplicationAdded(application);
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Application addition");
+    }
+  }
+
+  /** Handles Application CRD update events. */
+  private void handleApplicationUpdated(Application application) {
+    if (application == null || application.getMetadata() == null || application.getSpec() == null) {
+      return;
     }
 
-    /**
-     * Starts the Application CRD informer.
-     */
-    private void startApplicationInformer() {
-        try {
-            SharedIndexInformer<Application> informer = kubernetesClient
-                    .resources(Application.class)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<Application>() {
-                        @Override
-                        public void onAdd(Application application) {
-                            handleApplicationAdded(application);
-                        }
+    try {
+      String namespace = application.getMetadata().getNamespace();
+      String name = application.getMetadata().getName();
 
-                        @Override
-                        public void onUpdate(Application oldApp, Application newApp) {
-                            handleApplicationUpdated(newApp);
-                        }
+      Log.debugf("Application updated: %s/%s", namespace, name);
 
-                        @Override
-                        public void onDelete(Application application, boolean deletedFinalStateUnknown) {
-                            handleApplicationDeleted(application);
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      // Create ApplicationResponse from spec
+      ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());
+      appResponse.setNamespace(namespace);
+      appResponse.setResourceName(name);
+      appResponse.setHasOwnerReferences(
+          application.getMetadata().getOwnerReferences() != null
+              && !application.getMetadata().getOwnerReferences().isEmpty());
 
-            informers.add(informer);
-            Log.info("Started Application CRD informer");
-        } catch (Exception e) {
-            Log.error("Failed to start Application informer", e);
-        }
+      // Enrich with availability checking
+      List<ApplicationResponse> enriched =
+          availabilityCheckService.enrichWithAvailability(List.of(appResponse));
+
+      if (!enriched.isEmpty()) {
+        appResponse = enriched.get(0);
+      }
+
+      // Register URL for availability checking
+      if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
+        availabilityCheckService.registerUrl(appResponse.getUrl());
+      }
+
+      // Update in cache
+      applicationCacheService.put(appResponse);
+
+      // Broadcast event
+      eventBroadcaster.broadcastApplicationUpdated(application);
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Application update");
+    }
+  }
+
+  /** Handles Application CRD deletion events. */
+  private void handleApplicationDeleted(Application application) {
+    if (application == null || application.getMetadata() == null) {
+      return;
     }
 
-    /**
-     * Starts the Bookmark CRD informer.
-     */
-    private void startBookmarkInformer() {
-        try {
-            SharedIndexInformer<Bookmark> informer = kubernetesClient
-                    .resources(Bookmark.class)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<Bookmark>() {
-                        @Override
-                        public void onAdd(Bookmark bookmark) {
-                            handleBookmarkAdded(bookmark);
-                        }
+    try {
+      String namespace = application.getMetadata().getNamespace();
+      String name = application.getMetadata().getName();
 
-                        @Override
-                        public void onUpdate(Bookmark oldBookmark, Bookmark newBookmark) {
-                            handleBookmarkUpdated(newBookmark);
-                        }
+      Log.debugf("Application deleted: %s/%s", namespace, name);
 
-                        @Override
-                        public void onDelete(Bookmark bookmark, boolean deletedFinalStateUnknown) {
-                            handleBookmarkDeleted(bookmark);
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      // Remove from cache
+      ApplicationResponse removed = applicationCacheService.remove(namespace, name);
 
-            informers.add(informer);
-            Log.info("Started Bookmark CRD informer");
-        } catch (Exception e) {
-            Log.error("Failed to start Bookmark informer", e);
-        }
+      // Unregister URL from availability checking
+      if (removed != null && removed.getUrl() != null && !removed.getUrl().isEmpty()) {
+        availabilityCheckService.unregisterUrl(removed.getUrl());
+      }
+
+      // Broadcast event
+      if (removed != null) {
+        eventBroadcaster.broadcastApplicationRemoved(application);
+      }
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Application deletion");
+    }
+  }
+
+  /** Handles Bookmark CRD addition events. */
+  private void handleBookmarkAdded(Bookmark bookmark) {
+    if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {
+      return;
     }
 
-    /**
-     * Starts the Hajimari Bookmark informer.
-     */
-    private void startHajimariBookmarkInformer() {
-        try {
-            ResourceDefinitionContext ctx = new ResourceDefinitionContext.Builder()
-                    .withGroup("hajimari.io")
-                    .withVersion("v1alpha1")
-                    .withPlural("bookmarks")
-                    .withNamespaced(true)
-                    .build();
+    try {
+      String namespace = bookmark.getMetadata().getNamespace();
+      String name = bookmark.getMetadata().getName();
 
-            SharedIndexInformer<GenericKubernetesResource> informer = kubernetesClient
-                    .genericKubernetesResources(ctx)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<GenericKubernetesResource>() {
-                        @Override
-                        public void onAdd(GenericKubernetesResource resource) {
-                            if (initialSyncComplete) {
-                                handleGenericBookmarkEvent("hajimari");
-                            }
-                        }
+      Log.debugf("Bookmark added: %s/%s", namespace, name);
 
-                        @Override
-                        public void onUpdate(GenericKubernetesResource oldResource,
-                                GenericKubernetesResource newResource) {
-                            if (initialSyncComplete) {
-                                handleGenericBookmarkEvent("hajimari");
-                            }
-                        }
+      // Create BookmarkResponse from spec
+      BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());
+      bookmarkResponse.setNamespace(namespace);
+      bookmarkResponse.setResourceName(name);
+      bookmarkResponse.setHasOwnerReferences(
+          bookmark.getMetadata().getOwnerReferences() != null
+              && !bookmark.getMetadata().getOwnerReferences().isEmpty());
 
-                        @Override
-                        public void onDelete(GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
-                            if (initialSyncComplete) {
-                                handleGenericBookmarkEvent("hajimari");
-                            }
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      // Store in cache
+      bookmarkCacheService.put(bookmarkResponse);
 
-            informers.add(informer);
-            Log.info("Started Hajimari Bookmark informer");
-        } catch (Exception e) {
-            Log.error("Failed to start Hajimari Bookmark informer", e);
-        }
+      // Broadcast event
+      eventBroadcaster.broadcastBookmarkAdded(bookmark);
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Bookmark addition");
+    }
+  }
+
+  /** Handles Bookmark CRD update events. */
+  private void handleBookmarkUpdated(Bookmark bookmark) {
+    if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {
+      return;
     }
 
-    /**
-     * Starts the Ingress informer.
-     */
-    private void startIngressInformer() {
-        try {
-            ResourceDefinitionContext ctx = new ResourceDefinitionContext.Builder()
-                    .withGroup("networking.k8s.io")
-                    .withVersion("v1")
-                    .withPlural("ingresses")
-                    .withNamespaced(true)
-                    .build();
+    try {
+      String namespace = bookmark.getMetadata().getNamespace();
+      String name = bookmark.getMetadata().getName();
 
-            SharedIndexInformer<GenericKubernetesResource> informer = kubernetesClient
-                    .genericKubernetesResources(ctx)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<GenericKubernetesResource>() {
-                        @Override
-                        public void onAdd(GenericKubernetesResource resource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("ingress");
-                            }
-                        }
+      Log.debugf("Bookmark updated: %s/%s", namespace, name);
 
-                        @Override
-                        public void onUpdate(GenericKubernetesResource oldResource,
-                                GenericKubernetesResource newResource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("ingress");
-                            }
-                        }
+      // Create BookmarkResponse from spec
+      BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());
+      bookmarkResponse.setNamespace(namespace);
+      bookmarkResponse.setResourceName(name);
+      bookmarkResponse.setHasOwnerReferences(
+          bookmark.getMetadata().getOwnerReferences() != null
+              && !bookmark.getMetadata().getOwnerReferences().isEmpty());
 
-                        @Override
-                        public void onDelete(GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("ingress");
-                            }
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      // Update in cache
+      bookmarkCacheService.put(bookmarkResponse);
 
-            informers.add(informer);
-            Log.info("Started Ingress informer");
-        } catch (Exception e) {
-            Log.error("Failed to start Ingress informer", e);
-        }
+      // Broadcast event
+      eventBroadcaster.broadcastBookmarkUpdated(bookmark);
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Bookmark update");
+    }
+  }
+
+  /** Handles Bookmark CRD deletion events. */
+  private void handleBookmarkDeleted(Bookmark bookmark) {
+    if (bookmark == null || bookmark.getMetadata() == null) {
+      return;
     }
 
-    /**
-     * Starts the OpenShift Route informer.
-     */
-    private void startRouteInformer() {
-        try {
-            ResourceDefinitionContext ctx = new ResourceDefinitionContext.Builder()
-                    .withGroup("route.openshift.io")
-                    .withVersion("v1")
-                    .withPlural("routes")
-                    .withNamespaced(true)
-                    .build();
+    try {
+      String namespace = bookmark.getMetadata().getNamespace();
+      String name = bookmark.getMetadata().getName();
 
-            SharedIndexInformer<GenericKubernetesResource> informer = kubernetesClient
-                    .genericKubernetesResources(ctx)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<GenericKubernetesResource>() {
-                        @Override
-                        public void onAdd(GenericKubernetesResource resource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("route");
-                            }
-                        }
+      Log.debugf("Bookmark deleted: %s/%s", namespace, name);
 
-                        @Override
-                        public void onUpdate(GenericKubernetesResource oldResource,
-                                GenericKubernetesResource newResource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("route");
-                            }
-                        }
+      // Remove from cache
+      BookmarkResponse removed = bookmarkCacheService.remove(namespace, name);
 
-                        @Override
-                        public void onDelete(GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("route");
-                            }
-                        }
-                    }, resyncPeriodSeconds * 1000);
-
-            informers.add(informer);
-            Log.info("Started Route informer");
-        } catch (Exception e) {
-            Log.error("Failed to start Route informer", e);
-        }
+      // Broadcast event
+      if (removed != null) {
+        eventBroadcaster.broadcastBookmarkRemoved(bookmark);
+      }
+    } catch (Exception e) {
+      Log.errorf(e, "Error handling Bookmark deletion");
     }
+  }
 
-    /**
-     * Starts the Istio VirtualService informer.
-     */
-    private void startVirtualServiceInformer() {
-        try {
-            ResourceDefinitionContext ctx = new ResourceDefinitionContext.Builder()
-                    .withGroup("networking.istio.io")
-                    .withVersion("v1")
-                    .withPlural("virtualservices")
-                    .withNamespaced(true)
-                    .build();
+  /**
+   * Handles generic application resource events (Ingress, Route, VirtualService, HTTPRoute). For
+   * generic resources, we reload all applications since we need to aggregate multiple resource
+   * types.
+   */
+  private void handleGenericApplicationEvent(String resourceType) {
+    Log.debugf("Generic application resource changed: %s, reloading applications", resourceType);
+    reloadApplicationCache();
+  }
 
-            SharedIndexInformer<GenericKubernetesResource> informer = kubernetesClient
-                    .genericKubernetesResources(ctx)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<GenericKubernetesResource>() {
-                        @Override
-                        public void onAdd(GenericKubernetesResource resource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("virtualservice");
-                            }
-                        }
+  /**
+   * Handles generic bookmark resource events (Hajimari). For generic resources, we reload all
+   * bookmarks.
+   */
+  private void handleGenericBookmarkEvent(String resourceType) {
+    Log.debugf("Generic bookmark resource changed: %s, reloading bookmarks", resourceType);
+    reloadBookmarkCache();
+  }
 
-                        @Override
-                        public void onUpdate(GenericKubernetesResource oldResource,
-                                GenericKubernetesResource newResource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("virtualservice");
-                            }
-                        }
+  /** Reloads the entire application cache from Kubernetes. */
+  private void reloadApplicationCache() {
+    try {
+      Log.debug("Reloading application cache");
 
-                        @Override
-                        public void onDelete(GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("virtualservice");
-                            }
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      var applicationWrappers = new ArrayList<BaseKubernetesObject>();
+      applicationWrappers.add(new StartpunktApplicationWrapper());
 
-            informers.add(informer);
-            Log.info("Started VirtualService informer");
-        } catch (Exception e) {
-            Log.warnf("VirtualService CRD not found (Istio not installed?) - skipping informer");
-            Log.debugf(e, "VirtualService informer exception details");
+      if (hajimariEnabled) {
+        applicationWrappers.add(new HajimariApplicationWrapper());
+      }
+      if (openshiftEnabled) {
+        applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
+      }
+      if (ingressEnabled) {
+        applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+      }
+      if (istioVirtualServiceEnabled) {
+        applicationWrappers.add(
+            new IstioVirtualServiceApplicationWrapper(
+                istioVirtualServiceOnlyAnnotated, defaultProtocol));
+      }
+      if (gatewayApiEnabled) {
+        applicationWrappers.add(
+            new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
+      }
+
+      var apps = new ArrayList<ApplicationResponse>();
+
+      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+        var wrapperApps =
+            applicationWrapper.getApplicationSpecsWithMetadata(
+                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
+        apps.addAll(wrapperApps);
+      }
+
+      // Register URLs for availability checking
+      for (ApplicationResponse app : apps) {
+        if (app.getUrl() != null && !app.getUrl().isEmpty()) {
+          availabilityCheckService.registerUrl(app.getUrl());
         }
+      }
+
+      // Sort and cache
+      Collections.sort(apps);
+
+      // Clear and repopulate cache
+      applicationCacheService.clear();
+      applicationCacheService.putAll(apps);
+
+      // Broadcast status change
+      eventBroadcaster.broadcastStatusChanged(null);
+
+      Log.debugf("Reloaded %d applications into cache", apps.size());
+    } catch (Exception e) {
+      Log.error("Error reloading application cache", e);
     }
+  }
 
-    /**
-     * Starts the Gateway API HTTPRoute informer.
-     */
-    private void startHttpRouteInformer() {
-        try {
-            ResourceDefinitionContext ctx = new ResourceDefinitionContext.Builder()
-                    .withGroup("gateway.networking.k8s.io")
-                    .withVersion("v1")
-                    .withPlural("httproutes")
-                    .withNamespaced(true)
-                    .build();
+  /** Reloads the entire bookmark cache from Kubernetes. */
+  private void reloadBookmarkCache() {
+    try {
+      Log.debug("Reloading bookmark cache");
 
-            SharedIndexInformer<GenericKubernetesResource> informer = kubernetesClient
-                    .genericKubernetesResources(ctx)
-                    .inAnyNamespace()
-                    .inform(new ResourceEventHandler<GenericKubernetesResource>() {
-                        @Override
-                        public void onAdd(GenericKubernetesResource resource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("httproute");
-                            }
-                        }
+      List<BookmarkResponse> bookmarks = new ArrayList<>();
 
-                        @Override
-                        public void onUpdate(GenericKubernetesResource oldResource,
-                                GenericKubernetesResource newResource) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("httproute");
-                            }
-                        }
+      // Load Startpunkt bookmarks
+      bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
-                        @Override
-                        public void onDelete(GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
-                            if (initialSyncComplete) {
-                                handleGenericApplicationEvent("httproute");
-                            }
-                        }
-                    }, resyncPeriodSeconds * 1000);
+      // Load Hajimari bookmarks if enabled
+      if (hajimariEnabled) {
+        bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+      }
 
-            informers.add(informer);
-            Log.info("Started HTTPRoute informer");
-        } catch (Exception e) {
-            Log.error("Failed to start HTTPRoute informer", e);
-        }
+      // Clear and repopulate cache
+      bookmarkCacheService.clear();
+      bookmarkCacheService.putAll(bookmarks);
+
+      // Broadcast status change
+      eventBroadcaster.broadcastStatusChanged(null);
+
+      Log.debugf("Reloaded %d bookmarks into cache", bookmarks.size());
+    } catch (Exception e) {
+      Log.error("Error reloading bookmark cache", e);
     }
+  }
 
-    /**
-     * Handles Application CRD addition events.
-     */
-    private void handleApplicationAdded(Application application) {
-        if (application == null || application.getMetadata() == null || application.getSpec() == null) {
-            return;
-        }
-
-        try {
-            String namespace = application.getMetadata().getNamespace();
-            String name = application.getMetadata().getName();
-
-            Log.debugf("Application added: %s/%s", namespace, name);
-
-            // Create ApplicationResponse from spec
-            ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());
-            appResponse.setNamespace(namespace);
-            appResponse.setResourceName(name);
-            appResponse.setHasOwnerReferences(
-                    application.getMetadata().getOwnerReferences() != null &&
-                            !application.getMetadata().getOwnerReferences().isEmpty());
-
-            // Enrich with availability checking
-            List<ApplicationResponse> enriched = availabilityCheckService
-                    .enrichWithAvailability(List.of(appResponse));
-
-            if (!enriched.isEmpty()) {
-                appResponse = enriched.get(0);
-            }
-
-            // Register URL for availability checking
-            if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
-                availabilityCheckService.registerUrl(appResponse.getUrl());
-            }
-
-            // Store in cache
-            applicationCacheService.put(appResponse);
-
-            // Broadcast event
-            eventBroadcaster.broadcastApplicationAdded(application);
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Application addition");
-        }
+  /** Stops all informers. */
+  private void stopInformers() {
+    for (SharedIndexInformer<?> informer : informers) {
+      try {
+        informer.stop();
+      } catch (Exception e) {
+        Log.warn("Error stopping informer", e);
+      }
     }
-
-    /**
-     * Handles Application CRD update events.
-     */
-    private void handleApplicationUpdated(Application application) {
-        if (application == null || application.getMetadata() == null || application.getSpec() == null) {
-            return;
-        }
-
-        try {
-            String namespace = application.getMetadata().getNamespace();
-            String name = application.getMetadata().getName();
-
-            Log.debugf("Application updated: %s/%s", namespace, name);
-
-            // Create ApplicationResponse from spec
-            ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());
-            appResponse.setNamespace(namespace);
-            appResponse.setResourceName(name);
-            appResponse.setHasOwnerReferences(
-                    application.getMetadata().getOwnerReferences() != null &&
-                            !application.getMetadata().getOwnerReferences().isEmpty());
-
-            // Enrich with availability checking
-            List<ApplicationResponse> enriched = availabilityCheckService
-                    .enrichWithAvailability(List.of(appResponse));
-
-            if (!enriched.isEmpty()) {
-                appResponse = enriched.get(0);
-            }
-
-            // Register URL for availability checking
-            if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
-                availabilityCheckService.registerUrl(appResponse.getUrl());
-            }
-
-            // Update in cache
-            applicationCacheService.put(appResponse);
-
-            // Broadcast event
-            eventBroadcaster.broadcastApplicationUpdated(application);
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Application update");
-        }
-    }
-
-    /**
-     * Handles Application CRD deletion events.
-     */
-    private void handleApplicationDeleted(Application application) {
-        if (application == null || application.getMetadata() == null) {
-            return;
-        }
-
-        try {
-            String namespace = application.getMetadata().getNamespace();
-            String name = application.getMetadata().getName();
-
-            Log.debugf("Application deleted: %s/%s", namespace, name);
-
-            // Remove from cache
-            ApplicationResponse removed = applicationCacheService.remove(namespace, name);
-
-            // Unregister URL from availability checking
-            if (removed != null && removed.getUrl() != null && !removed.getUrl().isEmpty()) {
-                availabilityCheckService.unregisterUrl(removed.getUrl());
-            }
-
-            // Broadcast event
-            if (removed != null) {
-                eventBroadcaster.broadcastApplicationRemoved(application);
-            }
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Application deletion");
-        }
-    }
-
-    /**
-     * Handles Bookmark CRD addition events.
-     */
-    private void handleBookmarkAdded(Bookmark bookmark) {
-        if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {
-            return;
-        }
-
-        try {
-            String namespace = bookmark.getMetadata().getNamespace();
-            String name = bookmark.getMetadata().getName();
-
-            Log.debugf("Bookmark added: %s/%s", namespace, name);
-
-            // Create BookmarkResponse from spec
-            BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());
-            bookmarkResponse.setNamespace(namespace);
-            bookmarkResponse.setResourceName(name);
-            bookmarkResponse.setHasOwnerReferences(
-                    bookmark.getMetadata().getOwnerReferences() != null &&
-                            !bookmark.getMetadata().getOwnerReferences().isEmpty());
-
-            // Store in cache
-            bookmarkCacheService.put(bookmarkResponse);
-
-            // Broadcast event
-            eventBroadcaster.broadcastBookmarkAdded(bookmark);
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Bookmark addition");
-        }
-    }
-
-    /**
-     * Handles Bookmark CRD update events.
-     */
-    private void handleBookmarkUpdated(Bookmark bookmark) {
-        if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {
-            return;
-        }
-
-        try {
-            String namespace = bookmark.getMetadata().getNamespace();
-            String name = bookmark.getMetadata().getName();
-
-            Log.debugf("Bookmark updated: %s/%s", namespace, name);
-
-            // Create BookmarkResponse from spec
-            BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());
-            bookmarkResponse.setNamespace(namespace);
-            bookmarkResponse.setResourceName(name);
-            bookmarkResponse.setHasOwnerReferences(
-                    bookmark.getMetadata().getOwnerReferences() != null &&
-                            !bookmark.getMetadata().getOwnerReferences().isEmpty());
-
-            // Update in cache
-            bookmarkCacheService.put(bookmarkResponse);
-
-            // Broadcast event
-            eventBroadcaster.broadcastBookmarkUpdated(bookmark);
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Bookmark update");
-        }
-    }
-
-    /**
-     * Handles Bookmark CRD deletion events.
-     */
-    private void handleBookmarkDeleted(Bookmark bookmark) {
-        if (bookmark == null || bookmark.getMetadata() == null) {
-            return;
-        }
-
-        try {
-            String namespace = bookmark.getMetadata().getNamespace();
-            String name = bookmark.getMetadata().getName();
-
-            Log.debugf("Bookmark deleted: %s/%s", namespace, name);
-
-            // Remove from cache
-            BookmarkResponse removed = bookmarkCacheService.remove(namespace, name);
-
-            // Broadcast event
-            if (removed != null) {
-                eventBroadcaster.broadcastBookmarkRemoved(bookmark);
-            }
-        } catch (Exception e) {
-            Log.errorf(e, "Error handling Bookmark deletion");
-        }
-    }
-
-    /**
-     * Handles generic application resource events (Ingress, Route, VirtualService,
-     * HTTPRoute).
-     * For generic resources, we reload all applications since we need to aggregate
-     * multiple resource types.
-     */
-    private void handleGenericApplicationEvent(String resourceType) {
-        Log.debugf("Generic application resource changed: %s, reloading applications", resourceType);
-        reloadApplicationCache();
-    }
-
-    /**
-     * Handles generic bookmark resource events (Hajimari).
-     * For generic resources, we reload all bookmarks.
-     */
-    private void handleGenericBookmarkEvent(String resourceType) {
-        Log.debugf("Generic bookmark resource changed: %s, reloading bookmarks", resourceType);
-        reloadBookmarkCache();
-    }
-
-    /**
-     * Reloads the entire application cache from Kubernetes.
-     */
-    private void reloadApplicationCache() {
-        try {
-            Log.debug("Reloading application cache");
-
-            var applicationWrappers = new ArrayList<BaseKubernetesObject>();
-            applicationWrappers.add(new StartpunktApplicationWrapper());
-
-            if (hajimariEnabled) {
-                applicationWrappers.add(new HajimariApplicationWrapper());
-            }
-            if (openshiftEnabled) {
-                applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
-            }
-            if (ingressEnabled) {
-                applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
-            }
-            if (istioVirtualServiceEnabled) {
-                applicationWrappers.add(
-                        new IstioVirtualServiceApplicationWrapper(
-                                istioVirtualServiceOnlyAnnotated, defaultProtocol));
-            }
-            if (gatewayApiEnabled) {
-                applicationWrappers.add(
-                        new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
-            }
-
-            var apps = new ArrayList<ApplicationResponse>();
-
-            for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-                var wrapperApps = applicationWrapper.getApplicationSpecsWithMetadata(
-                        kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-                apps.addAll(wrapperApps);
-            }
-
-            // Register URLs for availability checking
-            for (ApplicationResponse app : apps) {
-                if (app.getUrl() != null && !app.getUrl().isEmpty()) {
-                    availabilityCheckService.registerUrl(app.getUrl());
-                }
-            }
-
-            // Sort and cache
-            Collections.sort(apps);
-
-            // Clear and repopulate cache
-            applicationCacheService.clear();
-            applicationCacheService.putAll(apps);
-
-            // Broadcast status change
-            eventBroadcaster.broadcastStatusChanged(null);
-
-            Log.debugf("Reloaded %d applications into cache", apps.size());
-        } catch (Exception e) {
-            Log.error("Error reloading application cache", e);
-        }
-    }
-
-    /**
-     * Reloads the entire bookmark cache from Kubernetes.
-     */
-    private void reloadBookmarkCache() {
-        try {
-            Log.debug("Reloading bookmark cache");
-
-            List<BookmarkResponse> bookmarks = new ArrayList<>();
-
-            // Load Startpunkt bookmarks
-            bookmarks.addAll(bookmarkService.retrieveBookmarks());
-
-            // Load Hajimari bookmarks if enabled
-            if (hajimariEnabled) {
-                bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
-            }
-
-            // Clear and repopulate cache
-            bookmarkCacheService.clear();
-            bookmarkCacheService.putAll(bookmarks);
-
-            // Broadcast status change
-            eventBroadcaster.broadcastStatusChanged(null);
-
-            Log.debugf("Reloaded %d bookmarks into cache", bookmarks.size());
-        } catch (Exception e) {
-            Log.error("Error reloading bookmark cache", e);
-        }
-    }
-
-    /**
-     * Stops all informers.
-     */
-    private void stopInformers() {
-        for (SharedIndexInformer<?> informer : informers) {
-            try {
-                informer.stop();
-            } catch (Exception e) {
-                Log.warn("Error stopping informer", e);
-            }
-        }
-        informers.clear();
-    }
+    informers.clear();
+  }
 }
