@@ -20,9 +20,7 @@ public class ClusterConfig {
   /** Path to kubeconfig file for cluster authentication. Optional - use OR token-based auth. */
   private String kubeconfigPath;
 
-  /**
-   * Service account token for cluster authentication. Optional - use OR kubeconfig-based auth.
-   */
+  /** Service account token for cluster authentication. Optional - use OR kubeconfig-based auth. */
   private String token;
 
   /** Path to CA certificate file for TLS verification. Optional. */

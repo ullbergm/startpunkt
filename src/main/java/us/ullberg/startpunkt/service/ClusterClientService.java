@@ -65,7 +65,7 @@ public class ClusterClientService {
     }
 
     // Initialize and add remote clusters
-    if (remoteClusters.isPresent()) {
+    if (remoteClusters != null && remoteClusters.isPresent()) {
       for (ClusterConfig config : remoteClusters.get()) {
         if (!config.isEnabled()) {
           Log.debugf("Skipping disabled remote cluster: %s", config.getName());
@@ -135,7 +135,8 @@ public class ClusterClientService {
             .withConfig(Config.fromKubeconfig(kubeconfigContent))
             .build();
       } catch (Exception e) {
-        throw new RuntimeException("Failed to read kubeconfig file: " + config.getKubeconfigPath(), e);
+        throw new RuntimeException(
+            "Failed to read kubeconfig file: " + config.getKubeconfigPath(), e);
       }
     }
 
@@ -218,7 +219,7 @@ public class ClusterClientService {
     configs.add(localConfig);
 
     // Add remote clusters
-    if (remoteClusters.isPresent()) {
+    if (remoteClusters != null && remoteClusters.isPresent()) {
       configs.addAll(remoteClusters.get());
     }
 

@@ -74,7 +74,8 @@ public class BookmarkService {
           GenericKubernetesResourceList list = getResourceList(client, ctx);
           List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list, clusterName);
           allBookmarks.addAll(bookmarks);
-          Log.debugf("Retrieved %d Startpunkt bookmarks from cluster %s", bookmarks.size(), clusterName);
+          Log.debugf(
+              "Retrieved %d Startpunkt bookmarks from cluster %s", bookmarks.size(), clusterName);
         } catch (Exception e) {
           Log.errorf(e, "Error retrieving bookmarks from cluster %s", clusterName);
           // Continue with other clusters
@@ -218,7 +219,8 @@ public class BookmarkService {
           GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
           List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list, clusterName);
           allBookmarks.addAll(bookmarks);
-          Log.debugf("Retrieved %d Hajimari bookmarks from cluster %s", bookmarks.size(), clusterName);
+          Log.debugf(
+              "Retrieved %d Hajimari bookmarks from cluster %s", bookmarks.size(), clusterName);
         } catch (Exception e) {
           Log.errorf(e, "Error retrieving Hajimari bookmarks from cluster %s", clusterName);
           // Continue with other clusters
