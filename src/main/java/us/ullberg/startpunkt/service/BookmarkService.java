@@ -3,7 +3,6 @@ package us.ullberg.startpunkt.service;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
@@ -19,7 +18,7 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
 
 /**
  * Service class for managing bookmarks retrieved from Kubernetes Custom Resources. Supports
- * retrieval from multiple namespaces and grouping bookmarks by their group property.
+ * retrieval from multiple namespaces and clusters, and grouping bookmarks by their group property.
  */
 @ApplicationScoped
 public class BookmarkService {
@@ -31,20 +30,28 @@ public class BookmarkService {
   @ConfigProperty(name = "startpunkt.namespaceSelector.matchNames")
   private Optional<List<String>> matchNames;
 
-  /** Default constructor. */
-  public BookmarkService() {
-    // No special initialization needed
+  private final ClusterClientService clusterClientService;
+
+  /**
+   * Constructor with dependency injection.
+   *
+   * @param clusterClientService the cluster client service for multi-cluster support
+   */
+  public BookmarkService(ClusterClientService clusterClientService) {
+    this.clusterClientService = clusterClientService;
   }
 
   /**
-   * Retrieves a list of bookmarks from the Kubernetes cluster based on configured namespaces.
+   * Retrieves a list of bookmarks from all configured clusters based on configured namespaces.
    *
    * @return list of {@link BookmarkResponse} representing the bookmarks
    */
   @Timed(value = "startpunkt.kubernetes.bookmarks", description = "Get a list of bookmarks")
   public List<BookmarkResponse> retrieveBookmarks() {
-    Log.debug("Retrieving Startpunkt bookmarks from Kubernetes");
-    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+    Log.debug("Retrieving Startpunkt bookmarks from Kubernetes clusters");
+    List<BookmarkResponse> allBookmarks = new LinkedList<>();
+
+    try {
       ResourceDefinitionContext ctx =
           new ResourceDefinitionContext.Builder()
               .withGroup("startpunkt.ullberg.us")
@@ -53,10 +60,29 @@ public class BookmarkService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list = getResourceList(client, ctx);
-      List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list);
-      Log.debugf("Retrieved %d Startpunkt bookmarks", bookmarks.size());
-      return bookmarks;
+      // Get all cluster clients
+      Map<String, KubernetesClient> clusterClients = clusterClientService.getAllClusterClients();
+      Log.debugf("Retrieving bookmarks from %d clusters", clusterClients.size());
+
+      // Iterate over each cluster
+      for (Map.Entry<String, KubernetesClient> entry : clusterClients.entrySet()) {
+        String clusterName = entry.getKey();
+        KubernetesClient client = entry.getValue();
+        Log.debugf("Fetching bookmarks from cluster: %s", clusterName);
+
+        try {
+          GenericKubernetesResourceList list = getResourceList(client, ctx);
+          List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list, clusterName);
+          allBookmarks.addAll(bookmarks);
+          Log.debugf("Retrieved %d Startpunkt bookmarks from cluster %s", bookmarks.size(), clusterName);
+        } catch (Exception e) {
+          Log.errorf(e, "Error retrieving bookmarks from cluster %s", clusterName);
+          // Continue with other clusters
+        }
+      }
+
+      Log.debugf("Total bookmarks retrieved across all clusters: %d", allBookmarks.size());
+      return allBookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving bookmarks", e);
       return List.of();
@@ -95,6 +121,18 @@ public class BookmarkService {
    * @return list of {@link BookmarkResponse}
    */
   private List<BookmarkResponse> mapResourcesToBookmarks(GenericKubernetesResourceList list) {
+    return mapResourcesToBookmarks(list, null);
+  }
+
+  /**
+   * Maps a list of generic Kubernetes resources to a list of {@link BookmarkResponse} objects.
+   *
+   * @param list Kubernetes resource list to map
+   * @param clusterName the name of the cluster these bookmarks belong to
+   * @return list of {@link BookmarkResponse}
+   */
+  private List<BookmarkResponse> mapResourcesToBookmarks(
+      GenericKubernetesResourceList list, String clusterName) {
     return list.getItems().stream()
         .map(
             item -> {
@@ -127,6 +165,7 @@ public class BookmarkService {
               // Populate metadata fields
               withMetadata.setNamespace(item.getMetadata().getNamespace());
               withMetadata.setResourceName(item.getMetadata().getName());
+              withMetadata.setClusterName(clusterName);
 
               // Check if resource has owner references or is managed by ArgoCD
               boolean hasOwnerRefs =
@@ -148,13 +187,15 @@ public class BookmarkService {
   }
 
   /**
-   * Retrieves bookmarks from the "hajimari.io" group namespace.
+   * Retrieves bookmarks from the "hajimari.io" group namespace from all configured clusters.
    *
    * @return list of {@link BookmarkResponse} representing Hajimari bookmarks
    */
   public List<BookmarkResponse> retrieveHajimariBookmarks() {
-    Log.debug("Retrieving Hajimari bookmarks");
-    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+    Log.debug("Retrieving Hajimari bookmarks from all clusters");
+    List<BookmarkResponse> allBookmarks = new LinkedList<>();
+
+    try {
       ResourceDefinitionContext resourceDefinitionContext =
           new ResourceDefinitionContext.Builder()
               .withGroup("hajimari.io")
@@ -163,11 +204,29 @@ public class BookmarkService {
               .withNamespaced(true)
               .build();
 
-      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
-      List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list);
-      Log.debugf("Retrieved %d Hajimari bookmarks", bookmarks.size());
+      // Get all cluster clients
+      Map<String, KubernetesClient> clusterClients = clusterClientService.getAllClusterClients();
+      Log.debugf("Retrieving Hajimari bookmarks from %d clusters", clusterClients.size());
 
-      return bookmarks;
+      // Iterate over each cluster
+      for (Map.Entry<String, KubernetesClient> entry : clusterClients.entrySet()) {
+        String clusterName = entry.getKey();
+        KubernetesClient client = entry.getValue();
+        Log.debugf("Fetching Hajimari bookmarks from cluster: %s", clusterName);
+
+        try {
+          GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);
+          List<BookmarkResponse> bookmarks = mapResourcesToBookmarks(list, clusterName);
+          allBookmarks.addAll(bookmarks);
+          Log.debugf("Retrieved %d Hajimari bookmarks from cluster %s", bookmarks.size(), clusterName);
+        } catch (Exception e) {
+          Log.errorf(e, "Error retrieving Hajimari bookmarks from cluster %s", clusterName);
+          // Continue with other clusters
+        }
+      }
+
+      Log.debugf("Total Hajimari bookmarks retrieved across all clusters: %d", allBookmarks.size());
+      return allBookmarks;
     } catch (Exception e) {
       Log.error("Error retrieving hajimari bookmarks", e);
       return List.of();

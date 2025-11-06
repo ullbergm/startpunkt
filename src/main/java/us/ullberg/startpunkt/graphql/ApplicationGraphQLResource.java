@@ -12,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
@@ -41,6 +42,7 @@ import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
 import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 import us.ullberg.startpunkt.service.ApplicationService;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
+import us.ullberg.startpunkt.service.ClusterClientService;
 
 /**
  * GraphQL API resource for applications. Provides queries for retrieving applications with optional
@@ -56,6 +58,7 @@ public class ApplicationGraphQLResource {
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
   final SubscriptionEventEmitter subscriptionEventEmitter;
+  final ClusterClientService clusterClientService;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -102,6 +105,7 @@ public class ApplicationGraphQLResource {
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
    * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
+   * @param clusterClientService the cluster client service for multi-cluster support
    */
   public ApplicationGraphQLResource(
       KubernetesClient kubernetesClient,
@@ -109,13 +113,15 @@ public class ApplicationGraphQLResource {
       ApplicationService applicationService,
       EventBroadcaster eventBroadcaster,
       CacheManager cacheManager,
-      SubscriptionEventEmitter subscriptionEventEmitter) {
+      SubscriptionEventEmitter subscriptionEventEmitter,
+      ClusterClientService clusterClientService) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
     this.applicationService = applicationService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
     this.subscriptionEventEmitter = subscriptionEventEmitter;
+    this.clusterClientService = clusterClientService;
   }
 
   /**
@@ -225,11 +231,31 @@ public class ApplicationGraphQLResource {
     var apps = new ArrayList<ApplicationResponse>();
 
     try {
-      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        var wrapperApps =
-            applicationWrapper.getApplicationSpecsWithMetadata(
-                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-        apps.addAll(wrapperApps);
+      // Get all cluster clients (both local and remote)
+      Map<String, KubernetesClient> clusterClients = clusterClientService.getAllClusterClients();
+      Log.debugf("Retrieving applications from %d clusters", clusterClients.size());
+
+      // Iterate over each cluster
+      for (Map.Entry<String, KubernetesClient> entry : clusterClients.entrySet()) {
+        String clusterName = entry.getKey();
+        KubernetesClient client = entry.getValue();
+        Log.debugf("Fetching applications from cluster: %s", clusterName);
+
+        try {
+          // For each application wrapper type, get resources from this cluster
+          for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+            var wrapperApps =
+                applicationWrapper.getApplicationSpecsWithMetadata(
+                    client, anyNamespace, matchNames.orElse(List.of()), clusterName);
+            apps.addAll(wrapperApps);
+            Log.debugf(
+                "Retrieved %d apps from cluster %s using wrapper %s",
+                wrapperApps.size(), clusterName, applicationWrapper.getClass().getSimpleName());
+          }
+        } catch (Exception e) {
+          Log.errorf(e, "Error retrieving applications from cluster %s", clusterName);
+          // Continue with other clusters even if one fails
+        }
       }
     } catch (Exception e) {
       Log.error("Error retrieving applications from Kubernetes", e);
@@ -244,6 +270,7 @@ public class ApplicationGraphQLResource {
       }
     }
 
+    Log.debugf("Total applications retrieved across all clusters: %d", apps.size());
     return apps;
   }
 

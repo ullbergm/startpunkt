@@ -143,8 +143,23 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List<String> matchNames) {
+    return getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, null);
+  }
+
+  /**
+   * Retrieves application specifications with metadata by mapping Kubernetes generic resources.
+   * Includes cluster name in the response.
+   *
+   * @param client the Kubernetes client instance
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of namespaces to filter on if anyNamespace is false
+   * @param clusterName the name of the cluster these resources belong to
+   * @return list of ApplicationResponse instances with metadata populated
+   */
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames, String clusterName) {
     return getGenericKubernetesResources(client, anyNamespace, matchNames).getItems().stream()
-        .map(this::mapToApplicationSpecWithMetadata)
+        .map(item -> mapToApplicationSpecWithMetadata(item, clusterName))
         .toList();
   }
 
@@ -156,6 +171,18 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected us.ullberg.startpunkt.objects.ApplicationResponse mapToApplicationSpecWithMetadata(
       GenericKubernetesResource item) {
+    return mapToApplicationSpecWithMetadata(item, null);
+  }
+
+  /**
+   * Maps a GenericKubernetesResource to an ApplicationResponse instance with metadata.
+   *
+   * @param item the Kubernetes generic resource
+   * @param clusterName the name of the cluster this resource belongs to
+   * @return the ApplicationResponse with metadata populated
+   */
+  protected us.ullberg.startpunkt.objects.ApplicationResponse mapToApplicationSpecWithMetadata(
+      GenericKubernetesResource item, String clusterName) {
     ApplicationSpec spec = mapToApplicationSpec(item);
     us.ullberg.startpunkt.objects.ApplicationResponse withMetadata =
         new us.ullberg.startpunkt.objects.ApplicationResponse(spec);
@@ -164,6 +191,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
     withMetadata.setNamespace(getResourceNamespace(item));
     withMetadata.setResourceName(getResourceMetadataName(item));
     withMetadata.setHasOwnerReferences(hasOwnerReferences(item));
+    withMetadata.setClusterName(clusterName);
 
     return withMetadata;
   }

@@ -14,6 +14,23 @@ startpunkt:
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
 
+  # Cluster configuration for multi-cluster support
+  clusters:
+    # Enable or disable reading from the local cluster (where Startpunkt is deployed)
+    local:
+      enabled: true  # If false, local cluster resources are not read
+    # Remote clusters configuration - add remote clusters to read applications/bookmarks from
+    # remote:
+    #   - name: production  # Unique identifier for the cluster
+    #     displayName: "Production Cluster"  # Display name shown in UI (optional, defaults to name)
+    #     apiServerUrl: "https://prod-k8s.example.com:6443"  # Kubernetes API server URL
+    #     kubeconfigPath: "/path/to/kubeconfig"  # Path to kubeconfig file (optional)
+    #     # OR use token-based authentication:
+    #     # token: "eyJhbGc..."  # Service account token
+    #     # caCertPath: "/path/to/ca.crt"  # CA certificate path (optional)
+    #     # skipTlsVerify: false  # Skip TLS verification (default: false, use with caution)
+    #     enabled: true  # Whether to read from this cluster (default: true)
+
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
     any: true  # If true, look for resources in all namespaces
