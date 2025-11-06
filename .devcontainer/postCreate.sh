@@ -3,6 +3,12 @@ set -e
 
 echo "🚀 Starting Startpunkt devcontainer post-create setup..."
 
+# Install OpenShift CLI tools (oc and kubectl)
+echo "🔧 Installing OpenShift CLI tools..."
+curl -sL https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux.tar.gz | sudo tar -xzf - -C /usr/local/bin oc kubectl
+sudo chmod +x /usr/local/bin/oc /usr/local/bin/kubectl
+echo "✅ OpenShift CLI tools installed: $(oc version --client --short 2>/dev/null || echo 'oc installed') and kubectl"
+
 # Install npm dependencies for the webui
 echo "📦 Installing frontend dependencies..."
 cd src/main/webui
