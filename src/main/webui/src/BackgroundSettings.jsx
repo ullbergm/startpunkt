@@ -15,10 +15,16 @@ export function BackgroundSettings() {
     return preferences[key];
   };
 
-  // Get current values based on the active type
+  // Get current color based on the active type
   const currentColor = getTypeColor(preferences.type, 'color') || preferences.color;
-  const currentSecondaryColor = getTypeColor('gradient', 'secondaryColor') || preferences.secondaryColor;
-  const currentGradientDirection = getTypeColor('gradient', 'gradientDirection') || preferences.gradientDirection;
+  
+  // Get gradient-specific values (only used when type is 'gradient')
+  const currentSecondaryColor = preferences.type === 'gradient' 
+    ? (getTypeColor('gradient', 'secondaryColor') || preferences.secondaryColor)
+    : preferences.secondaryColor;
+  const currentGradientDirection = preferences.type === 'gradient'
+    ? (getTypeColor('gradient', 'gradientDirection') || preferences.gradientDirection)
+    : preferences.gradientDirection;
 
   return (
     <>

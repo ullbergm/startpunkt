@@ -65,7 +65,7 @@ export function useBackgroundPreferences() {
           color: rawPreferences.color || DEFAULT_PREFERENCES.color
         },
         gradient: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.gradient?.color || '#F8F6F1',
+          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.gradient.color,
           secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.secondaryColor,
           gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.gradientDirection
         },
@@ -84,11 +84,11 @@ export function useBackgroundPreferences() {
 
   const updatePreference = (key, value) => {
     // Special handling for type-specific color properties
-    if (key === 'color' || key === 'secondaryColor' || key === 'gradientDirection') {
+    if (key === 'color') {
       const currentType = preferences.type;
       const typeColors = { ...preferences.typeColors };
       
-      // Update the color for the current type
+      // Update the color for the current type (solid, gradient, or geopattern)
       if (currentType === 'solid' || currentType === 'gradient' || currentType === 'geopattern') {
         typeColors[currentType] = {
           ...typeColors[currentType],
@@ -107,6 +107,19 @@ export function useBackgroundPreferences() {
           [key]: value
         });
       }
+    } else if ((key === 'secondaryColor' || key === 'gradientDirection') && preferences.type === 'gradient') {
+      // Only update gradient-specific properties when type is gradient
+      const typeColors = { ...preferences.typeColors };
+      typeColors.gradient = {
+        ...typeColors.gradient,
+        [key]: value
+      };
+      
+      setPreferences({
+        ...preferences,
+        [key]: value, // Keep for backward compatibility
+        typeColors
+      });
     } else {
       setPreferences({
         ...preferences,
