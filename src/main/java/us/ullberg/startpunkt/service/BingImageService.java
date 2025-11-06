@@ -5,12 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
+import io.smallrye.faulttolerance.api.CircuitBreakerName;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import us.ullberg.startpunkt.objects.bingimage.BingImage;
 
 /**
@@ -26,6 +33,17 @@ public class BingImageService {
 
   private final ObjectMapper objectMapper;
   private final HttpClient httpClient;
+
+  @ConfigProperty(
+      name = "startpunkt.bingimage.fallback.urlbase",
+      defaultValue = "/th?id=OHR.BlueBells_EN-US3486393304")
+  String fallbackUrlBase;
+
+  @ConfigProperty(name = "startpunkt.bingimage.fallback.copyright", defaultValue = "Fallback Image")
+  String fallbackCopyright;
+
+  @ConfigProperty(name = "startpunkt.bingimage.fallback.title", defaultValue = "Default Background")
+  String fallbackTitle;
 
   /**
    * Constructor initializes HTTP client and injects ObjectMapper.
@@ -44,38 +62,51 @@ public class BingImageService {
    * @param width client screen width in pixels
    * @param height client screen height in pixels
    * @return BingImage with optimized URL and metadata
-   * @throws IOException if the API call fails or response cannot be parsed
    */
   @Timed(
       value = "startpunkt.bingimage.fetch",
       description = "Fetch Bing Image of the Day with resolution optimization")
-  public BingImage getBingImageOfDay(int width, int height) throws IOException {
+  public BingImage getBingImageOfDay(int width, int height) {
     Log.debugf("Getting Bing Image of the Day for resolution: %dx%d", width, height);
 
-    // Fetch cached base data from Bing API (cached for 1 hour)
-    BingImageData baseData = fetchBingImageData();
+    try {
+      // Fetch cached base data from Bing API (cached for 1 hour)
+      BingImageData baseData = fetchBingImageData();
 
-    // Determine best resolution based on client screen dimensions
-    String resolution = getBestResolutionForAspectRatio(width, height);
+      // Determine best resolution based on client screen dimensions
+      String resolution = getBestResolutionForAspectRatio(width, height);
 
-    // Build complete image URL with selected resolution
-    String imageUrl = BING_IMAGE_BASE_URL + baseData.urlbase() + "_" + resolution + ".jpg";
+      // Build complete image URL with selected resolution
+      String imageUrl = BING_IMAGE_BASE_URL + baseData.urlbase() + "_" + resolution + ".jpg";
 
-    Log.debugf(
-        "Bing image URL constructed: %s for date: %s with resolution: %s",
-        imageUrl, baseData.date(), resolution);
+      Log.debugf(
+          "Bing image URL constructed: %s for date: %s with resolution: %s",
+          imageUrl, baseData.date(), resolution);
 
-    return new BingImage(imageUrl, baseData.copyright(), baseData.title(), baseData.date());
+      return new BingImage(imageUrl, baseData.copyright(), baseData.title(), baseData.date());
+    } catch (Exception e) {
+      // If fetching fails, return fallback image
+      Log.warnf(e, "Failed to fetch Bing Image of the Day, using fallback image");
+      return getFallbackImage(width, height);
+    }
   }
 
   /**
    * Fetches the base image data from Bing API. This method is cached for 1 hour to reduce API
-   * calls.
+   * calls. Includes circuit breaker to handle API failures gracefully.
    *
    * @return BingImageData containing urlbase and metadata
    * @throws IOException if the API call fails
    */
   @CacheResult(cacheName = "bing-image-base-cache")
+  @Timeout(value = 10000) // 10 second timeout
+  @CircuitBreaker(
+      requestVolumeThreshold = 4,
+      failureRatio = 0.5,
+      delay = 60000,
+      successThreshold = 2)
+  @CircuitBreakerName("bing-api")
+  @Fallback(fallbackMethod = "fetchBingImageDataFallback")
   BingImageData fetchBingImageData() throws IOException {
     Log.debug("Fetching base image data from Bing API (cache miss)");
 
@@ -120,6 +151,34 @@ public class BingImageService {
       Log.errorf(e, "Error fetching Bing Image of the Day base data");
       throw new IOException("Failed to fetch Bing Image of the Day", e);
     }
+  }
+
+  /**
+   * Fallback method for fetchBingImageData when the circuit breaker is open or the API call fails.
+   *
+   * @return BingImageData with fallback values
+   */
+  BingImageData fetchBingImageDataFallback() {
+    Log.warn("Using fallback data for Bing Image (circuit breaker open or API unavailable)");
+    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+    return new BingImageData(fallbackUrlBase, fallbackCopyright, fallbackTitle, today);
+  }
+
+  /**
+   * Provides a fallback image when Bing API is unavailable.
+   *
+   * @param width client screen width in pixels
+   * @param height client screen height in pixels
+   * @return BingImage with fallback image URL and metadata
+   */
+  private BingImage getFallbackImage(int width, int height) {
+    String resolution = getBestResolutionForAspectRatio(width, height);
+    String imageUrl = BING_IMAGE_BASE_URL + fallbackUrlBase + "_" + resolution + ".jpg";
+    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+
+    Log.debugf("Using fallback image URL: %s", imageUrl);
+
+    return new BingImage(imageUrl, fallbackCopyright, fallbackTitle, today);
   }
 
   /**
