@@ -31,6 +31,8 @@
 
 - [🎯 Features](#-features)
 - [🚀 Getting started](#-getting-started)
+  - [Docker Compose (Microservices Mode)](#docker-compose-microservices-mode)
+  - [VS Code Dev Container (Development)](#vs-code-dev-container-development)
   - [Kubernetes](#kubernetes)
     - [JVM based containers (supports amd64 and arm64)](#jvm-based-containers-supports-amd64-and-arm64)
     - [Native containers (supports amd64)](#native-containers-supports-amd64)
@@ -110,6 +112,32 @@ docker-compose up
 ```
 
 Access the application at http://localhost:8080
+
+### VS Code Dev Container (Development)
+
+For the best local development experience with VS Code, use the included devcontainer configuration:
+
+```shell
+# Prerequisites: VS Code with Dev Containers extension and Docker
+
+# Clone the repository
+git clone https://github.com/ullbergm/startpunkt.git
+cd startpunkt
+
+# Open in VS Code
+code .
+
+# When prompted, click "Reopen in Container"
+# Or use Command Palette (F1) → "Dev Containers: Reopen in Container"
+```
+
+The devcontainer provides:
+- Pre-configured Java 21, Node.js 20, Maven, and Docker
+- All necessary VS Code extensions for Quarkus, Java, and Preact development
+- Automatic dependency installation
+- Port forwarding for the application, API, and debugger
+
+See [`.devcontainer/README.md`](.devcontainer/README.md) for more details.
 
 ### Kubernetes
 
