@@ -445,6 +445,32 @@ kubectl describe clusterrole startpunkt-role
 
 **Result**: Drop-in replacement with better reliability
 
+### Async Initialization
+
+**Important**: Informers are initialized **asynchronously** in a background thread to avoid blocking application startup. This is especially important for:
+- **Native mode** - Where K8s API may not be available during tests
+- **Development** - Running outside a Kubernetes cluster
+- **Graceful degradation** - Application starts successfully even if Kubernetes is unreachable
+
+The application will log:
+```
+INFO  Kubernetes Informer service initialization started in background
+```
+
+If initialization succeeds:
+```
+INFO  Kubernetes Informer service initialized with 6 informers
+INFO  Initial sync complete - Informers now active for real-time updates
+```
+
+If Kubernetes is unavailable:
+```
+ERROR Failed to initialize Kubernetes Informer service
+WARN  Application will continue without Kubernetes resource watching
+```
+
+In this case, the application falls back to REST-based resource discovery endpoints.
+
 ## Best Practices
 
 1. **Resync period**: Use 300s (5 min) for most deployments
