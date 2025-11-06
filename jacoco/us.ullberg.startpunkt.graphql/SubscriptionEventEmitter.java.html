@@ -53,21 +53,21 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
    * @param event the application update event to emit
    */
   public void emitApplicationUpdate(ApplicationUpdateEvent event) {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    if (event == null) {</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (event == null) {</span>
 <span class="nc" id="L57">      Log.warn(&quot;Attempted to emit null application update event&quot;);</span>
 <span class="nc" id="L58">      return;</span>
     }
 
-<span class="nc" id="L61">    Log.debugf(</span>
+<span class="fc" id="L61">    Log.debugf(</span>
         &quot;Emitting application update event: type=%s, app=%s&quot;,
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        event.getType(), event.getApplication() != null ? event.getApplication().name : &quot;null&quot;);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">        event.getType(), event.getApplication() != null ? event.getApplication().name : &quot;null&quot;);</span>
 
     try {
-<span class="nc" id="L66">      applicationEventProcessor.onNext(event);</span>
+<span class="fc" id="L66">      applicationEventProcessor.onNext(event);</span>
 <span class="nc" id="L67">    } catch (Exception e) {</span>
 <span class="nc" id="L68">      Log.error(&quot;Error emitting application update event&quot;, e);</span>
-<span class="nc" id="L69">    }</span>
-<span class="nc" id="L70">  }</span>
+<span class="fc" id="L69">    }</span>
+<span class="fc" id="L70">  }</span>
 
   /**
    * Emit a bookmark update event to all subscribers.
@@ -75,20 +75,20 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateEvent;
    * @param event the bookmark update event to emit
    */
   public void emitBookmarkUpdate(BookmarkUpdateEvent event) {
-<span class="nc bnc" id="L78" title="All 2 branches missed.">    if (event == null) {</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (event == null) {</span>
 <span class="nc" id="L79">      Log.warn(&quot;Attempted to emit null bookmark update event&quot;);</span>
 <span class="nc" id="L80">      return;</span>
     }
 
-<span class="nc" id="L83">    Log.debugf(</span>
+<span class="fc" id="L83">    Log.debugf(</span>
         &quot;Emitting bookmark update event: type=%s, bookmark=%s&quot;,
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        event.getType(), event.getBookmark() != null ? event.getBookmark().name : &quot;null&quot;);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        event.getType(), event.getBookmark() != null ? event.getBookmark().name : &quot;null&quot;);</span>
 
     try {
-<span class="nc" id="L88">      bookmarkEventProcessor.onNext(event);</span>
+<span class="fc" id="L88">      bookmarkEventProcessor.onNext(event);</span>
 <span class="nc" id="L89">    } catch (Exception e) {</span>
 <span class="nc" id="L90">      Log.error(&quot;Error emitting bookmark update event&quot;, e);</span>
-<span class="nc" id="L91">    }</span>
-<span class="nc" id="L92">  }</span>
+<span class="fc" id="L91">    }</span>
+<span class="fc" id="L92">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

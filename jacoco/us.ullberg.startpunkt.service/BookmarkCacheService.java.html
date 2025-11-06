@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkCacheService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">BookmarkCacheService.java</span></div><h1>BookmarkCacheService.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
+
+/**
+ * Service that maintains an in-memory cache of all Kubernetes bookmarks.
+ *
+ * &lt;p&gt;This service stores BookmarkResponse objects in a thread-safe map, indexed by a composite key
+ * of namespace + resource name. The cache is populated on startup and updated by Kubernetes watch
+ * handlers.
+ *
+ * &lt;p&gt;Thread-safe operations ensure multiple watch handlers can update the cache concurrently
+ * without data corruption.
+ */
+@ApplicationScoped
+<span class="fc" id="L22">public class BookmarkCacheService {</span>
+
+  // Thread-safe map for storing bookmarks
+  // Key format: &quot;namespace/resourceName&quot;
+<span class="fc" id="L26">  private final Map&lt;String, BookmarkResponse&gt; bookmarkCache = new ConcurrentHashMap&lt;&gt;();</span>
+
+  /**
+   * Generate a cache key for a bookmark.
+   *
+   * @param namespace the namespace
+   * @param resourceName the resource name
+   * @return the cache key
+   */
+  private String getCacheKey(String namespace, String resourceName) {
+<span class="fc" id="L36">    return String.format(&quot;%s/%s&quot;, namespace, resourceName);</span>
+  }
+
+  /**
+   * Generate a cache key from a BookmarkResponse.
+   *
+   * @param bookmark the bookmark response
+   * @return the cache key
+   */
+  private String getCacheKey(BookmarkResponse bookmark) {
+<span class="fc" id="L46">    return getCacheKey(</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        bookmark.getNamespace() != null ? bookmark.getNamespace() : &quot;unknown&quot;,</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        bookmark.getResourceName() != null ? bookmark.getResourceName() : &quot;unknown&quot;);</span>
+  }
+
+  /**
+   * Add or update a bookmark in the cache.
+   *
+   * @param bookmark the bookmark to add or update
+   */
+  public void put(BookmarkResponse bookmark) {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (bookmark == null) {</span>
+<span class="nc" id="L58">      Log.warn(&quot;Attempted to add null bookmark to cache&quot;);</span>
+<span class="nc" id="L59">      return;</span>
+    }
+
+<span class="fc" id="L62">    String key = getCacheKey(bookmark);</span>
+<span class="fc" id="L63">    BookmarkResponse existing = bookmarkCache.put(key, bookmark);</span>
+
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    if (existing == null) {</span>
+<span class="fc" id="L66">      Log.debugf(&quot;Added bookmark to cache: %s&quot;, key);</span>
+    } else {
+<span class="fc" id="L68">      Log.debugf(&quot;Updated bookmark in cache: %s&quot;, key);</span>
+    }
+<span class="fc" id="L70">  }</span>
+
+  /**
+   * Add or update multiple bookmarks in the cache.
+   *
+   * @param bookmarks the bookmarks to add or update
+   */
+  public void putAll(List&lt;BookmarkResponse&gt; bookmarks) {
+<span class="pc bpc" id="L78" title="1 of 4 branches missed.">    if (bookmarks == null || bookmarks.isEmpty()) {</span>
+<span class="fc" id="L79">      return;</span>
+    }
+
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    for (BookmarkResponse bookmark : bookmarks) {</span>
+<span class="fc" id="L83">      put(bookmark);</span>
+<span class="fc" id="L84">    }</span>
+
+<span class="fc" id="L86">    Log.infof(&quot;Cached %d bookmarks&quot;, bookmarks.size());</span>
+<span class="fc" id="L87">  }</span>
+
+  /**
+   * Remove a bookmark from the cache.
+   *
+   * @param namespace the namespace
+   * @param resourceName the resource name
+   * @return the removed bookmark, or null if not found
+   */
+  public BookmarkResponse remove(String namespace, String resourceName) {
+<span class="fc" id="L97">    String key = getCacheKey(namespace, resourceName);</span>
+<span class="fc" id="L98">    BookmarkResponse removed = bookmarkCache.remove(key);</span>
+
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (removed != null) {</span>
+<span class="fc" id="L101">      Log.debugf(&quot;Removed bookmark from cache: %s&quot;, key);</span>
+    } else {
+<span class="nc" id="L103">      Log.debugf(&quot;Bookmark not found in cache for removal: %s&quot;, key);</span>
+    }
+
+<span class="fc" id="L106">    return removed;</span>
+  }
+
+  /**
+   * Get a bookmark from the cache.
+   *
+   * @param namespace the namespace
+   * @param resourceName the resource name
+   * @return the bookmark, or null if not found
+   */
+  public BookmarkResponse get(String namespace, String resourceName) {
+<span class="nc" id="L117">    String key = getCacheKey(namespace, resourceName);</span>
+<span class="nc" id="L118">    return bookmarkCache.get(key);</span>
+  }
+
+  /**
+   * Get all bookmarks from the cache.
+   *
+   * @return a list of all cached bookmarks
+   */
+  public List&lt;BookmarkResponse&gt; getAll() {
+<span class="fc" id="L127">    return new ArrayList&lt;&gt;(bookmarkCache.values());</span>
+  }
+
+  /**
+   * Get the number of bookmarks in the cache.
+   *
+   * @return the cache size
+   */
+  public int size() {
+<span class="nc" id="L136">    return bookmarkCache.size();</span>
+  }
+
+  /**
+   * Clear all bookmarks from the cache.
+   *
+   * &lt;p&gt;This is primarily for testing or emergency reset scenarios.
+   */
+  public void clear() {
+<span class="fc" id="L145">    int size = bookmarkCache.size();</span>
+<span class="fc" id="L146">    bookmarkCache.clear();</span>
+<span class="fc" id="L147">    Log.infof(&quot;Cleared bookmark cache (%d bookmarks removed)&quot;, size);</span>
+<span class="fc" id="L148">  }</span>
+
+  /**
+   * Remove all bookmarks from a specific namespace.
+   *
+   * @param namespace the namespace
+   * @return the number of bookmarks removed
+   */
+  public int removeByNamespace(String namespace) {
+<span class="nc" id="L157">    List&lt;String&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L159" title="All 2 branches missed.">    for (String key : bookmarkCache.keySet()) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">      if (key.startsWith(namespace + &quot;/&quot;)) {</span>
+<span class="nc" id="L161">        keysToRemove.add(key);</span>
+      }
+<span class="nc" id="L163">    }</span>
+
+<span class="nc bnc" id="L165" title="All 2 branches missed.">    for (String key : keysToRemove) {</span>
+<span class="nc" id="L166">      bookmarkCache.remove(key);</span>
+<span class="nc" id="L167">    }</span>
+
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    if (!keysToRemove.isEmpty()) {</span>
+<span class="nc" id="L170">      Log.infof(&quot;Removed %d bookmarks from cache (namespace=%s)&quot;, keysToRemove.size(), namespace);</span>
+    }
+
+<span class="nc" id="L173">    return keysToRemove.size();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

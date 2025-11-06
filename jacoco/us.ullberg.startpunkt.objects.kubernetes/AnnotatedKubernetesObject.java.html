@@ -262,7 +262,7 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   protected List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; filterEnabledWithMetadata(
       List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; specs) {
-<span class="nc" id="L265">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="pc" id="L265">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

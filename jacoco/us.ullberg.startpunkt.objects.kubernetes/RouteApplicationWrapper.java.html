@@ -71,8 +71,8 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="nc" id="L74">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="fc" id="L74">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

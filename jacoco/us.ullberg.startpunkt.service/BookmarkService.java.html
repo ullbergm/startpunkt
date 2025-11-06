@@ -163,11 +163,11 @@ public class BookmarkService {
 <span class="fc" id="L163">              .withNamespaced(true)</span>
 <span class="fc" id="L164">              .build();</span>
 
-<span class="nc" id="L166">      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);</span>
-<span class="nc" id="L167">      List&lt;BookmarkResponse&gt; bookmarks = mapResourcesToBookmarks(list);</span>
-<span class="nc" id="L168">      Log.debugf(&quot;Retrieved %d Hajimari bookmarks&quot;, bookmarks.size());</span>
+<span class="fc" id="L166">      GenericKubernetesResourceList list = getResourceList(client, resourceDefinitionContext);</span>
+<span class="fc" id="L167">      List&lt;BookmarkResponse&gt; bookmarks = mapResourcesToBookmarks(list);</span>
+<span class="fc" id="L168">      Log.debugf(&quot;Retrieved %d Hajimari bookmarks&quot;, bookmarks.size());</span>
 
-<span class="nc" id="L170">      return bookmarks;</span>
+<span class="fc" id="L170">      return bookmarks;</span>
 <span class="fc" id="L171">    } catch (Exception e) {</span>
 <span class="fc" id="L172">      Log.error(&quot;Error retrieving hajimari bookmarks&quot;, e);</span>
 <span class="fc" id="L173">      return List.of();</span>

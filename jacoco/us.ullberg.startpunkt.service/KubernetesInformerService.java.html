@@ -1,0 +1,820 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KubernetesInformerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">KubernetesInformerService.java</span></div><h1>KubernetesInformerService.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
+import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.quarkus.logging.Log;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.crd.v1alpha4.Application;
+import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
+import us.ullberg.startpunkt.messaging.EventBroadcaster;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
+import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
+import us.ullberg.startpunkt.objects.kubernetes.GatewayApiHttpRouteWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
+import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
+
+/**
+ * Service that uses Kubernetes Informers to watch resources and maintain the application and
+ * bookmark caches.
+ *
+ * &lt;p&gt;Informers provide automatic reconnection, resync, and resource version management, eliminating
+ * the need for manual watch restart logic.
+ *
+ * &lt;p&gt;Informers are established for: - Application CRDs (startpunkt.ullberg.us) - Bookmark CRDs
+ * (startpunkt.ullberg.us and hajimari.io) - Ingress resources (if enabled) - Route resources
+ * (OpenShift, if enabled) - VirtualService resources (Istio, if enabled) - HTTPRoute resources
+ * (Gateway API, if enabled)
+ */
+@ApplicationScoped
+public class KubernetesInformerService {
+
+  private final KubernetesClient kubernetesClient;
+  private final ApplicationCacheService applicationCacheService;
+  private final BookmarkCacheService bookmarkCacheService;
+  private final EventBroadcaster eventBroadcaster;
+  private final AvailabilityCheckService availabilityCheckService;
+  private final BookmarkService bookmarkService;
+
+  // List to hold all active informers for cleanup on shutdown
+<span class="fc" id="L55">  private final List&lt;SharedIndexInformer&lt;?&gt;&gt; informers = new CopyOnWriteArrayList&lt;&gt;();</span>
+
+  // Flag to suppress cache reload during initial sync
+<span class="fc" id="L58">  private volatile boolean initialSyncComplete = false;</span>
+
+  @ConfigProperty(name = &quot;startpunkt.hajimari.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean hajimariEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.ingress.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean ingressEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.ingress.onlyAnnotated&quot;, defaultValue = &quot;true&quot;)
+  boolean ingressOnlyAnnotated;
+
+  @ConfigProperty(name = &quot;startpunkt.openshift.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean openshiftEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.openshift.onlyAnnotated&quot;, defaultValue = &quot;true&quot;)
+  boolean openshiftOnlyAnnotated;
+
+  @ConfigProperty(name = &quot;startpunkt.istio.virtualservice.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean istioVirtualServiceEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.istio.virtualservice.onlyAnnotated&quot;, defaultValue = &quot;true&quot;)
+  boolean istioVirtualServiceOnlyAnnotated;
+
+  @ConfigProperty(name = &quot;startpunkt.gatewayapi.httproute.enabled&quot;, defaultValue = &quot;false&quot;)
+  boolean gatewayApiEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.gatewayapi.httproute.onlyAnnotated&quot;, defaultValue = &quot;true&quot;)
+  boolean gatewayApiHttpRouteOnlyAnnotated;
+
+  @ConfigProperty(name = &quot;startpunkt.namespaceSelector.any&quot;, defaultValue = &quot;true&quot;)
+  boolean anyNamespace;
+
+  @ConfigProperty(name = &quot;startpunkt.namespaceSelector.matchNames&quot;)
+  Optional&lt;List&lt;String&gt;&gt; matchNames;
+
+  @ConfigProperty(name = &quot;startpunkt.defaultProtocol&quot;, defaultValue = &quot;http&quot;)
+  String defaultProtocol;
+
+  @ConfigProperty(name = &quot;startpunkt.watch.enabled&quot;, defaultValue = &quot;true&quot;)
+  boolean watchEnabled;
+
+  @ConfigProperty(name = &quot;startpunkt.watch.resyncPeriodSeconds&quot;, defaultValue = &quot;300&quot;)
+  long resyncPeriodSeconds;
+
+  /** Constructor with injected dependencies. */
+  public KubernetesInformerService(
+      KubernetesClient kubernetesClient,
+      ApplicationCacheService applicationCacheService,
+      BookmarkCacheService bookmarkCacheService,
+      EventBroadcaster eventBroadcaster,
+      AvailabilityCheckService availabilityCheckService,
+<span class="fc" id="L109">      BookmarkService bookmarkService) {</span>
+<span class="fc" id="L110">    this.kubernetesClient = kubernetesClient;</span>
+<span class="fc" id="L111">    this.applicationCacheService = applicationCacheService;</span>
+<span class="fc" id="L112">    this.bookmarkCacheService = bookmarkCacheService;</span>
+<span class="fc" id="L113">    this.eventBroadcaster = eventBroadcaster;</span>
+<span class="fc" id="L114">    this.availabilityCheckService = availabilityCheckService;</span>
+<span class="fc" id="L115">    this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L116">  }</span>
+
+  /**
+   * Initializes informers and starts watching Kubernetes resources on application startup.
+   * Informers are started asynchronously to avoid blocking application startup.
+   */
+  void onStart(@Observes StartupEvent event) {
+<span class="fc" id="L123">    Log.info(&quot;Initializing Kubernetes Informer service&quot;);</span>
+
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    if (!watchEnabled) {</span>
+<span class="nc" id="L126">      Log.info(&quot;Kubernetes informers disabled by configuration&quot;);</span>
+<span class="nc" id="L127">      return;</span>
+    }
+
+    // Start informers asynchronously to avoid blocking startup
+    // This is especially important for native mode where K8s API may not be available
+<span class="fc" id="L132">    new Thread(</span>
+            () -&gt; {
+              try {
+                // Start informers for different resource types
+<span class="fc" id="L136">                startApplicationInformer();</span>
+<span class="fc" id="L137">                startBookmarkInformer();</span>
+
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">                if (hajimariEnabled) {</span>
+<span class="fc" id="L140">                  startHajimariBookmarkInformer();</span>
+                }
+
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">                if (ingressEnabled) {</span>
+<span class="fc" id="L144">                  startIngressInformer();</span>
+                }
+
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                if (openshiftEnabled) {</span>
+<span class="fc" id="L148">                  startRouteInformer();</span>
+                }
+
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">                if (istioVirtualServiceEnabled) {</span>
+<span class="fc" id="L152">                  startVirtualServiceInformer();</span>
+                }
+
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">                if (gatewayApiEnabled) {</span>
+<span class="fc" id="L156">                  startHttpRouteInformer();</span>
+                }
+
+<span class="fc" id="L159">                Log.infof(</span>
+<span class="fc" id="L160">                    &quot;Kubernetes Informer service initialized with %d informers&quot;, informers.size());</span>
+
+                // Perform initial cache load from all Informers, then mark sync complete
+<span class="fc" id="L163">                Log.info(&quot;Performing initial cache load...&quot;);</span>
+<span class="fc" id="L164">                reloadApplicationCache();</span>
+<span class="fc" id="L165">                reloadBookmarkCache();</span>
+<span class="fc" id="L166">                initialSyncComplete = true;</span>
+<span class="fc" id="L167">                Log.info(&quot;Initial sync complete - Informers now active for real-time updates&quot;);</span>
+<span class="nc" id="L168">              } catch (Exception e) {</span>
+<span class="nc" id="L169">                Log.error(&quot;Failed to initialize Kubernetes Informer service&quot;, e);</span>
+<span class="nc" id="L170">                Log.warn(&quot;Application will continue without Kubernetes resource watching&quot;);</span>
+<span class="fc" id="L171">              }</span>
+<span class="fc" id="L172">            },</span>
+            &quot;informer-init&quot;)
+<span class="fc" id="L174">        .start();</span>
+
+<span class="fc" id="L176">    Log.info(&quot;Kubernetes Informer service initialization started in background&quot;);</span>
+<span class="fc" id="L177">  }</span>
+
+  /** Stops all informers on application shutdown. */
+  void onStop(@Observes ShutdownEvent event) {
+<span class="fc" id="L181">    Log.info(&quot;Stopping Kubernetes Informer service&quot;);</span>
+<span class="fc" id="L182">    stopInformers();</span>
+<span class="fc" id="L183">  }</span>
+
+  /** Starts the Application CRD informer. */
+  private void startApplicationInformer() {
+    try {
+<span class="fc" id="L188">      SharedIndexInformer&lt;Application&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L190">              .resources(Application.class)</span>
+<span class="fc" id="L191">              .inAnyNamespace()</span>
+<span class="fc" id="L192">              .inform(</span>
+<span class="fc" id="L193">                  new ResourceEventHandler&lt;Application&gt;() {</span>
+                    @Override
+                    public void onAdd(Application application) {
+<span class="fc" id="L196">                      handleApplicationAdded(application);</span>
+<span class="fc" id="L197">                    }</span>
+
+                    @Override
+                    public void onUpdate(Application oldApp, Application newApp) {
+<span class="fc" id="L201">                      handleApplicationUpdated(newApp);</span>
+<span class="fc" id="L202">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        Application application, boolean deletedFinalStateUnknown) {
+<span class="fc" id="L207">                      handleApplicationDeleted(application);</span>
+<span class="fc" id="L208">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L212">      informers.add(informer);</span>
+<span class="fc" id="L213">      Log.info(&quot;Started Application CRD informer&quot;);</span>
+<span class="nc" id="L214">    } catch (Exception e) {</span>
+<span class="nc" id="L215">      Log.error(&quot;Failed to start Application informer&quot;, e);</span>
+<span class="fc" id="L216">    }</span>
+<span class="fc" id="L217">  }</span>
+
+  /** Starts the Bookmark CRD informer. */
+  private void startBookmarkInformer() {
+    try {
+<span class="fc" id="L222">      SharedIndexInformer&lt;Bookmark&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L224">              .resources(Bookmark.class)</span>
+<span class="fc" id="L225">              .inAnyNamespace()</span>
+<span class="fc" id="L226">              .inform(</span>
+<span class="fc" id="L227">                  new ResourceEventHandler&lt;Bookmark&gt;() {</span>
+                    @Override
+                    public void onAdd(Bookmark bookmark) {
+<span class="fc" id="L230">                      handleBookmarkAdded(bookmark);</span>
+<span class="fc" id="L231">                    }</span>
+
+                    @Override
+                    public void onUpdate(Bookmark oldBookmark, Bookmark newBookmark) {
+<span class="fc" id="L235">                      handleBookmarkUpdated(newBookmark);</span>
+<span class="fc" id="L236">                    }</span>
+
+                    @Override
+                    public void onDelete(Bookmark bookmark, boolean deletedFinalStateUnknown) {
+<span class="fc" id="L240">                      handleBookmarkDeleted(bookmark);</span>
+<span class="fc" id="L241">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L245">      informers.add(informer);</span>
+<span class="fc" id="L246">      Log.info(&quot;Started Bookmark CRD informer&quot;);</span>
+<span class="nc" id="L247">    } catch (Exception e) {</span>
+<span class="nc" id="L248">      Log.error(&quot;Failed to start Bookmark informer&quot;, e);</span>
+<span class="fc" id="L249">    }</span>
+<span class="fc" id="L250">  }</span>
+
+  /** Starts the Hajimari Bookmark informer. */
+  private void startHajimariBookmarkInformer() {
+    try {
+<span class="fc" id="L255">      ResourceDefinitionContext ctx =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L257">              .withGroup(&quot;hajimari.io&quot;)</span>
+<span class="fc" id="L258">              .withVersion(&quot;v1alpha1&quot;)</span>
+<span class="fc" id="L259">              .withPlural(&quot;bookmarks&quot;)</span>
+<span class="fc" id="L260">              .withNamespaced(true)</span>
+<span class="fc" id="L261">              .build();</span>
+
+<span class="fc" id="L263">      SharedIndexInformer&lt;GenericKubernetesResource&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L265">              .genericKubernetesResources(ctx)</span>
+<span class="fc" id="L266">              .inAnyNamespace()</span>
+<span class="fc" id="L267">              .inform(</span>
+<span class="fc" id="L268">                  new ResourceEventHandler&lt;GenericKubernetesResource&gt;() {</span>
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L272">                        handleGenericBookmarkEvent(&quot;hajimari&quot;);</span>
+                      }
+<span class="nc" id="L274">                    }</span>
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L281">                        handleGenericBookmarkEvent(&quot;hajimari&quot;);</span>
+                      }
+<span class="nc" id="L283">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L289">                        handleGenericBookmarkEvent(&quot;hajimari&quot;);</span>
+                      }
+<span class="nc" id="L291">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L295">      informers.add(informer);</span>
+<span class="fc" id="L296">      Log.info(&quot;Started Hajimari Bookmark informer&quot;);</span>
+<span class="fc" id="L297">    } catch (Exception e) {</span>
+<span class="fc" id="L298">      Log.error(&quot;Failed to start Hajimari Bookmark informer&quot;, e);</span>
+<span class="fc" id="L299">    }</span>
+<span class="fc" id="L300">  }</span>
+
+  /** Starts the Ingress informer. */
+  private void startIngressInformer() {
+    try {
+<span class="fc" id="L305">      ResourceDefinitionContext ctx =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L307">              .withGroup(&quot;networking.k8s.io&quot;)</span>
+<span class="fc" id="L308">              .withVersion(&quot;v1&quot;)</span>
+<span class="fc" id="L309">              .withPlural(&quot;ingresses&quot;)</span>
+<span class="fc" id="L310">              .withNamespaced(true)</span>
+<span class="fc" id="L311">              .build();</span>
+
+<span class="fc" id="L313">      SharedIndexInformer&lt;GenericKubernetesResource&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L315">              .genericKubernetesResources(ctx)</span>
+<span class="fc" id="L316">              .inAnyNamespace()</span>
+<span class="fc" id="L317">              .inform(</span>
+<span class="fc" id="L318">                  new ResourceEventHandler&lt;GenericKubernetesResource&gt;() {</span>
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L322">                        handleGenericApplicationEvent(&quot;ingress&quot;);</span>
+                      }
+<span class="nc" id="L324">                    }</span>
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L331">                        handleGenericApplicationEvent(&quot;ingress&quot;);</span>
+                      }
+<span class="nc" id="L333">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L339">                        handleGenericApplicationEvent(&quot;ingress&quot;);</span>
+                      }
+<span class="nc" id="L341">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L345">      informers.add(informer);</span>
+<span class="fc" id="L346">      Log.info(&quot;Started Ingress informer&quot;);</span>
+<span class="fc" id="L347">    } catch (Exception e) {</span>
+<span class="fc" id="L348">      Log.error(&quot;Failed to start Ingress informer&quot;, e);</span>
+<span class="fc" id="L349">    }</span>
+<span class="fc" id="L350">  }</span>
+
+  /** Starts the OpenShift Route informer. */
+  private void startRouteInformer() {
+    try {
+<span class="fc" id="L355">      ResourceDefinitionContext ctx =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L357">              .withGroup(&quot;route.openshift.io&quot;)</span>
+<span class="fc" id="L358">              .withVersion(&quot;v1&quot;)</span>
+<span class="fc" id="L359">              .withPlural(&quot;routes&quot;)</span>
+<span class="fc" id="L360">              .withNamespaced(true)</span>
+<span class="fc" id="L361">              .build();</span>
+
+<span class="fc" id="L363">      SharedIndexInformer&lt;GenericKubernetesResource&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L365">              .genericKubernetesResources(ctx)</span>
+<span class="fc" id="L366">              .inAnyNamespace()</span>
+<span class="fc" id="L367">              .inform(</span>
+<span class="fc" id="L368">                  new ResourceEventHandler&lt;GenericKubernetesResource&gt;() {</span>
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+<span class="nc bnc" id="L371" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L372">                        handleGenericApplicationEvent(&quot;route&quot;);</span>
+                      }
+<span class="nc" id="L374">                    }</span>
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L381">                        handleGenericApplicationEvent(&quot;route&quot;);</span>
+                      }
+<span class="nc" id="L383">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+<span class="nc bnc" id="L388" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L389">                        handleGenericApplicationEvent(&quot;route&quot;);</span>
+                      }
+<span class="nc" id="L391">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L395">      informers.add(informer);</span>
+<span class="fc" id="L396">      Log.info(&quot;Started Route informer&quot;);</span>
+<span class="fc" id="L397">    } catch (Exception e) {</span>
+<span class="fc" id="L398">      Log.error(&quot;Failed to start Route informer&quot;, e);</span>
+<span class="fc" id="L399">    }</span>
+<span class="fc" id="L400">  }</span>
+
+  /** Starts the Istio VirtualService informer. */
+  private void startVirtualServiceInformer() {
+    try {
+<span class="fc" id="L405">      ResourceDefinitionContext ctx =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L407">              .withGroup(&quot;networking.istio.io&quot;)</span>
+<span class="fc" id="L408">              .withVersion(&quot;v1&quot;)</span>
+<span class="fc" id="L409">              .withPlural(&quot;virtualservices&quot;)</span>
+<span class="fc" id="L410">              .withNamespaced(true)</span>
+<span class="fc" id="L411">              .build();</span>
+
+<span class="fc" id="L413">      SharedIndexInformer&lt;GenericKubernetesResource&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L415">              .genericKubernetesResources(ctx)</span>
+<span class="fc" id="L416">              .inAnyNamespace()</span>
+<span class="fc" id="L417">              .inform(</span>
+<span class="fc" id="L418">                  new ResourceEventHandler&lt;GenericKubernetesResource&gt;() {</span>
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+<span class="nc bnc" id="L421" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L422">                        handleGenericApplicationEvent(&quot;virtualservice&quot;);</span>
+                      }
+<span class="nc" id="L424">                    }</span>
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+<span class="nc bnc" id="L430" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L431">                        handleGenericApplicationEvent(&quot;virtualservice&quot;);</span>
+                      }
+<span class="nc" id="L433">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+<span class="nc bnc" id="L438" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L439">                        handleGenericApplicationEvent(&quot;virtualservice&quot;);</span>
+                      }
+<span class="nc" id="L441">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L445">      informers.add(informer);</span>
+<span class="fc" id="L446">      Log.info(&quot;Started VirtualService informer&quot;);</span>
+<span class="fc" id="L447">    } catch (Exception e) {</span>
+<span class="fc" id="L448">      Log.warnf(&quot;VirtualService CRD not found (Istio not installed?) - skipping informer&quot;);</span>
+<span class="fc" id="L449">      Log.debugf(e, &quot;VirtualService informer exception details&quot;);</span>
+<span class="fc" id="L450">    }</span>
+<span class="fc" id="L451">  }</span>
+
+  /** Starts the Gateway API HTTPRoute informer. */
+  private void startHttpRouteInformer() {
+    try {
+<span class="fc" id="L456">      ResourceDefinitionContext ctx =</span>
+          new ResourceDefinitionContext.Builder()
+<span class="fc" id="L458">              .withGroup(&quot;gateway.networking.k8s.io&quot;)</span>
+<span class="fc" id="L459">              .withVersion(&quot;v1&quot;)</span>
+<span class="fc" id="L460">              .withPlural(&quot;httproutes&quot;)</span>
+<span class="fc" id="L461">              .withNamespaced(true)</span>
+<span class="fc" id="L462">              .build();</span>
+
+<span class="fc" id="L464">      SharedIndexInformer&lt;GenericKubernetesResource&gt; informer =</span>
+          kubernetesClient
+<span class="fc" id="L466">              .genericKubernetesResources(ctx)</span>
+<span class="fc" id="L467">              .inAnyNamespace()</span>
+<span class="fc" id="L468">              .inform(</span>
+<span class="fc" id="L469">                  new ResourceEventHandler&lt;GenericKubernetesResource&gt;() {</span>
+                    @Override
+                    public void onAdd(GenericKubernetesResource resource) {
+<span class="nc bnc" id="L472" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L473">                        handleGenericApplicationEvent(&quot;httproute&quot;);</span>
+                      }
+<span class="nc" id="L475">                    }</span>
+
+                    @Override
+                    public void onUpdate(
+                        GenericKubernetesResource oldResource,
+                        GenericKubernetesResource newResource) {
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L482">                        handleGenericApplicationEvent(&quot;httproute&quot;);</span>
+                      }
+<span class="nc" id="L484">                    }</span>
+
+                    @Override
+                    public void onDelete(
+                        GenericKubernetesResource resource, boolean deletedFinalStateUnknown) {
+<span class="nc bnc" id="L489" title="All 2 branches missed.">                      if (initialSyncComplete) {</span>
+<span class="nc" id="L490">                        handleGenericApplicationEvent(&quot;httproute&quot;);</span>
+                      }
+<span class="nc" id="L492">                    }</span>
+                  },
+                  resyncPeriodSeconds * 1000);
+
+<span class="fc" id="L496">      informers.add(informer);</span>
+<span class="fc" id="L497">      Log.info(&quot;Started HTTPRoute informer&quot;);</span>
+<span class="fc" id="L498">    } catch (Exception e) {</span>
+<span class="fc" id="L499">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
+<span class="fc" id="L500">    }</span>
+<span class="fc" id="L501">  }</span>
+
+  /** Handles Application CRD addition events. */
+  private void handleApplicationAdded(Application application) {
+<span class="pc bpc" id="L505" title="3 of 6 branches missed.">    if (application == null || application.getMetadata() == null || application.getSpec() == null) {</span>
+<span class="nc" id="L506">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L510">      String namespace = application.getMetadata().getNamespace();</span>
+<span class="fc" id="L511">      String name = application.getMetadata().getName();</span>
+
+<span class="fc" id="L513">      Log.debugf(&quot;Application added: %s/%s&quot;, namespace, name);</span>
+
+      // Create ApplicationResponse from spec
+<span class="fc" id="L516">      ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());</span>
+<span class="fc" id="L517">      appResponse.setNamespace(namespace);</span>
+<span class="fc" id="L518">      appResponse.setResourceName(name);</span>
+<span class="fc" id="L519">      appResponse.setHasOwnerReferences(</span>
+<span class="pc bpc" id="L520" title="1 of 2 branches missed.">          application.getMetadata().getOwnerReferences() != null</span>
+<span class="pc bpc" id="L521" title="1 of 2 branches missed.">              &amp;&amp; !application.getMetadata().getOwnerReferences().isEmpty());</span>
+
+      // Enrich with availability checking
+<span class="fc" id="L524">      List&lt;ApplicationResponse&gt; enriched =</span>
+<span class="fc" id="L525">          availabilityCheckService.enrichWithAvailability(List.of(appResponse));</span>
+
+<span class="pc bpc" id="L527" title="1 of 2 branches missed.">      if (!enriched.isEmpty()) {</span>
+<span class="fc" id="L528">        appResponse = enriched.get(0);</span>
+      }
+
+      // Register URL for availability checking
+<span class="pc bpc" id="L532" title="1 of 4 branches missed.">      if (appResponse.getUrl() != null &amp;&amp; !appResponse.getUrl().isEmpty()) {</span>
+<span class="fc" id="L533">        availabilityCheckService.registerUrl(appResponse.getUrl());</span>
+      }
+
+      // Store in cache
+<span class="fc" id="L537">      applicationCacheService.put(appResponse);</span>
+
+      // Broadcast event
+<span class="fc" id="L540">      eventBroadcaster.broadcastApplicationAdded(application);</span>
+<span class="nc" id="L541">    } catch (Exception e) {</span>
+<span class="nc" id="L542">      Log.errorf(e, &quot;Error handling Application addition&quot;);</span>
+<span class="fc" id="L543">    }</span>
+<span class="fc" id="L544">  }</span>
+
+  /** Handles Application CRD update events. */
+  private void handleApplicationUpdated(Application application) {
+<span class="pc bpc" id="L548" title="3 of 6 branches missed.">    if (application == null || application.getMetadata() == null || application.getSpec() == null) {</span>
+<span class="nc" id="L549">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L553">      String namespace = application.getMetadata().getNamespace();</span>
+<span class="fc" id="L554">      String name = application.getMetadata().getName();</span>
+
+<span class="fc" id="L556">      Log.debugf(&quot;Application updated: %s/%s&quot;, namespace, name);</span>
+
+      // Create ApplicationResponse from spec
+<span class="fc" id="L559">      ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());</span>
+<span class="fc" id="L560">      appResponse.setNamespace(namespace);</span>
+<span class="fc" id="L561">      appResponse.setResourceName(name);</span>
+<span class="fc" id="L562">      appResponse.setHasOwnerReferences(</span>
+<span class="pc bpc" id="L563" title="1 of 2 branches missed.">          application.getMetadata().getOwnerReferences() != null</span>
+<span class="pc bpc" id="L564" title="1 of 2 branches missed.">              &amp;&amp; !application.getMetadata().getOwnerReferences().isEmpty());</span>
+
+      // Enrich with availability checking
+<span class="fc" id="L567">      List&lt;ApplicationResponse&gt; enriched =</span>
+<span class="fc" id="L568">          availabilityCheckService.enrichWithAvailability(List.of(appResponse));</span>
+
+<span class="pc bpc" id="L570" title="1 of 2 branches missed.">      if (!enriched.isEmpty()) {</span>
+<span class="fc" id="L571">        appResponse = enriched.get(0);</span>
+      }
+
+      // Register URL for availability checking
+<span class="pc bpc" id="L575" title="2 of 4 branches missed.">      if (appResponse.getUrl() != null &amp;&amp; !appResponse.getUrl().isEmpty()) {</span>
+<span class="fc" id="L576">        availabilityCheckService.registerUrl(appResponse.getUrl());</span>
+      }
+
+      // Update in cache
+<span class="fc" id="L580">      applicationCacheService.put(appResponse);</span>
+
+      // Broadcast event
+<span class="fc" id="L583">      eventBroadcaster.broadcastApplicationUpdated(application);</span>
+<span class="nc" id="L584">    } catch (Exception e) {</span>
+<span class="nc" id="L585">      Log.errorf(e, &quot;Error handling Application update&quot;);</span>
+<span class="fc" id="L586">    }</span>
+<span class="fc" id="L587">  }</span>
+
+  /** Handles Application CRD deletion events. */
+  private void handleApplicationDeleted(Application application) {
+<span class="pc bpc" id="L591" title="2 of 4 branches missed.">    if (application == null || application.getMetadata() == null) {</span>
+<span class="nc" id="L592">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L596">      String namespace = application.getMetadata().getNamespace();</span>
+<span class="fc" id="L597">      String name = application.getMetadata().getName();</span>
+
+<span class="fc" id="L599">      Log.debugf(&quot;Application deleted: %s/%s&quot;, namespace, name);</span>
+
+      // Remove from cache
+<span class="fc" id="L602">      ApplicationResponse removed = applicationCacheService.remove(namespace, name);</span>
+
+      // Unregister URL from availability checking
+<span class="pc bpc" id="L605" title="3 of 6 branches missed.">      if (removed != null &amp;&amp; removed.getUrl() != null &amp;&amp; !removed.getUrl().isEmpty()) {</span>
+<span class="fc" id="L606">        availabilityCheckService.unregisterUrl(removed.getUrl());</span>
+      }
+
+      // Broadcast event
+<span class="pc bpc" id="L610" title="1 of 2 branches missed.">      if (removed != null) {</span>
+<span class="fc" id="L611">        eventBroadcaster.broadcastApplicationRemoved(application);</span>
+      }
+<span class="nc" id="L613">    } catch (Exception e) {</span>
+<span class="nc" id="L614">      Log.errorf(e, &quot;Error handling Application deletion&quot;);</span>
+<span class="fc" id="L615">    }</span>
+<span class="fc" id="L616">  }</span>
+
+  /** Handles Bookmark CRD addition events. */
+  private void handleBookmarkAdded(Bookmark bookmark) {
+<span class="pc bpc" id="L620" title="3 of 6 branches missed.">    if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {</span>
+<span class="nc" id="L621">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L625">      String namespace = bookmark.getMetadata().getNamespace();</span>
+<span class="fc" id="L626">      String name = bookmark.getMetadata().getName();</span>
+
+<span class="fc" id="L628">      Log.debugf(&quot;Bookmark added: %s/%s&quot;, namespace, name);</span>
+
+      // Create BookmarkResponse from spec
+<span class="fc" id="L631">      BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());</span>
+<span class="fc" id="L632">      bookmarkResponse.setNamespace(namespace);</span>
+<span class="fc" id="L633">      bookmarkResponse.setResourceName(name);</span>
+<span class="fc" id="L634">      bookmarkResponse.setHasOwnerReferences(</span>
+<span class="pc bpc" id="L635" title="1 of 2 branches missed.">          bookmark.getMetadata().getOwnerReferences() != null</span>
+<span class="pc bpc" id="L636" title="1 of 2 branches missed.">              &amp;&amp; !bookmark.getMetadata().getOwnerReferences().isEmpty());</span>
+
+      // Store in cache
+<span class="fc" id="L639">      bookmarkCacheService.put(bookmarkResponse);</span>
+
+      // Broadcast event
+<span class="fc" id="L642">      eventBroadcaster.broadcastBookmarkAdded(bookmark);</span>
+<span class="nc" id="L643">    } catch (Exception e) {</span>
+<span class="nc" id="L644">      Log.errorf(e, &quot;Error handling Bookmark addition&quot;);</span>
+<span class="fc" id="L645">    }</span>
+<span class="fc" id="L646">  }</span>
+
+  /** Handles Bookmark CRD update events. */
+  private void handleBookmarkUpdated(Bookmark bookmark) {
+<span class="pc bpc" id="L650" title="3 of 6 branches missed.">    if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {</span>
+<span class="nc" id="L651">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L655">      String namespace = bookmark.getMetadata().getNamespace();</span>
+<span class="fc" id="L656">      String name = bookmark.getMetadata().getName();</span>
+
+<span class="fc" id="L658">      Log.debugf(&quot;Bookmark updated: %s/%s&quot;, namespace, name);</span>
+
+      // Create BookmarkResponse from spec
+<span class="fc" id="L661">      BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());</span>
+<span class="fc" id="L662">      bookmarkResponse.setNamespace(namespace);</span>
+<span class="fc" id="L663">      bookmarkResponse.setResourceName(name);</span>
+<span class="fc" id="L664">      bookmarkResponse.setHasOwnerReferences(</span>
+<span class="pc bpc" id="L665" title="1 of 2 branches missed.">          bookmark.getMetadata().getOwnerReferences() != null</span>
+<span class="pc bpc" id="L666" title="1 of 2 branches missed.">              &amp;&amp; !bookmark.getMetadata().getOwnerReferences().isEmpty());</span>
+
+      // Update in cache
+<span class="fc" id="L669">      bookmarkCacheService.put(bookmarkResponse);</span>
+
+      // Broadcast event
+<span class="fc" id="L672">      eventBroadcaster.broadcastBookmarkUpdated(bookmark);</span>
+<span class="nc" id="L673">    } catch (Exception e) {</span>
+<span class="nc" id="L674">      Log.errorf(e, &quot;Error handling Bookmark update&quot;);</span>
+<span class="fc" id="L675">    }</span>
+<span class="fc" id="L676">  }</span>
+
+  /** Handles Bookmark CRD deletion events. */
+  private void handleBookmarkDeleted(Bookmark bookmark) {
+<span class="pc bpc" id="L680" title="2 of 4 branches missed.">    if (bookmark == null || bookmark.getMetadata() == null) {</span>
+<span class="nc" id="L681">      return;</span>
+    }
+
+    try {
+<span class="fc" id="L685">      String namespace = bookmark.getMetadata().getNamespace();</span>
+<span class="fc" id="L686">      String name = bookmark.getMetadata().getName();</span>
+
+<span class="fc" id="L688">      Log.debugf(&quot;Bookmark deleted: %s/%s&quot;, namespace, name);</span>
+
+      // Remove from cache
+<span class="fc" id="L691">      BookmarkResponse removed = bookmarkCacheService.remove(namespace, name);</span>
+
+      // Broadcast event
+<span class="pc bpc" id="L694" title="1 of 2 branches missed.">      if (removed != null) {</span>
+<span class="fc" id="L695">        eventBroadcaster.broadcastBookmarkRemoved(bookmark);</span>
+      }
+<span class="nc" id="L697">    } catch (Exception e) {</span>
+<span class="nc" id="L698">      Log.errorf(e, &quot;Error handling Bookmark deletion&quot;);</span>
+<span class="fc" id="L699">    }</span>
+<span class="fc" id="L700">  }</span>
+
+  /**
+   * Handles generic application resource events (Ingress, Route, VirtualService, HTTPRoute). For
+   * generic resources, we reload all applications since we need to aggregate multiple resource
+   * types.
+   */
+  private void handleGenericApplicationEvent(String resourceType) {
+<span class="nc" id="L708">    Log.debugf(&quot;Generic application resource changed: %s, reloading applications&quot;, resourceType);</span>
+<span class="nc" id="L709">    reloadApplicationCache();</span>
+<span class="nc" id="L710">  }</span>
+
+  /**
+   * Handles generic bookmark resource events (Hajimari). For generic resources, we reload all
+   * bookmarks.
+   */
+  private void handleGenericBookmarkEvent(String resourceType) {
+<span class="nc" id="L717">    Log.debugf(&quot;Generic bookmark resource changed: %s, reloading bookmarks&quot;, resourceType);</span>
+<span class="nc" id="L718">    reloadBookmarkCache();</span>
+<span class="nc" id="L719">  }</span>
+
+  /** Reloads the entire application cache from Kubernetes. */
+  private void reloadApplicationCache() {
+    try {
+<span class="fc" id="L724">      Log.debug(&quot;Reloading application cache&quot;);</span>
+
+<span class="fc" id="L726">      var applicationWrappers = new ArrayList&lt;BaseKubernetesObject&gt;();</span>
+<span class="fc" id="L727">      applicationWrappers.add(new StartpunktApplicationWrapper());</span>
+
+<span class="pc bpc" id="L729" title="1 of 2 branches missed.">      if (hajimariEnabled) {</span>
+<span class="fc" id="L730">        applicationWrappers.add(new HajimariApplicationWrapper());</span>
+      }
+<span class="pc bpc" id="L732" title="1 of 2 branches missed.">      if (openshiftEnabled) {</span>
+<span class="fc" id="L733">        applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
+      }
+<span class="pc bpc" id="L735" title="1 of 2 branches missed.">      if (ingressEnabled) {</span>
+<span class="fc" id="L736">        applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
+      }
+<span class="pc bpc" id="L738" title="1 of 2 branches missed.">      if (istioVirtualServiceEnabled) {</span>
+<span class="fc" id="L739">        applicationWrappers.add(</span>
+            new IstioVirtualServiceApplicationWrapper(
+                istioVirtualServiceOnlyAnnotated, defaultProtocol));
+      }
+<span class="pc bpc" id="L743" title="1 of 2 branches missed.">      if (gatewayApiEnabled) {</span>
+<span class="fc" id="L744">        applicationWrappers.add(</span>
+<span class="fc" id="L745">            new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));</span>
+      }
+
+<span class="fc" id="L748">      var apps = new ArrayList&lt;ApplicationResponse&gt;();</span>
+
+<span class="fc bfc" id="L750" title="All 2 branches covered.">      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {</span>
+<span class="fc" id="L751">        var wrapperApps =</span>
+<span class="fc" id="L752">            applicationWrapper.getApplicationSpecsWithMetadata(</span>
+<span class="fc" id="L753">                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));</span>
+<span class="fc" id="L754">        apps.addAll(wrapperApps);</span>
+<span class="fc" id="L755">      }</span>
+
+      // Register URLs for availability checking
+<span class="fc bfc" id="L758" title="All 2 branches covered.">      for (ApplicationResponse app : apps) {</span>
+<span class="pc bpc" id="L759" title="1 of 4 branches missed.">        if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
+<span class="fc" id="L760">          availabilityCheckService.registerUrl(app.getUrl());</span>
+        }
+<span class="fc" id="L762">      }</span>
+
+      // Sort and cache
+<span class="fc" id="L765">      Collections.sort(apps);</span>
+
+      // Clear and repopulate cache
+<span class="fc" id="L768">      applicationCacheService.clear();</span>
+<span class="fc" id="L769">      applicationCacheService.putAll(apps);</span>
+
+      // Broadcast status change
+<span class="fc" id="L772">      eventBroadcaster.broadcastStatusChanged(null);</span>
+
+<span class="fc" id="L774">      Log.debugf(&quot;Reloaded %d applications into cache&quot;, apps.size());</span>
+<span class="fc" id="L775">    } catch (Exception e) {</span>
+<span class="fc" id="L776">      Log.error(&quot;Error reloading application cache&quot;, e);</span>
+<span class="fc" id="L777">    }</span>
+<span class="fc" id="L778">  }</span>
+
+  /** Reloads the entire bookmark cache from Kubernetes. */
+  private void reloadBookmarkCache() {
+    try {
+<span class="fc" id="L783">      Log.debug(&quot;Reloading bookmark cache&quot;);</span>
+
+<span class="fc" id="L785">      List&lt;BookmarkResponse&gt; bookmarks = new ArrayList&lt;&gt;();</span>
+
+      // Load Startpunkt bookmarks
+<span class="fc" id="L788">      bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
+
+      // Load Hajimari bookmarks if enabled
+<span class="pc bpc" id="L791" title="1 of 2 branches missed.">      if (hajimariEnabled) {</span>
+<span class="fc" id="L792">        bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());</span>
+      }
+
+      // Clear and repopulate cache
+<span class="fc" id="L796">      bookmarkCacheService.clear();</span>
+<span class="fc" id="L797">      bookmarkCacheService.putAll(bookmarks);</span>
+
+      // Broadcast status change
+<span class="fc" id="L800">      eventBroadcaster.broadcastStatusChanged(null);</span>
+
+<span class="fc" id="L802">      Log.debugf(&quot;Reloaded %d bookmarks into cache&quot;, bookmarks.size());</span>
+<span class="fc" id="L803">    } catch (Exception e) {</span>
+<span class="fc" id="L804">      Log.error(&quot;Error reloading bookmark cache&quot;, e);</span>
+<span class="fc" id="L805">    }</span>
+<span class="fc" id="L806">  }</span>
+
+  /** Stops all informers. */
+  private void stopInformers() {
+<span class="fc bfc" id="L810" title="All 2 branches covered.">    for (SharedIndexInformer&lt;?&gt; informer : informers) {</span>
+      try {
+<span class="fc" id="L812">        informer.stop();</span>
+<span class="nc" id="L813">      } catch (Exception e) {</span>
+<span class="nc" id="L814">        Log.warn(&quot;Error stopping informer&quot;, e);</span>
+<span class="fc" id="L815">      }</span>
+<span class="fc" id="L816">    }</span>
+<span class="fc" id="L817">    informers.clear();</span>
+<span class="fc" id="L818">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
