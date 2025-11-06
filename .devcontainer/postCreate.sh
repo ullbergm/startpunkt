@@ -18,10 +18,14 @@ fi
 # Download Maven dependencies
 echo "📦 Downloading Maven dependencies..."
 chmod +x ./mvnw
-if ./mvnw dependency:go-offline -B 2>&1 | grep -v "^\[INFO\] Downloading\|^\[INFO\] Downloaded"; then
+./mvnw dependency:go-offline -B > /tmp/maven-download.log 2>&1
+maven_exit_code=$?
+if [ $maven_exit_code -eq 0 ]; then
     echo "Maven dependencies downloaded successfully"
 else
-    echo "⚠️  Some Maven dependencies may not have been downloaded (this is often okay if they were cached)"
+    echo "⚠️  Maven dependency download had issues (exit code: $maven_exit_code)"
+    echo "This is often okay if dependencies were already cached"
+    tail -20 /tmp/maven-download.log
 fi
 
 # Set up git hooks (if pre-commit is configured)

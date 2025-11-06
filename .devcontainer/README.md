@@ -148,7 +148,7 @@ If dependencies fail to download:
 If the container is slow:
 
 - Allocate more resources to Docker Desktop
-- The Maven `.m2` directory is mounted for caching - ensure it's not on a slow filesystem
+- Maven dependencies are cached within the container volume between rebuilds
 
 ## Additional Resources
 
