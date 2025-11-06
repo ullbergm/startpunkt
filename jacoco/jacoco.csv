@@ -17,7 +17,7 @@ startpunkt,us.ullberg.startpunkt.objects.kubernetes,HajimariApplicationWrapper,0
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IngressApplicationWrapper,2,37,1,3,1,10,1,4,0,3
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,GatewayApiHttpRouteWrapper,8,88,4,6,1,20,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,BaseKubernetesObject,86,399,33,29,20,110,27,38,2,32
-startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,77,448,13,33,13,59,14,25,1,15
+startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,72,453,13,33,13,59,13,26,0,16
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,RouteApplicationWrapper,9,74,4,6,0,13,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IstioVirtualServiceApplicationWrapper,8,79,4,6,1,16,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,StartpunktApplicationWrapper,130,394,43,31,29,87,32,23,0,18
@@ -67,7 +67,7 @@ startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationStatus,3,0,0,0,2,0,1,0,
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationList,0,3,0,0,0,2,0,1,0,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Application,107,3,4,0,23,2,8,1,6,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Bookmark,68,3,4,0,17,1,6,1,4,1
-startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,427,147,95,3,70,56,53,28,5,27
+startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,429,145,96,2,71,55,54,27,5,27
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,BookmarkConflictException,9,0,0,0,4,0,2,0,2,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,ApplicationConflictException,9,0,0,0,4,0,2,0,2,0
