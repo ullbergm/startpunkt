@@ -71,12 +71,21 @@ public class KubernetesWatchService {
     // Flag to prevent watch events from triggering reloads during scheduled refresh
     private final AtomicBoolean refreshInProgress = new AtomicBoolean(false);
 
+    // Flag to indicate application is shutting down (prevents watch restarts)
+    private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
+
+    // Track pending watch restarts to prevent duplicates
+    private final java.util.Set<String> pendingRestarts = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     // Timestamp of last generic resource reload (for debouncing)
     private volatile long lastGenericApplicationReload = 0;
     private volatile long lastGenericBookmarkReload = 0;
 
     // Debounce interval in milliseconds (prevent reloads more frequent than this)
     private static final long DEBOUNCE_INTERVAL_MS = 2000;
+
+    // Watch restart delay in milliseconds
+    private static final long WATCH_RESTART_DELAY_MS = 5000;
 
     @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
     boolean hajimariEnabled;
@@ -194,6 +203,9 @@ public class KubernetesWatchService {
      */
     void onStop(@Observes ShutdownEvent event) {
         Log.info("Stopping Kubernetes watch service");
+
+        // Set shutdown flag to prevent watch restarts
+        isShuttingDown.set(true);
 
         // Cancel scheduled refresh
         if (cacheRefreshJobId != null) {
@@ -347,8 +359,9 @@ public class KubernetesWatchService {
                                 public void onClose(WatcherException e) {
                                     if (e != null) {
                                         Log.error("Application watch closed with error", e);
+                                        scheduleWatchRestart("Application", () -> startApplicationWatch(), e);
                                     } else {
-                                        Log.info("Application watch closed");
+                                        Log.info("Application watch closed normally");
                                     }
                                 }
                             });
@@ -377,8 +390,9 @@ public class KubernetesWatchService {
                                 public void onClose(WatcherException e) {
                                     if (e != null) {
                                         Log.error("Bookmark watch closed with error", e);
+                                        scheduleWatchRestart("Bookmark", () -> startBookmarkWatch(), e);
                                     } else {
-                                        Log.info("Bookmark watch closed");
+                                        Log.info("Bookmark watch closed normally");
                                     }
                                 }
                             });
@@ -413,8 +427,9 @@ public class KubernetesWatchService {
                         public void onClose(WatcherException e) {
                             if (e != null) {
                                 Log.error("Hajimari Bookmark watch closed with error", e);
+                                scheduleWatchRestart("Hajimari Bookmark", () -> startHajimariBookmarkWatch(), e);
                             } else {
-                                Log.info("Hajimari Bookmark watch closed");
+                                Log.info("Hajimari Bookmark watch closed normally");
                             }
                         }
                     });
@@ -449,8 +464,9 @@ public class KubernetesWatchService {
                         public void onClose(WatcherException e) {
                             if (e != null) {
                                 Log.error("Ingress watch closed with error", e);
+                                scheduleWatchRestart("Ingress", () -> startIngressWatch(), e);
                             } else {
-                                Log.info("Ingress watch closed");
+                                Log.info("Ingress watch closed normally");
                             }
                         }
                     });
@@ -485,8 +501,9 @@ public class KubernetesWatchService {
                         public void onClose(WatcherException e) {
                             if (e != null) {
                                 Log.error("Route watch closed with error", e);
+                                scheduleWatchRestart("Route", () -> startRouteWatch(), e);
                             } else {
-                                Log.info("Route watch closed");
+                                Log.info("Route watch closed normally");
                             }
                         }
                     });
@@ -521,8 +538,9 @@ public class KubernetesWatchService {
                         public void onClose(WatcherException e) {
                             if (e != null) {
                                 Log.error("VirtualService watch closed with error", e);
+                                scheduleWatchRestart("VirtualService", () -> startVirtualServiceWatch(), e);
                             } else {
-                                Log.info("VirtualService watch closed");
+                                Log.info("VirtualService watch closed normally");
                             }
                         }
                     });
@@ -557,8 +575,9 @@ public class KubernetesWatchService {
                         public void onClose(WatcherException e) {
                             if (e != null) {
                                 Log.error("HTTPRoute watch closed with error", e);
+                                scheduleWatchRestart("HTTPRoute", () -> startHttpRouteWatch(), e);
                             } else {
-                                Log.info("HTTPRoute watch closed");
+                                Log.info("HTTPRoute watch closed normally");
                             }
                         }
                     });
@@ -657,6 +676,80 @@ public class KubernetesWatchService {
         if (!orphanedUrls.isEmpty()) {
             Log.infof("Cleaned up %d orphaned URLs from availability checks", orphanedUrls.size());
         }
+    }
+
+    /**
+     * Schedules a watch restart after a delay. This is used when a watch closes
+     * unexpectedly (e.g., due to "too old resource version" errors).
+     *
+     * @param watchName     the name of the watch for logging
+     * @param restartMethod the method to call to restart the watch
+     * @param exception     the exception that caused the watch to close (if any)
+     */
+    private void scheduleWatchRestart(String watchName, Runnable restartMethod, WatcherException exception) {
+        // Don't restart if we're shutting down
+        if (isShuttingDown.get()) {
+            Log.infof("%s watch closed during shutdown, not restarting", watchName);
+            return;
+        }
+
+        // Check if a restart is already pending for this watch
+        if (!pendingRestarts.add(watchName)) {
+            Log.debugf("%s watch restart already pending, skipping duplicate", watchName);
+            return;
+        }
+
+        // Check if this is a "too old resource version" error that requires our
+        // intervention
+        // Fabric8 client handles connection errors automatically, so we only restart
+        // for
+        // resource version errors that the client cannot recover from
+        boolean needsManualRestart = exception != null &&
+                (exception.getMessage().contains("too old resource version") ||
+                        exception.isHttpGone());
+
+        if (exception == null) {
+            // Normal closure, no restart needed
+            Log.debugf("%s watch closed normally, no restart needed", watchName);
+            pendingRestarts.remove(watchName);
+            return;
+        }
+
+        if (!needsManualRestart) {
+            // Let Fabric8 client handle connection errors and other transient issues
+            // automatically
+            Log.debugf("%s watch closed with error, letting Fabric8 client handle reconnection: %s",
+                    watchName, exception.getMessage());
+            pendingRestarts.remove(watchName);
+            return;
+        }
+
+        // Schedule restart after delay using a simple thread
+        Log.infof("%s watch closed with 'too old resource version' error, scheduling manual restart in %d seconds",
+                watchName, WATCH_RESTART_DELAY_MS / 1000);
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(WATCH_RESTART_DELAY_MS);
+
+                // Check again if we're shutting down
+                if (isShuttingDown.get()) {
+                    Log.infof("%s watch restart cancelled due to shutdown", watchName);
+                    return;
+                }
+
+                Log.infof("Restarting %s watch", watchName);
+                restartMethod.run();
+            } catch (InterruptedException e) {
+                Log.infof("%s watch restart interrupted", watchName);
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                Log.errorf(e, "Failed to restart %s watch", watchName);
+            } finally {
+                // Remove from pending set
+                pendingRestarts.remove(watchName);
+            }
+        }, "watch-restart-" + watchName.toLowerCase().replace(" ", "-")).start();
     }
 
     /**
