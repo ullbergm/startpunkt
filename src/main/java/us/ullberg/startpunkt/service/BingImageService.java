@@ -36,7 +36,7 @@ public class BingImageService {
 
   @ConfigProperty(
       name = "startpunkt.bingimage.fallback.urlbase",
-      defaultValue = "/th?id=OHR.BlueBells_EN-US3486393304")
+      defaultValue = "/th?id=OHR.MexicoJelly_EN-US6803524310")
   String fallbackUrlBase;
 
   @ConfigProperty(name = "startpunkt.bingimage.fallback.copyright", defaultValue = "Fallback Image")

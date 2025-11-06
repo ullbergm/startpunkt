@@ -52,7 +52,7 @@ startpunkt:
     fallback:
       # Default fallback image when Bing API is unavailable
       # This is a Bing image URL base that will be used with resolution suffix
-      urlbase: "/th?id=OHR.BlueBells_EN-US3486393304"
+      urlbase: "/th?id=OHR.MexicoJelly_EN-US6803524310"
       copyright: "Fallback Background Image"
       title: "Default Background"
 
