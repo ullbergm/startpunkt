@@ -62,15 +62,15 @@ export function useBackgroundPreferences() {
     if (!rawPreferences.typeColors) {
       const typeColors = {
         solid: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.color
+          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.solid.color
         },
         gradient: {
           color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.gradient.color,
-          secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.secondaryColor,
-          gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.gradientDirection
+          secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.typeColors.gradient.secondaryColor,
+          gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.typeColors.gradient.gradientDirection
         },
         geopattern: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.color
+          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.geopattern.color
         }
       };
       
