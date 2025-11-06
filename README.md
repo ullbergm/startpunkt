@@ -61,6 +61,7 @@
 
 - 🔐 **Local execution**. Everything is executed locally on your cluster.
 - ⚡ **Automatic**. Services are automatically added / removed as they are deployed to the cluster.
+- 🌐 **Multi-cluster**. Read applications and bookmarks from multiple Kubernetes clusters simultaneously. See [docs/multi-cluster-support.md](docs/multi-cluster-support.md)
 - 🗂️ **Service Groups**. Group services by namespace or custom groups.
 - 🏷️ **Bookmarks**. Create a list of bookmarks using CRDs.
 - 👌 **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.

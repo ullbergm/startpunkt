@@ -34,9 +34,10 @@ public class ClusterClientService {
   @ConfigProperty(name = "startpunkt.clusters.local.enabled", defaultValue = "true")
   boolean localClusterEnabled;
 
-  /** Configuration for remote clusters. */
-  @ConfigProperty(name = "startpunkt.clusters.remote")
-  Optional<List<ClusterConfig>> remoteClusters;
+  /** Configuration for remote clusters - currently not supported via config injection. */
+  // @ConfigProperty(name = "startpunkt.clusters.remote")
+  // Optional<List<ClusterConfig>> remoteClusters;
+  Optional<List<ClusterConfig>> remoteClusters = Optional.empty();
 
   /**
    * Constructor with dependency injection.
