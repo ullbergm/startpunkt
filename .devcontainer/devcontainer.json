@@ -1,0 +1,147 @@
+{
+	"name": "Startpunkt Development Container",
+	"image": "mcr.microsoft.com/devcontainers/java:1-21-bullseye",
+	
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "20"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "latest"
+		}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// Java extensions
+				"redhat.java",
+				"vscjava.vscode-java-debug",
+				"vscjava.vscode-java-test",
+				"vscjava.vscode-java-dependency",
+				"vscjava.vscode-maven",
+				
+				// Quarkus extension
+				"redhat.vscode-quarkus",
+				
+				// JavaScript/Preact extensions
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				
+				// GraphQL extension
+				"graphql.vscode-graphql",
+				"graphql.vscode-graphql-syntax",
+				
+				// Testing extensions
+				"orta.vscode-jest",
+				
+				// Docker extension
+				"ms-azuretools.vscode-docker",
+				
+				// Git extensions
+				"eamodio.gitlens",
+				
+				// General utilities
+				"editorconfig.editorconfig",
+				"streetsidesoftware.code-spell-checker",
+				"yzhang.markdown-all-in-one",
+				"redhat.vscode-yaml"
+			],
+			
+			"settings": {
+				// Java settings
+				"java.server.launchMode": "Standard",
+				"java.configuration.runtimes": [
+					{
+						"name": "JavaSE-21",
+						"path": "/usr/local/sdkman/candidates/java/current"
+					}
+				],
+				"java.compile.nullAnalysis.mode": "automatic",
+				"java.format.settings.url": "${workspaceFolder}/.vscode/java-formatter.xml",
+				
+				// Maven settings
+				"maven.executable.path": "/usr/local/sdkman/candidates/maven/current/bin/mvn",
+				"maven.terminal.useJavaHome": true,
+				
+				// Quarkus settings
+				"quarkus.tools.alwaysShowWelcomePage": false,
+				
+				// JavaScript/Node settings
+				"eslint.workingDirectories": [
+					{
+						"directory": "src/main/webui",
+						"changeProcessCWD": true
+					}
+				],
+				"javascript.updateImportsOnFileMove.enabled": "always",
+				"typescript.updateImportsOnFileMove.enabled": "always",
+				
+				// Editor settings
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": "explicit"
+				},
+				"editor.tabSize": 2,
+				"[java]": {
+					"editor.tabSize": 4
+				},
+				"[javascript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[javascriptreact]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				"[json]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode"
+				},
+				
+				// Files settings
+				"files.exclude": {
+					"**/.git": true,
+					"**/.DS_Store": true,
+					"**/node_modules": true,
+					"**/target": true
+				},
+				"files.watcherExclude": {
+					"**/target/**": true,
+					"**/node_modules/**": true,
+					"**/.git/objects/**": true,
+					"**/.git/subtree-cache/**": true
+				},
+				
+				// Terminal settings
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+
+	"forwardPorts": [8080, 8081, 5005],
+	"portsAttributes": {
+		"8080": {
+			"label": "Application (Frontend)",
+			"onAutoForward": "notify"
+		},
+		"8081": {
+			"label": "API (Backend)",
+			"onAutoForward": "notify"
+		},
+		"5005": {
+			"label": "Java Debug",
+			"onAutoForward": "silent"
+		}
+	},
+
+	"postCreateCommand": "bash .devcontainer/postCreate.sh",
+
+	"remoteUser": "vscode",
+
+	"mounts": [
+		"source=${localWorkspaceFolder}/.m2,target=/home/vscode/.m2,type=bind,consistency=cached"
+	]
+}
