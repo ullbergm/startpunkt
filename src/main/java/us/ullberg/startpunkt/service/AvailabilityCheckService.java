@@ -1,9 +1,5 @@
 package us.ullberg.startpunkt.service;
 
-import io.quarkus.cache.CacheInvalidate;
-import io.quarkus.logging.Log;
-import io.quarkus.scheduler.Scheduled;
-import jakarta.enterprise.context.ApplicationScoped;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,20 +10,30 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.logging.Log;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
 
 /**
- * Service for checking the availability of applications by probing their URLs. Runs periodic checks
+ * Service for checking the availability of applications by probing their URLs.
+ * Runs periodic checks
  * in the background to maintain up-to-date availability status.
  */
 @ApplicationScoped
@@ -40,8 +46,10 @@ public class AvailabilityCheckService {
   private int availabilityTimeout;
 
   /**
-   * Interval for availability checks, injected from configuration. This field is referenced via
-   * annotation expressions (e.g., @Scheduled(every = "{startpunkt.availability.interval}")) and is
+   * Interval for availability checks, injected from configuration. This field is
+   * referenced via
+   * annotation expressions (e.g., @Scheduled(every =
+   * "{startpunkt.availability.interval}")) and is
    * retained for documentation and potential future use.
    */
   @ConfigProperty(name = "startpunkt.availability.interval", defaultValue = "60s")
@@ -59,17 +67,16 @@ public class AvailabilityCheckService {
    * Constructor that initializes the HTTP client with appropriate timeouts.
    *
    * @param ignoreCertificates whether to ignore SSL certificate validation
-   * @param eventBroadcaster the event broadcaster for sending availability change events
+   * @param eventBroadcaster   the event broadcaster for sending availability
+   *                           change events
    */
   public AvailabilityCheckService(
-      @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
-          boolean ignoreCertificates,
+      @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false") boolean ignoreCertificates,
       EventBroadcaster eventBroadcaster) {
     this.eventBroadcaster = eventBroadcaster;
-    HttpClient.Builder builder =
-        HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .followRedirects(HttpClient.Redirect.NORMAL);
+    HttpClient.Builder builder = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(5))
+        .followRedirects(HttpClient.Redirect.NORMAL);
 
     if (ignoreCertificates) {
       Log.warn(
@@ -77,18 +84,19 @@ public class AvailabilityCheckService {
               + "This is insecure and should only be used in development environments.");
       try {
         // Create a trust manager that accepts all certificates
-        TrustManager[] trustAllCerts =
-            new TrustManager[] {
-              new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                  return new X509Certificate[0];
-                }
-
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
               }
-            };
+
+              public void checkClientTrusted(X509Certificate[] certs, String authType) {
+              }
+
+              public void checkServerTrusted(X509Certificate[] certs, String authType) {
+              }
+            }
+        };
 
         // Install the all-trusting trust manager
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -128,19 +136,18 @@ public class AvailabilityCheckService {
     }
 
     try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(URI.create(url))
-              .timeout(Duration.ofSeconds(availabilityTimeout))
-              .method("HEAD", HttpRequest.BodyPublishers.noBody())
-              .build();
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .timeout(Duration.ofSeconds(availabilityTimeout))
+          .method("HEAD", HttpRequest.BodyPublishers.noBody())
+          .build();
 
-      HttpResponse<Void> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+      HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
 
       // Consider 2xx and 3xx status codes as available
       // 404 Not Found should count as unavailable (resource doesn't exist)
-      // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting our request
+      // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting
+      // our request
       // 5xx server errors indicate the service is actually unavailable
       int statusCode = response.statusCode();
       if ((statusCode >= 200 && statusCode < 400)
@@ -194,8 +201,10 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Enriches a list of ApplicationResponse objects with availability status. Unlike
-   * wrapWithAvailability, this method works with already-wrapped objects that may have metadata
+   * Enriches a list of ApplicationResponse objects with availability status.
+   * Unlike
+   * wrapWithAvailability, this method works with already-wrapped objects that may
+   * have metadata
    * fields populated.
    *
    * @param applications list of ApplicationResponse to enrich
@@ -227,7 +236,8 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Background job that periodically checks application availability. This runs asynchronously to
+   * Background job that periodically checks application availability. This runs
+   * asynchronously to
    * avoid blocking the main request flow.
    */
   @Scheduled(every = "{startpunkt.availability.interval}", delayed = "5s")
@@ -289,14 +299,41 @@ public class AvailabilityCheckService {
    */
   public void registerUrl(String url) {
     if (availabilityCheckEnabled && url != null && !url.isEmpty()) {
-      boolean wasNew =
-          availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked
+      boolean wasNew = availabilityCache.putIfAbsent(url, true) == null; // Default to available until checked
       if (wasNew) {
         Log.infof(
             "Registered URL for availability checking: %s (total: %d)",
             url, availabilityCache.size());
       }
     }
+  }
+
+  /**
+   * Unregisters a URL from periodic availability checking. This should be called
+   * when an
+   * application is deleted to clean up resources.
+   *
+   * @param url the URL to unregister
+   */
+  public void unregisterUrl(String url) {
+    if (url != null && !url.isEmpty()) {
+      boolean wasPresent = availabilityCache.remove(url) != null;
+      previousAvailabilityCache.remove(url);
+      if (wasPresent) {
+        Log.infof(
+            "Unregistered URL from availability checking: %s (remaining: %d)",
+            url, availabilityCache.size());
+      }
+    }
+  }
+
+  /**
+   * Gets the set of URLs currently being tracked for availability checking.
+   *
+   * @return a set of all URLs currently registered
+   */
+  public Set<String> getTrackedUrls() {
+    return new HashSet<>(availabilityCache.keySet());
   }
 
   /**
@@ -310,7 +347,8 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Invalidates the application caches to force fresh data on next request. Called when
+   * Invalidates the application caches to force fresh data on next request.
+   * Called when
    * availability status changes to ensure clients get updated data.
    */
   public void invalidateApplicationCaches() {

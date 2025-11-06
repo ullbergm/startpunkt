@@ -1,5 +1,18 @@
 package us.ullberg.startpunkt.graphql;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.graphql.Description;
+import org.eclipse.microprofile.graphql.GraphQLApi;
+import org.eclipse.microprofile.graphql.Mutation;
+import org.eclipse.microprofile.graphql.Name;
+import org.eclipse.microprofile.graphql.NonNull;
+import org.eclipse.microprofile.graphql.Query;
+
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.Cache;
@@ -8,17 +21,6 @@ import io.quarkus.logging.Log;
 import io.smallrye.graphql.api.Subscription;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.graphql.Description;
-import org.eclipse.microprofile.graphql.GraphQLApi;
-import org.eclipse.microprofile.graphql.Mutation;
-import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.NonNull;
-import org.eclipse.microprofile.graphql.Query;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.crd.v1alpha4.BookmarkSpec;
 import us.ullberg.startpunkt.graphql.exception.BookmarkConflictException;
@@ -31,11 +33,13 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
+import us.ullberg.startpunkt.service.BookmarkCacheService;
 import us.ullberg.startpunkt.service.BookmarkManagementService;
 import us.ullberg.startpunkt.service.BookmarkService;
 
 /**
- * GraphQL API resource for bookmarks. Provides queries for retrieving bookmarks grouped by their
+ * GraphQL API resource for bookmarks. Provides queries for retrieving bookmarks
+ * grouped by their
  * group property.
  */
 @GraphQLApi
@@ -47,6 +51,7 @@ public class BookmarkGraphQLResource {
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
   final SubscriptionEventEmitter subscriptionEventEmitter;
+  final BookmarkCacheService bookmarkCacheService;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -54,23 +59,30 @@ public class BookmarkGraphQLResource {
   /**
    * Constructor with injected dependencies.
    *
-   * @param bookmarkService the bookmark service
-   * @param bookmarkManagementService the bookmark management service for CRUD operations
-   * @param eventBroadcaster the event broadcaster for WebSocket notifications
-   * @param cacheManager the cache manager for manual cache invalidation
-   * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
+   * @param bookmarkService           the bookmark service
+   * @param bookmarkManagementService the bookmark management service for CRUD
+   *                                  operations
+   * @param eventBroadcaster          the event broadcaster for WebSocket
+   *                                  notifications
+   * @param cacheManager              the cache manager for manual cache
+   *                                  invalidation
+   * @param subscriptionEventEmitter  the subscription event emitter for GraphQL
+   *                                  subscriptions
+   * @param bookmarkCacheService      the bookmark cache service
    */
   public BookmarkGraphQLResource(
       BookmarkService bookmarkService,
       BookmarkManagementService bookmarkManagementService,
       EventBroadcaster eventBroadcaster,
       CacheManager cacheManager,
-      SubscriptionEventEmitter subscriptionEventEmitter) {
+      SubscriptionEventEmitter subscriptionEventEmitter,
+      BookmarkCacheService bookmarkCacheService) {
     this.bookmarkService = bookmarkService;
     this.bookmarkManagementService = bookmarkManagementService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
     this.subscriptionEventEmitter = subscriptionEventEmitter;
+    this.bookmarkCacheService = bookmarkCacheService;
   }
 
   /**
@@ -92,21 +104,21 @@ public class BookmarkGraphQLResource {
   }
 
   /**
-   * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
-   * alphabetically.
+   * Retrieves bookmarks from the cache and sorts them alphabetically.
    *
    * @return sorted list of BookmarkResponse objects
    */
   private ArrayList<BookmarkResponse> retrieveBookmarks() {
-    var bookmarks = new ArrayList<BookmarkResponse>();
-    bookmarks.addAll(bookmarkService.retrieveBookmarks());
+    Log.debug("Retrieving bookmarks from cache");
 
-    if (hajimariEnabled) {
-      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
-    }
+    // Get all bookmarks from cache
+    List<BookmarkResponse> bookmarks = bookmarkCacheService.getAll();
 
-    Collections.sort(bookmarks);
-    return bookmarks;
+    // Sort bookmarks
+    ArrayList<BookmarkResponse> sortedBookmarks = new ArrayList<>(bookmarks);
+    Collections.sort(sortedBookmarks);
+
+    return sortedBookmarks;
   }
 
   /**
@@ -123,20 +135,18 @@ public class BookmarkGraphQLResource {
         "GraphQL mutation: createBookmark in namespace=%s, name=%s", input.namespace, input.name);
 
     // Create BookmarkSpec from input
-    BookmarkSpec spec =
-        new BookmarkSpec(
-            input.bookmarkName,
-            input.group,
-            input.icon,
-            input.url,
-            input.info,
-            input.targetBlank,
-            input.location != null ? input.location : 1000);
+    BookmarkSpec spec = new BookmarkSpec(
+        input.bookmarkName,
+        input.group,
+        input.icon,
+        input.url,
+        input.info,
+        input.targetBlank,
+        input.location != null ? input.location : 1000);
 
     try {
       // Create bookmark via management service
-      Bookmark created =
-          bookmarkManagementService.createBookmark(input.namespace, input.name, spec);
+      Bookmark created = bookmarkManagementService.createBookmark(input.namespace, input.name, spec);
 
       // Invalidate cache
       invalidateBookmarkCache();
@@ -151,11 +161,10 @@ public class BookmarkGraphQLResource {
       return BookmarkType.fromResponse(response);
     } catch (KubernetesClientException e) {
       if (e.getCode() == 409) {
-        String message =
-            String.format(
-                "A bookmark with the name '%s' already exists in namespace '%s'. Please use a"
-                    + " different resource name.",
-                input.name, input.namespace);
+        String message = String.format(
+            "A bookmark with the name '%s' already exists in namespace '%s'. Please use a"
+                + " different resource name.",
+            input.name, input.namespace);
         Log.warnf("Conflict creating bookmark: %s", message);
         throw new BookmarkConflictException(message, e);
       }
@@ -179,15 +188,14 @@ public class BookmarkGraphQLResource {
         "GraphQL mutation: updateBookmark in namespace=%s, name=%s", input.namespace, input.name);
 
     // Create BookmarkSpec from input
-    BookmarkSpec spec =
-        new BookmarkSpec(
-            input.bookmarkName,
-            input.group,
-            input.icon,
-            input.url,
-            input.info,
-            input.targetBlank,
-            input.location != null ? input.location : 1000);
+    BookmarkSpec spec = new BookmarkSpec(
+        input.bookmarkName,
+        input.group,
+        input.icon,
+        input.url,
+        input.info,
+        input.targetBlank,
+        input.location != null ? input.location : 1000);
 
     // Update bookmark via management service
     Bookmark updated = bookmarkManagementService.updateBookmark(input.namespace, input.name, spec);
@@ -209,7 +217,7 @@ public class BookmarkGraphQLResource {
    * Delete a bookmark.
    *
    * @param namespace the namespace of the bookmark
-   * @param name the name of the bookmark resource
+   * @param name      the name of the bookmark resource
    * @return true if deleted successfully
    */
   @Mutation("deleteBookmark")
@@ -253,7 +261,9 @@ public class BookmarkGraphQLResource {
   /**
    * Subscribe to real-time bookmark updates.
    *
-   * <p>Clients can subscribe to this to receive notifications when bookmarks are added, updated, or
+   * <p>
+   * Clients can subscribe to this to receive notifications when bookmarks are
+   * added, updated, or
    * removed.
    *
    * @return Multi stream of bookmark update events

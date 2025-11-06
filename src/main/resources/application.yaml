@@ -79,6 +79,15 @@ startpunkt:
     subscription:
       enabled: true  # If true, enable GraphQL subscriptions for real-time updates
 
+  # Kubernetes watch configuration
+  watch:
+    enabled: true  # If true, enable Kubernetes watches for real-time cache updates
+    # When enabled, the application will watch for changes in Kubernetes resources
+    # and update the cache automatically, triggering GraphQL subscription notifications
+    cacheRefreshIntervalMinutes: 5  # Periodic cache refresh interval in minutes (0 to disable)
+    # The periodic refresh catches any deleted objects that may have been missed by watches
+    # due to network issues or watch disconnections. Set to 0 to disable periodic refresh.
+
 # Quarkus configuration
 quarkus:
   # SmallRye GraphQL configuration
