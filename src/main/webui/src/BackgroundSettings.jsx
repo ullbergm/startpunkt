@@ -6,6 +6,26 @@ export function BackgroundSettings() {
   const { preferences, updatePreference, resetToDefaults } = useBackgroundPreferences();
   const [theme] = useLocalStorage('theme', 'auto');
 
+  // Helper to get type-specific color values
+  const getTypeColor = (type, key) => {
+    if (preferences.typeColors && preferences.typeColors[type] && preferences.typeColors[type][key] !== undefined) {
+      return preferences.typeColors[type][key];
+    }
+    // Fallback to global preference
+    return preferences[key];
+  };
+
+  // Get current color based on the active type
+  const currentColor = getTypeColor(preferences.type, 'color') || preferences.color;
+  
+  // Get gradient-specific values (only used when type is 'gradient')
+  const currentSecondaryColor = preferences.type === 'gradient' 
+    ? (getTypeColor('gradient', 'secondaryColor') || preferences.secondaryColor)
+    : preferences.secondaryColor;
+  const currentGradientDirection = preferences.type === 'gradient'
+    ? (getTypeColor('gradient', 'gradientDirection') || preferences.gradientDirection)
+    : preferences.gradientDirection;
+
   return (
     <>
       <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
@@ -157,7 +177,7 @@ export function BackgroundSettings() {
                   type="color"
                   class="form-control form-control-color"
                   id="bgColor"
-                  value={preferences.color}
+                  value={currentColor}
                   onChange={(e) => updatePreference('color', e.target.value)}
                 />
               </div>
@@ -174,7 +194,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="bgColorPrimary"
-                    value={preferences.color}
+                    value={currentColor}
                     onChange={(e) => updatePreference('color', e.target.value)}
                   />
                 </div>
@@ -187,7 +207,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="bgColorSecondary"
-                    value={preferences.secondaryColor}
+                    value={currentSecondaryColor}
                     onChange={(e) => updatePreference('secondaryColor', e.target.value)}
                   />
                 </div>
@@ -196,7 +216,7 @@ export function BackgroundSettings() {
                   <label class="form-label small mb-1"><Text id="background.gradientDirection">Gradient Direction</Text></label>
                   <select 
                     class="form-select form-select-sm"
-                    value={preferences.gradientDirection}
+                    value={currentGradientDirection}
                     onChange={(e) => updatePreference('gradientDirection', e.target.value)}
                   >
                     <option value="to bottom"><Text id="background.directions.toBottom">Top to Bottom</Text></option>
@@ -254,7 +274,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="geopatternColor"
-                    value={preferences.color}
+                    value={currentColor}
                     onChange={(e) => updatePreference('color', e.target.value)}
                   />
                 </div>
