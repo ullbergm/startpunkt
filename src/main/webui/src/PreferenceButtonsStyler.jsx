@@ -11,11 +11,13 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
  * - 0 (center): Fully transparent with icon only, subtle hover effect
  * - Negative values: White background with opacity (light theme)
  * - Positive values: Black background with opacity (dark theme)
+ * - Each background type has its own overlay opacity setting
  * 
  * This component doesn't render anything - it just applies dynamic styles.
  */
 export function PreferenceButtonsStyler() {
-  const { preferences } = useBackgroundPreferences();
+  const backgroundPrefs = useBackgroundPreferences();
+  const { preferences, getContentOverlayOpacity } = backgroundPrefs;
 
   useEffect(() => {
     // Query buttons once at the start
@@ -36,7 +38,7 @@ export function PreferenceButtonsStyler() {
       return;
     }
 
-    const opacity = preferences.contentOverlayOpacity !== undefined ? preferences.contentOverlayOpacity : -0.6;
+    const opacity = getContentOverlayOpacity();
     
     // Middle position (0) = transparent, truly transparent with only icons visible
     if (opacity === 0) {
@@ -131,7 +133,7 @@ export function PreferenceButtonsStyler() {
         btn.removeEventListener('mouseleave', handleMouseLeave);
       });
     };
-  }, [preferences.type, preferences.contentOverlayOpacity]);
+  }, [preferences.type, preferences.typeSettings, getContentOverlayOpacity]);
 
   // This component doesn't render anything
   return null;

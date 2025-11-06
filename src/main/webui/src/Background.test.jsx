@@ -31,9 +31,26 @@ describe('Background', () => {
       type: 'theme',
       color: '#F8F6F1',
       opacity: 1.0,
-      blur: false,
-      imageUrl: '',
-      geopatternSeed: 'startpunkt'
+      geopatternSeed: 'startpunkt',
+      typeSettings: {
+        image: {
+          imageUrl: '',
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6
+        },
+        pictureOfDay: {
+          pictureProvider: 'picsum',
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6
+        },
+        bingImageOfDay: {
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6
+        }
+      }
     };
 
     useBackgroundPreferences.mockReturnValue({
@@ -41,7 +58,7 @@ describe('Background', () => {
       getBackgroundStyle: mockGetBackgroundStyle
     });
 
-    useLocalStorage.mockReturnValue(['auto', jest.fn()]);
+    useLocalStorage.mockReturnValue(['light', jest.fn()]);
     useMediaQuery.mockReturnValue(false); // system prefers light by default
   });
 
@@ -122,8 +139,13 @@ describe('Background', () => {
       // First render with image
       const imagePrefs = {
         type: 'image',
-        imageUrl: 'https://example.com/image.jpg',
-        blur: false,
+        typeSettings: {
+          image: {
+            imageUrl: 'https://example.com/image.jpg',
+            blur: false,
+            opacity: 1.0
+          }
+        },
         opacity: 1.0
       };
       useBackgroundPreferences.mockReturnValue({
@@ -200,7 +222,7 @@ describe('Background', () => {
   describe('Image Background', () => {
     it('should create overlay for image background', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 0.8
@@ -221,8 +243,8 @@ describe('Background', () => {
 
     it('should apply blur to image overlay when blur is enabled', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
-      mockPreferences.blur = true;
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.blur = true;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -239,8 +261,8 @@ describe('Background', () => {
 
     it('should not apply blur when blur is disabled', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
-      mockPreferences.blur = false;
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.blur = false;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -257,7 +279,7 @@ describe('Background', () => {
 
     it('should handle invalid image URL by falling back to solid color', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'not-a-valid-url';
+      mockPreferences.typeSettings.image.imageUrl = 'not-a-valid-url';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundColor: '#FF5733',
         opacity: 1.0
@@ -273,7 +295,7 @@ describe('Background', () => {
 
     it('should validate URL protocol (http/https only)', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'ftp://example.com/image.jpg';
+      mockPreferences.typeSettings.image.imageUrl = 'ftp://example.com/image.jpg';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundColor: '#FF5733',
         opacity: 1.0
@@ -318,7 +340,7 @@ describe('Background', () => {
 
     it('should apply blur to picture of day when enabled', async () => {
       mockPreferences.type = 'pictureOfDay';
-      mockPreferences.blur = true;
+      mockPreferences.typeSettings.pictureOfDay.blur = true;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://picsum.photos/...)',
         opacity: 1.0
@@ -358,7 +380,14 @@ describe('Background', () => {
       });
 
       mockPreferences.type = 'pictureOfDay';
-      mockPreferences.pictureProvider = 'bing';
+      mockPreferences.typeSettings = {
+        pictureOfDay: {
+          pictureProvider: 'bing',
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6
+        }
+      };
 
       useBackgroundPreferences.mockReturnValue({
         preferences: mockPreferences,
@@ -389,8 +418,14 @@ describe('Background', () => {
 
     it('should apply blur to Bing image when enabled', async () => {
       mockPreferences.type = 'pictureOfDay';
-      mockPreferences.pictureProvider = 'bing';
-      mockPreferences.blur = true;
+      mockPreferences.typeSettings = {
+        pictureOfDay: {
+          pictureProvider: 'bing',
+          blur: true,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6
+        }
+      };
       
       const mockBingData = {
         imageUrl: 'https://www.bing.com/th?id=OHR.TestImage_1920x1080.jpg',
@@ -462,7 +497,7 @@ describe('Background', () => {
 
     it('should set overlay pointer-events to none to prevent interaction blocking', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -480,7 +515,7 @@ describe('Background', () => {
   describe('Cleanup', () => {
     it('should remove overlay on unmount', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -499,7 +534,7 @@ describe('Background', () => {
 
     it('should handle multiple mount/unmount cycles', async () => {
       mockPreferences.type = 'image';
-      mockPreferences.imageUrl = 'https://example.com/image.jpg';
+      mockPreferences.typeSettings.image.imageUrl = 'https://example.com/image.jpg';
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -529,8 +564,12 @@ describe('Background', () => {
       
       const imagePrefs = {
         type: 'image',
-        imageUrl: 'https://example.com/image.jpg',
-        blur: false,
+        typeSettings: {
+          image: {
+            imageUrl: 'https://example.com/image.jpg',
+            blur: false
+          }
+        },
         opacity: 1.0
       };
       useBackgroundPreferences.mockReturnValue({

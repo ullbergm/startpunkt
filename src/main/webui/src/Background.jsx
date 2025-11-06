@@ -11,7 +11,7 @@ import { BING_IMAGE_QUERY } from './graphql/queries';
  */
 export function Background() {
   const backgroundPrefs = useBackgroundPreferences();
-  const [theme] = useLocalStorage('theme', 'auto');
+  const [theme] = useLocalStorage('theme', 'light');
   const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, undefined);
   const [bingImageUrl, setBingImageUrl] = useState(null);
   
@@ -30,8 +30,10 @@ export function Background() {
 
   // Fetch Bing Image of the Day when type is pictureOfDay and provider is bing
   useEffect(() => {
+    const pictureProvider = backgroundPrefs.preferences.typeSettings?.pictureOfDay?.pictureProvider || 'picsum';
+    
     if (backgroundPrefs.preferences.type === 'pictureOfDay' && 
-        backgroundPrefs.preferences.pictureProvider === 'bing') {
+        pictureProvider === 'bing') {
       // Fetch image via GraphQL - server-side caching and browser HTTP cache will handle performance
       const fetchBingImage = async () => {
         try {
@@ -55,7 +57,7 @@ export function Background() {
 
       fetchBingImage();
     }
-  }, [backgroundPrefs.preferences.type, backgroundPrefs.preferences.pictureProvider]);
+  }, [backgroundPrefs.preferences.type, backgroundPrefs.preferences.typeSettings?.pictureOfDay?.pictureProvider]);
 
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
@@ -103,7 +105,7 @@ export function Background() {
         
         if (backgroundPrefs.preferences.type === 'pictureOfDay') {
           // Check which provider to use
-          const provider = backgroundPrefs.preferences.pictureProvider || 'picsum';
+          const provider = backgroundPrefs.preferences.typeSettings?.pictureOfDay?.pictureProvider || 'picsum';
           if (provider === 'bing') {
             imageUrl = bingImageUrl; // Use the fetched Bing image URL
           } else {
@@ -111,7 +113,8 @@ export function Background() {
             imageUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
           }
         } else {
-          imageUrl = backgroundPrefs.preferences.imageUrl;
+          // Get imageUrl from typeSettings
+          imageUrl = backgroundPrefs.preferences.typeSettings?.image?.imageUrl || '';
         }
         
         // Validate URL before using
@@ -124,8 +127,10 @@ export function Background() {
           // Apply opacity from style (for images)
           overlay.style.opacity = style.opacity || 1.0;
           
-          // Apply blur if enabled
-          if (backgroundPrefs.preferences.blur) {
+          // Apply blur if enabled - read from typeSettings
+          const currentType = backgroundPrefs.preferences.type;
+          const blur = backgroundPrefs.preferences.typeSettings?.[currentType]?.blur || false;
+          if (blur) {
             overlay.style.filter = 'blur(10px)';
             overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
           } else {

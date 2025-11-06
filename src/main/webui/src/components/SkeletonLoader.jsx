@@ -7,11 +7,11 @@ import './SkeletonLoader.scss';
 /**
  * SkeletonLoader component - displays skeleton UI while data is loading
  * Uses actual ApplicationGroup components with skeleton mode for perfect visual matching
- * Respects theme mode and overlay opacity settings
+ * Respects theme mode and overlay opacity settings (per background type)
  * 
  * Props:
  * - layoutPrefs: layout preferences object with showDescription, showTags, showStatus, columnCount
- * - backgroundPrefs: background preferences object with type, contentOverlayOpacity
+ * - backgroundPrefs: background preferences object with type, typeSettings
  */
 export function SkeletonLoader({ layoutPrefs, backgroundPrefs }) {
   const [theme] = useLocalStorage('theme', 'auto');
@@ -21,8 +21,17 @@ export function SkeletonLoader({ layoutPrefs, backgroundPrefs }) {
   const isThemeMode = backgroundPrefs?.type === 'theme';
   const isDarkTheme = isThemeMode && (theme === 'dark' || (theme === 'auto' && systemPrefersDark));
   
-  // For non-theme modes, determine skeleton color based on overlay opacity
-  const overlayOpacity = backgroundPrefs?.contentOverlayOpacity || 0;
+  // For non-theme modes, determine skeleton color based on overlay opacity for current type
+  const getContentOverlayOpacity = () => {
+    const currentType = backgroundPrefs?.type;
+    if (backgroundPrefs?.typeSettings && backgroundPrefs.typeSettings[currentType]) {
+      const value = backgroundPrefs.typeSettings[currentType].contentOverlayOpacity;
+      return value !== undefined ? value : -0.6;
+    }
+    return -0.6;
+  };
+  
+  const overlayOpacity = getContentOverlayOpacity();
   const shouldUseLightSkeleton = !isThemeMode && overlayOpacity < 0; // Negative = white overlay
   const shouldUseDarkSkeleton = !isThemeMode && overlayOpacity > 0;  // Positive = black overlay
   

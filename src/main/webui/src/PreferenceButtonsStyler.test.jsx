@@ -46,8 +46,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'theme',
-        contentOverlayOpacity: -0.6
-      }
+        typeSettings: {
+          theme: {
+            contentOverlayOpacity: 0
+          }
+        }
+      },
+      getContentOverlayOpacity: () => 0
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
@@ -63,8 +68,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
-        contentOverlayOpacity: 0
-      }
+        typeSettings: {
+          solid: {
+            contentOverlayOpacity: 0
+          }
+        }
+      },
+      getContentOverlayOpacity: () => 0
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
@@ -84,8 +94,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
-        contentOverlayOpacity: -0.6
-      }
+        typeSettings: {
+          solid: {
+            contentOverlayOpacity: -0.6
+          }
+        }
+      },
+      getContentOverlayOpacity: () => -0.6
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
@@ -103,8 +118,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0.8
-      }
+        typeSettings: {
+          gradient: {
+            contentOverlayOpacity: 0.8
+          }
+        }
+      },
+      getContentOverlayOpacity: () => 0.8
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
@@ -122,8 +142,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'image',
-        contentOverlayOpacity: -0.5
-      }
+        typeSettings: {
+          image: {
+            contentOverlayOpacity: -0.5
+          }
+        }
+      },
+      getContentOverlayOpacity: () => -0.5
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
@@ -145,8 +170,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
-        contentOverlayOpacity: -0.6
-      }
+        typeSettings: {
+          solid: {
+            contentOverlayOpacity: -0.6
+          }
+        }
+      },
+      getContentOverlayOpacity: () => -0.6
     });
 
     rerender(<PreferenceButtonsStyler />);
@@ -161,8 +191,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
-        contentOverlayOpacity: 0.7
-      }
+        typeSettings: {
+          solid: {
+            contentOverlayOpacity: 0.7
+          }
+        }
+      },
+      getContentOverlayOpacity: () => 0.7
     });
 
     rerender(<PreferenceButtonsStyler />);
@@ -178,8 +213,13 @@ describe('PreferenceButtonsStyler', () => {
     useBackgroundPreferencesModule.useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'solid',
-        contentOverlayOpacity: -0.6
-      }
+        typeSettings: {
+          solid: {
+            contentOverlayOpacity: -0.6
+          }
+        }
+      },
+      getContentOverlayOpacity: () => -0.6
     });
 
     const { container } = render(<PreferenceButtonsStyler />);

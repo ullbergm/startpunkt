@@ -32,7 +32,7 @@ jest.mock('@rehooks/local-storage', () => ({
 describe('BackgroundSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    global._mockTheme = 'auto';
+    global._mockTheme = 'light';
     mockPreferences = {
       type: 'solid',
       color: '#F8F6F1',

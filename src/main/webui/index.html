@@ -8,20 +8,21 @@
     <!-- Immediate theme application - runs before ANY other script -->
     <script>
       // This runs immediately, blocking render until complete
+      // Always start with dark to prevent white flash, then transition if needed
       (function() {
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
         
-        let bgColor = '#111827'; // default dark
+        // Always start dark to eliminate white flash
+        let bgColor = '#111827';
         let themeClass = 'dark';
         
-        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
-          bgColor = '#ffffff';
-          themeClass = 'light';
-        } else if (savedTheme === 'high-contrast') {
+        if (savedTheme === 'high-contrast') {
           bgColor = '#000000';
           themeClass = 'high-contrast';
         }
+        // Note: Light theme will be applied by ThemeApplier component after mount
+        // This prevents white flash on initial load
         
         // Apply immediately to prevent any flash
         document.documentElement.style.backgroundColor = bgColor;
@@ -32,7 +33,7 @@
       })();
     </script>
   </head>
-  <body style="margin: 0;">
+  <body style="margin: 0; background: inherit;">
     <div id="app" style="min-height: 100vh;"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

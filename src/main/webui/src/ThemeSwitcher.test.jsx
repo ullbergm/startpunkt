@@ -51,7 +51,7 @@ const testThemes = {
 };
 
 beforeEach(() => {
-  global._mockTheme = 'auto';
+  global._mockTheme = 'light';
   global._mockSystemPrefersDark = false;
   global._mockBackgroundType = 'theme';
   

@@ -1,5 +1,5 @@
-import { renderHook, act } from '@testing-library/preact';
-import { useBackgroundPreferences } from './useBackgroundPreferences';
+import { act, renderHook } from "@testing-library/preact";
+import { useBackgroundPreferences } from "./useBackgroundPreferences";
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -14,363 +14,423 @@ const localStorageMock = (() => {
     },
     clear: () => {
       store = {};
-    }
+    },
   };
 })();
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
+Object.defineProperty(window, "localStorage", {
+  value: localStorageMock,
 });
 
-describe('useBackgroundPreferences', () => {
+describe("useBackgroundPreferences", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  test('initializes with default preferences', () => {
+  test("initializes with default preferences", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     expect(result.current.preferences).toEqual({
-      type: 'theme',
-      color: '#F8F6F1',
-      secondaryColor: '#FFFFFF',
-      gradientDirection: 'to bottom right',
-      imageUrl: '',
-      blur: false,
-      opacity: 1.0,
-      geopatternSeed: 'startpunkt',
-      meshColors: ['#2d5016', '#f4c430', '#003366'],
-      meshAnimated: true,
-      meshComplexity: 'low',
-      contentOverlay: false,
+      type: "theme",
       contentOverlayOpacity: -0.6,
-      pictureProvider: 'bing',
-      typeColors: {
+      typeSettings: {
         solid: {
-          color: '#F8F6F1'
+          color: "#408080",
+          opacity: 1.0,
+          contentOverlayOpacity: -0.65,
         },
         gradient: {
-          color: '#F8F6F1',
-          secondaryColor: '#FFFFFF',
-          gradientDirection: 'to bottom right'
+          color: "#408080",
+          secondaryColor: "#FFFFFF",
+          gradientDirection: "to bottom right",
+          opacity: 1.0,
+          contentOverlayOpacity: -0.65,
+        },
+        image: {
+          imageUrl: "",
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6,
+        },
+        pictureOfDay: {
+          pictureProvider: 'bing',
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6,
+        },
+        bingImageOfDay: {
+          blur: false,
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6,
         },
         geopattern: {
-          color: '#F8F6F1'
-        }
-      }
+          color: "#408080",
+          geopatternSeed: "startpunkt",
+          opacity: 1.0,
+          contentOverlayOpacity: -0.6,
+        },
+        timeGradient: {
+          opacity: 1.0,
+          contentOverlayOpacity: 1.0,
+        },
+        meshGradient: {
+          meshColors: ["#408080", "#ffffff", "#808000", "#8000ff", "#804040"],
+          meshAnimated: false,
+          meshComplexity: "medium",
+          opacity: 1.0,
+          contentOverlayOpacity: 0.65,
+        },
+        theme: {
+          contentOverlayOpacity: 0,
+        },
+      },
     });
   });
 
-  test.skip('updates a single preference', () => {
+  test.skip("updates a single preference", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'gradient');
+      result.current.updatePreference("type", "gradient");
     });
-    
-    expect(result.current.preferences.type).toBe('gradient');
+
+    expect(result.current.preferences.type).toBe("gradient");
   });
 
-  test.skip('resets to default preferences', () => {
+  test.skip("resets to default preferences", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'gradient');
-      result.current.updatePreference('color', '#000000');
+      result.current.updatePreference("type", "gradient");
+      result.current.updatePreference("color", "#000000");
     });
-    
-    expect(result.current.preferences.type).toBe('gradient');
-    expect(result.current.preferences.color).toBe('#000000');
-    
+
+    expect(result.current.preferences.type).toBe("gradient");
+    expect(result.current.preferences.color).toBe("#000000");
+
     act(() => {
       result.current.resetToDefaults();
     });
-    
-    expect(result.current.preferences.type).toBe('solid');
-    expect(result.current.preferences.color).toBe('#F8F6F1');
+
+    expect(result.current.preferences.type).toBe("solid");
+    expect(result.current.preferences.color).toBe("#F8F6F1");
   });
 
-  test('generates solid background style', () => {
+  test("generates solid background style", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
-    // Set type to solid since default is now 'theme'
+
     act(() => {
-      result.current.updatePreference('type', 'solid');
+      result.current.updatePreference("type", "solid");
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
-    expect(style.backgroundColor).toBe('#F8F6F1');
+
+    expect(style.backgroundColor).toBe("#408080");
   });
 
-  test.skip('applies opacity to solid background using rgba', () => {
+  test.skip("applies opacity to solid background using rgba", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('color', '#FF0000');
-      result.current.updatePreference('opacity', 0.5);
+      result.current.updatePreference("color", "#FF0000");
+      result.current.updatePreference("opacity", 0.5);
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     // Should convert to rgba with opacity
-    expect(style.backgroundColor).toBe('rgba(255, 0, 0, 0.5)');
+    expect(style.backgroundColor).toBe("rgba(255, 0, 0, 0.5)");
   });
 
-  test.skip('applies opacity to gradient colors using rgba', () => {
+  test.skip("applies opacity to gradient colors using rgba", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'gradient');
-      result.current.updatePreference('color', '#FF0000');
-      result.current.updatePreference('secondaryColor', '#0000FF');
-      result.current.updatePreference('opacity', 0.7);
+      result.current.updatePreference("type", "gradient");
+      result.current.updatePreference("color", "#FF0000");
+      result.current.updatePreference("secondaryColor", "#0000FF");
+      result.current.updatePreference("opacity", 0.7);
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     // Should use rgba colors in gradient
-    expect(style.background).toContain('rgba(255, 0, 0, 0.7)');
-    expect(style.background).toContain('rgba(0, 0, 255, 0.7)');
+    expect(style.background).toContain("rgba(255, 0, 0, 0.7)");
+    expect(style.background).toContain("rgba(0, 0, 255, 0.7)");
   });
 
-  test.skip('applies opacity property to image backgrounds', () => {
+  test.skip("applies opacity property to image backgrounds", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'image');
-      result.current.updatePreference('imageUrl', 'https://example.com/image.jpg');
-      result.current.updatePreference('opacity', 0.8);
+      result.current.updatePreference("type", "image");
+      result.current.updatePreference(
+        "imageUrl",
+        "https://example.com/image.jpg"
+      );
+      result.current.updatePreference("opacity", 0.8);
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     // For images, opacity is set as a property (to be applied to overlay)
     expect(style.opacity).toBe(0.8);
   });
 
-  test.skip('generates gradient background style', () => {
+  test.skip("generates gradient background style", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'gradient');
-      result.current.updatePreference('color', '#FF0000');
-      result.current.updatePreference('secondaryColor', '#0000FF');
-      result.current.updatePreference('gradientDirection', 'to right');
+      result.current.updatePreference("type", "gradient");
+      result.current.updatePreference("color", "#FF0000");
+      result.current.updatePreference("secondaryColor", "#0000FF");
+      result.current.updatePreference("gradientDirection", "to right");
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     expect(style.background).toBeDefined();
-    expect(style.background).toContain('linear-gradient');
-    expect(style.background).toContain('to right');
-    expect(style.background).toContain('#FF0000');
-    expect(style.background).toContain('#0000FF');
+    expect(style.background).toContain("linear-gradient");
+    expect(style.background).toContain("to right");
+    expect(style.background).toContain("#FF0000");
+    expect(style.background).toContain("#0000FF");
   });
 
-  test.skip('generates image background style', () => {
+  test.skip("generates image background style", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'image');
-      result.current.updatePreference('imageUrl', 'https://example.com/image.jpg');
+      result.current.updatePreference("type", "image");
+      result.current.updatePreference(
+        "imageUrl",
+        "https://example.com/image.jpg"
+      );
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
-    expect(style.backgroundImage).toBe('url(https://example.com/image.jpg)');
-    expect(style.backgroundSize).toBe('cover');
-    expect(style.backgroundPosition).toBe('center');
+
+    expect(style.backgroundImage).toBe("url(https://example.com/image.jpg)");
+    expect(style.backgroundSize).toBe("cover");
+    expect(style.backgroundPosition).toBe("center");
   });
 
-  test('uses dark theme color defaults when in dark mode', () => {
+  test("uses dark theme color defaults when in dark mode", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     // Set type to solid since default is now 'theme'
     act(() => {
-      result.current.updatePreference('type', 'solid');
+      result.current.updatePreference("type", "solid");
     });
-    
+
     const style = result.current.getBackgroundStyle(true);
-    
+
     // When color preference matches light theme default, dark mode should override
     expect(style.backgroundColor).toBeDefined();
   });
 
-  test.skip('generates time-based gradient background style', () => {
+  test.skip("generates time-based gradient background style", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'timeGradient');
+      result.current.updatePreference("type", "timeGradient");
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     expect(style.background).toBeDefined();
-    expect(style.background).toContain('linear-gradient');
+    expect(style.background).toContain("linear-gradient");
     // Should have at least 2 colors in the gradient
-    expect(style.background.match(/#[0-9a-fA-F]{6}/g).length).toBeGreaterThanOrEqual(2);
+    expect(
+      style.background.match(/#[0-9a-fA-F]{6}/g).length
+    ).toBeGreaterThanOrEqual(2);
   });
 
-  test('generates mesh gradient background style', () => {
+  test("generates mesh gradient background style", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'meshGradient');
+      result.current.updatePreference("type", "meshGradient");
     });
-    
+
     act(() => {
-      result.current.updatePreference('meshColors', ['#FF0000', '#00FF00', '#0000FF']);
+      result.current.updatePreference("meshColors", [
+        "#FF0000",
+        "#00FF00",
+        "#0000FF",
+      ]);
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     expect(style.background).toBeDefined();
     expect(style.backgroundImage).toBeDefined();
-    expect(style.backgroundImage).toContain('radial-gradient');
+    expect(style.backgroundImage).toContain("radial-gradient");
   });
 
-  test('applies animation to mesh gradient when enabled', () => {
+  test("applies animation to mesh gradient when enabled", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'meshGradient');
+      result.current.updatePreference("type", "meshGradient");
     });
-    
+
     act(() => {
-      result.current.updatePreference('meshAnimated', true);
+      result.current.updatePreference("meshAnimated", true);
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
-    
+
     expect(style.animation).toBeDefined();
-    expect(style.animation).toContain('meshGradientAnimation');
+    expect(style.animation).toContain("meshGradientAnimation");
   });
 
-  test('respects mesh gradient complexity setting', () => {
+  test("respects mesh gradient complexity setting", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'meshGradient');
+      result.current.updatePreference("type", "meshGradient");
     });
-    
+
     act(() => {
-      result.current.updatePreference('meshComplexity', 'high');
+      result.current.updatePreference("meshComplexity", "high");
     });
-    
+
     const style = result.current.getBackgroundStyle(false);
 
     // High complexity should have more gradient layers
     expect(style.backgroundImage).toBeDefined();
-    const gradientCount = (style.backgroundImage.match(/radial-gradient/g) || []).length;
+    const gradientCount = (
+      style.backgroundImage.match(/radial-gradient/g) || []
+    ).length;
     expect(gradientCount).toBeGreaterThan(2);
-  });  test('time-based gradient returns appropriate colors for different times', () => {
+  });
+  test("time-based gradient returns appropriate colors for different times", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     act(() => {
-      result.current.updatePreference('type', 'timeGradient');
+      result.current.updatePreference("type", "timeGradient");
     });
-    
+
     // Mock different times of day
     const originalDate = Date;
-    
+
     // Test morning (8 AM)
     global.Date = class extends originalDate {
-      getHours() { return 8; }
+      getHours() {
+        return 8;
+      }
     };
     const morningStyle = result.current.getBackgroundStyle(false);
     expect(morningStyle.background).toBeDefined();
-    
+
     // Test afternoon (2 PM)
     global.Date = class extends originalDate {
-      getHours() { return 14; }
+      getHours() {
+        return 14;
+      }
     };
     const afternoonStyle = result.current.getBackgroundStyle(false);
     expect(afternoonStyle.background).toBeDefined();
-    
+
     // Test evening (8 PM)
     global.Date = class extends originalDate {
-      getHours() { return 20; }
+      getHours() {
+        return 20;
+      }
     };
     const eveningStyle = result.current.getBackgroundStyle(false);
     expect(eveningStyle.background).toBeDefined();
-    
+
     // Restore original Date
     global.Date = originalDate;
   });
 
-  test('maintains separate colors for solid and gradient types', () => {
+  test("maintains separate colors for solid and gradient types", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     // Set solid type and change its color
     act(() => {
-      result.current.updatePreference('type', 'solid');
+      result.current.updatePreference("type", "solid");
     });
     act(() => {
-      result.current.updatePreference('color', '#FF0000');
+      result.current.updatePreference("color", "#FF0000");
     });
-    
+
     // Verify solid color was updated
-    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
-    
+    expect(result.current.preferences.typeSettings.solid.color).toBe("#FF0000");
+
     // Switch to gradient and change its color
     act(() => {
-      result.current.updatePreference('type', 'gradient');
+      result.current.updatePreference("type", "gradient");
     });
     act(() => {
-      result.current.updatePreference('color', '#0000FF');
+      result.current.updatePreference("color", "#0000FF");
     });
-    
+
     // Verify gradient color was updated
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#0000FF');
-    
+    expect(result.current.preferences.typeSettings.gradient.color).toBe(
+      "#0000FF"
+    );
+
     // Verify solid color remained unchanged
-    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
-    
+    expect(result.current.preferences.typeSettings.solid.color).toBe("#FF0000");
+
     // Switch back to solid and verify it still has the red color
     act(() => {
-      result.current.updatePreference('type', 'solid');
+      result.current.updatePreference("type", "solid");
     });
     const solidStyle = result.current.getBackgroundStyle(false);
-    expect(solidStyle.backgroundColor).toBe('#FF0000');
+    expect(solidStyle.backgroundColor).toBe("#FF0000");
   });
 
-  test('maintains separate gradient settings from solid color', () => {
+  test("maintains separate gradient settings from solid color", () => {
     const { result } = renderHook(() => useBackgroundPreferences());
-    
+
     // Set gradient type and configure it
     act(() => {
-      result.current.updatePreference('type', 'gradient');
+      result.current.updatePreference("type", "gradient");
     });
     act(() => {
-      result.current.updatePreference('color', '#FF0000');
+      result.current.updatePreference("color", "#FF0000");
     });
     act(() => {
-      result.current.updatePreference('secondaryColor', '#00FF00');
+      result.current.updatePreference("secondaryColor", "#00FF00");
     });
     act(() => {
-      result.current.updatePreference('gradientDirection', 'to right');
+      result.current.updatePreference("gradientDirection", "to right");
     });
-    
+
     // Verify gradient settings
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
-    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
-    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
-    
+    expect(result.current.preferences.typeSettings.gradient.color).toBe(
+      "#FF0000"
+    );
+    expect(
+      result.current.preferences.typeSettings.gradient.secondaryColor
+    ).toBe("#00FF00");
+    expect(
+      result.current.preferences.typeSettings.gradient.gradientDirection
+    ).toBe("to right");
+
     // Switch to solid and set a different color
     act(() => {
-      result.current.updatePreference('type', 'solid');
+      result.current.updatePreference("type", "solid");
     });
     act(() => {
-      result.current.updatePreference('color', '#0000FF');
+      result.current.updatePreference("color", "#0000FF");
     });
-    
+
     // Verify solid has its own color
-    expect(result.current.preferences.typeColors.solid.color).toBe('#0000FF');
-    
+    expect(result.current.preferences.typeSettings.solid.color).toBe("#0000FF");
+
     // Verify gradient settings are still intact
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
-    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
-    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
+    expect(result.current.preferences.typeSettings.gradient.color).toBe(
+      "#FF0000"
+    );
+    expect(
+      result.current.preferences.typeSettings.gradient.secondaryColor
+    ).toBe("#00FF00");
+    expect(
+      result.current.preferences.typeSettings.gradient.gradientDirection
+    ).toBe("to right");
   });
 });

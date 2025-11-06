@@ -32,7 +32,11 @@ describe('SkeletonLoader', () => {
 
   const mockBackgroundPrefs = {
     type: 'theme',
-    contentOverlayOpacity: 0
+    typeSettings: {
+      theme: {
+        contentOverlayOpacity: 0
+      }
+    }
   };
 
   beforeEach(() => {
@@ -110,7 +114,11 @@ describe('SkeletonLoader', () => {
   it('should use light theme for dark backgrounds', () => {
     const darkBgPrefs = {
       type: 'solid',
-      contentOverlayOpacity: -0.5 // Negative = white overlay
+      typeSettings: {
+        solid: {
+          contentOverlayOpacity: -0.5 // Negative = white overlay
+        }
+      }
     };
     
     const { container } = render(
@@ -125,7 +133,11 @@ describe('SkeletonLoader', () => {
   it('should use dark theme for light backgrounds', () => {
     const lightBgPrefs = {
       type: 'solid',
-      contentOverlayOpacity: 0.5 // Positive = black overlay
+      typeSettings: {
+        solid: {
+          contentOverlayOpacity: 0.5 // Positive = black overlay
+        }
+      }
     };
     
     const { container } = render(
