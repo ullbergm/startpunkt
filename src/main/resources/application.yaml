@@ -79,6 +79,16 @@ startpunkt:
     subscription:
       enabled: true  # If true, enable GraphQL subscriptions for real-time updates
 
+  # Kubernetes watch configuration (using Informers)
+  watch:
+    enabled: true  # If true, enable Kubernetes informers for real-time cache updates
+    # When enabled, the application will use Kubernetes Informers to watch for changes
+    # and update the cache automatically, triggering GraphQL subscription notifications
+    resyncPeriodSeconds: 300  # Informer resync period in seconds (300 = 5 minutes)
+    # Informers automatically resync with Kubernetes API server at this interval,
+    # ensuring cache consistency even if events are missed. This replaces the old
+    # manual periodic refresh mechanism.
+
 # Quarkus configuration
 quarkus:
   # SmallRye GraphQL configuration
