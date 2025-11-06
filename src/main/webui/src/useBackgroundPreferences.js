@@ -33,20 +33,86 @@ const DEFAULT_PREFERENCES = {
   meshAnimated: true,
   meshComplexity: 'low',
   contentOverlay: false,
-  contentOverlayOpacity: -0.6 // 0 = transparent (default), negative = white, positive = black
+  contentOverlayOpacity: -0.6, // 0 = transparent (default), negative = white, positive = black
+  // Per-type color settings to avoid sharing colors between types
+  typeColors: {
+    solid: {
+      color: '#F8F6F1'
+    },
+    gradient: {
+      color: '#F8F6F1',
+      secondaryColor: '#FFFFFF',
+      gradientDirection: 'to bottom right'
+    },
+    geopattern: {
+      color: '#F8F6F1'
+    }
+  }
 };
 
 export function useBackgroundPreferences() {
-  const [preferences, setPreferences] = useLocalStorage(
+  const [rawPreferences, setPreferences] = useLocalStorage(
     'startpunkt:background-preferences',
     DEFAULT_PREFERENCES
   );
 
+  // Migrate old preferences to new per-type structure
+  const preferences = (() => {
+    // If typeColors doesn't exist, migrate old preferences
+    if (!rawPreferences.typeColors) {
+      const typeColors = {
+        solid: {
+          color: rawPreferences.color || DEFAULT_PREFERENCES.color
+        },
+        gradient: {
+          color: rawPreferences.color || DEFAULT_PREFERENCES.gradient?.color || '#F8F6F1',
+          secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.secondaryColor,
+          gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.gradientDirection
+        },
+        geopattern: {
+          color: rawPreferences.color || DEFAULT_PREFERENCES.color
+        }
+      };
+      
+      return {
+        ...rawPreferences,
+        typeColors
+      };
+    }
+    return rawPreferences;
+  })();
+
   const updatePreference = (key, value) => {
-    setPreferences({
-      ...preferences,
-      [key]: value
-    });
+    // Special handling for type-specific color properties
+    if (key === 'color' || key === 'secondaryColor' || key === 'gradientDirection') {
+      const currentType = preferences.type;
+      const typeColors = { ...preferences.typeColors };
+      
+      // Update the color for the current type
+      if (currentType === 'solid' || currentType === 'gradient' || currentType === 'geopattern') {
+        typeColors[currentType] = {
+          ...typeColors[currentType],
+          [key]: value
+        };
+        
+        setPreferences({
+          ...preferences,
+          [key]: value, // Keep for backward compatibility
+          typeColors
+        });
+      } else {
+        // For other types, just update the global value
+        setPreferences({
+          ...preferences,
+          [key]: value
+        });
+      }
+    } else {
+      setPreferences({
+        ...preferences,
+        [key]: value
+      });
+    }
   };
 
   const resetToDefaults = () => {
@@ -183,10 +249,32 @@ export function useBackgroundPreferences() {
   const getBackgroundStyle = (isDarkMode) => {
     const style = {};
     
+    // Helper to get type-specific colors
+    const getTypeColor = (type, key) => {
+      // Try to get from typeColors first, fallback to global preferences
+      if (preferences.typeColors && preferences.typeColors[type] && preferences.typeColors[type][key]) {
+        return preferences.typeColors[type][key];
+      }
+      // Fallback to global preference (for backward compatibility)
+      return preferences[key];
+    };
+    
     // Default colors based on theme mode
     const defaultLightColor = '#F8F6F1';
     const defaultDarkColor = '#232530';
-    const baseColor = preferences.color || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    
+    // Get the appropriate base color depending on type
+    let baseColor;
+    if (preferences.type === 'solid') {
+      baseColor = getTypeColor('solid', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    } else if (preferences.type === 'gradient') {
+      baseColor = getTypeColor('gradient', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    } else if (preferences.type === 'geopattern') {
+      baseColor = getTypeColor('geopattern', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    } else {
+      baseColor = preferences.color || (isDarkMode ? defaultDarkColor : defaultLightColor);
+    }
+    
     const opacity = preferences.opacity !== undefined ? preferences.opacity : 1.0;
     
     // Helper to validate and sanitize URLs
@@ -218,8 +306,8 @@ export function useBackgroundPreferences() {
       }
       
       case 'gradient': {
-        const secondaryColor = preferences.secondaryColor || (isDarkMode ? '#1a1b26' : '#FFFFFF');
-        const direction = preferences.gradientDirection || 'to bottom right';
+        const secondaryColor = getTypeColor('gradient', 'secondaryColor') || (isDarkMode ? '#1a1b26' : '#FFFFFF');
+        const direction = getTypeColor('gradient', 'gradientDirection') || 'to bottom right';
         
         // Apply opacity to gradient colors
         if (opacity !== 1.0) {

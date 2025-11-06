@@ -44,7 +44,20 @@ describe('useBackgroundPreferences', () => {
       meshComplexity: 'low',
       contentOverlay: false,
       contentOverlayOpacity: -0.6,
-      pictureProvider: 'bing'
+      pictureProvider: 'bing',
+      typeColors: {
+        solid: {
+          color: '#F8F6F1'
+        },
+        gradient: {
+          color: '#F8F6F1',
+          secondaryColor: '#FFFFFF',
+          gradientDirection: 'to bottom right'
+        },
+        geopattern: {
+          color: '#F8F6F1'
+        }
+      }
     });
   });
 
@@ -284,5 +297,80 @@ describe('useBackgroundPreferences', () => {
     
     // Restore original Date
     global.Date = originalDate;
+  });
+
+  test('maintains separate colors for solid and gradient types', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    // Set solid type and change its color
+    act(() => {
+      result.current.updatePreference('type', 'solid');
+    });
+    act(() => {
+      result.current.updatePreference('color', '#FF0000');
+    });
+    
+    // Verify solid color was updated
+    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
+    
+    // Switch to gradient and change its color
+    act(() => {
+      result.current.updatePreference('type', 'gradient');
+    });
+    act(() => {
+      result.current.updatePreference('color', '#0000FF');
+    });
+    
+    // Verify gradient color was updated
+    expect(result.current.preferences.typeColors.gradient.color).toBe('#0000FF');
+    
+    // Verify solid color remained unchanged
+    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
+    
+    // Switch back to solid and verify it still has the red color
+    act(() => {
+      result.current.updatePreference('type', 'solid');
+    });
+    const solidStyle = result.current.getBackgroundStyle(false);
+    expect(solidStyle.backgroundColor).toBe('#FF0000');
+  });
+
+  test('maintains separate gradient settings from solid color', () => {
+    const { result } = renderHook(() => useBackgroundPreferences());
+    
+    // Set gradient type and configure it
+    act(() => {
+      result.current.updatePreference('type', 'gradient');
+    });
+    act(() => {
+      result.current.updatePreference('color', '#FF0000');
+    });
+    act(() => {
+      result.current.updatePreference('secondaryColor', '#00FF00');
+    });
+    act(() => {
+      result.current.updatePreference('gradientDirection', 'to right');
+    });
+    
+    // Verify gradient settings
+    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
+    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
+    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
+    
+    // Switch to solid and set a different color
+    act(() => {
+      result.current.updatePreference('type', 'solid');
+    });
+    act(() => {
+      result.current.updatePreference('color', '#0000FF');
+    });
+    
+    // Verify solid has its own color
+    expect(result.current.preferences.typeColors.solid.color).toBe('#0000FF');
+    
+    // Verify gradient settings are still intact
+    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
+    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
+    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
   });
 });
