@@ -56,17 +56,9 @@
 			"settings": {
 				// Java settings
 				"java.server.launchMode": "Standard",
-				"java.configuration.runtimes": [
-					{
-						"name": "JavaSE-21",
-						"path": "/usr/local/sdkman/candidates/java/current"
-					}
-				],
 				"java.compile.nullAnalysis.mode": "automatic",
-				"java.format.settings.url": "${workspaceFolder}/.vscode/java-formatter.xml",
 				
 				// Maven settings
-				"maven.executable.path": "/usr/local/sdkman/candidates/maven/current/bin/mvn",
 				"maven.terminal.useJavaHome": true,
 				
 				// Quarkus settings
