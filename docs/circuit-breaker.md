@@ -1,8 +1,14 @@
 # Circuit Breaker and Fault Tolerance
 
-Startpunkt uses circuit breakers to provide graceful degradation when external APIs are unavailable. This ensures the application continues to function even when external services fail.
+Startpunkt uses circuit breakers and fail-safe patterns to provide graceful degradation when external APIs are unavailable. This ensures the application continues to function even when external services fail.
 
-## Bing Image of the Day Circuit Breaker
+## Overview
+
+The application integrates with two main external APIs:
+1. **Bing Image of the Day API** - Server-side integration with circuit breaker
+2. **GitHub Releases API** - Client-side integration with error handling and fallback
+
+## Bing Image of the Day Circuit Breaker (Server-Side)
 
 The Bing Image API integration includes a circuit breaker that protects against API failures and provides a fallback mechanism.
 
@@ -80,6 +86,76 @@ The circuit breaker behavior is tested in `BingImageServiceTest`. The tests veri
 - Resolution selection works correctly for different screen sizes
 - Fallback mechanism provides valid images when API fails
 - Service never throws exceptions (graceful degradation)
+
+## GitHub Releases API Fail-Safe (Client-Side)
+
+The GitHub Releases API is used by the frontend to fetch changelog information for the "What's New" feature. This integration includes a fail-safe mechanism implemented in `changelogService.js`.
+
+### How It Works
+
+1. **Cache First**: Checks local storage cache (1-hour duration) before making API calls
+2. **API Call**: If cache is stale, fetches latest releases from GitHub API
+3. **Error Handling**: Try-catch block captures any API failures
+4. **Fallback**: Returns hardcoded fallback changelog data if API fails
+5. **Rate Limiting**: Aware of GitHub's 60 requests/hour limit for unauthenticated requests
+
+### Implementation Details
+
+```javascript
+export async function fetchChangelog() {
+  // Try cache first
+  const cached = getCachedChangelog();
+  if (cached) {
+    return cached;
+  }
+  
+  try {
+    const response = await fetch(GITHUB_API_URL);
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+    const releases = await response.json();
+    // ... process and cache results
+    return changelog;
+  } catch (error) {
+    console.error('[Changelog] Failed to fetch from GitHub:', error);
+    return FALLBACK_CHANGELOG; // Fallback data
+  }
+}
+```
+
+### Fallback Data
+
+The fallback data includes:
+- Recent release version
+- Highlights of key features
+- List of all changes
+- Proper formatting with linkified issues and usernames
+
+### Benefits
+
+- **Always Available**: Users can see changelog even when GitHub API is down
+- **Rate Limit Protection**: Cache reduces API calls to stay under GitHub's limits
+- **No User-Facing Errors**: Failures are logged but don't interrupt user experience
+- **Offline Support**: Cached data available even without internet connection
+
+## Testing
+
+### Backend Tests
+
+The circuit breaker behavior is tested in `BingImageServiceTest`. The tests verify:
+
+- Normal operation returns valid Bing images
+- Resolution selection works correctly for different screen sizes
+- Fallback mechanism provides valid images when API fails
+- Service never throws exceptions (graceful degradation)
+
+### Frontend Tests
+
+The changelog service is tested in the frontend test suite to verify:
+- Cache mechanism works correctly
+- Fallback data is returned on API failures
+- Error handling doesn't throw exceptions
 
 ## Future Enhancements
 
