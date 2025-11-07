@@ -10,10 +10,14 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
@@ -63,6 +67,10 @@ public class KubernetesInformerService {
   private volatile boolean openshiftResourcesAvailable = false;
   private volatile boolean istioResourcesAvailable = false;
   private volatile boolean gatewayApiResourcesAvailable = false;
+
+  // Track last reload time for debouncing cache reloads (prevent reload storms)
+  private final Map<String, Instant> lastReloadTimes = new ConcurrentHashMap<>();
+  private static final long RELOAD_DEBOUNCE_MS = 500;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -251,7 +259,7 @@ public class KubernetesInformerService {
 
                     @Override
                     public void onUpdate(Application oldApp, Application newApp) {
-                      handleApplicationUpdated(newApp);
+                      handleApplicationUpdated(oldApp, newApp);
                     }
 
                     @Override
@@ -285,7 +293,7 @@ public class KubernetesInformerService {
 
                     @Override
                     public void onUpdate(Bookmark oldBookmark, Bookmark newBookmark) {
-                      handleBookmarkUpdated(newBookmark);
+                      handleBookmarkUpdated(oldBookmark, newBookmark);
                     }
 
                     @Override
@@ -596,24 +604,32 @@ public class KubernetesInformerService {
   }
 
   /** Handles Application CRD update events. */
-  private void handleApplicationUpdated(Application application) {
-    if (application == null || application.getMetadata() == null || application.getSpec() == null) {
+  private void handleApplicationUpdated(Application oldApp, Application newApp) {
+    if (newApp == null || newApp.getMetadata() == null || newApp.getSpec() == null) {
+      return;
+    }
+
+    // Skip updates that don't affect spec or relevant annotations (e.g., status changes)
+    if (!isApplicationUpdateMeaningful(oldApp, newApp)) {
+      String namespace = newApp.getMetadata().getNamespace();
+      String name = newApp.getMetadata().getName();
+      Log.debugf("Skipping Application update (no meaningful changes): %s/%s", namespace, name);
       return;
     }
 
     try {
-      String namespace = application.getMetadata().getNamespace();
-      String name = application.getMetadata().getName();
+      String namespace = newApp.getMetadata().getNamespace();
+      String name = newApp.getMetadata().getName();
 
       Log.debugf("Application updated: %s/%s", namespace, name);
 
       // Create ApplicationResponse from spec
-      ApplicationResponse appResponse = new ApplicationResponse(application.getSpec());
+      ApplicationResponse appResponse = new ApplicationResponse(newApp.getSpec());
       appResponse.setNamespace(namespace);
       appResponse.setResourceName(name);
       appResponse.setHasOwnerReferences(
-          application.getMetadata().getOwnerReferences() != null
-              && !application.getMetadata().getOwnerReferences().isEmpty());
+          newApp.getMetadata().getOwnerReferences() != null
+              && !newApp.getMetadata().getOwnerReferences().isEmpty());
 
       // Enrich with availability checking
       List<ApplicationResponse> enriched =
@@ -632,7 +648,7 @@ public class KubernetesInformerService {
       applicationCacheService.put(appResponse);
 
       // Broadcast event
-      eventBroadcaster.broadcastApplicationUpdated(application);
+      eventBroadcaster.broadcastApplicationUpdated(newApp);
     } catch (Exception e) {
       Log.errorf(e, "Error handling Application update");
     }
@@ -698,30 +714,38 @@ public class KubernetesInformerService {
   }
 
   /** Handles Bookmark CRD update events. */
-  private void handleBookmarkUpdated(Bookmark bookmark) {
-    if (bookmark == null || bookmark.getMetadata() == null || bookmark.getSpec() == null) {
+  private void handleBookmarkUpdated(Bookmark oldBookmark, Bookmark newBookmark) {
+    if (newBookmark == null || newBookmark.getMetadata() == null || newBookmark.getSpec() == null) {
+      return;
+    }
+
+    // Skip updates that don't affect spec or relevant annotations (e.g., status changes)
+    if (!isBookmarkUpdateMeaningful(oldBookmark, newBookmark)) {
+      String namespace = newBookmark.getMetadata().getNamespace();
+      String name = newBookmark.getMetadata().getName();
+      Log.debugf("Skipping Bookmark update (no meaningful changes): %s/%s", namespace, name);
       return;
     }
 
     try {
-      String namespace = bookmark.getMetadata().getNamespace();
-      String name = bookmark.getMetadata().getName();
+      String namespace = newBookmark.getMetadata().getNamespace();
+      String name = newBookmark.getMetadata().getName();
 
       Log.debugf("Bookmark updated: %s/%s", namespace, name);
 
       // Create BookmarkResponse from spec
-      BookmarkResponse bookmarkResponse = new BookmarkResponse(bookmark.getSpec());
+      BookmarkResponse bookmarkResponse = new BookmarkResponse(newBookmark.getSpec());
       bookmarkResponse.setNamespace(namespace);
       bookmarkResponse.setResourceName(name);
       bookmarkResponse.setHasOwnerReferences(
-          bookmark.getMetadata().getOwnerReferences() != null
-              && !bookmark.getMetadata().getOwnerReferences().isEmpty());
+          newBookmark.getMetadata().getOwnerReferences() != null
+              && !newBookmark.getMetadata().getOwnerReferences().isEmpty());
 
       // Update in cache
       bookmarkCacheService.put(bookmarkResponse);
 
       // Broadcast event
-      eventBroadcaster.broadcastBookmarkUpdated(bookmark);
+      eventBroadcaster.broadcastBookmarkUpdated(newBookmark);
     } catch (Exception e) {
       Log.errorf(e, "Error handling Bookmark update");
     }
@@ -752,11 +776,138 @@ public class KubernetesInformerService {
   }
 
   /**
+   * Checks if a reload should be debounced to prevent reload storms.
+   *
+   * @param eventKey the unique key for the event type
+   * @return true if the reload should be debounced, false otherwise
+   */
+  private boolean shouldDebounceReload(String eventKey) {
+    Instant lastReload = lastReloadTimes.get(eventKey);
+    if (lastReload == null) {
+      lastReloadTimes.put(eventKey, Instant.now());
+      return false;
+    }
+
+    Duration timeSinceLastReload = Duration.between(lastReload, Instant.now());
+    if (timeSinceLastReload.toMillis() < RELOAD_DEBOUNCE_MS) {
+      return true;
+    }
+
+    lastReloadTimes.put(eventKey, Instant.now());
+    return false;
+  }
+
+  /**
+   * Checks if an Application CRD update represents a meaningful change that requires cache reload.
+   * Only changes to spec or Startpunkt/Hajimari/Forecastle annotations matter.
+   *
+   * @param oldApp the old application
+   * @param newApp the new application
+   * @return true if the update is meaningful, false if it's only status/metadata
+   */
+  private boolean isApplicationUpdateMeaningful(Application oldApp, Application newApp) {
+    if (oldApp == null || newApp == null) {
+      return true;
+    }
+
+    // Check if spec changed
+    if (!java.util.Objects.equals(oldApp.getSpec(), newApp.getSpec())) {
+      return true;
+    }
+
+    // Check if relevant annotations changed
+    return hasRelevantAnnotationChanges(
+        oldApp.getMetadata().getAnnotations(), newApp.getMetadata().getAnnotations());
+  }
+
+  /**
+   * Checks if a Bookmark CRD update represents a meaningful change that requires cache reload. Only
+   * changes to spec or Startpunkt/Hajimari annotations matter.
+   *
+   * @param oldBookmark the old bookmark
+   * @param newBookmark the new bookmark
+   * @return true if the update is meaningful, false if it's only status/metadata
+   */
+  private boolean isBookmarkUpdateMeaningful(Bookmark oldBookmark, Bookmark newBookmark) {
+    if (oldBookmark == null || newBookmark == null) {
+      return true;
+    }
+
+    // Check if spec changed
+    if (!java.util.Objects.equals(oldBookmark.getSpec(), newBookmark.getSpec())) {
+      return true;
+    }
+
+    // Check if relevant annotations changed
+    return hasRelevantAnnotationChanges(
+        oldBookmark.getMetadata().getAnnotations(), newBookmark.getMetadata().getAnnotations());
+  }
+
+  /**
+   * Checks if relevant annotations (startpunkt.ullberg.us/*, hajimari.io/*,
+   * forecastle.stakater.com/*) have changed.
+   *
+   * @param oldAnnotations the old annotations map
+   * @param newAnnotations the new annotations map
+   * @return true if relevant annotations changed
+   */
+  private boolean hasRelevantAnnotationChanges(
+      Map<String, String> oldAnnotations, Map<String, String> newAnnotations) {
+    if (oldAnnotations == null) {
+      oldAnnotations = Map.of();
+    }
+    if (newAnnotations == null) {
+      newAnnotations = Map.of();
+    }
+
+    // Prefixes we care about
+    String[] relevantPrefixes = {
+      "startpunkt.ullberg.us/", "hajimari.io/", "forecastle.stakater.com/"
+    };
+
+    // Collect all relevant annotation keys from both old and new
+    var relevantKeys = new java.util.HashSet<String>();
+    for (String key : oldAnnotations.keySet()) {
+      for (String prefix : relevantPrefixes) {
+        if (key.startsWith(prefix)) {
+          relevantKeys.add(key);
+          break;
+        }
+      }
+    }
+    for (String key : newAnnotations.keySet()) {
+      for (String prefix : relevantPrefixes) {
+        if (key.startsWith(prefix)) {
+          relevantKeys.add(key);
+          break;
+        }
+      }
+    }
+
+    // Check if any relevant annotation changed
+    for (String key : relevantKeys) {
+      String oldValue = oldAnnotations.get(key);
+      String newValue = newAnnotations.get(key);
+      if (!java.util.Objects.equals(oldValue, newValue)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Handles generic application resource events (Ingress, Route, VirtualService, HTTPRoute). For
    * generic resources, we reload all applications since we need to aggregate multiple resource
    * types.
    */
   private void handleGenericApplicationEvent(String resourceType) {
+    String eventKey = "GENERIC_APP_" + resourceType;
+    if (shouldDebounceReload(eventKey)) {
+      Log.debugf("Debouncing generic application event: %s", resourceType);
+      return;
+    }
+
     Log.debugf("Generic application resource changed: %s, reloading applications", resourceType);
     reloadApplicationCache();
   }
@@ -766,6 +917,12 @@ public class KubernetesInformerService {
    * bookmarks.
    */
   private void handleGenericBookmarkEvent(String resourceType) {
+    String eventKey = "GENERIC_BOOKMARK_" + resourceType;
+    if (shouldDebounceReload(eventKey)) {
+      Log.debugf("Debouncing generic bookmark event: %s", resourceType);
+      return;
+    }
+
     Log.debugf("Generic bookmark resource changed: %s, reloading bookmarks", resourceType);
     reloadBookmarkCache();
   }
@@ -820,8 +977,9 @@ public class KubernetesInformerService {
       applicationCacheService.clear();
       applicationCacheService.putAll(apps);
 
-      // Broadcast status change
-      eventBroadcaster.broadcastStatusChanged(null);
+      // Note: We don't broadcast STATUS_CHANGED here to avoid feedback loops.
+      // Individual add/update/delete handlers already broadcast specific events.
+      // The AvailabilityCheckService will broadcast STATUS_CHANGED when availability changes.
 
       Log.debugf("Reloaded %d applications into cache", apps.size());
     } catch (Exception e) {
@@ -848,8 +1006,8 @@ public class KubernetesInformerService {
       bookmarkCacheService.clear();
       bookmarkCacheService.putAll(bookmarks);
 
-      // Broadcast status change
-      eventBroadcaster.broadcastStatusChanged(null);
+      // Note: We don't broadcast STATUS_CHANGED here to avoid feedback loops.
+      // Individual add/update/delete handlers already broadcast specific events.
 
       Log.debugf("Reloaded %d bookmarks into cache", bookmarks.size());
     } catch (Exception e) {

@@ -3,7 +3,6 @@ package us.ullberg.startpunkt.graphql;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.io.IOException;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -35,12 +34,11 @@ public class BingImageGraphQLResource {
    * @param width client screen width in pixels
    * @param height client screen height in pixels
    * @return BingImage with optimized URL and metadata
-   * @throws IOException if the API call fails
    */
   @Query("bingImageOfDay")
   @Description("Retrieve Bing Image of the Day optimized for client screen resolution")
   @Timed(value = "graphql.query.bingImageOfDay")
-  public BingImage getBingImageOfDay(int width, int height) throws IOException {
+  public BingImage getBingImageOfDay(int width, int height) {
     Log.debugf("GraphQL query: bingImageOfDay with resolution %dx%d", width, height);
 
     if (width <= 0 || height <= 0) {

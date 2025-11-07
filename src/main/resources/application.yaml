@@ -57,6 +57,15 @@ startpunkt:
       enabled: true  # If true, enable the reading of GatewayAPI HTTPRoute resources (will auto-skip if Gateway API not installed)
       onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
+  # Bing Image of the Day configuration
+  bingimage:
+    fallback:
+      # Default fallback image when Bing API is unavailable
+      # This is a Bing image URL base that will be used with resolution suffix
+      urlbase: "/th?id=OHR.MexicoJelly_EN-US6803524310"
+      copyright: "Fallback Background Image"
+      title: "Default Background"
+
   # Web ui configuration
   web:
     title: "Startpunkt"  # Title of the web UI
