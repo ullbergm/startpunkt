@@ -57,6 +57,13 @@ public class KubernetesInformerService {
   // Flag to suppress cache reload during initial sync
   private volatile boolean initialSyncComplete = false;
 
+  // Flags to track which resource types are available in the cluster
+  private volatile boolean hajimariResourcesAvailable = false;
+  private volatile boolean ingressResourcesAvailable = false;
+  private volatile boolean openshiftResourcesAvailable = false;
+  private volatile boolean istioResourcesAvailable = false;
+  private volatile boolean gatewayApiResourcesAvailable = false;
+
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
 
@@ -116,6 +123,38 @@ public class KubernetesInformerService {
   }
 
   /**
+   * Checks if a resource type exists in the cluster by verifying the CRD or API resource.
+   *
+   * @param group the API group (e.g., "networking.k8s.io")
+   * @param version the API version (e.g., "v1")
+   * @param plural the plural resource name (e.g., "ingresses")
+   * @param resourceTypeName the friendly name for logging (e.g., "Ingress")
+   * @return true if the resource type exists, false otherwise
+   */
+  private boolean resourceTypeExists(
+      String group, String version, String plural, String resourceTypeName) {
+    try {
+      ResourceDefinitionContext ctx =
+          new ResourceDefinitionContext.Builder()
+              .withGroup(group)
+              .withVersion(version)
+              .withPlural(plural)
+              .withNamespaced(true)
+              .build();
+
+      // Try to list resources to verify the type exists
+      kubernetesClient.genericKubernetesResources(ctx).inAnyNamespace().list();
+      return true;
+    } catch (Exception e) {
+      Log.infof(
+          "%s resources (%s/%s/%s) not available in cluster - skipping informer",
+          resourceTypeName, group, version, plural);
+      Log.debugf(e, "Details for %s resource check", resourceTypeName);
+      return false;
+    }
+  }
+
+  /**
    * Initializes informers and starts watching Kubernetes resources on application startup.
    * Informers are started asynchronously to avoid blocking application startup.
    */
@@ -136,23 +175,37 @@ public class KubernetesInformerService {
                 startApplicationInformer();
                 startBookmarkInformer();
 
-                if (hajimariEnabled) {
+                if (hajimariEnabled
+                    && resourceTypeExists(
+                        "hajimari.io", "v1alpha1", "bookmarks", "Hajimari Bookmark")) {
+                  hajimariResourcesAvailable = true;
                   startHajimariBookmarkInformer();
                 }
 
-                if (ingressEnabled) {
+                if (ingressEnabled
+                    && resourceTypeExists("networking.k8s.io", "v1", "ingresses", "Ingress")) {
+                  ingressResourcesAvailable = true;
                   startIngressInformer();
                 }
 
-                if (openshiftEnabled) {
+                if (openshiftEnabled
+                    && resourceTypeExists(
+                        "route.openshift.io", "v1", "routes", "OpenShift Route")) {
+                  openshiftResourcesAvailable = true;
                   startRouteInformer();
                 }
 
-                if (istioVirtualServiceEnabled) {
+                if (istioVirtualServiceEnabled
+                    && resourceTypeExists(
+                        "networking.istio.io", "v1", "virtualservices", "Istio VirtualService")) {
+                  istioResourcesAvailable = true;
                   startVirtualServiceInformer();
                 }
 
-                if (gatewayApiEnabled) {
+                if (gatewayApiEnabled
+                    && resourceTypeExists(
+                        "gateway.networking.k8s.io", "v1", "httproutes", "Gateway API HTTPRoute")) {
+                  gatewayApiResourcesAvailable = true;
                   startHttpRouteInformer();
                 }
 
@@ -445,8 +498,7 @@ public class KubernetesInformerService {
       informers.add(informer);
       Log.info("Started VirtualService informer");
     } catch (Exception e) {
-      Log.warnf("VirtualService CRD not found (Istio not installed?) - skipping informer");
-      Log.debugf(e, "VirtualService informer exception details");
+      Log.error("Failed to start VirtualService informer", e);
     }
   }
 
@@ -726,21 +778,21 @@ public class KubernetesInformerService {
       var applicationWrappers = new ArrayList<BaseKubernetesObject>();
       applicationWrappers.add(new StartpunktApplicationWrapper());
 
-      if (hajimariEnabled) {
+      if (hajimariEnabled && hajimariResourcesAvailable) {
         applicationWrappers.add(new HajimariApplicationWrapper());
       }
-      if (openshiftEnabled) {
+      if (openshiftEnabled && openshiftResourcesAvailable) {
         applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
       }
-      if (ingressEnabled) {
+      if (ingressEnabled && ingressResourcesAvailable) {
         applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
       }
-      if (istioVirtualServiceEnabled) {
+      if (istioVirtualServiceEnabled && istioResourcesAvailable) {
         applicationWrappers.add(
             new IstioVirtualServiceApplicationWrapper(
                 istioVirtualServiceOnlyAnnotated, defaultProtocol));
       }
-      if (gatewayApiEnabled) {
+      if (gatewayApiEnabled && gatewayApiResourcesAvailable) {
         applicationWrappers.add(
             new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
       }
@@ -787,8 +839,8 @@ public class KubernetesInformerService {
       // Load Startpunkt bookmarks
       bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
-      // Load Hajimari bookmarks if enabled
-      if (hajimariEnabled) {
+      // Load Hajimari bookmarks if enabled and available
+      if (hajimariEnabled && hajimariResourcesAvailable) {
         bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
       }
 

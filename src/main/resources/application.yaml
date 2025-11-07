@@ -1,5 +1,15 @@
 startpunkt:
-  # Default protocol for links if not specified in the resource
+  # Default protocol for  # Istio Virtual Service integration, read Istio VirtualService resources
+  istio:
+    virtualservice:
+      enabled: true  # If true, enable the reading of Istio VirtualService resources (will auto-skip if Istio not installed)
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
+
+  # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
+  gatewayapi:
+    httproute:
+      enabled: true  # If true, enable the reading of GatewayAPI HTTPRoute resources (will auto-skip if Gateway API not installed)
+      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'ot specified in the resource
   defaultProtocol: "http"
 
   # Default language for the web UI
@@ -38,13 +48,13 @@ startpunkt:
   # Istio Virtual Service integration, read Istio VirtualService resources
   istio:
     virtualservice:
-      enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
+      enabled: true  # If true, enable the reading of Istio VirtualService resources (will auto-skip if Istio not installed)
       onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
   # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
   gatewayapi:
     httproute:
-      enabled: true  # If true, enable the reading of Hajimari Applications and Bookmarks
+      enabled: true  # If true, enable the reading of GatewayAPI HTTPRoute resources (will auto-skip if Gateway API not installed)
       onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
 
   # Web ui configuration
