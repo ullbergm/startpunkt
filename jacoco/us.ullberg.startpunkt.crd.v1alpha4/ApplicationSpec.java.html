@@ -423,16 +423,16 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
   @Override
   public int compareTo(ApplicationSpec other) {
 <span class="fc" id="L425">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="pc bpc" id="L426" title="1 of 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="fc bfc" id="L426" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
 <span class="fc" id="L427">      return groupCompare;</span>
     }
 
-<span class="nc" id="L430">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="nc bnc" id="L431" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="fc" id="L430">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="pc bpc" id="L431" title="1 of 2 branches missed.">    if (locationCompare != 0) {</span>
 <span class="nc" id="L432">      return locationCompare;</span>
     }
 
-<span class="nc" id="L435">    return this.getName().compareTo(other.getName());</span>
+<span class="fc" id="L435">    return this.getName().compareTo(other.getName());</span>
   }
 
   /**
@@ -443,20 +443,20 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public boolean equals(Object o) {
-<span class="nc bnc" id="L446" title="All 2 branches missed.">    if (this == o) {</span>
+<span class="pc bpc" id="L446" title="1 of 2 branches missed.">    if (this == o) {</span>
 <span class="nc" id="L447">      return true;</span>
     }
-<span class="nc bnc" id="L449" title="All 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="pc bpc" id="L449" title="2 of 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
 <span class="nc" id="L450">      return false;</span>
     }
 
-<span class="nc" id="L453">    ApplicationSpec that = (ApplicationSpec) o;</span>
+<span class="fc" id="L453">    ApplicationSpec that = (ApplicationSpec) o;</span>
 
-<span class="nc bnc" id="L455" title="All 2 branches missed.">    if (location != that.location) {</span>
+<span class="pc bpc" id="L455" title="1 of 2 branches missed.">    if (location != that.location) {</span>
 <span class="nc" id="L456">      return false;</span>
     }
-<span class="nc bnc" id="L458" title="All 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
-<span class="nc" id="L459">      return false;</span>
+<span class="pc bpc" id="L458" title="4 of 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
+<span class="fc" id="L459">      return false;</span>
     }
 <span class="nc bnc" id="L461" title="All 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
 <span class="nc" id="L462">      return false;</span>

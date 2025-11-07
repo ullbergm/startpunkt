@@ -3,7 +3,6 @@
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.io.IOException;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
@@ -25,9 +24,9 @@ public class BingImageGraphQLResource {
    *
    * @param bingImageService the Bing image service
    */
-<span class="nc" id="L28">  public BingImageGraphQLResource(BingImageService bingImageService) {</span>
-<span class="nc" id="L29">    this.bingImageService = bingImageService;</span>
-<span class="nc" id="L30">  }</span>
+<span class="nc" id="L27">  public BingImageGraphQLResource(BingImageService bingImageService) {</span>
+<span class="nc" id="L28">    this.bingImageService = bingImageService;</span>
+<span class="nc" id="L29">  }</span>
 
   /**
    * Retrieve Bing Image of the Day optimized for the given screen resolution.
@@ -35,20 +34,19 @@ public class BingImageGraphQLResource {
    * @param width client screen width in pixels
    * @param height client screen height in pixels
    * @return BingImage with optimized URL and metadata
-   * @throws IOException if the API call fails
    */
   @Query(&quot;bingImageOfDay&quot;)
   @Description(&quot;Retrieve Bing Image of the Day optimized for client screen resolution&quot;)
   @Timed(value = &quot;graphql.query.bingImageOfDay&quot;)
-  public BingImage getBingImageOfDay(int width, int height) throws IOException {
-<span class="nc" id="L44">    Log.debugf(&quot;GraphQL query: bingImageOfDay with resolution %dx%d&quot;, width, height);</span>
+  public BingImage getBingImageOfDay(int width, int height) {
+<span class="nc" id="L42">    Log.debugf(&quot;GraphQL query: bingImageOfDay with resolution %dx%d&quot;, width, height);</span>
 
-<span class="nc bnc" id="L46" title="All 4 branches missed.">    if (width &lt;= 0 || height &lt;= 0) {</span>
-<span class="nc" id="L47">      throw new IllegalArgumentException(</span>
+<span class="nc bnc" id="L44" title="All 4 branches missed.">    if (width &lt;= 0 || height &lt;= 0) {</span>
+<span class="nc" id="L45">      throw new IllegalArgumentException(</span>
           &quot;Width and height must be positive integers, got: &quot; + width + &quot;x&quot; + height);
     }
 
-<span class="nc" id="L51">    return bingImageService.getBingImageOfDay(width, height);</span>
+<span class="nc" id="L49">    return bingImageService.getBingImageOfDay(width, height);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

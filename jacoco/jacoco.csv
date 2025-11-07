@@ -4,7 +4,7 @@ startpunkt,us.ullberg.startpunkt.graphql.input,UpdateBookmarkInput,3,0,0,0,1,0,1
 startpunkt,us.ullberg.startpunkt.graphql.input,CreateBookmarkInput,3,0,0,0,1,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.graphql.input,CreateApplicationInput,3,0,0,0,1,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.graphql.input,UpdateApplicationInput,3,0,0,0,1,0,1,0,1,0
-startpunkt,us.ullberg.startpunkt.messaging,EventBroadcaster,87,409,28,38,45,127,29,17,1,12
+startpunkt,us.ullberg.startpunkt.messaging,EventBroadcaster,137,359,32,34,62,110,31,15,2,11
 startpunkt,us.ullberg.startpunkt.objects,BookmarkResponse,3,52,0,0,2,18,1,7,1,7
 startpunkt,us.ullberg.startpunkt.objects,BookmarkGroup,155,0,34,0,30,0,26,0,9,0
 startpunkt,us.ullberg.startpunkt.objects,ApplicationResponse,3,79,0,0,2,26,1,9,1,9
@@ -17,11 +17,11 @@ startpunkt,us.ullberg.startpunkt.objects.kubernetes,HajimariApplicationWrapper,0
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IngressApplicationWrapper,2,37,1,3,1,10,1,4,0,3
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,GatewayApiHttpRouteWrapper,8,88,4,6,1,20,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,BaseKubernetesObject,86,399,33,29,20,110,27,38,2,32
-startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,77,448,13,33,13,59,14,25,1,15
+startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,72,453,13,33,13,59,13,26,0,16
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,RouteApplicationWrapper,9,74,4,6,0,13,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IstioVirtualServiceApplicationWrapper,8,79,4,6,1,16,4,5,0,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,StartpunktApplicationWrapper,130,394,43,31,29,87,32,23,0,18
-startpunkt,us.ullberg.startpunkt.objects.bingimage,BingImage,46,0,0,0,19,0,10,0,10,0
+startpunkt,us.ullberg.startpunkt.objects.bingimage,BingImage,19,27,0,0,9,10,5,5,5,5
 startpunkt,us.ullberg.startpunkt.graphql,ConfigGraphQLResource.WebConfig,0,15,0,0,0,6,0,1,0,1
 startpunkt,us.ullberg.startpunkt.graphql,ThemeGraphQLResource,0,39,0,0,0,5,0,2,0,2
 startpunkt,us.ullberg.startpunkt.graphql,ApplicationGraphQLResource,782,0,92,0,192,0,70,0,24,0
@@ -34,8 +34,8 @@ startpunkt,us.ullberg.startpunkt.graphql,BingImageGraphQLResource,27,0,4,0,7,0,4
 startpunkt,us.ullberg.startpunkt.graphql,SubscriptionEventEmitter,22,47,4,4,10,17,6,3,2,3
 startpunkt,us.ullberg.startpunkt.graphql,BookmarkGraphQLResource,274,54,18,0,59,17,20,3,11,3
 startpunkt,us.ullberg.startpunkt.graphql,IconifyGraphQLResource.IconSearchResult,15,0,0,0,6,0,3,0,3,0
-startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},0,21,0,0,0,7,0,4,0,4
-startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},0,21,0,0,0,7,0,4,0,4
+startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},0,22,0,0,0,7,0,4,0,4
+startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},0,22,0,0,0,7,0,4,0,4
 startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},27,6,6,0,9,1,6,1,3,1
 startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},27,6,6,0,9,1,6,1,3,1
 startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},27,6,6,0,9,1,6,1,3,1
@@ -43,15 +43,15 @@ startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceE
 startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},27,6,6,0,9,1,6,1,3,1
-startpunkt,us.ullberg.startpunkt.service,BookmarkService,78,304,21,19,19,84,17,12,1,8
+startpunkt,us.ullberg.startpunkt.service,BookmarkService,72,310,21,19,16,87,17,12,1,8
 startpunkt,us.ullberg.startpunkt.service,ApplicationCacheService,84,116,13,11,19,29,13,10,4,7
-startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,91,1042,50,76,39,300,52,34,2,21
+startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,326,1073,86,84,95,307,76,36,4,23
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,231,219,35,31,55,65,25,22,2,12
 startpunkt,us.ullberg.startpunkt.service,BookmarkCacheService,77,123,13,11,17,30,12,11,3,8
 startpunkt,us.ullberg.startpunkt.service,BookmarkManagementService,4,187,7,17,2,44,7,12,0,7
 startpunkt,us.ullberg.startpunkt.service,ApplicationService,4,187,7,17,2,45,7,12,0,7
-startpunkt,us.ullberg.startpunkt.service,BingImageService,374,0,92,0,92,0,50,0,4,0
-startpunkt,us.ullberg.startpunkt.service,BingImageService.BingImageData,15,0,0,0,1,0,1,0,1,0
+startpunkt,us.ullberg.startpunkt.service,BingImageService,196,233,58,34,55,48,40,12,2,4
+startpunkt,us.ullberg.startpunkt.service,BingImageService.BingImageData,0,15,0,0,0,1,0,1,0,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkList,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,BookmarkSpec,316,0,58,0,67,0,49,0,20,0
@@ -61,13 +61,13 @@ startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationStatus,3,0,0,0,2,0,1,0,
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,ApplicationList,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha3,Application,110,0,4,0,25,0,9,0,7,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,UrlFrom,284,44,60,0,51,18,37,13,7,13
-startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkSpec,240,76,58,0,36,31,33,16,4,16
+startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkSpec,210,106,52,6,30,37,32,17,3,17
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkList,0,3,0,0,0,2,0,1,0,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationList,0,3,0,0,0,2,0,1,0,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Application,107,3,4,0,23,2,8,1,6,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Bookmark,68,3,4,0,17,1,6,1,4,1
-startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,441,133,97,1,73,53,54,27,5,27
+startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,397,177,89,9,64,62,52,29,4,28
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,BookmarkConflictException,9,0,0,0,4,0,2,0,2,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,ApplicationConflictException,9,0,0,0,4,0,2,0,2,0

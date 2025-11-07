@@ -5,12 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
+import io.smallrye.faulttolerance.api.CircuitBreakerName;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import us.ullberg.startpunkt.objects.bingimage.BingImage;
 
 /**
@@ -27,15 +34,26 @@ public class BingImageService {
   private final ObjectMapper objectMapper;
   private final HttpClient httpClient;
 
+  @ConfigProperty(
+      name = &quot;startpunkt.bingimage.fallback.urlbase&quot;,
+      defaultValue = &quot;/th?id=OHR.MexicoJelly_EN-US6803524310&quot;)
+  String fallbackUrlBase;
+
+  @ConfigProperty(name = &quot;startpunkt.bingimage.fallback.copyright&quot;, defaultValue = &quot;Fallback Image&quot;)
+  String fallbackCopyright;
+
+  @ConfigProperty(name = &quot;startpunkt.bingimage.fallback.title&quot;, defaultValue = &quot;Default Background&quot;)
+  String fallbackTitle;
+
   /**
    * Constructor initializes HTTP client and injects ObjectMapper.
    *
    * @param objectMapper Jackson ObjectMapper for JSON parsing
    */
-<span class="nc" id="L35">  public BingImageService(ObjectMapper objectMapper) {</span>
-<span class="nc" id="L36">    this.objectMapper = objectMapper;</span>
-<span class="nc" id="L37">    this.httpClient = HttpClient.newHttpClient();</span>
-<span class="nc" id="L38">  }</span>
+<span class="fc" id="L53">  public BingImageService(ObjectMapper objectMapper) {</span>
+<span class="fc" id="L54">    this.objectMapper = objectMapper;</span>
+<span class="fc" id="L55">    this.httpClient = HttpClient.newHttpClient();</span>
+<span class="fc" id="L56">  }</span>
 
   /**
    * Fetches Bing Image of the Day with optimal resolution for the given screen dimensions. The base
@@ -44,82 +62,123 @@ public class BingImageService {
    * @param width client screen width in pixels
    * @param height client screen height in pixels
    * @return BingImage with optimized URL and metadata
-   * @throws IOException if the API call fails or response cannot be parsed
    */
   @Timed(
       value = &quot;startpunkt.bingimage.fetch&quot;,
       description = &quot;Fetch Bing Image of the Day with resolution optimization&quot;)
-  public BingImage getBingImageOfDay(int width, int height) throws IOException {
-<span class="nc" id="L53">    Log.debugf(&quot;Getting Bing Image of the Day for resolution: %dx%d&quot;, width, height);</span>
+  public BingImage getBingImageOfDay(int width, int height) {
+<span class="fc" id="L70">    Log.debugf(&quot;Getting Bing Image of the Day for resolution: %dx%d&quot;, width, height);</span>
 
-    // Fetch cached base data from Bing API (cached for 1 hour)
-<span class="nc" id="L56">    BingImageData baseData = fetchBingImageData();</span>
+    try {
+      // Fetch cached base data from Bing API (cached for 1 hour)
+<span class="fc" id="L74">      BingImageData baseData = fetchBingImageData();</span>
 
-    // Determine best resolution based on client screen dimensions
-<span class="nc" id="L59">    String resolution = getBestResolutionForAspectRatio(width, height);</span>
+      // Determine best resolution based on client screen dimensions
+<span class="fc" id="L77">      String resolution = getBestResolutionForAspectRatio(width, height);</span>
 
-    // Build complete image URL with selected resolution
-<span class="nc" id="L62">    String imageUrl = BING_IMAGE_BASE_URL + baseData.urlbase() + &quot;_&quot; + resolution + &quot;.jpg&quot;;</span>
+      // Build complete image URL with selected resolution
+<span class="fc" id="L80">      String imageUrl = BING_IMAGE_BASE_URL + baseData.urlbase() + &quot;_&quot; + resolution + &quot;.jpg&quot;;</span>
 
-<span class="nc" id="L64">    Log.debugf(</span>
-        &quot;Bing image URL constructed: %s for date: %s with resolution: %s&quot;,
-<span class="nc" id="L66">        imageUrl, baseData.date(), resolution);</span>
+<span class="fc" id="L82">      Log.debugf(</span>
+          &quot;Bing image URL constructed: %s for date: %s with resolution: %s&quot;,
+<span class="fc" id="L84">          imageUrl, baseData.date(), resolution);</span>
 
-<span class="nc" id="L68">    return new BingImage(imageUrl, baseData.copyright(), baseData.title(), baseData.date());</span>
+<span class="fc" id="L86">      return new BingImage(imageUrl, baseData.copyright(), baseData.title(), baseData.date());</span>
+<span class="nc" id="L87">    } catch (Exception e) {</span>
+      // If fetching fails, return fallback image
+<span class="nc" id="L89">      Log.warnf(e, &quot;Failed to fetch Bing Image of the Day, using fallback image&quot;);</span>
+<span class="nc" id="L90">      return getFallbackImage(width, height);</span>
+    }
   }
 
   /**
    * Fetches the base image data from Bing API. This method is cached for 1 hour to reduce API
-   * calls.
+   * calls. Includes circuit breaker to handle API failures gracefully.
    *
    * @return BingImageData containing urlbase and metadata
    * @throws IOException if the API call fails
    */
   @CacheResult(cacheName = &quot;bing-image-base-cache&quot;)
+  @Timeout(value = 10000) // 10 second timeout
+  @CircuitBreaker(
+      requestVolumeThreshold = 4,
+      failureRatio = 0.5,
+      delay = 60000,
+      successThreshold = 2)
+  @CircuitBreakerName(&quot;bing-api&quot;)
+  @Fallback(fallbackMethod = &quot;fetchBingImageDataFallback&quot;)
   BingImageData fetchBingImageData() throws IOException {
-<span class="nc" id="L80">    Log.debug(&quot;Fetching base image data from Bing API (cache miss)&quot;);</span>
+<span class="fc" id="L111">    Log.debug(&quot;Fetching base image data from Bing API (cache miss)&quot;);</span>
 
     try {
-<span class="nc" id="L83">      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BING_API_URL)).GET().build();</span>
+<span class="fc" id="L114">      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(BING_API_URL)).GET().build();</span>
 
-<span class="nc" id="L85">      HttpResponse&lt;String&gt; response =</span>
-<span class="nc" id="L86">          httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="fc" id="L116">      HttpResponse&lt;String&gt; response =</span>
+<span class="fc" id="L117">          httpClient.send(request, HttpResponse.BodyHandlers.ofString());</span>
 
-<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (response.statusCode() != 200) {</span>
-<span class="nc" id="L89">        throw new IOException(</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">      if (response.statusCode() != 200) {</span>
+<span class="nc" id="L120">        throw new IOException(</span>
             &quot;Bing API returned status code: &quot;
-<span class="nc" id="L91">                + response.statusCode()</span>
+<span class="nc" id="L122">                + response.statusCode()</span>
                 + &quot;, body: &quot;
-<span class="nc" id="L93">                + response.body());</span>
+<span class="nc" id="L124">                + response.body());</span>
       }
 
       // Parse JSON response
-<span class="nc" id="L97">      JsonNode root = objectMapper.readTree(response.body());</span>
-<span class="nc" id="L98">      JsonNode images = root.path(&quot;images&quot;);</span>
+<span class="fc" id="L128">      JsonNode root = objectMapper.readTree(response.body());</span>
+<span class="fc" id="L129">      JsonNode images = root.path(&quot;images&quot;);</span>
 
-<span class="nc bnc" id="L100" title="All 4 branches missed.">      if (!images.isArray() || images.isEmpty()) {</span>
-<span class="nc" id="L101">        throw new IOException(&quot;No images found in Bing API response&quot;);</span>
+<span class="pc bpc" id="L131" title="2 of 4 branches missed.">      if (!images.isArray() || images.isEmpty()) {</span>
+<span class="nc" id="L132">        throw new IOException(&quot;No images found in Bing API response&quot;);</span>
       }
 
-<span class="nc" id="L104">      JsonNode image = images.get(0);</span>
-<span class="nc" id="L105">      String urlbase = image.path(&quot;urlbase&quot;).asText();</span>
-<span class="nc" id="L106">      String copyright = image.path(&quot;copyright&quot;).asText();</span>
-<span class="nc" id="L107">      String title = image.path(&quot;title&quot;).asText();</span>
-<span class="nc" id="L108">      String startdate = image.path(&quot;startdate&quot;).asText();</span>
+<span class="fc" id="L135">      JsonNode image = images.get(0);</span>
+<span class="fc" id="L136">      String urlbase = image.path(&quot;urlbase&quot;).asText();</span>
+<span class="fc" id="L137">      String copyright = image.path(&quot;copyright&quot;).asText();</span>
+<span class="fc" id="L138">      String title = image.path(&quot;title&quot;).asText();</span>
+<span class="fc" id="L139">      String startdate = image.path(&quot;startdate&quot;).asText();</span>
 
-<span class="nc bnc" id="L110" title="All 2 branches missed.">      if (urlbase.isEmpty()) {</span>
-<span class="nc" id="L111">        throw new IOException(&quot;Urlbase is empty in Bing API response&quot;);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">      if (urlbase.isEmpty()) {</span>
+<span class="nc" id="L142">        throw new IOException(&quot;Urlbase is empty in Bing API response&quot;);</span>
       }
 
-<span class="nc" id="L114">      return new BingImageData(urlbase, copyright, title, startdate);</span>
+<span class="fc" id="L145">      return new BingImageData(urlbase, copyright, title, startdate);</span>
 
-<span class="nc" id="L116">    } catch (InterruptedException e) {</span>
-<span class="nc" id="L117">      Thread.currentThread().interrupt();</span>
-<span class="nc" id="L118">      throw new IOException(&quot;Request was interrupted&quot;, e);</span>
-<span class="nc" id="L119">    } catch (Exception e) {</span>
-<span class="nc" id="L120">      Log.errorf(e, &quot;Error fetching Bing Image of the Day base data&quot;);</span>
-<span class="nc" id="L121">      throw new IOException(&quot;Failed to fetch Bing Image of the Day&quot;, e);</span>
+<span class="nc" id="L147">    } catch (InterruptedException e) {</span>
+<span class="nc" id="L148">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L149">      throw new IOException(&quot;Request was interrupted&quot;, e);</span>
+<span class="nc" id="L150">    } catch (Exception e) {</span>
+<span class="nc" id="L151">      Log.errorf(e, &quot;Error fetching Bing Image of the Day base data&quot;);</span>
+<span class="nc" id="L152">      throw new IOException(&quot;Failed to fetch Bing Image of the Day&quot;, e);</span>
     }
+  }
+
+  /**
+   * Fallback method for fetchBingImageData when the circuit breaker is open or the API call fails.
+   *
+   * @return BingImageData with fallback values
+   */
+  BingImageData fetchBingImageDataFallback() {
+<span class="nc" id="L162">    Log.warn(&quot;Using fallback data for Bing Image (circuit breaker open or API unavailable)&quot;);</span>
+<span class="nc" id="L163">    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);</span>
+<span class="nc" id="L164">    return new BingImageData(fallbackUrlBase, fallbackCopyright, fallbackTitle, today);</span>
+  }
+
+  /**
+   * Provides a fallback image when Bing API is unavailable.
+   *
+   * @param width client screen width in pixels
+   * @param height client screen height in pixels
+   * @return BingImage with fallback image URL and metadata
+   */
+  private BingImage getFallbackImage(int width, int height) {
+<span class="nc" id="L175">    String resolution = getBestResolutionForAspectRatio(width, height);</span>
+<span class="nc" id="L176">    String imageUrl = BING_IMAGE_BASE_URL + fallbackUrlBase + &quot;_&quot; + resolution + &quot;.jpg&quot;;</span>
+<span class="nc" id="L177">    String today = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);</span>
+
+<span class="nc" id="L179">    Log.debugf(&quot;Using fallback image URL: %s&quot;, imageUrl);</span>
+
+<span class="nc" id="L181">    return new BingImage(imageUrl, fallbackCopyright, fallbackTitle, today);</span>
   }
 
   /**
@@ -131,99 +190,99 @@ public class BingImageService {
    * @return resolution string (e.g., &quot;1920x1080&quot;, &quot;UHD&quot;, &quot;768x1280&quot;)
    */
   private String getBestResolutionForAspectRatio(int width, int height) {
-<span class="nc" id="L134">    double aspectRatio = (double) width / height;</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    boolean isPortrait = height &gt; width;</span>
+<span class="fc" id="L193">    double aspectRatio = (double) width / height;</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">    boolean isPortrait = height &gt; width;</span>
 
-<span class="nc" id="L137">    Log.debugf(</span>
+<span class="fc" id="L196">    Log.debugf(</span>
         &quot;Calculating best resolution for %dx%d (aspect ratio: %.2f, portrait: %b)&quot;,
-<span class="nc" id="L139">        width, height, aspectRatio, isPortrait);</span>
+<span class="fc" id="L198">        width, height, aspectRatio, isPortrait);</span>
 
     // Ultra high resolution
-<span class="nc bnc" id="L142" title="All 4 branches missed.">    if (width &gt;= 3840 || height &gt;= 2160) {</span>
-<span class="nc" id="L143">      return &quot;UHD&quot;;</span>
+<span class="pc bpc" id="L201" title="1 of 4 branches missed.">    if (width &gt;= 3840 || height &gt;= 2160) {</span>
+<span class="fc" id="L202">      return &quot;UHD&quot;;</span>
     }
 
     // Portrait mode resolutions
-<span class="nc bnc" id="L147" title="All 2 branches missed.">    if (isPortrait) {</span>
-<span class="nc bnc" id="L148" title="All 4 branches missed.">      if (width &gt;= 768 &amp;&amp; height &gt;= 1280) {</span>
-<span class="nc" id="L149">        return &quot;768x1280&quot;; // 0.6 aspect ratio</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">    if (isPortrait) {</span>
+<span class="pc bpc" id="L207" title="2 of 4 branches missed.">      if (width &gt;= 768 &amp;&amp; height &gt;= 1280) {</span>
+<span class="fc" id="L208">        return &quot;768x1280&quot;; // 0.6 aspect ratio</span>
       }
-<span class="nc bnc" id="L151" title="All 4 branches missed.">      if (width &gt;= 720 &amp;&amp; height &gt;= 1280) {</span>
-<span class="nc" id="L152">        return &quot;720x1280&quot;; // 0.5625 aspect ratio</span>
+<span class="nc bnc" id="L210" title="All 4 branches missed.">      if (width &gt;= 720 &amp;&amp; height &gt;= 1280) {</span>
+<span class="nc" id="L211">        return &quot;720x1280&quot;; // 0.5625 aspect ratio</span>
       }
-<span class="nc bnc" id="L154" title="All 4 branches missed.">      if (width &gt;= 480 &amp;&amp; height &gt;= 800) {</span>
-<span class="nc" id="L155">        return &quot;480x800&quot;; // 0.6 aspect ratio</span>
+<span class="nc bnc" id="L213" title="All 4 branches missed.">      if (width &gt;= 480 &amp;&amp; height &gt;= 800) {</span>
+<span class="nc" id="L214">        return &quot;480x800&quot;; // 0.6 aspect ratio</span>
       }
-<span class="nc bnc" id="L157" title="All 4 branches missed.">      if (width &gt;= 240 &amp;&amp; height &gt;= 320) {</span>
-<span class="nc" id="L158">        return &quot;240x320&quot;; // 0.75 aspect ratio</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">      if (width &gt;= 240 &amp;&amp; height &gt;= 320) {</span>
+<span class="nc" id="L217">        return &quot;240x320&quot;; // 0.75 aspect ratio</span>
       }
-<span class="nc" id="L160">      return &quot;320x240&quot;; // Fallback</span>
+<span class="nc" id="L219">      return &quot;320x240&quot;; // Fallback</span>
     }
 
     // Landscape mode resolutions - match by aspect ratio
     // Wide aspect ratios (16:10 = 1.6, 16:9 = 1.78, 4:3 = 1.33)
 
-<span class="nc bnc" id="L166" title="All 4 branches missed.">    if (aspectRatio &gt;= 1.55 &amp;&amp; aspectRatio &lt;= 1.65) {</span>
+<span class="pc bpc" id="L225" title="1 of 4 branches missed.">    if (aspectRatio &gt;= 1.55 &amp;&amp; aspectRatio &lt;= 1.65) {</span>
       // 16:10 aspect ratio
-<span class="nc bnc" id="L168" title="All 4 branches missed.">      if (width &gt;= 1920 &amp;&amp; height &gt;= 1200) {</span>
-<span class="nc" id="L169">        return &quot;1920x1200&quot;;</span>
+<span class="nc bnc" id="L227" title="All 4 branches missed.">      if (width &gt;= 1920 &amp;&amp; height &gt;= 1200) {</span>
+<span class="nc" id="L228">        return &quot;1920x1200&quot;;</span>
       }
-<span class="nc bnc" id="L171" title="All 4 branches missed.">      if (width &gt;= 1280 &amp;&amp; height &gt;= 768) {</span>
-<span class="nc" id="L172">        return &quot;1280x768&quot;;</span>
+<span class="nc bnc" id="L230" title="All 4 branches missed.">      if (width &gt;= 1280 &amp;&amp; height &gt;= 768) {</span>
+<span class="nc" id="L231">        return &quot;1280x768&quot;;</span>
       }
-<span class="nc" id="L174">      return &quot;800x480&quot;;</span>
-<span class="nc bnc" id="L175" title="All 4 branches missed.">    } else if (aspectRatio &gt;= 1.70 &amp;&amp; aspectRatio &lt;= 1.85) {</span>
+<span class="nc" id="L233">      return &quot;800x480&quot;;</span>
+<span class="pc bpc" id="L234" title="1 of 4 branches missed.">    } else if (aspectRatio &gt;= 1.70 &amp;&amp; aspectRatio &lt;= 1.85) {</span>
       // 16:9 aspect ratio
-<span class="nc bnc" id="L177" title="All 4 branches missed.">      if (width &gt;= 1920 &amp;&amp; height &gt;= 1080) {</span>
-<span class="nc" id="L178">        return &quot;1920x1080&quot;;</span>
+<span class="pc bpc" id="L236" title="1 of 4 branches missed.">      if (width &gt;= 1920 &amp;&amp; height &gt;= 1080) {</span>
+<span class="fc" id="L237">        return &quot;1920x1080&quot;;</span>
       }
-<span class="nc bnc" id="L180" title="All 4 branches missed.">      if (width &gt;= 1366 &amp;&amp; height &gt;= 768) {</span>
-<span class="nc" id="L181">        return &quot;1366x768&quot;;</span>
+<span class="pc bpc" id="L239" title="2 of 4 branches missed.">      if (width &gt;= 1366 &amp;&amp; height &gt;= 768) {</span>
+<span class="fc" id="L240">        return &quot;1366x768&quot;;</span>
       }
-<span class="nc" id="L183">      return &quot;800x480&quot;;</span>
-<span class="nc bnc" id="L184" title="All 4 branches missed.">    } else if (aspectRatio &gt;= 1.25 &amp;&amp; aspectRatio &lt;= 1.40) {</span>
+<span class="nc" id="L242">      return &quot;800x480&quot;;</span>
+<span class="pc bpc" id="L243" title="2 of 4 branches missed.">    } else if (aspectRatio &gt;= 1.25 &amp;&amp; aspectRatio &lt;= 1.40) {</span>
       // 4:3 aspect ratio
-<span class="nc bnc" id="L186" title="All 4 branches missed.">      if (width &gt;= 1024 &amp;&amp; height &gt;= 768) {</span>
-<span class="nc" id="L187">        return &quot;1024x768&quot;;</span>
+<span class="pc bpc" id="L245" title="1 of 4 branches missed.">      if (width &gt;= 1024 &amp;&amp; height &gt;= 768) {</span>
+<span class="fc" id="L246">        return &quot;1024x768&quot;;</span>
       }
-<span class="nc bnc" id="L189" title="All 4 branches missed.">      if (width &gt;= 800 &amp;&amp; height &gt;= 600) {</span>
-<span class="nc" id="L190">        return &quot;800x600&quot;;</span>
+<span class="pc bpc" id="L248" title="1 of 4 branches missed.">      if (width &gt;= 800 &amp;&amp; height &gt;= 600) {</span>
+<span class="fc" id="L249">        return &quot;800x600&quot;;</span>
       }
-<span class="nc bnc" id="L192" title="All 4 branches missed.">      if (width &gt;= 640 &amp;&amp; height &gt;= 480) {</span>
-<span class="nc" id="L193">        return &quot;640x480&quot;;</span>
+<span class="pc bpc" id="L251" title="2 of 4 branches missed.">      if (width &gt;= 640 &amp;&amp; height &gt;= 480) {</span>
+<span class="fc" id="L252">        return &quot;640x480&quot;;</span>
       }
-<span class="nc" id="L195">      return &quot;320x240&quot;;</span>
-<span class="nc bnc" id="L196" title="All 4 branches missed.">    } else if (aspectRatio &gt;= 1.62 &amp;&amp; aspectRatio &lt;= 1.70) {</span>
+<span class="nc" id="L254">      return &quot;320x240&quot;;</span>
+<span class="nc bnc" id="L255" title="All 4 branches missed.">    } else if (aspectRatio &gt;= 1.62 &amp;&amp; aspectRatio &lt;= 1.70) {</span>
       // Between 16:10 and 16:9
-<span class="nc bnc" id="L198" title="All 2 branches missed.">      if (width &gt;= 1920) {</span>
-<span class="nc" id="L199">        return &quot;1920x1200&quot;;</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">      if (width &gt;= 1920) {</span>
+<span class="nc" id="L258">        return &quot;1920x1200&quot;;</span>
       }
-<span class="nc bnc" id="L201" title="All 2 branches missed.">      if (width &gt;= 1366) {</span>
-<span class="nc" id="L202">        return &quot;1366x768&quot;;</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">      if (width &gt;= 1366) {</span>
+<span class="nc" id="L261">        return &quot;1366x768&quot;;</span>
       }
-<span class="nc" id="L204">      return &quot;800x600&quot;;</span>
+<span class="nc" id="L263">      return &quot;800x600&quot;;</span>
     }
 
     // Default fallback based on size
-<span class="nc bnc" id="L208" title="All 2 branches missed.">    if (width &gt;= 1920) {</span>
-<span class="nc" id="L209">      return &quot;1920x1080&quot;;</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    if (width &gt;= 1920) {</span>
+<span class="nc" id="L268">      return &quot;1920x1080&quot;;</span>
     }
-<span class="nc bnc" id="L211" title="All 2 branches missed.">    if (width &gt;= 1366) {</span>
-<span class="nc" id="L212">      return &quot;1366x768&quot;;</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    if (width &gt;= 1366) {</span>
+<span class="nc" id="L271">      return &quot;1366x768&quot;;</span>
     }
-<span class="nc bnc" id="L214" title="All 2 branches missed.">    if (width &gt;= 1024) {</span>
-<span class="nc" id="L215">      return &quot;1024x768&quot;;</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">    if (width &gt;= 1024) {</span>
+<span class="nc" id="L274">      return &quot;1024x768&quot;;</span>
     }
-<span class="nc bnc" id="L217" title="All 2 branches missed.">    if (width &gt;= 800) {</span>
-<span class="nc" id="L218">      return &quot;800x600&quot;;</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">    if (width &gt;= 800) {</span>
+<span class="nc" id="L277">      return &quot;800x600&quot;;</span>
     }
-<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (width &gt;= 640) {</span>
-<span class="nc" id="L221">      return &quot;640x480&quot;;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">    if (width &gt;= 640) {</span>
+<span class="nc" id="L280">      return &quot;640x480&quot;;</span>
     }
-<span class="nc bnc" id="L223" title="All 2 branches missed.">    if (width &gt;= 400) {</span>
-<span class="nc" id="L224">      return &quot;400x240&quot;;</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">    if (width &gt;= 400) {</span>
+<span class="nc" id="L283">      return &quot;400x240&quot;;</span>
     }
-<span class="nc" id="L226">    return &quot;320x240&quot;;</span>
+<span class="nc" id="L285">    return &quot;320x240&quot;;</span>
   }
 
   /**
@@ -234,6 +293,6 @@ public class BingImageService {
    * @param title image title
    * @param date image date in YYYYMMDD format
    */
-<span class="nc" id="L237">  record BingImageData(String urlbase, String copyright, String title, String date) {}</span>
+<span class="fc" id="L296">  record BingImageData(String urlbase, String copyright, String title, String date) {}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

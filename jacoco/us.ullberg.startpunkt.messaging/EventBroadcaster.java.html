@@ -194,38 +194,38 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
    * @param statusData the status data
    */
   public void broadcastStatusChanged(Object statusData) {
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (!subscriptionEnabled) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">    if (!subscriptionEnabled) {</span>
 <span class="nc" id="L198">      Log.debug(&quot;Subscription broadcasting is disabled&quot;);</span>
 <span class="nc" id="L199">      return;</span>
     }
 
-<span class="fc" id="L202">    String eventKey = &quot;STATUS_CHANGED&quot;;</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">    if (shouldDebounce(eventKey)) {</span>
-<span class="fc" id="L204">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
-<span class="fc" id="L205">      return;</span>
+<span class="nc" id="L202">    String eventKey = &quot;STATUS_CHANGED&quot;;</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">    if (shouldDebounce(eventKey)) {</span>
+<span class="nc" id="L204">      Log.debugf(&quot;Debouncing event: %s&quot;, eventKey);</span>
+<span class="nc" id="L205">      return;</span>
     }
 
-<span class="fc" id="L208">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
+<span class="nc" id="L208">    lastBroadcastTimes.put(eventKey, Instant.now());</span>
 
-<span class="fc" id="L210">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">    if (emitter != null) {</span>
+<span class="nc" id="L210">    SubscriptionEventEmitter emitter = getSubscriptionEventEmitter();</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">    if (emitter != null) {</span>
       try {
         // Emit a synthetic application update event with minimal data
         // This signals the frontend to refresh all applications
-<span class="fc" id="L215">        ApplicationType placeholderApp = new ApplicationType();</span>
-<span class="fc" id="L216">        placeholderApp.name = &quot;_status_check_&quot;;</span>
-<span class="fc" id="L217">        placeholderApp.namespace = &quot;system&quot;;</span>
+<span class="nc" id="L215">        ApplicationType placeholderApp = new ApplicationType();</span>
+<span class="nc" id="L216">        placeholderApp.name = &quot;_status_check_&quot;;</span>
+<span class="nc" id="L217">        placeholderApp.namespace = &quot;system&quot;;</span>
 
-<span class="fc" id="L219">        ApplicationUpdateEvent event =</span>
+<span class="nc" id="L219">        ApplicationUpdateEvent event =</span>
             new ApplicationUpdateEvent(
-<span class="fc" id="L221">                ApplicationUpdateType.UPDATED, placeholderApp, Instant.now());</span>
-<span class="fc" id="L222">        emitter.emitApplicationUpdate(event);</span>
-<span class="fc" id="L223">        Log.infof(&quot;Emitted status changed event via subscription (triggers application refresh)&quot;);</span>
+<span class="nc" id="L221">                ApplicationUpdateType.UPDATED, placeholderApp, Instant.now());</span>
+<span class="nc" id="L222">        emitter.emitApplicationUpdate(event);</span>
+<span class="nc" id="L223">        Log.infof(&quot;Emitted status changed event via subscription (triggers application refresh)&quot;);</span>
 <span class="nc" id="L224">      } catch (Exception e) {</span>
 <span class="nc" id="L225">        Log.error(&quot;Error emitting status changed event to subscriptions&quot;, e);</span>
-<span class="fc" id="L226">      }</span>
+<span class="nc" id="L226">      }</span>
     }
-<span class="fc" id="L228">  }</span>
+<span class="nc" id="L228">  }</span>
 
   /**
    * Broadcasts a bookmark added event.
