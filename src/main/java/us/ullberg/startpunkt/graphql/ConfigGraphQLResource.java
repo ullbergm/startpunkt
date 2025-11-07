@@ -3,10 +3,12 @@ package us.ullberg.startpunkt.graphql;
 import io.micrometer.core.annotation.Timed;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
+import us.ullberg.startpunkt.service.MultiClusterKubernetesClientService;
 
 /**
  * GraphQL API resource for application configuration. Provides queries for retrieving configuration
@@ -15,6 +17,8 @@ import org.eclipse.microprofile.graphql.Query;
 @GraphQLApi
 @ApplicationScoped
 public class ConfigGraphQLResource {
+
+  final MultiClusterKubernetesClientService multiClusterService;
 
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
   boolean showGithubLink;
@@ -34,6 +38,18 @@ public class ConfigGraphQLResource {
   @ConfigProperty(name = "quarkus.application.version", defaultValue = "0")
   String version;
 
+  @ConfigProperty(name = "startpunkt.web.defaultShowAllClusters", defaultValue = "false")
+  boolean defaultShowAllClusters;
+
+  /**
+   * Constructor with injected dependencies.
+   *
+   * @param multiClusterService the multi-cluster Kubernetes client service
+   */
+  public ConfigGraphQLResource(MultiClusterKubernetesClientService multiClusterService) {
+    this.multiClusterService = multiClusterService;
+  }
+
   /**
    * Retrieve application configuration.
    *
@@ -46,8 +62,22 @@ public class ConfigGraphQLResource {
     Log.debug("GraphQL query: config");
     return new ConfigResponse(
         version,
-        new WebConfig(showGithubLink, checkForUpdates, title, refreshInterval),
-        new WebSocketConfig(websocketEnabled));
+        new WebConfig(showGithubLink, checkForUpdates, title, refreshInterval, defaultShowAllClusters),
+        new WebSocketConfig(websocketEnabled),
+        new ClustersConfig(defaultShowAllClusters));
+  }
+
+  /**
+   * Retrieve active cluster names.
+   *
+   * @return list of active cluster names
+   */
+  @Query("activeClusters")
+  @Description("Retrieve list of active cluster names")
+  @Timed(value = "graphql.query.activeClusters")
+  public List<String> getActiveClusters() {
+    Log.debug("GraphQL query: activeClusters");
+    return multiClusterService.getActiveClusterNames();
   }
 
   /** Configuration response type. */
@@ -55,11 +85,13 @@ public class ConfigGraphQLResource {
     public String version;
     public WebConfig web;
     public WebSocketConfig websocket;
+    public ClustersConfig clusters;
 
-    public ConfigResponse(String version, WebConfig web, WebSocketConfig websocket) {
+    public ConfigResponse(String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {
       this.version = version;
       this.web = web;
       this.websocket = websocket;
+      this.clusters = clusters;
     }
   }
 
@@ -69,13 +101,15 @@ public class ConfigGraphQLResource {
     public boolean checkForUpdates;
     public String title;
     public int refreshInterval;
+    public boolean defaultShowAllClusters;
 
     public WebConfig(
-        boolean showGithubLink, boolean checkForUpdates, String title, int refreshInterval) {
+        boolean showGithubLink, boolean checkForUpdates, String title, int refreshInterval, boolean defaultShowAllClusters) {
       this.showGithubLink = showGithubLink;
       this.checkForUpdates = checkForUpdates;
       this.title = title;
       this.refreshInterval = refreshInterval;
+      this.defaultShowAllClusters = defaultShowAllClusters;
     }
   }
 
@@ -85,6 +119,15 @@ public class ConfigGraphQLResource {
 
     public WebSocketConfig(boolean enabled) {
       this.enabled = enabled;
+    }
+  }
+
+  /** Clusters configuration type. */
+  public static class ClustersConfig {
+    public boolean defaultShowAll;
+
+    public ClustersConfig(boolean defaultShowAll) {
+      this.defaultShowAll = defaultShowAll;
     }
   }
 }

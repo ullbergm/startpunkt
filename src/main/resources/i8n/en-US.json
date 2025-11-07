@@ -73,6 +73,18 @@
         "overlayOpacity" : "Overlay Opacity",
         "resetToDefaults" : "Reset to Defaults"
     },
+    "cluster" : {
+        "title" : "Cluster Filters",
+        "settings" : "Cluster Filters",
+        "description" : "Filter which applications are shown based on their cluster",
+        "available" : "Available Clusters",
+        "enableAll" : "Enable All",
+        "enabled" : "On",
+        "disabled" : "Off",
+        "local" : "local",
+        "help" : "Disabled clusters will hide their applications from the view",
+        "shiftClickHelp" : "Shift-click to show only that cluster"
+    },
     "layout" : {
         "title" : "Layout",
         "settings" : "Layout Settings",

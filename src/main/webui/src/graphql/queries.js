@@ -21,11 +21,21 @@ export const CONFIG_QUERY = gql`
         showGithubLink
         checkForUpdates
         refreshInterval
+        defaultShowAllClusters
       }
       websocket {
         enabled
       }
+      clusters {
+        defaultShowAll
+      }
     }
+  }
+`;
+
+export const ACTIVE_CLUSTERS_QUERY = gql`
+  query GetActiveClusters {
+    activeClusters
   }
 `;
 
@@ -128,9 +138,13 @@ export const INIT_QUERY = gql`
         showGithubLink
         checkForUpdates
         refreshInterval
+        defaultShowAllClusters
       }
       websocket {
         enabled
+      }
+      clusters {
+        defaultShowAll
       }
     }
     theme {
