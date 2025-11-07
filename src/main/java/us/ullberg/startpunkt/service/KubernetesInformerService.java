@@ -1069,19 +1069,17 @@ public class KubernetesInformerService {
 
       List<BookmarkResponse> bookmarks = new ArrayList<>();
 
-      // Load bookmarks from all configured clusters
-      Map<String, ClusterConfig> allClusters = multiClusterService.getAllClusterConfigs();
-
-      for (Map.Entry<String, ClusterConfig> entry : allClusters.entrySet()) {
-        String clusterName = entry.getKey();
-        ClusterConfig config = entry.getValue();
+      // Iterate through all active clusters
+      for (String clusterName : multiClusterService.getActiveClusterNames()) {
+        Log.debugf("Processing bookmarks from cluster: %s", clusterName);
+        Optional<ClusterConfig> configOpt = multiClusterService.getClusterConfig(clusterName);
 
         // Check if this is a remote GraphQL cluster (not local)
-        if (config != null && !"local".equalsIgnoreCase(clusterName)) {
+        if (configOpt.isPresent() && !"local".equalsIgnoreCase(clusterName)) {
           Log.debugf("Loading bookmarks from remote Startpunkt '%s' via GraphQL", clusterName);
           try {
             List<BookmarkResponse> remoteBookmarks =
-                remoteStartpunktClient.fetchBookmarks(config, clusterName);
+                remoteStartpunktClient.fetchBookmarks(configOpt.get(), clusterName);
             bookmarks.addAll(remoteBookmarks);
             Log.debugf(
                 "Loaded %d bookmarks from remote Startpunkt '%s'",
@@ -1098,6 +1096,7 @@ public class KubernetesInformerService {
 
         // Local cluster logic
         if ("local".equalsIgnoreCase(clusterName)) {
+          Log.debugf("Loading bookmarks from local cluster");
           // Load Startpunkt bookmarks
           bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
