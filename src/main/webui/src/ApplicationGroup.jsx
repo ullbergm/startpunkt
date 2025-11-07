@@ -10,8 +10,19 @@ export function ApplicationGroup(props) {
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
   const configuredColumnCount = layoutPrefs?.preferences.columnCount || 5;
   
+  // Filter out unreachable applications if hideUnreachable is enabled
+  const hideUnreachable = layoutPrefs?.preferences.hideUnreachable || false;
+  const filteredApplications = hideUnreachable
+    ? (props.applications || []).filter(app => app.available !== false)
+    : (props.applications || []);
+  
+  // If filtering results in an empty group, don't render anything
+  if (filteredApplications.length === 0 && !skeleton) {
+    return null;
+  }
+  
   // For favorites, use the number of favorites as column count (capped at configured max)
-  const favoriteCount = isFavorites ? (props.applications?.length || 0) : 0;
+  const favoriteCount = isFavorites ? (filteredApplications.length || 0) : 0;
   const effectiveColumnCount = isFavorites 
     ? Math.min(favoriteCount, configuredColumnCount)
     : configuredColumnCount;
@@ -218,7 +229,7 @@ export function ApplicationGroup(props) {
           role="list"
           aria-label={isFavorites ? 'Favorite applications' : `${props.group} applications`}
         >
-          {Array.isArray(props.applications) && props.applications.map((app, index) => {
+          {Array.isArray(filteredApplications) && filteredApplications.map((app, index) => {
             const isDragging = draggedIndex === index;
             const isDropTarget = dragOverIndex === index;
             
@@ -244,7 +255,7 @@ export function ApplicationGroup(props) {
                   padding: isDropTarget && draggedIndex !== null ? '2px' : '0'
                 }}
                 aria-grabbed={isDragEnabled && isDragging}
-                aria-label={isDragEnabled ? `${app.name} (${index + 1} of ${props.applications.length}). Press Alt+Up or Alt+Down to reorder` : app.name}
+                aria-label={isDragEnabled ? `${app.name} (${index + 1} of ${filteredApplications.length}). Press Alt+Up or Alt+Down to reorder` : app.name}
               >
                 <Application 
                   app={app} 

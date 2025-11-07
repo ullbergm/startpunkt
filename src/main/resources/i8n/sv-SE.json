@@ -100,6 +100,7 @@
         "description" : "Beskrivning",
         "tags" : "Taggar",
         "statusIndicators" : "Statusindikatorer",
+        "hideUnreachable" : "Dölj onåbara appar",
         "presets" : "Layoutförval",
         "presetName" : "Förvalnamn",
         "save" : "Spara",

@@ -63,6 +63,7 @@ describe('useLayoutPreferences', () => {
     expect(result.current.preferences.showDescription).toBe(true);
     expect(result.current.preferences.showTags).toBe(false);
     expect(result.current.preferences.showStatus).toBe(true);
+    expect(result.current.preferences.hideUnreachable).toBe(false);
     expect(result.current.preferences.spacing).toBe('normal');
   });
 
@@ -158,6 +159,18 @@ describe('useLayoutPreferences', () => {
     
     expect(result.current.preferences.savedPresets.toDelete).toBeUndefined();
     expect(result.current.preferences.currentPreset).toBeNull();
+  });
+
+  test('should update hideUnreachable preference', () => {
+    const { result } = renderHook(() => useLayoutPreferences());
+    
+    expect(result.current.preferences.hideUnreachable).toBe(false);
+    
+    act(() => {
+      result.current.updatePreference('hideUnreachable', true);
+    });
+    
+    expect(result.current.preferences.hideUnreachable).toBe(true);
   });
 
   test('should reset to defaults', () => {

@@ -183,6 +183,18 @@ export function LayoutSettings({ layoutPrefs }) {
                   <Text id="layout.statusIndicators">Status Indicators</Text>
                 </label>
               </div>
+              <div class="form-check">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="hideUnreachable"
+                  checked={preferences.hideUnreachable}
+                  onChange={(e) => updatePreference('hideUnreachable', e.target.checked)}
+                />
+                <label class="form-check-label small" for="hideUnreachable">
+                  <Text id="layout.hideUnreachable">Hide Unreachable Apps</Text>
+                </label>
+              </div>
             </div>
 
             <hr class="my-2" />

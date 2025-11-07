@@ -102,6 +102,7 @@
         "description" : "Description",
         "tags" : "Tags",
         "statusIndicators" : "Status Indicators",
+        "hideUnreachable" : "Hide Unreachable Apps",
         "presets" : "Layout Presets",
         "presetName" : "Preset name",
         "save" : "Save",
