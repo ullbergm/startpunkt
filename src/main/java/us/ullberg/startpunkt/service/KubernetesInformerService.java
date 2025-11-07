@@ -1037,6 +1037,11 @@ public class KubernetesInformerService {
 
       List<BookmarkResponse> bookmarks = new ArrayList<>();
 
+      // Note: Bookmarks are currently only loaded from the local cluster
+      // BookmarkService creates its own KubernetesClient and doesn't support multi-cluster yet
+      // Future enhancement: Refactor BookmarkService to accept KubernetesClient parameter
+      // and iterate through all clusters like we do for applications
+
       // Load Startpunkt bookmarks
       bookmarks.addAll(bookmarkService.retrieveBookmarks());
 
