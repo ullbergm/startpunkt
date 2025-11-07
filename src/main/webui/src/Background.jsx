@@ -30,8 +30,9 @@ export function Background() {
 
   // Fetch Bing Image of the Day when type is pictureOfDay and provider is bing
   useEffect(() => {
+    const pictureProvider = backgroundPrefs.getTypePreference('pictureProvider');
     if (backgroundPrefs.preferences.type === 'pictureOfDay' && 
-        backgroundPrefs.preferences.pictureProvider === 'bing') {
+        pictureProvider === 'bing') {
       // Fetch image via GraphQL - server-side caching and browser HTTP cache will handle performance
       const fetchBingImage = async () => {
         try {
@@ -55,7 +56,7 @@ export function Background() {
 
       fetchBingImage();
     }
-  }, [backgroundPrefs.preferences.type, backgroundPrefs.preferences.pictureProvider]);
+  }, [backgroundPrefs.preferences.type, backgroundPrefs.getTypePreference]);
 
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
@@ -103,7 +104,7 @@ export function Background() {
         
         if (backgroundPrefs.preferences.type === 'pictureOfDay') {
           // Check which provider to use
-          const provider = backgroundPrefs.preferences.pictureProvider || 'picsum';
+          const provider = backgroundPrefs.getTypePreference('pictureProvider') || 'picsum';
           if (provider === 'bing') {
             imageUrl = bingImageUrl; // Use the fetched Bing image URL
           } else {
@@ -111,7 +112,7 @@ export function Background() {
             imageUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
           }
         } else {
-          imageUrl = backgroundPrefs.preferences.imageUrl;
+          imageUrl = backgroundPrefs.getTypePreference('imageUrl');
         }
         
         // Validate URL before using
@@ -125,7 +126,8 @@ export function Background() {
           overlay.style.opacity = style.opacity || 1.0;
           
           // Apply blur if enabled
-          if (backgroundPrefs.preferences.blur) {
+          const blur = backgroundPrefs.getTypePreference('blur') || false;
+          if (blur) {
             overlay.style.filter = 'blur(10px)';
             overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
           } else {
@@ -183,7 +185,8 @@ export function Background() {
         });
         
         // Add keyframes for mesh gradient animation if needed
-        if (backgroundPrefs.preferences.type === 'meshGradient' && backgroundPrefs.preferences.meshAnimated) {
+        const meshAnimated = backgroundPrefs.getTypePreference('meshAnimated');
+        if (backgroundPrefs.preferences.type === 'meshGradient' && meshAnimated) {
           let styleSheet = document.getElementById('background-animation-styles');
           if (!styleSheet) {
             styleSheet = document.createElement('style');

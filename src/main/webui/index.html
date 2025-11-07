@@ -15,10 +15,7 @@
         let bgColor = '#111827'; // default dark
         let themeClass = 'dark';
         
-        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
-          bgColor = '#ffffff';
-          themeClass = 'light';
-        } else if (savedTheme === 'high-contrast') {
+        if (savedTheme === 'high-contrast') {
           bgColor = '#000000';
           themeClass = 'high-contrast';
         }
@@ -32,7 +29,7 @@
       })();
     </script>
   </head>
-  <body style="margin: 0;">
+  <body style="margin: 0; background: inherit;">
     <div id="app" style="min-height: 100vh;"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

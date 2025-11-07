@@ -18,6 +18,7 @@ jest.mock('./graphql/client', () => ({
 
 describe('Background', () => {
   let mockGetBackgroundStyle;
+  let mockGetTypePreference;
   let mockPreferences;
 
   beforeEach(() => {
@@ -27,6 +28,22 @@ describe('Background', () => {
     
     // Default mocks
     mockGetBackgroundStyle = jest.fn();
+    // Create a dynamic mock that reads from the current mockPreferences
+    mockGetTypePreference = jest.fn((key) => {
+      // Get the latest return value from the mock to support tests that update preferences
+      const currentMock = useBackgroundPreferences.mock.results[useBackgroundPreferences.mock.results.length - 1];
+      const currentPrefs = currentMock?.value?.preferences || mockPreferences;
+      
+      // Try typePreferences first (new structure)
+      const typePrefs = currentPrefs.typePreferences?.[currentPrefs.type];
+      if (typePrefs && typePrefs[key] !== undefined) {
+        return typePrefs[key];
+      }
+      
+      // Fall back to direct property access (old structure or test mock)
+      return currentPrefs[key];
+    });
+    
     mockPreferences = {
       type: 'theme',
       color: '#F8F6F1',
@@ -38,7 +55,8 @@ describe('Background', () => {
 
     useBackgroundPreferences.mockReturnValue({
       preferences: mockPreferences,
-      getBackgroundStyle: mockGetBackgroundStyle
+      getBackgroundStyle: mockGetBackgroundStyle,
+      getTypePreference: mockGetTypePreference
     });
 
     useLocalStorage.mockReturnValue(['auto', jest.fn()]);
@@ -131,7 +149,8 @@ describe('Background', () => {
         getBackgroundStyle: jest.fn().mockReturnValue({
           backgroundImage: 'url(https://example.com/image.jpg)',
           opacity: 1.0
-        })
+        }),
+        getTypePreference: mockGetTypePreference
       });
 
       const { rerender } = render(<Background />);
@@ -150,7 +169,8 @@ describe('Background', () => {
         preferences: solidPrefs,
         getBackgroundStyle: jest.fn().mockReturnValue({
           backgroundColor: '#FF5733'
-        })
+        }),
+        getTypePreference: mockGetTypePreference
       });
 
       rerender(<Background />);
@@ -362,7 +382,8 @@ describe('Background', () => {
 
       useBackgroundPreferences.mockReturnValue({
         preferences: mockPreferences,
-        getBackgroundStyle: mockGetBackgroundStyle
+        getBackgroundStyle: mockGetBackgroundStyle,
+        getTypePreference: mockGetTypePreference
       });
 
       mockGetBackgroundStyle.mockReturnValue({
@@ -407,7 +428,8 @@ describe('Background', () => {
 
       useBackgroundPreferences.mockReturnValue({
         preferences: mockPreferences,
-        getBackgroundStyle: mockGetBackgroundStyle
+        getBackgroundStyle: mockGetBackgroundStyle,
+        getTypePreference: mockGetTypePreference
       });
 
       mockGetBackgroundStyle.mockReturnValue({
@@ -538,7 +560,8 @@ describe('Background', () => {
         getBackgroundStyle: jest.fn().mockReturnValue({
           backgroundImage: 'url(https://example.com/image.jpg)',
           opacity: 1.0
-        })
+        }),
+        getTypePreference: mockGetTypePreference
       });
 
       render(<Background />);
@@ -583,7 +606,8 @@ describe('Background', () => {
         preferences: solidPrefs1,
         getBackgroundStyle: jest.fn().mockReturnValue({
           backgroundColor: '#FF5733'
-        })
+        }),
+        getTypePreference: mockGetTypePreference
       });
 
       const { rerender } = render(<Background />);
@@ -602,7 +626,8 @@ describe('Background', () => {
         preferences: solidPrefs2,
         getBackgroundStyle: jest.fn().mockReturnValue({
           backgroundColor: '#3366FF'
-        })
+        }),
+        getTypePreference: mockGetTypePreference
       });
 
       rerender(<Background />);

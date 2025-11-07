@@ -15,7 +15,7 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
  * This component doesn't render anything - it just applies dynamic styles.
  */
 export function PreferenceButtonsStyler() {
-  const { preferences } = useBackgroundPreferences();
+  const { preferences, getTypePreference } = useBackgroundPreferences();
 
   useEffect(() => {
     // Query buttons once at the start
@@ -36,7 +36,7 @@ export function PreferenceButtonsStyler() {
       return;
     }
 
-    const opacity = preferences.contentOverlayOpacity !== undefined ? preferences.contentOverlayOpacity : -0.6;
+    const opacity = getTypePreference('contentOverlayOpacity') ?? 0.7;
     
     // Middle position (0) = transparent, truly transparent with only icons visible
     if (opacity === 0) {
@@ -131,7 +131,7 @@ export function PreferenceButtonsStyler() {
         btn.removeEventListener('mouseleave', handleMouseLeave);
       });
     };
-  }, [preferences.type, preferences.contentOverlayOpacity]);
+  }, [preferences.type, preferences.typePreferences]);
 
   // This component doesn't render anything
   return null;

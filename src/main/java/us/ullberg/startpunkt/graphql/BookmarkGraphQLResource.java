@@ -31,6 +31,7 @@ import us.ullberg.startpunkt.graphql.types.BookmarkUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.BookmarkGroup;
 import us.ullberg.startpunkt.objects.BookmarkResponse;
+import us.ullberg.startpunkt.service.BookmarkCacheService;
 import us.ullberg.startpunkt.service.BookmarkManagementService;
 import us.ullberg.startpunkt.service.BookmarkService;
 
@@ -47,6 +48,7 @@ public class BookmarkGraphQLResource {
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
   final SubscriptionEventEmitter subscriptionEventEmitter;
+  final BookmarkCacheService bookmarkCacheService;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -59,18 +61,21 @@ public class BookmarkGraphQLResource {
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
    * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
+   * @param bookmarkCacheService the bookmark cache service
    */
   public BookmarkGraphQLResource(
       BookmarkService bookmarkService,
       BookmarkManagementService bookmarkManagementService,
       EventBroadcaster eventBroadcaster,
       CacheManager cacheManager,
-      SubscriptionEventEmitter subscriptionEventEmitter) {
+      SubscriptionEventEmitter subscriptionEventEmitter,
+      BookmarkCacheService bookmarkCacheService) {
     this.bookmarkService = bookmarkService;
     this.bookmarkManagementService = bookmarkManagementService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
     this.subscriptionEventEmitter = subscriptionEventEmitter;
+    this.bookmarkCacheService = bookmarkCacheService;
   }
 
   /**
@@ -92,21 +97,21 @@ public class BookmarkGraphQLResource {
   }
 
   /**
-   * Retrieves bookmarks from BookmarkService and optionally from Hajimari, sorts them
-   * alphabetically.
+   * Retrieves bookmarks from the cache and sorts them alphabetically.
    *
    * @return sorted list of BookmarkResponse objects
    */
   private ArrayList<BookmarkResponse> retrieveBookmarks() {
-    var bookmarks = new ArrayList<BookmarkResponse>();
-    bookmarks.addAll(bookmarkService.retrieveBookmarks());
+    Log.debug("Retrieving bookmarks from cache");
 
-    if (hajimariEnabled) {
-      bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
-    }
+    // Get all bookmarks from cache
+    List<BookmarkResponse> bookmarks = bookmarkCacheService.getAll();
 
-    Collections.sort(bookmarks);
-    return bookmarks;
+    // Sort bookmarks
+    ArrayList<BookmarkResponse> sortedBookmarks = new ArrayList<>(bookmarks);
+    Collections.sort(sortedBookmarks);
+
+    return sortedBookmarks;
   }
 
   /**

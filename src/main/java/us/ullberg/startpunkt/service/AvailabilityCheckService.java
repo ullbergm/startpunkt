@@ -14,8 +14,10 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -140,7 +142,8 @@ public class AvailabilityCheckService {
 
       // Consider 2xx and 3xx status codes as available
       // 404 Not Found should count as unavailable (resource doesn't exist)
-      // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting our request
+      // Other 4xx codes (401, 403, etc.) mean the server is responding but rejecting
+      // our request
       // 5xx server errors indicate the service is actually unavailable
       int statusCode = response.statusCode();
       if ((statusCode >= 200 && statusCode < 400)
@@ -297,6 +300,33 @@ public class AvailabilityCheckService {
             url, availabilityCache.size());
       }
     }
+  }
+
+  /**
+   * Unregisters a URL from periodic availability checking. This should be called when an
+   * application is deleted to clean up resources.
+   *
+   * @param url the URL to unregister
+   */
+  public void unregisterUrl(String url) {
+    if (url != null && !url.isEmpty()) {
+      boolean wasPresent = availabilityCache.remove(url) != null;
+      previousAvailabilityCache.remove(url);
+      if (wasPresent) {
+        Log.infof(
+            "Unregistered URL from availability checking: %s (remaining: %d)",
+            url, availabilityCache.size());
+      }
+    }
+  }
+
+  /**
+   * Gets the set of URLs currently being tracked for availability checking.
+   *
+   * @return a set of all URLs currently registered
+   */
+  public Set<String> getTrackedUrls() {
+    return new HashSet<>(availabilityCache.keySet());
   }
 
   /**

@@ -32,13 +32,7 @@ import us.ullberg.startpunkt.graphql.types.ApplicationUpdateType;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
 import us.ullberg.startpunkt.objects.ApplicationGroup;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
-import us.ullberg.startpunkt.objects.kubernetes.BaseKubernetesObject;
-import us.ullberg.startpunkt.objects.kubernetes.GatewayApiHttpRouteWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.HajimariApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.IngressApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.IstioVirtualServiceApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.RouteApplicationWrapper;
-import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
+import us.ullberg.startpunkt.service.ApplicationCacheService;
 import us.ullberg.startpunkt.service.ApplicationService;
 import us.ullberg.startpunkt.service.AvailabilityCheckService;
 
@@ -56,6 +50,7 @@ public class ApplicationGraphQLResource {
   final EventBroadcaster eventBroadcaster;
   final CacheManager cacheManager;
   final SubscriptionEventEmitter subscriptionEventEmitter;
+  final ApplicationCacheService applicationCacheService;
 
   @ConfigProperty(name = "startpunkt.hajimari.enabled", defaultValue = "false")
   boolean hajimariEnabled;
@@ -102,6 +97,7 @@ public class ApplicationGraphQLResource {
    * @param eventBroadcaster the event broadcaster for WebSocket notifications
    * @param cacheManager the cache manager for manual cache invalidation
    * @param subscriptionEventEmitter the subscription event emitter for GraphQL subscriptions
+   * @param applicationCacheService the application cache service
    */
   public ApplicationGraphQLResource(
       KubernetesClient kubernetesClient,
@@ -109,13 +105,15 @@ public class ApplicationGraphQLResource {
       ApplicationService applicationService,
       EventBroadcaster eventBroadcaster,
       CacheManager cacheManager,
-      SubscriptionEventEmitter subscriptionEventEmitter) {
+      SubscriptionEventEmitter subscriptionEventEmitter,
+      ApplicationCacheService applicationCacheService) {
     this.kubernetesClient = kubernetesClient;
     this.availabilityCheckService = availabilityCheckService;
     this.applicationService = applicationService;
     this.eventBroadcaster = eventBroadcaster;
     this.cacheManager = cacheManager;
     this.subscriptionEventEmitter = subscriptionEventEmitter;
+    this.applicationCacheService = applicationCacheService;
   }
 
   /**
@@ -191,60 +189,19 @@ public class ApplicationGraphQLResource {
     return null;
   }
 
-  // Private helper methods from ApplicationResource
+  // Private helper methods
 
   private ArrayList<ApplicationResponse> retrieveApps() {
-    Log.debug("Retrieving applications from Kubernetes");
-    if (kubernetesClient == null) {
-      Log.warn("KubernetesClient is null, returning empty application list");
-      return new ArrayList<>();
-    }
+    Log.debug("Retrieving applications from cache");
 
-    var applicationWrappers = new ArrayList<BaseKubernetesObject>();
-    applicationWrappers.add(new StartpunktApplicationWrapper());
+    // Get all applications from cache
+    List<ApplicationResponse> apps = applicationCacheService.getAll();
 
-    if (hajimariEnabled) {
-      applicationWrappers.add(new HajimariApplicationWrapper());
-    }
-    if (openshiftEnabled) {
-      applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
-    }
-    if (ingressEnabled) {
-      applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
-    }
-    if (istioVirtualServiceEnabled) {
-      applicationWrappers.add(
-          new IstioVirtualServiceApplicationWrapper(
-              istioVirtualServiceOnlyAnnotated, defaultProtocol));
-    }
-    if (gatewayApiEnabled) {
-      applicationWrappers.add(
-          new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
-    }
+    // Sort applications
+    ArrayList<ApplicationResponse> sortedApps = new ArrayList<>(apps);
+    Collections.sort(sortedApps);
 
-    var apps = new ArrayList<ApplicationResponse>();
-
-    try {
-      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        var wrapperApps =
-            applicationWrapper.getApplicationSpecsWithMetadata(
-                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-        apps.addAll(wrapperApps);
-      }
-    } catch (Exception e) {
-      Log.error("Error retrieving applications from Kubernetes", e);
-      return new ArrayList<>();
-    }
-
-    Collections.sort(apps);
-
-    for (ApplicationResponse app : apps) {
-      if (app.getUrl() != null && !app.getUrl().isEmpty()) {
-        availabilityCheckService.registerUrl(app.getUrl());
-      }
-    }
-
-    return apps;
+    return sortedApps;
   }
 
   private ArrayList<ApplicationResponse> retrieveAppsWithAvailability() {
