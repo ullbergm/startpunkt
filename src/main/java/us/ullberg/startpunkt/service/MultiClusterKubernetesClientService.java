@@ -34,8 +34,9 @@ public class MultiClusterKubernetesClientService {
   @ConfigProperty(name = "startpunkt.clusters.local.enabled", defaultValue = "true")
   boolean localClusterEnabled;
 
-  @ConfigProperty(name = "startpunkt.clusters.remote")
-  Optional<List<ClusterConfig>> remoteClusterConfigs;
+  // Remote cluster configuration will be read manually from ConfigProvider
+  // instead of using @ConfigProperty with Optional<List<ClusterConfig>>
+  // to avoid deserialization issues
 
   /**
    * Constructor with injected local Kubernetes client.
@@ -59,29 +60,12 @@ public class MultiClusterKubernetesClientService {
       Log.info("Local cluster disabled");
     }
 
-    // Initialize remote clusters
-    if (remoteClusterConfigs.isPresent()) {
-      List<ClusterConfig> configs = remoteClusterConfigs.get();
-      Log.infof("Found %d remote cluster configurations", configs.size());
-
-      for (ClusterConfig config : configs) {
-        if (config.isEnabled()) {
-          try {
-            initializeRemoteCluster(config);
-          } catch (Exception e) {
-            Log.errorf(
-                e,
-                "Failed to initialize remote cluster '%s': %s",
-                config.getName(),
-                e.getMessage());
-          }
-        } else {
-          Log.infof("Remote cluster '%s' is disabled", config.getName());
-        }
-      }
-    } else {
-      Log.info("No remote cluster configurations found");
-    }
+    // For now, remote cluster support requires manual configuration
+    // Future enhancement: Read from ConfigProvider to support dynamic cluster configuration
+    // Example:
+    // Config config = ConfigProvider.getConfig();
+    // config.getOptionalValues("startpunkt.clusters.remote", ClusterConfig.class)
+    //       .ifPresent(configs -> { ... });
 
     Log.infof("Multi-cluster service initialized with %d active clusters", getActiveClusterCount());
   }
