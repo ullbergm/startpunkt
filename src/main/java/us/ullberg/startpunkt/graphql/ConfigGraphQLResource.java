@@ -62,7 +62,8 @@ public class ConfigGraphQLResource {
     Log.debug("GraphQL query: config");
     return new ConfigResponse(
         version,
-        new WebConfig(showGithubLink, checkForUpdates, title, refreshInterval, defaultShowAllClusters),
+        new WebConfig(
+            showGithubLink, checkForUpdates, title, refreshInterval, defaultShowAllClusters),
         new WebSocketConfig(websocketEnabled),
         new ClustersConfig(defaultShowAllClusters));
   }
@@ -87,7 +88,8 @@ public class ConfigGraphQLResource {
     public WebSocketConfig websocket;
     public ClustersConfig clusters;
 
-    public ConfigResponse(String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {
+    public ConfigResponse(
+        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {
       this.version = version;
       this.web = web;
       this.websocket = websocket;
@@ -104,7 +106,11 @@ public class ConfigGraphQLResource {
     public boolean defaultShowAllClusters;
 
     public WebConfig(
-        boolean showGithubLink, boolean checkForUpdates, String title, int refreshInterval, boolean defaultShowAllClusters) {
+        boolean showGithubLink,
+        boolean checkForUpdates,
+        String title,
+        int refreshInterval,
+        boolean defaultShowAllClusters) {
       this.showGithubLink = showGithubLink;
       this.checkForUpdates = checkForUpdates;
       this.title = title;

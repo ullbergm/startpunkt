@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import us.ullberg.startpunkt.config.ClusterConfig;
 import us.ullberg.startpunkt.config.ClustersConfig;
 
@@ -56,26 +58,30 @@ public class MultiClusterKubernetesClientService {
       Log.info("Local cluster disabled");
     }
 
-    // Initialize remote clusters if configured
+    // Initialize remote clusters asynchronously to avoid blocking startup
     Optional<List<ClustersConfig.RemoteCluster>> remoteClusterConfigs = clustersConfig.remote();
     if (remoteClusterConfigs.isPresent() && !remoteClusterConfigs.get().isEmpty()) {
       List<ClustersConfig.RemoteCluster> configs = remoteClusterConfigs.get();
-      Log.infof("Found %d remote cluster configuration(s)", configs.size());
+      Log.infof(
+          "Found %d remote cluster configuration(s), initializing asynchronously", configs.size());
 
+      // Initialize each cluster asynchronously
       for (ClustersConfig.RemoteCluster remoteConfig : configs) {
         if (remoteConfig.enabled()) {
-          try {
-            // Convert RemoteCluster interface to ClusterConfig POJO
-            ClusterConfig config = toClusterConfig(remoteConfig);
-            initializeRemoteCluster(config);
-            Log.infof("Successfully initialized remote cluster '%s'", config.getName());
-          } catch (Exception e) {
-            Log.errorf(
-                e,
-                "Failed to initialize remote cluster '%s': %s",
-                remoteConfig.name(),
-                e.getMessage());
-          }
+          ClusterConfig config = toClusterConfig(remoteConfig);
+          CompletableFuture.runAsync(
+              () -> {
+                try {
+                  initializeRemoteCluster(config);
+                  Log.infof("Successfully initialized remote cluster '%s'", config.getName());
+                } catch (Exception e) {
+                  Log.errorf(
+                      e,
+                      "Failed to initialize remote cluster '%s': %s",
+                      config.getName(),
+                      e.getMessage());
+                }
+              });
         } else {
           Log.infof("Remote cluster '%s' is disabled, skipping", remoteConfig.name());
         }
@@ -84,7 +90,8 @@ public class MultiClusterKubernetesClientService {
       Log.info("No remote clusters configured");
     }
 
-    Log.infof("Multi-cluster service initialized with %d active clusters", getActiveClusterCount());
+    Log.info(
+        "Multi-cluster service initialization started (remote clusters will connect in background)");
   }
 
   /**
@@ -199,9 +206,21 @@ public class MultiClusterKubernetesClientService {
 
       KubernetesClient client = new KubernetesClientBuilder().withConfig(kubeConfig).build();
 
-      // Test the connection
-      String version = client.getKubernetesVersion().getGitVersion();
-      Log.infof("Connected to remote cluster '%s' (version: %s)", clusterName, version);
+      // Test the connection with timeout
+      try {
+        CompletableFuture<String> versionFuture =
+            CompletableFuture.supplyAsync(
+                () -> {
+                  return client.getKubernetesVersion().getGitVersion();
+                });
+
+        String version = versionFuture.get(10, TimeUnit.SECONDS);
+        Log.infof("Connected to remote cluster '%s' (version: %s)", clusterName, version);
+      } catch (Exception e) {
+        Log.warnf(
+            "Could not verify connection to cluster '%s' (timeout or error: %s) - will retry on first use",
+            clusterName, e.getMessage());
+      }
 
       remoteClients.put(clusterName, client);
       clusterConfigs.put(clusterName, config);
@@ -451,9 +470,21 @@ public class MultiClusterKubernetesClientService {
 
       KubernetesClient client = new KubernetesClientBuilder().withConfig(kubeConfig).build();
 
-      // Test the connection
-      String version = client.getKubernetesVersion().getGitVersion();
-      Log.infof("Connected to remote cluster '%s' (version: %s)", clusterName, version);
+      // Test the connection with timeout
+      try {
+        CompletableFuture<String> versionFuture =
+            CompletableFuture.supplyAsync(
+                () -> {
+                  return client.getKubernetesVersion().getGitVersion();
+                });
+
+        String version = versionFuture.get(10, TimeUnit.SECONDS);
+        Log.infof("Connected to remote cluster '%s' (version: %s)", clusterName, version);
+      } catch (Exception e) {
+        Log.warnf(
+            "Could not verify connection to cluster '%s' (timeout or error: %s) - will retry on first use",
+            clusterName, e.getMessage());
+      }
 
       remoteClients.put(clusterName, client);
 
