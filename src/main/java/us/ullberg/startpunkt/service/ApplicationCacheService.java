@@ -233,8 +233,7 @@ public class ApplicationCacheService {
     }
 
     if (!keysToRemove.isEmpty()) {
-      Log.infof(
-          "Removed %d applications from cache (cluster=%s)", keysToRemove.size(), cluster);
+      Log.infof("Removed %d applications from cache (cluster=%s)", keysToRemove.size(), cluster);
     }
 
     return keysToRemove.size();

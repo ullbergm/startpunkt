@@ -354,14 +354,15 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the enabled flag from the resource spec. Returns base class enabled if not present.
+   * Retrieves the enabled flag from the resource spec. Defaults to true if not specified in the
+   * spec.
    *
    * @param item Kubernetes resource
-   * @return Boolean indicating if the application is enabled
+   * @return Boolean indicating if the application is enabled (defaults to true)
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-    return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
+    return getOptionalSpecBoolean(item, "enabled", true);
   }
 
   /**

@@ -1,27 +1,33 @@
 startpunkt:
-  # Multi-cluster configuration
+
   clusters:
     local:
       enabled: true  # If true, read from the local cluster (the cluster where Startpunkt is running)
-    # remote:  # Example remote cluster configuration
+    # remote:  # Example remote cluster configurations
+    #   # Option 1: Using hostname + token (direct connection with service account token)
     #   - name: "prod-cluster"  # Unique name for the cluster
-    #     kubeconfigPath: "/path/to/kubeconfig"  # Path to kubeconfig file
+    #     hostname: "https://api.prod-cluster.example.com:6443"  # Kubernetes API server URL
+    #     token: "eyJhbGciOiJSUzI1NiIsImtpZCI6..."  # Bearer token (can be provided directly)
+    #     # OR read token from a Secret (recommended for security)
+    #     tokenSecret: "prod-cluster-token"  # Name of the Secret containing the token
+    #     tokenSecretNamespace: "startpunkt"  # Namespace where the Secret is located (optional, defaults to current namespace)
+    #     tokenSecretKey: "token"  # Key within the Secret (optional, defaults to "token")
+    #     ignore-certificates: false  # Ignore SSL certificate validation (default: false, use true only for development)
     #     enabled: true  # If true, read from this remote cluster
+    #   # Option 2: Using a Kubernetes Secret with kubeconfig (recommended for full config)
     #   - name: "staging-cluster"
-    #     kubeconfigPath: "/path/to/staging-kubeconfig"
+    #     kubeconfigSecret: "staging-cluster-kubeconfig"  # Name of the Secret containing kubeconfig
+    #     kubeconfigSecretNamespace: "startpunkt"  # Namespace where the Secret is located (optional, defaults to current namespace)
+    #     kubeconfigSecretKey: "kubeconfig"  # Key within the Secret (optional, defaults to "kubeconfig")
+    #     ignore-certificates: false  # Ignore SSL certificate validation (default: false, use true only for development)
     #     enabled: true
+    #   # Option 3: Using a file path (for development/testing)
+    #   - name: "dev-cluster"
+    #     kubeconfigPath: "/path/to/dev-kubeconfig"  # Path to kubeconfig file
+    #     ignore-certificates: true  # Often needed for local dev clusters
+    #     enabled: true
+    #   # Note: Authentication method precedence: hostname+token > kubeconfigSecret > kubeconfigPath
 
-  # Default protocol for  # Istio Virtual Service integration, read Istio VirtualService resources
-  istio:
-    virtualservice:
-      enabled: true  # If true, enable the reading of Istio VirtualService resources (will auto-skip if Istio not installed)
-      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
-
-  # GatewayAPI HTTPRoute integration, read GatewayAPI HTTPRoute resources
-  gatewayapi:
-    httproute:
-      enabled: true  # If true, enable the reading of GatewayAPI HTTPRoute resources (will auto-skip if Gateway API not installed)
-      onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'ot specified in the resource
   defaultProtocol: "http"
 
   # Default language for the web UI
@@ -32,7 +38,7 @@ startpunkt:
     enabled: true  # If true, check application availability
     timeout: 5  # Timeout in seconds for availability checks
     interval: 60s  # Interval between availability checks (e.g., 60s, 5m, 1h)
-    ignoreCertificates: false  # If true, ignore SSL certificate validation errors (insecure, use only in development)
+    ignoreCertificates: true  # If true, ignore SSL certificate validation errors (insecure, use only in development)
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
 
@@ -115,7 +121,7 @@ startpunkt:
     enabled: true  # If true, enable Kubernetes informers for real-time cache updates
     # When enabled, the application will use Kubernetes Informers to watch for changes
     # and update the cache automatically, triggering GraphQL subscription notifications
-    resyncPeriodSeconds: 300  # Informer resync period in seconds (300 = 5 minutes)
+    resyncPeriodSeconds: 0  # Informer resync period in seconds (0 = disabled)
     # Informers automatically resync with Kubernetes API server at this interval,
     # ensuring cache consistency even if events are missed. This replaces the old
     # manual periodic refresh mechanism.

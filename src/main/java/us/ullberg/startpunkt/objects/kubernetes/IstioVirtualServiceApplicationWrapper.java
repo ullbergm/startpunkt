@@ -76,4 +76,16 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
     // If onlyAnnotated is true, filter the list to include only enabled applications
     return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;
   }
+
+  // Override method to get a list of ApplicationResponse objects with cluster name
+  @Override
+  public List<us.ullberg.startpunkt.objects.ApplicationResponse> getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List<String> matchNames, String clusterName) {
+    // Get the application specs with metadata from the parent class
+    var applicationSpecs =
+        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);
+
+    // If onlyAnnotated is true, filter the list to include only enabled applications
+    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;
+  }
 }

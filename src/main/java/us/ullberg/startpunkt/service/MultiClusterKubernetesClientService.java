@@ -1,7 +1,6 @@
 package us.ullberg.startpunkt.service;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.quarkus.logging.Log;
@@ -15,8 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import us.ullberg.startpunkt.config.ClusterConfig;
+import us.ullberg.startpunkt.config.ClustersConfig;
 
 /**
  * Service for managing multiple Kubernetes client connections.
@@ -28,23 +27,20 @@ import us.ullberg.startpunkt.config.ClusterConfig;
 public class MultiClusterKubernetesClientService {
 
   private final KubernetesClient localClient;
+  private final ClustersConfig clustersConfig;
   private final Map<String, KubernetesClient> remoteClients = new HashMap<>();
   private final Map<String, ClusterConfig> clusterConfigs = new HashMap<>();
 
-  @ConfigProperty(name = "startpunkt.clusters.local.enabled", defaultValue = "true")
-  boolean localClusterEnabled;
-
-  // Remote cluster configuration will be read manually from ConfigProvider
-  // instead of using @ConfigProperty with Optional<List<ClusterConfig>>
-  // to avoid deserialization issues
-
   /**
-   * Constructor with injected local Kubernetes client.
+   * Constructor with injected local Kubernetes client and clusters configuration.
    *
    * @param localClient the local Kubernetes client (injected by Quarkus)
+   * @param clustersConfig the clusters configuration (injected by Quarkus)
    */
-  public MultiClusterKubernetesClientService(KubernetesClient localClient) {
+  public MultiClusterKubernetesClientService(
+      KubernetesClient localClient, ClustersConfig clustersConfig) {
     this.localClient = localClient;
+    this.clustersConfig = clustersConfig;
   }
 
   /** Initialize remote cluster connections on startup. */
@@ -52,7 +48,7 @@ public class MultiClusterKubernetesClientService {
     Log.info("Initializing multi-cluster Kubernetes client service");
 
     // Register local cluster if enabled
-    if (localClusterEnabled) {
+    if (clustersConfig.local().enabled()) {
       ClusterConfig localConfig = new ClusterConfig("local", null, true);
       clusterConfigs.put("local", localConfig);
       Log.info("Local cluster enabled");
@@ -60,14 +56,61 @@ public class MultiClusterKubernetesClientService {
       Log.info("Local cluster disabled");
     }
 
-    // For now, remote cluster support requires manual configuration
-    // Future enhancement: Read from ConfigProvider to support dynamic cluster configuration
-    // Example:
-    // Config config = ConfigProvider.getConfig();
-    // config.getOptionalValues("startpunkt.clusters.remote", ClusterConfig.class)
-    //       .ifPresent(configs -> { ... });
+    // Initialize remote clusters if configured
+    Optional<List<ClustersConfig.RemoteCluster>> remoteClusterConfigs = clustersConfig.remote();
+    if (remoteClusterConfigs.isPresent() && !remoteClusterConfigs.get().isEmpty()) {
+      List<ClustersConfig.RemoteCluster> configs = remoteClusterConfigs.get();
+      Log.infof("Found %d remote cluster configuration(s)", configs.size());
+
+      for (ClustersConfig.RemoteCluster remoteConfig : configs) {
+        if (remoteConfig.enabled()) {
+          try {
+            // Convert RemoteCluster interface to ClusterConfig POJO
+            ClusterConfig config = toClusterConfig(remoteConfig);
+            initializeRemoteCluster(config);
+            Log.infof("Successfully initialized remote cluster '%s'", config.getName());
+          } catch (Exception e) {
+            Log.errorf(
+                e,
+                "Failed to initialize remote cluster '%s': %s",
+                remoteConfig.name(),
+                e.getMessage());
+          }
+        } else {
+          Log.infof("Remote cluster '%s' is disabled, skipping", remoteConfig.name());
+        }
+      }
+    } else {
+      Log.info("No remote clusters configured");
+    }
 
     Log.infof("Multi-cluster service initialized with %d active clusters", getActiveClusterCount());
+  }
+
+  /**
+   * Convert RemoteCluster interface to ClusterConfig POJO.
+   *
+   * @param remoteConfig the RemoteCluster configuration interface
+   * @return the ClusterConfig POJO
+   */
+  private ClusterConfig toClusterConfig(ClustersConfig.RemoteCluster remoteConfig) {
+    ClusterConfig config = new ClusterConfig();
+    config.setName(remoteConfig.name());
+    config.setEnabled(remoteConfig.enabled());
+    config.setIgnoreCertificates(remoteConfig.ignoreCertificates());
+
+    remoteConfig.kubeconfigPath().ifPresent(config::setKubeconfigPath);
+    remoteConfig.kubeconfigSecret().ifPresent(config::setKubeconfigSecret);
+    remoteConfig.kubeconfigSecretNamespace().ifPresent(config::setKubeconfigSecretNamespace);
+    config.setKubeconfigSecretKey(remoteConfig.kubeconfigSecretKey());
+
+    remoteConfig.hostname().ifPresent(config::setHostname);
+    remoteConfig.token().ifPresent(config::setToken);
+    remoteConfig.tokenSecret().ifPresent(config::setTokenSecret);
+    remoteConfig.tokenSecretNamespace().ifPresent(config::setTokenSecretNamespace);
+    config.setTokenSecretKey(remoteConfig.tokenSecretKey());
+
+    return config;
   }
 
   /** Close all remote Kubernetes clients on shutdown. */
@@ -102,26 +145,58 @@ public class MultiClusterKubernetesClientService {
     }
 
     if ("local".equalsIgnoreCase(clusterName)) {
-      throw new IllegalArgumentException(
-          "Cluster name 'local' is reserved for the local cluster");
+      throw new IllegalArgumentException("Cluster name 'local' is reserved for the local cluster");
     }
 
-    String kubeconfigPath = config.getKubeconfigPath();
-    if (kubeconfigPath == null || kubeconfigPath.trim().isEmpty()) {
-      throw new IllegalArgumentException(
-          "Kubeconfig path is required for remote cluster '" + clusterName + "'");
+    // Authentication method 1: Hostname + Token (takes highest precedence)
+    if (config.getHostname() != null && !config.getHostname().trim().isEmpty()) {
+      Log.infof(
+          "Initializing remote cluster '%s' with hostname and token authentication", clusterName);
+
+      String token = getTokenFromConfig(config);
+      initializeClusterWithToken(
+          clusterName, config.getHostname(), token, config.isIgnoreCertificates());
+      clusterConfigs.put(clusterName, config);
+      return;
     }
 
-    File kubeconfigFile = new File(kubeconfigPath);
-    if (!kubeconfigFile.exists()) {
+    // Authentication method 2: Secret-based kubeconfig
+    String kubeconfigContent = null;
+
+    if (config.getKubeconfigSecret() != null && !config.getKubeconfigSecret().trim().isEmpty()) {
+      Log.infof(
+          "Initializing remote cluster '%s' from Secret '%s'",
+          clusterName, config.getKubeconfigSecret());
+
+      kubeconfigContent = readKubeconfigFromSecret(config);
+    }
+    // Authentication method 3: File-based kubeconfig
+    else if (config.getKubeconfigPath() != null && !config.getKubeconfigPath().trim().isEmpty()) {
+      Log.infof(
+          "Initializing remote cluster '%s' with kubeconfig file: %s",
+          clusterName, config.getKubeconfigPath());
+
+      kubeconfigContent = readKubeconfigFromFile(config.getKubeconfigPath(), clusterName);
+    } else {
       throw new IllegalArgumentException(
-          "Kubeconfig file does not exist: " + kubeconfigPath + " for cluster '" + clusterName + "'");
+          "Either hostname+token, kubeconfigSecret, or kubeconfigPath must be provided for remote cluster '"
+              + clusterName
+              + "'");
     }
 
-    Log.infof("Initializing remote cluster '%s' with kubeconfig: %s", clusterName, kubeconfigPath);
+    Log.debugf("Creating Kubernetes client for cluster '%s'", clusterName);
 
     try {
-      Config kubeConfig = Config.fromKubeconfig(kubeconfigPath);
+      Config kubeConfig = Config.fromKubeconfig(kubeconfigContent);
+
+      // Apply ignoreCertificates setting if configured
+      if (config.isIgnoreCertificates()) {
+        kubeConfig.setTrustCerts(true);
+        Log.warnf(
+            "SSL certificate validation is disabled for cluster '%s' - this is insecure and should only be used in development",
+            clusterName);
+      }
+
       KubernetesClient client = new KubernetesClientBuilder().withConfig(kubeConfig).build();
 
       // Test the connection
@@ -132,10 +207,263 @@ public class MultiClusterKubernetesClientService {
       clusterConfigs.put(clusterName, config);
     } catch (Exception e) {
       throw new RuntimeException(
+          "Failed to create Kubernetes client for cluster '" + clusterName + "'", e);
+    }
+  }
+
+  /**
+   * Read kubeconfig from a Kubernetes Secret.
+   *
+   * @param config the cluster configuration
+   * @return the kubeconfig content
+   * @throws RuntimeException if the Secret cannot be read
+   */
+  private String readKubeconfigFromSecret(ClusterConfig config) {
+    String secretName = config.getKubeconfigSecret();
+    String namespace =
+        config.getKubeconfigSecretNamespace() != null
+            ? config.getKubeconfigSecretNamespace()
+            : localClient.getNamespace();
+    String key =
+        config.getKubeconfigSecretKey() != null && !config.getKubeconfigSecretKey().trim().isEmpty()
+            ? config.getKubeconfigSecretKey()
+            : "kubeconfig";
+
+    if (namespace == null || namespace.trim().isEmpty()) {
+      namespace = "default";
+    }
+
+    try {
+      Log.debugf(
+          "Reading kubeconfig from Secret '%s' in namespace '%s' (key: %s)",
+          secretName, namespace, key);
+
+      io.fabric8.kubernetes.api.model.Secret secret =
+          localClient.secrets().inNamespace(namespace).withName(secretName).get();
+
+      if (secret == null) {
+        throw new RuntimeException(
+            "Secret '"
+                + secretName
+                + "' not found in namespace '"
+                + namespace
+                + "' for cluster '"
+                + config.getName()
+                + "'");
+      }
+
+      Map<String, String> data = secret.getData();
+      if (data == null || !data.containsKey(key)) {
+        throw new RuntimeException(
+            "Key '"
+                + key
+                + "' not found in Secret '"
+                + secretName
+                + "' in namespace '"
+                + namespace
+                + "' for cluster '"
+                + config.getName()
+                + "'");
+      }
+
+      // Decode base64 content
+      String encodedContent = data.get(key);
+      byte[] decodedBytes = java.util.Base64.getDecoder().decode(encodedContent);
+      String kubeconfigContent = new String(decodedBytes, java.nio.charset.StandardCharsets.UTF_8);
+
+      Log.debugf("Successfully read kubeconfig from Secret '%s'", secretName);
+      return kubeconfigContent;
+
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "Failed to read kubeconfig from Secret '"
+              + secretName
+              + "' in namespace '"
+              + namespace
+              + "' for cluster '"
+              + config.getName()
+              + "'",
+          e);
+    }
+  }
+
+  /**
+   * Read kubeconfig from a file.
+   *
+   * @param kubeconfigPath the file path
+   * @param clusterName the cluster name
+   * @return the kubeconfig content
+   * @throws RuntimeException if the file cannot be read
+   */
+  private String readKubeconfigFromFile(String kubeconfigPath, String clusterName) {
+    File kubeconfigFile = new File(kubeconfigPath);
+    if (!kubeconfigFile.exists()) {
+      throw new IllegalArgumentException(
+          "Kubeconfig file does not exist: "
+              + kubeconfigPath
+              + " for cluster '"
+              + clusterName
+              + "'");
+    }
+
+    try {
+      return java.nio.file.Files.readString(kubeconfigFile.toPath());
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "Failed to read kubeconfig file: "
+              + kubeconfigPath
+              + " for cluster '"
+              + clusterName
+              + "'",
+          e);
+    }
+  }
+
+  /**
+   * Get the token from the configuration (either directly or from a Secret).
+   *
+   * @param config the cluster configuration
+   * @return the token
+   * @throws RuntimeException if the token cannot be obtained
+   */
+  private String getTokenFromConfig(ClusterConfig config) {
+    // Check if token is directly provided
+    if (config.getToken() != null && !config.getToken().trim().isEmpty()) {
+      Log.debugf("Using token from configuration for cluster '%s'", config.getName());
+      return config.getToken();
+    }
+
+    // Try to read from Secret
+    if (config.getTokenSecret() != null && !config.getTokenSecret().trim().isEmpty()) {
+      return readTokenFromSecret(config);
+    }
+
+    throw new IllegalArgumentException(
+        "Either token or tokenSecret must be provided for cluster '" + config.getName() + "'");
+  }
+
+  /**
+   * Read token from a Kubernetes Secret.
+   *
+   * @param config the cluster configuration
+   * @return the token
+   * @throws RuntimeException if the Secret cannot be read
+   */
+  private String readTokenFromSecret(ClusterConfig config) {
+    String secretName = config.getTokenSecret();
+    String namespace =
+        config.getTokenSecretNamespace() != null
+            ? config.getTokenSecretNamespace()
+            : localClient.getNamespace();
+    String key =
+        config.getTokenSecretKey() != null && !config.getTokenSecretKey().trim().isEmpty()
+            ? config.getTokenSecretKey()
+            : "token";
+
+    if (namespace == null || namespace.trim().isEmpty()) {
+      namespace = "default";
+    }
+
+    try {
+      Log.debugf(
+          "Reading token from Secret '%s' in namespace '%s' (key: %s)", secretName, namespace, key);
+
+      io.fabric8.kubernetes.api.model.Secret secret =
+          localClient.secrets().inNamespace(namespace).withName(secretName).get();
+
+      if (secret == null) {
+        throw new RuntimeException(
+            "Secret '"
+                + secretName
+                + "' not found in namespace '"
+                + namespace
+                + "' for cluster '"
+                + config.getName()
+                + "'");
+      }
+
+      Map<String, String> data = secret.getData();
+      if (data == null || !data.containsKey(key)) {
+        throw new RuntimeException(
+            "Key '"
+                + key
+                + "' not found in Secret '"
+                + secretName
+                + "' in namespace '"
+                + namespace
+                + "' for cluster '"
+                + config.getName()
+                + "'");
+      }
+
+      // Decode base64 content
+      String encodedContent = data.get(key);
+      byte[] decodedBytes = java.util.Base64.getDecoder().decode(encodedContent);
+      String token = new String(decodedBytes, java.nio.charset.StandardCharsets.UTF_8);
+
+      Log.debugf("Successfully read token from Secret '%s'", secretName);
+      return token.trim(); // Remove any trailing newlines/whitespace
+
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "Failed to read token from Secret '"
+              + secretName
+              + "' in namespace '"
+              + namespace
+              + "' for cluster '"
+              + config.getName()
+              + "'",
+          e);
+    }
+  }
+
+  /**
+   * Initialize a cluster connection using hostname and token.
+   *
+   * @param clusterName the cluster name
+   * @param hostname the Kubernetes API server hostname
+   * @param token the bearer token
+   * @param ignoreCertificates whether to ignore SSL certificate validation errors
+   * @throws RuntimeException if the connection cannot be established
+   */
+  private void initializeClusterWithToken(
+      String clusterName, String hostname, String token, boolean ignoreCertificates) {
+    try {
+      Log.debugf(
+          "Creating Kubernetes client for cluster '%s' with token authentication", clusterName);
+
+      Config kubeConfig = Config.autoConfigure(null); // Start with default config
+      kubeConfig.setMasterUrl(hostname);
+      kubeConfig.setOauthToken(token);
+      // Clear any other authentication methods
+      kubeConfig.setUsername(null);
+      kubeConfig.setPassword(null);
+      kubeConfig.setClientCertData(null);
+      kubeConfig.setClientKeyData(null);
+      // Set certificate trust based on configuration
+      kubeConfig.setTrustCerts(ignoreCertificates);
+
+      if (ignoreCertificates) {
+        Log.warnf(
+            "SSL certificate validation is disabled for cluster '%s' - this is insecure and should only be used in development",
+            clusterName);
+      }
+
+      KubernetesClient client = new KubernetesClientBuilder().withConfig(kubeConfig).build();
+
+      // Test the connection
+      String version = client.getKubernetesVersion().getGitVersion();
+      Log.infof("Connected to remote cluster '%s' (version: %s)", clusterName, version);
+
+      remoteClients.put(clusterName, client);
+
+    } catch (Exception e) {
+      throw new RuntimeException(
           "Failed to create Kubernetes client for cluster '"
               + clusterName
-              + "' from kubeconfig: "
-              + kubeconfigPath,
+              + "' with hostname '"
+              + hostname
+              + "'",
           e);
     }
   }
@@ -148,7 +476,7 @@ public class MultiClusterKubernetesClientService {
    */
   public KubernetesClient getClient(String clusterName) {
     if ("local".equalsIgnoreCase(clusterName)) {
-      return localClusterEnabled ? localClient : null;
+      return clustersConfig.local().enabled() ? localClient : null;
     }
     return remoteClients.get(clusterName);
   }
@@ -159,7 +487,7 @@ public class MultiClusterKubernetesClientService {
    * @return the local client, or null if disabled
    */
   public KubernetesClient getLocalClient() {
-    return localClusterEnabled ? localClient : null;
+    return clustersConfig.local().enabled() ? localClient : null;
   }
 
   /**
@@ -170,7 +498,7 @@ public class MultiClusterKubernetesClientService {
   public List<String> getActiveClusterNames() {
     List<String> names = new ArrayList<>();
 
-    if (localClusterEnabled) {
+    if (clustersConfig.local().enabled()) {
       names.add("local");
     }
 
@@ -195,7 +523,7 @@ public class MultiClusterKubernetesClientService {
    */
   public boolean isClusterActive(String clusterName) {
     if ("local".equalsIgnoreCase(clusterName)) {
-      return localClusterEnabled;
+      return clustersConfig.local().enabled();
     }
     return remoteClients.containsKey(clusterName);
   }
