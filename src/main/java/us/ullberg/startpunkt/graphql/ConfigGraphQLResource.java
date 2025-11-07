@@ -8,7 +8,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.graphql.Description;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Query;
-import us.ullberg.startpunkt.service.MultiClusterKubernetesClientService;
+import us.ullberg.startpunkt.service.MultiClusterService;
 
 /**
  * GraphQL API resource for application configuration. Provides queries for retrieving configuration
@@ -18,7 +18,7 @@ import us.ullberg.startpunkt.service.MultiClusterKubernetesClientService;
 @ApplicationScoped
 public class ConfigGraphQLResource {
 
-  final MultiClusterKubernetesClientService multiClusterService;
+  final MultiClusterService multiClusterService;
 
   @ConfigProperty(name = "startpunkt.web.githubLink.enabled", defaultValue = "true")
   boolean showGithubLink;
@@ -44,9 +44,9 @@ public class ConfigGraphQLResource {
   /**
    * Constructor with injected dependencies.
    *
-   * @param multiClusterService the multi-cluster Kubernetes client service
+   * @param multiClusterService the multi-cluster service
    */
-  public ConfigGraphQLResource(MultiClusterKubernetesClientService multiClusterService) {
+  public ConfigGraphQLResource(MultiClusterService multiClusterService) {
     this.multiClusterService = multiClusterService;
   }
 

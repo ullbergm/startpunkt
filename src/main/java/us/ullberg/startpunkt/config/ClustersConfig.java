@@ -43,58 +43,16 @@ public interface ClustersConfig {
     /** Cluster name. */
     String name();
 
-    /** Kubeconfig file path. */
-    Optional<String> kubeconfigPath();
-
-    /** Kubeconfig Secret name. */
-    Optional<String> kubeconfigSecret();
-
-    /** Kubeconfig Secret namespace. */
-    Optional<String> kubeconfigSecretNamespace();
-
-    /** Kubeconfig Secret key. */
-    @WithDefault("kubeconfig")
-    String kubeconfigSecretKey();
-
-    /** Kubernetes API server hostname. */
-    Optional<String> hostname();
-
-    /** Bearer token for authentication. */
-    Optional<String> token();
-
-    /** Token Secret name. */
-    Optional<String> tokenSecret();
-
-    /** Token Secret namespace. */
-    Optional<String> tokenSecretNamespace();
-
-    /** Token Secret key. */
-    @WithDefault("token")
-    String tokenSecretKey();
-
     /** Whether this cluster is enabled. */
     @WithDefault("true")
     boolean enabled();
 
     /**
-     * Whether to ignore SSL certificate validation errors (insecure, use only for development).
-     *
-     * @return true if certificate validation should be ignored
+     * GraphQL endpoint URL for remote Startpunkt instance.
      */
-    @WithDefault("false")
-    boolean ignoreCertificates();
-
-    /**
-     * GraphQL endpoint URL for remote Startpunkt instance. If set, connects to remote Startpunkt
-     * via GraphQL instead of Kubernetes.
-     */
-    Optional<String> graphqlUrl();
+    String graphqlUrl();
 
     /** Authentication token for GraphQL endpoint. */
     Optional<String> graphqlToken();
-
-    /** Connection type: "kubernetes" or "graphql". Defaults to "kubernetes". */
-    @WithDefault("kubernetes")
-    String connectionType();
   }
 }

@@ -50,7 +50,7 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 public class KubernetesInformerService {
 
   private final KubernetesClient kubernetesClient;
-  private final MultiClusterKubernetesClientService multiClusterService;
+  private final MultiClusterService multiClusterService;
   private final ApplicationCacheService applicationCacheService;
   private final BookmarkCacheService bookmarkCacheService;
   private final EventBroadcaster eventBroadcaster;
@@ -120,7 +120,7 @@ public class KubernetesInformerService {
   /** Constructor with injected dependencies. */
   public KubernetesInformerService(
       KubernetesClient kubernetesClient,
-      MultiClusterKubernetesClientService multiClusterService,
+      MultiClusterService multiClusterService,
       ApplicationCacheService applicationCacheService,
       BookmarkCacheService bookmarkCacheService,
       EventBroadcaster eventBroadcaster,
@@ -946,9 +946,8 @@ public class KubernetesInformerService {
         Log.infof("Processing cluster: %s", clusterName);
         Optional<ClusterConfig> configOpt = multiClusterService.getClusterConfig(clusterName);
 
-        // Check if this is a GraphQL connection
-        if (configOpt.isPresent()
-            && "graphql".equalsIgnoreCase(configOpt.get().getConnectionType())) {
+        // Check if this is a remote GraphQL cluster (not local)
+        if (configOpt.isPresent() && !"local".equalsIgnoreCase(clusterName)) {
           Log.infof("Loading applications from remote Startpunkt '%s' via GraphQL", clusterName);
           try {
             List<ApplicationResponse> remoteApps =
@@ -967,11 +966,11 @@ public class KubernetesInformerService {
           continue; // Skip Kubernetes client logic for GraphQL connections
         }
 
-        // Kubernetes connection logic below
-        Log.infof("Attempting to get Kubernetes client for cluster: %s", clusterName);
+        // Local Kubernetes cluster logic below
+        Log.infof("Attempting to get Kubernetes client for local cluster");
         KubernetesClient client = multiClusterService.getClient(clusterName);
         if (client == null) {
-          Log.warnf("Cluster '%s' is configured but client is null, skipping", clusterName);
+          Log.warnf("Local cluster is configured but client is null, skipping");
           continue;
         }
 
@@ -1077,8 +1076,8 @@ public class KubernetesInformerService {
         String clusterName = entry.getKey();
         ClusterConfig config = entry.getValue();
 
-        // Check if this is a GraphQL connection
-        if (config != null && "graphql".equalsIgnoreCase(config.getConnectionType())) {
+        // Check if this is a remote GraphQL cluster (not local)
+        if (config != null && !"local".equalsIgnoreCase(clusterName)) {
           Log.debugf("Loading bookmarks from remote Startpunkt '%s' via GraphQL", clusterName);
           try {
             List<BookmarkResponse> remoteBookmarks =
@@ -1094,12 +1093,10 @@ public class KubernetesInformerService {
                 clusterName,
                 e.getMessage());
           }
-          continue; // Skip Kubernetes client logic for GraphQL connections
+          continue; // Skip local cluster logic for GraphQL remote clusters
         }
 
-        // Kubernetes connection logic for local cluster only
-        // Note: For remote Kubernetes clusters, bookmark loading is not yet implemented
-        // Only the local cluster loads bookmarks via BookmarkService
+        // Local cluster logic
         if ("local".equalsIgnoreCase(clusterName)) {
           // Load Startpunkt bookmarks
           bookmarks.addAll(bookmarkService.retrieveBookmarks());

@@ -3,30 +3,15 @@ startpunkt:
   clusters:
     local:
       enabled: true  # If true, read from the local cluster (the cluster where Startpunkt is running)
-    # remote:  # Example remote cluster configurations
-    #   # Option 1: Using hostname + token (direct connection with service account token)
-    #   - name: "prod-cluster"  # Unique name for the cluster
-    #     hostname: "https://api.prod-cluster.example.com:6443"  # Kubernetes API server URL
-    #     token: "eyJhbGciOiJSUzI1NiIsImtpZCI6..."  # Bearer token (can be provided directly)
-    #     # OR read token from a Secret (recommended for security)
-    #     tokenSecret: "prod-cluster-token"  # Name of the Secret containing the token
-    #     tokenSecretNamespace: "startpunkt"  # Namespace where the Secret is located (optional, defaults to current namespace)
-    #     tokenSecretKey: "token"  # Key within the Secret (optional, defaults to "token")
-    #     ignore-certificates: false  # Ignore SSL certificate validation (default: false, use true only for development)
-    #     enabled: true  # If true, read from this remote cluster
-    #   # Option 2: Using a Kubernetes Secret with kubeconfig (recommended for full config)
+    # remote:  # Example remote GraphQL cluster configurations
+    #   # Remote Startpunkt instances via GraphQL
+    #   - name: "prod-cluster"  # Unique name for the remote cluster
+    #     graphql-url: "https://startpunkt.prod.example.com/graphql"  # GraphQL endpoint URL
+    #     graphql-token: "optional-bearer-token"  # Optional authentication token
+    #     enabled: true  # If true, fetch applications and bookmarks from this remote Startpunkt
     #   - name: "staging-cluster"
-    #     kubeconfigSecret: "staging-cluster-kubeconfig"  # Name of the Secret containing kubeconfig
-    #     kubeconfigSecretNamespace: "startpunkt"  # Namespace where the Secret is located (optional, defaults to current namespace)
-    #     kubeconfigSecretKey: "kubeconfig"  # Key within the Secret (optional, defaults to "kubeconfig")
-    #     ignore-certificates: false  # Ignore SSL certificate validation (default: false, use true only for development)
+    #     graphql-url: "https://startpunkt.staging.example.com/graphql"
     #     enabled: true
-    #   # Option 3: Using a file path (for development/testing)
-    #   - name: "dev-cluster"
-    #     kubeconfigPath: "/path/to/dev-kubeconfig"  # Path to kubeconfig file
-    #     ignore-certificates: true  # Often needed for local dev clusters
-    #     enabled: true
-    #   # Note: Authentication method precedence: hostname+token > kubeconfigSecret > kubeconfigPath
 
   defaultProtocol: "http"
 
