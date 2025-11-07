@@ -32,8 +32,7 @@ public class MultiClusterService {
    * @param localClient the local Kubernetes client (injected by Quarkus)
    * @param clustersConfig the clusters configuration (injected by Quarkus)
    */
-  public MultiClusterService(
-      KubernetesClient localClient, ClustersConfig clustersConfig) {
+  public MultiClusterService(KubernetesClient localClient, ClustersConfig clustersConfig) {
     this.localClient = localClient;
     this.clustersConfig = clustersConfig;
   }
@@ -95,8 +94,6 @@ public class MultiClusterService {
     Log.info("Multi-cluster service shutdown complete");
   }
 
-
-
   /**
    * Get the Kubernetes client for a specific cluster. Only returns a client for the local cluster.
    *
@@ -135,7 +132,7 @@ public class MultiClusterService {
 
     // Add all remote GraphQL clusters from clusterConfigs
     names.addAll(clusterConfigs.keySet());
-    
+
     return names;
   }
 

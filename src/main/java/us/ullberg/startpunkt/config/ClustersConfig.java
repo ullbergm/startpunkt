@@ -47,9 +47,7 @@ public interface ClustersConfig {
     @WithDefault("true")
     boolean enabled();
 
-    /**
-     * GraphQL endpoint URL for remote Startpunkt instance.
-     */
+    /** GraphQL endpoint URL for remote Startpunkt instance. */
     String graphqlUrl();
 
     /** Authentication token for GraphQL endpoint. */

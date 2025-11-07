@@ -1021,7 +1021,8 @@ public class KubernetesInformerService {
             var wrapperApps =
                 applicationWrapper.getApplicationSpecsWithMetadata(
                     client, anyNamespace, matchNames.orElse(List.of()), clusterName);
-            Log.infof("Wrapper %s loaded %d apps from cluster %s", 
+            Log.infof(
+                "Wrapper %s loaded %d apps from cluster %s",
                 applicationWrapper.getClass().getSimpleName(), wrapperApps.size(), clusterName);
             apps.addAll(wrapperApps);
           } catch (Exception e) {
