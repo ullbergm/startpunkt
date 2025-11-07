@@ -185,7 +185,8 @@ export function Background() {
         });
         
         // Add keyframes for mesh gradient animation if needed
-        if (backgroundPrefs.preferences.type === 'meshGradient' && backgroundPrefs.preferences.meshAnimated) {
+        const meshAnimated = backgroundPrefs.getTypePreference('meshAnimated');
+        if (backgroundPrefs.preferences.type === 'meshGradient' && meshAnimated) {
           let styleSheet = document.getElementById('background-animation-styles');
           if (!styleSheet) {
             styleSheet = document.createElement('style');
