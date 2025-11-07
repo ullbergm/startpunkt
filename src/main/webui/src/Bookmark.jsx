@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react';
 import { Text } from 'preact-i18n';
 
 export function Bookmark(props) {
-  const { layoutPrefs, onEdit } = props;
+  const { layoutPrefs, onEdit, showClusterName } = props;
   const isEditable = !props.bookmark.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode;
   
@@ -134,7 +134,7 @@ export function Bookmark(props) {
         {showDescription && props.bookmark.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
-        {props.bookmark.cluster && props.bookmark.cluster !== 'local' && (
+        {showClusterName && props.bookmark.cluster && props.bookmark.cluster !== 'local' && (
           <div class="mt-1">
             <span 
               class="badge bg-info text-dark" 

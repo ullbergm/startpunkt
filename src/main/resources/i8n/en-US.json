@@ -83,7 +83,7 @@
         "disabled" : "Off",
         "local" : "local",
         "help" : "Disabled clusters will hide their applications from the view",
-        "shiftClickHelp" : "Shift-click to show only that cluster"
+        "clickHelp" : "Click cluster name to show only that cluster"
     },
     "layout" : {
         "title" : "Layout",

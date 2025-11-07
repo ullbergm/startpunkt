@@ -26,6 +26,10 @@ export function ClusterSettings({ clusters }) {
 
   const allEnabled = clusterPrefs.areAllClustersEnabled(clusters);
   const enabledCount = clusterPrefs.getEnabledCount();
+  
+  // Get the single enabled cluster name if only one is selected
+  const enabledClusters = clusterPrefs.getEnabledClusters(clusters);
+  const singleClusterName = enabledCount === 1 ? enabledClusters[0] : null;
 
   return (
     <>
@@ -47,19 +51,16 @@ export function ClusterSettings({ clusters }) {
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
             <use href="#server-network"></use>
           </svg>
-          <span class="visually-hidden" id="bd-cluster-text">
-            <Text id="cluster.title">Cluster Filters</Text>
-          </span>
+          {singleClusterName ? (
+            <span class="ms-2 d-none d-md-inline" id="bd-cluster-text">
+              {singleClusterName}
+            </span>
+          ) : (
+            <span class="visually-hidden" id="bd-cluster-text">
+              <Text id="cluster.title">Cluster Filters</Text>
+            </span>
+          )}
         </button>
-        {!allEnabled && (
-          <span 
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark"
-            style={{ fontSize: '0.6rem', padding: '0.15rem 0.35rem' }}
-            aria-label={`${enabledCount} of ${clusters.length} clusters enabled`}
-          >
-            {enabledCount}
-          </span>
-        )}
         
         <div 
           class="dropdown-menu dropdown-menu-end shadow"
@@ -97,31 +98,23 @@ export function ClusterSettings({ clusters }) {
                     key={clusterName} 
                     class="d-flex align-items-center justify-content-between mb-2 p-2 rounded"
                     style={{ 
-                      backgroundColor: 'var(--bs-secondary-bg)',
-                      cursor: 'pointer'
+                      backgroundColor: 'var(--bs-secondary-bg)'
                     }}
-                    onClick={(e) => {
-                      if (e.shiftKey) {
-                        clusterPrefs.enableOnlyCluster(clusterName);
-                      } else {
-                        clusterPrefs.toggleCluster(clusterName);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        if (e.shiftKey) {
-                          clusterPrefs.enableOnlyCluster(clusterName);
-                        } else {
-                          clusterPrefs.toggleCluster(clusterName);
-                        }
-                      }
-                    }}
-                    aria-label={`${clusterName} cluster - ${isEnabled ? 'enabled' : 'disabled'}. Click to toggle. Shift-click to enable only this cluster.`}
                   >
-                    <span class="d-flex align-items-center">
+                    <span 
+                      class="d-flex align-items-center flex-grow-1"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => clusterPrefs.enableOnlyCluster(clusterName)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          clusterPrefs.enableOnlyCluster(clusterName);
+                        }
+                      }}
+                      aria-label={`${clusterName} cluster - click to show only this cluster`}
+                    >
                       <Icon 
                         icon={isLocal ? "mdi:laptop" : "mdi:server-network"} 
                         width="18" 
@@ -140,8 +133,20 @@ export function ClusterSettings({ clusters }) {
                     </span>
                     <span 
                       class={`badge ${isEnabled ? 'bg-success' : 'bg-secondary'}`}
-                      style={{ fontSize: '0.7rem' }}
-                      aria-hidden="true"
+                      style={{ fontSize: '0.7rem', cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clusterPrefs.toggleCluster(clusterName);
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          clusterPrefs.toggleCluster(clusterName);
+                        }
+                      }}
+                      aria-label={`Toggle ${clusterName} cluster ${isEnabled ? 'off' : 'on'}`}
                     >
                       {isEnabled ? (
                         <Text id="cluster.enabled">On</Text>
@@ -164,8 +169,8 @@ export function ClusterSettings({ clusters }) {
                 </Text>
               </div>
               <div class="mt-1">
-                <Text id="cluster.shiftClickHelp">
-                  Shift-click to show only that cluster
+                <Text id="cluster.clickHelp">
+                  Click cluster name to show only that cluster
                 </Text>
               </div>
             </div>

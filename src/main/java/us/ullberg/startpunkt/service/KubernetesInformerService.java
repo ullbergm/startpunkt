@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.config.ClusterConfig;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
@@ -55,6 +56,7 @@ public class KubernetesInformerService {
   private final EventBroadcaster eventBroadcaster;
   private final AvailabilityCheckService availabilityCheckService;
   private final BookmarkService bookmarkService;
+  private final RemoteStartpunktClient remoteStartpunktClient;
 
   // List to hold all active informers for cleanup on shutdown
   private final List<SharedIndexInformer<?>> informers = new CopyOnWriteArrayList<>();
@@ -123,7 +125,8 @@ public class KubernetesInformerService {
       BookmarkCacheService bookmarkCacheService,
       EventBroadcaster eventBroadcaster,
       AvailabilityCheckService availabilityCheckService,
-      BookmarkService bookmarkService) {
+      BookmarkService bookmarkService,
+      RemoteStartpunktClient remoteStartpunktClient) {
     this.kubernetesClient = kubernetesClient;
     this.multiClusterService = multiClusterService;
     this.applicationCacheService = applicationCacheService;
@@ -131,6 +134,7 @@ public class KubernetesInformerService {
     this.eventBroadcaster = eventBroadcaster;
     this.availabilityCheckService = availabilityCheckService;
     this.bookmarkService = bookmarkService;
+    this.remoteStartpunktClient = remoteStartpunktClient;
   }
 
   /**
@@ -939,6 +943,32 @@ public class KubernetesInformerService {
 
       // Iterate through all active clusters
       for (String clusterName : multiClusterService.getActiveClusterNames()) {
+        Log.infof("Processing cluster: %s", clusterName);
+        Optional<ClusterConfig> configOpt = multiClusterService.getClusterConfig(clusterName);
+
+        // Check if this is a GraphQL connection
+        if (configOpt.isPresent()
+            && "graphql".equalsIgnoreCase(configOpt.get().getConnectionType())) {
+          Log.infof("Loading applications from remote Startpunkt '%s' via GraphQL", clusterName);
+          try {
+            List<ApplicationResponse> remoteApps =
+                remoteStartpunktClient.fetchApplications(configOpt.get(), clusterName);
+            apps.addAll(remoteApps);
+            Log.infof(
+                "Loaded %d applications from remote Startpunkt '%s'",
+                remoteApps.size(), clusterName);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading applications from remote Startpunkt '%s': %s",
+                clusterName,
+                e.getMessage());
+          }
+          continue; // Skip Kubernetes client logic for GraphQL connections
+        }
+
+        // Kubernetes connection logic below
+        Log.infof("Attempting to get Kubernetes client for cluster: %s", clusterName);
         KubernetesClient client = multiClusterService.getClient(clusterName);
         if (client == null) {
           Log.warnf("Cluster '%s' is configured but client is null, skipping", clusterName);
@@ -992,6 +1022,8 @@ public class KubernetesInformerService {
             var wrapperApps =
                 applicationWrapper.getApplicationSpecsWithMetadata(
                     client, anyNamespace, matchNames.orElse(List.of()), clusterName);
+            Log.infof("Wrapper %s loaded %d apps from cluster %s", 
+                applicationWrapper.getClass().getSimpleName(), wrapperApps.size(), clusterName);
             apps.addAll(wrapperApps);
           } catch (Exception e) {
             Log.warnf(
@@ -1002,6 +1034,7 @@ public class KubernetesInformerService {
                 e.getMessage());
           }
         }
+        Log.infof("Total apps after processing cluster %s: %d", clusterName, apps.size());
 
         Log.debugf("Loaded %d applications from cluster '%s'", apps.size(), clusterName);
       }
@@ -1030,24 +1063,52 @@ public class KubernetesInformerService {
     }
   }
 
-  /** Reloads the entire bookmark cache from Kubernetes. */
+  /** Reloads the entire bookmark cache from Kubernetes and remote Startpunkt instances. */
   private void reloadBookmarkCache() {
     try {
       Log.debug("Reloading bookmark cache");
 
       List<BookmarkResponse> bookmarks = new ArrayList<>();
 
-      // Note: Bookmarks are currently only loaded from the local cluster
-      // BookmarkService creates its own KubernetesClient and doesn't support multi-cluster yet
-      // Future enhancement: Refactor BookmarkService to accept KubernetesClient parameter
-      // and iterate through all clusters like we do for applications
+      // Load bookmarks from all configured clusters
+      Map<String, ClusterConfig> allClusters = multiClusterService.getAllClusterConfigs();
 
-      // Load Startpunkt bookmarks
-      bookmarks.addAll(bookmarkService.retrieveBookmarks());
+      for (Map.Entry<String, ClusterConfig> entry : allClusters.entrySet()) {
+        String clusterName = entry.getKey();
+        ClusterConfig config = entry.getValue();
 
-      // Load Hajimari bookmarks if enabled and available
-      if (hajimariEnabled && hajimariResourcesAvailable) {
-        bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+        // Check if this is a GraphQL connection
+        if (config != null && "graphql".equalsIgnoreCase(config.getConnectionType())) {
+          Log.debugf("Loading bookmarks from remote Startpunkt '%s' via GraphQL", clusterName);
+          try {
+            List<BookmarkResponse> remoteBookmarks =
+                remoteStartpunktClient.fetchBookmarks(config, clusterName);
+            bookmarks.addAll(remoteBookmarks);
+            Log.debugf(
+                "Loaded %d bookmarks from remote Startpunkt '%s'",
+                remoteBookmarks.size(), clusterName);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading bookmarks from remote Startpunkt '%s': %s",
+                clusterName,
+                e.getMessage());
+          }
+          continue; // Skip Kubernetes client logic for GraphQL connections
+        }
+
+        // Kubernetes connection logic for local cluster only
+        // Note: For remote Kubernetes clusters, bookmark loading is not yet implemented
+        // Only the local cluster loads bookmarks via BookmarkService
+        if ("local".equalsIgnoreCase(clusterName)) {
+          // Load Startpunkt bookmarks
+          bookmarks.addAll(bookmarkService.retrieveBookmarks());
+
+          // Load Hajimari bookmarks if enabled and available
+          if (hajimariEnabled && hajimariResourcesAvailable) {
+            bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+          }
+        }
       }
 
       // Clear and repopulate cache
@@ -1057,7 +1118,7 @@ public class KubernetesInformerService {
       // Note: We don't broadcast STATUS_CHANGED here to avoid feedback loops.
       // Individual add/update/delete handlers already broadcast specific events.
 
-      Log.debugf("Reloaded %d bookmarks into cache", bookmarks.size());
+      Log.debugf("Reloaded %d bookmarks into cache from all clusters", bookmarks.size());
     } catch (Exception e) {
       Log.error("Error reloading bookmark cache", e);
     }

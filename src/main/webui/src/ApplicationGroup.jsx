@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { Application } from './Application';
 
 export function ApplicationGroup(props) {
-  const { layoutPrefs, isCollapsed, onToggle, onEditApp, isFavorite, onToggleFavorite, isFavorites, onReorderFavorites, skeleton } = props;
+  const { layoutPrefs, isCollapsed, onToggle, onEditApp, isFavorite, onToggleFavorite, isFavorites, onReorderFavorites, skeleton, showClusterName } = props;
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   
@@ -74,6 +74,7 @@ export function ApplicationGroup(props) {
                 app={app} 
                 layoutPrefs={layoutPrefs}
                 skeleton={true}
+                showClusterName={showClusterName}
               />
             </div>
           ))}
@@ -251,6 +252,7 @@ export function ApplicationGroup(props) {
                   onEdit={onEditApp}
                   isFavorite={isFavorite ? isFavorite(app) : false}
                   onToggleFavorite={onToggleFavorite}
+                  showClusterName={showClusterName}
                 />
               </div>
             );

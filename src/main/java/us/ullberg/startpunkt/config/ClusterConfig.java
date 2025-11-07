@@ -56,6 +56,25 @@ public class ClusterConfig {
   /** Whether to ignore SSL certificate validation errors (insecure, use only for development). */
   private boolean ignoreCertificates = false;
 
+  /**
+   * GraphQL endpoint URL for remote Startpunkt instance (e.g.,
+   * "https://startpunkt.example.com/graphql"). If set, connects to a remote Startpunkt instance
+   * instead of directly to Kubernetes.
+   */
+  private String graphqlUrl;
+
+  /**
+   * Authentication token for GraphQL endpoint (e.g., Bearer token). Used when connecting to a
+   * remote Startpunkt instance.
+   */
+  private String graphqlToken;
+
+  /**
+   * Connection type: "kubernetes" (direct K8s connection) or "graphql" (remote Startpunkt).
+   * Defaults to "kubernetes".
+   */
+  private String connectionType = "kubernetes";
+
   /** Default constructor. */
   public ClusterConfig() {}
 
@@ -288,11 +307,68 @@ public class ClusterConfig {
     this.ignoreCertificates = ignoreCertificates;
   }
 
+  /**
+   * Gets the GraphQL endpoint URL.
+   *
+   * @return the GraphQL URL
+   */
+  public String getGraphqlUrl() {
+    return graphqlUrl;
+  }
+
+  /**
+   * Sets the GraphQL endpoint URL.
+   *
+   * @param graphqlUrl the GraphQL URL
+   */
+  public void setGraphqlUrl(String graphqlUrl) {
+    this.graphqlUrl = graphqlUrl;
+  }
+
+  /**
+   * Gets the GraphQL authentication token.
+   *
+   * @return the GraphQL token
+   */
+  public String getGraphqlToken() {
+    return graphqlToken;
+  }
+
+  /**
+   * Sets the GraphQL authentication token.
+   *
+   * @param graphqlToken the GraphQL token
+   */
+  public void setGraphqlToken(String graphqlToken) {
+    this.graphqlToken = graphqlToken;
+  }
+
+  /**
+   * Gets the connection type.
+   *
+   * @return the connection type ("kubernetes" or "graphql")
+   */
+  public String getConnectionType() {
+    return connectionType;
+  }
+
+  /**
+   * Sets the connection type.
+   *
+   * @param connectionType the connection type
+   */
+  public void setConnectionType(String connectionType) {
+    this.connectionType = connectionType;
+  }
+
   @Override
   public String toString() {
     return "ClusterConfig{"
         + "name='"
         + name
+        + '\''
+        + ", connectionType='"
+        + connectionType
         + '\''
         + ", kubeconfigPath='"
         + kubeconfigPath
@@ -320,6 +396,12 @@ public class ClusterConfig {
         + '\''
         + ", tokenSecretKey='"
         + tokenSecretKey
+        + '\''
+        + ", graphqlUrl='"
+        + graphqlUrl
+        + '\''
+        + ", graphqlToken='"
+        + (graphqlToken != null ? "***" : null)
         + '\''
         + ", enabled="
         + enabled

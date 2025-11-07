@@ -83,7 +83,7 @@
         "disabled" : "Av",
         "local" : "lokal",
         "help" : "Inaktiverade kluster kommer att dölja sina applikationer från vyn",
-        "shiftClickHelp" : "Shift-klicka för att endast visa det klustret"
+        "clickHelp" : "Klicka på klusternamnet för att endast visa det klustret"
     },
     "layout" : {
         "title" : "Layout",

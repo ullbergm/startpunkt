@@ -106,6 +106,10 @@ public class MultiClusterKubernetesClientService {
     config.setEnabled(remoteConfig.enabled());
     config.setIgnoreCertificates(remoteConfig.ignoreCertificates());
 
+    // Connection type and GraphQL URL
+    config.setConnectionType(remoteConfig.connectionType());
+    remoteConfig.graphqlUrl().ifPresent(config::setGraphqlUrl);
+
     remoteConfig.kubeconfigPath().ifPresent(config::setKubeconfigPath);
     remoteConfig.kubeconfigSecret().ifPresent(config::setKubeconfigSecret);
     remoteConfig.kubeconfigSecretNamespace().ifPresent(config::setKubeconfigSecretNamespace);
@@ -154,6 +158,31 @@ public class MultiClusterKubernetesClientService {
     if ("local".equalsIgnoreCase(clusterName)) {
       throw new IllegalArgumentException("Cluster name 'local' is reserved for the local cluster");
     }
+
+    // Debug log the connection type
+    Log.infof(
+        "Initializing cluster '%s' with connection type: '%s'",
+        clusterName, config.getConnectionType());
+
+    // Check if this is a GraphQL connection (remote Startpunkt instance)
+    if ("graphql".equalsIgnoreCase(config.getConnectionType())) {
+      Log.infof("Initializing remote cluster '%s' via GraphQL", clusterName);
+
+      if (config.getGraphqlUrl() == null || config.getGraphqlUrl().trim().isEmpty()) {
+        throw new IllegalArgumentException(
+            "GraphQL URL is required for graphql connection type for cluster '"
+                + clusterName
+                + "'");
+      }
+
+      // For GraphQL connections, just store the config - no Kubernetes client needed
+      clusterConfigs.put(clusterName, config);
+      Log.infof(
+          "Configured remote Startpunkt cluster '%s' at %s", clusterName, config.getGraphqlUrl());
+      return;
+    }
+
+    // Kubernetes connection types below...
 
     // Authentication method 1: Hostname + Token (takes highest precedence)
     if (config.getHostname() != null && !config.getHostname().trim().isEmpty()) {
@@ -533,7 +562,16 @@ public class MultiClusterKubernetesClientService {
       names.add("local");
     }
 
+    // Add clusters with Kubernetes clients
     names.addAll(remoteClients.keySet());
+    
+    // Add GraphQL-only clusters (those in clusterConfigs but not in remoteClients)
+    for (String configName : clusterConfigs.keySet()) {
+      if (!remoteClients.containsKey(configName) && !names.contains(configName)) {
+        names.add(configName);
+      }
+    }
+    
     return names;
   }
 

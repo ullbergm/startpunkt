@@ -462,9 +462,21 @@ export function App() {
       applicationGroups.some(group => Array.isArray(group.applications) && group.applications.length > 0);
   };
 
+  // Filter bookmark groups by enabled clusters
+  const getFilteredBookmarkGroups = () => {
+    if (!bookmarkGroups) return null;
+    
+    // Apply cluster filtering to each group's bookmarks
+    return bookmarkGroups.map(group => ({
+      ...group,
+      bookmarks: clusterPrefs.filterBookmarks(group.bookmarks)
+    })).filter(group => group.bookmarks.length > 0); // Remove empty groups after filtering
+  };
+
   const hasBookmarks = () => {
-    return Array.isArray(bookmarkGroups) &&
-      bookmarkGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
+    const filteredGroups = getFilteredBookmarkGroups();
+    return Array.isArray(filteredGroups) &&
+      filteredGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
   };
 
   // Filter application groups by enabled clusters
@@ -857,8 +869,8 @@ export function App() {
             {/* Show actual content once loaded */}
             {applicationGroups !== null && bookmarkGroups !== null && (
               <>
-                {currentPage === 'applications' && hasFilteredApplications() && <ApplicationGroupList groups={getFilteredApplicationGroups()} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
-                {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
+                {currentPage === 'applications' && hasFilteredApplications() && <ApplicationGroupList groups={getFilteredApplicationGroups()} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} showClusterName={clusterPrefs.getEnabledCount() > 1} />}
+                {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={getFilteredBookmarkGroups()} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} showClusterName={clusterPrefs.getEnabledCount() > 1} />}
                 {currentPage === "empty" && (
                   <div class="text-center" role="status">
                     <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>

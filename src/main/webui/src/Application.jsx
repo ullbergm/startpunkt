@@ -35,7 +35,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite, skeleton } = props;
+  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite, skeleton, showClusterName } = props;
   const isUnavailable = props.app?.available === false;
   const isEditable = !props.app?.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode && !skeleton;
@@ -252,7 +252,7 @@ export function Application(props) {
         {showDescription && props.app.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
         )}
-        {props.app.cluster && props.app.cluster !== 'local' && (
+        {showClusterName && props.app.cluster && props.app.cluster !== 'local' && (
           <div class="mt-1">
             <span 
               class="badge bg-info text-dark" 

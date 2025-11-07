@@ -198,6 +198,30 @@ export function useClusterPreferences(defaultShowAll = false) {
     });
   };
 
+  /**
+   * Filter bookmarks based on enabled clusters
+   * 
+   * @param {Array} bookmarks - Array of bookmark objects
+   * @returns {Array} - Filtered array of bookmarks
+   */
+  const filterBookmarks = (bookmarks) => {
+    if (!bookmarks) return [];
+    
+    const currentEnabled = preferences.enabledClusters || {};
+    
+    // If no preferences set or all are enabled, return all bookmarks
+    const hasDisabledClusters = Object.values(currentEnabled).some(enabled => !enabled);
+    if (!hasDisabledClusters) {
+      return bookmarks;
+    }
+
+    // Filter out bookmarks from disabled clusters
+    return bookmarks.filter(bookmark => {
+      const clusterName = bookmark.cluster || 'local';
+      return isClusterEnabled(clusterName);
+    });
+  };
+
   return {
     preferences,
     initializeClusters,
@@ -209,7 +233,8 @@ export function useClusterPreferences(defaultShowAll = false) {
     getEnabledClusters,
     getEnabledCount,
     areAllClustersEnabled,
-    filterApplications
+    filterApplications,
+    filterBookmarks
   };
 }
 

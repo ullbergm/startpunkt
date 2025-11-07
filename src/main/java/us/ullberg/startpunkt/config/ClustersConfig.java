@@ -83,5 +83,18 @@ public interface ClustersConfig {
      */
     @WithDefault("false")
     boolean ignoreCertificates();
+
+    /**
+     * GraphQL endpoint URL for remote Startpunkt instance. If set, connects to remote Startpunkt
+     * via GraphQL instead of Kubernetes.
+     */
+    Optional<String> graphqlUrl();
+
+    /** Authentication token for GraphQL endpoint. */
+    Optional<String> graphqlToken();
+
+    /** Connection type: "kubernetes" or "graphql". Defaults to "kubernetes". */
+    @WithDefault("kubernetes")
+    String connectionType();
   }
 }
