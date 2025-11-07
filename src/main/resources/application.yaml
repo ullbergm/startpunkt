@@ -88,6 +88,7 @@ startpunkt:
   web:
     title: "Startpunkt"  # Title of the web UI
     refreshInterval: 60  # Interval in seconds to refresh applications and bookmarks (0 = disabled)
+    defaultShowAllClusters: false  # If false (default), only show local cluster by default; if true, show all clusters by default
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI
