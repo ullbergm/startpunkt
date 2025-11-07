@@ -33,6 +33,7 @@ export const APPLICATION_UPDATES_SUBSCRIPTION = gql`
         rootPath
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -59,6 +60,7 @@ export const APPLICATION_ADDED_SUBSCRIPTION = gql`
       rootPath
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;
@@ -84,6 +86,7 @@ export const APPLICATION_UPDATED_SUBSCRIPTION = gql`
       rootPath
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;
@@ -109,6 +112,7 @@ export const APPLICATION_REMOVED_SUBSCRIPTION = gql`
       rootPath
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;
@@ -132,6 +136,7 @@ export const BOOKMARK_UPDATES_SUBSCRIPTION = gql`
         location
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -153,6 +158,7 @@ export const BOOKMARK_ADDED_SUBSCRIPTION = gql`
       location
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;
@@ -173,6 +179,7 @@ export const BOOKMARK_UPDATED_SUBSCRIPTION = gql`
       location
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;
@@ -193,6 +200,7 @@ export const BOOKMARK_REMOVED_SUBSCRIPTION = gql`
       location
       resourceName
       hasOwnerReferences
+      cluster
     }
   }
 `;

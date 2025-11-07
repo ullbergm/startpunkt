@@ -81,6 +81,7 @@ export const APPLICATION_GROUPS_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -101,6 +102,7 @@ export const BOOKMARK_GROUPS_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -158,6 +160,7 @@ export const INIT_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
     bookmarkGroups {
@@ -173,6 +176,7 @@ export const INIT_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }

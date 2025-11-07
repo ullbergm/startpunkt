@@ -134,6 +134,20 @@ export function Bookmark(props) {
         {showDescription && props.bookmark.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
         )}
+        {props.bookmark.cluster && props.bookmark.cluster !== 'local' && (
+          <div class="mt-1">
+            <span 
+              class="badge bg-info text-dark" 
+              style={{ fontSize: '0.65rem' }} 
+              role="status"
+              aria-label={`Cluster: ${props.bookmark.cluster}`}
+              title={`This bookmark is from the ${props.bookmark.cluster} cluster`}
+            >
+              <Icon icon="mdi:server-network" width="12" height="12" style={{ marginRight: '0.2rem', verticalAlign: 'middle' }} />
+              {props.bookmark.cluster}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
