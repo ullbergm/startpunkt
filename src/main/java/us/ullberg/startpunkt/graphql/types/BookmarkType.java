@@ -38,6 +38,9 @@ public class BookmarkType {
   @Description("Whether the resource is managed by another resource")
   public Boolean hasOwnerReferences;
 
+  @Description("Cluster name this bookmark belongs to")
+  public String cluster;
+
   /** Default constructor for GraphQL. */
   public BookmarkType() {}
 
@@ -59,6 +62,7 @@ public class BookmarkType {
     type.namespace = response.getNamespace();
     type.resourceName = response.getResourceName();
     type.hasOwnerReferences = response.getHasOwnerReferences();
+    type.cluster = response.getCluster();
     return type;
   }
 }

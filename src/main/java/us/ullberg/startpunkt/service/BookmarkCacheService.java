@@ -22,18 +22,19 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
 public class BookmarkCacheService {
 
   // Thread-safe map for storing bookmarks
-  // Key format: "namespace/resourceName"
+  // Key format: "cluster/namespace/resourceName"
   private final Map<String, BookmarkResponse> bookmarkCache = new ConcurrentHashMap<>();
 
   /**
    * Generate a cache key for a bookmark.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the cache key
    */
-  private String getCacheKey(String namespace, String resourceName) {
-    return String.format("%s/%s", namespace, resourceName);
+  private String getCacheKey(String cluster, String namespace, String resourceName) {
+    return String.format("%s/%s/%s", cluster, namespace, resourceName);
   }
 
   /**
@@ -44,6 +45,7 @@ public class BookmarkCacheService {
    */
   private String getCacheKey(BookmarkResponse bookmark) {
     return getCacheKey(
+        bookmark.getCluster() != null ? bookmark.getCluster() : "local",
         bookmark.getNamespace() != null ? bookmark.getNamespace() : "unknown",
         bookmark.getResourceName() != null ? bookmark.getResourceName() : "unknown");
   }
@@ -89,12 +91,13 @@ public class BookmarkCacheService {
   /**
    * Remove a bookmark from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the removed bookmark, or null if not found
    */
-  public BookmarkResponse remove(String namespace, String resourceName) {
-    String key = getCacheKey(namespace, resourceName);
+  public BookmarkResponse remove(String cluster, String namespace, String resourceName) {
+    String key = getCacheKey(cluster, namespace, resourceName);
     BookmarkResponse removed = bookmarkCache.remove(key);
 
     if (removed != null) {
@@ -109,12 +112,13 @@ public class BookmarkCacheService {
   /**
    * Get a bookmark from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the bookmark, or null if not found
    */
-  public BookmarkResponse get(String namespace, String resourceName) {
-    String key = getCacheKey(namespace, resourceName);
+  public BookmarkResponse get(String cluster, String namespace, String resourceName) {
+    String key = getCacheKey(cluster, namespace, resourceName);
     return bookmarkCache.get(key);
   }
 
@@ -148,7 +152,37 @@ public class BookmarkCacheService {
   }
 
   /**
-   * Remove all bookmarks from a specific namespace.
+   * Remove all bookmarks from a specific cluster and namespace.
+   *
+   * @param cluster the cluster name
+   * @param namespace the namespace
+   * @return the number of bookmarks removed
+   */
+  public int removeByClusterAndNamespace(String cluster, String namespace) {
+    List<String> keysToRemove = new ArrayList<>();
+    String prefix = cluster + "/" + namespace + "/";
+
+    for (String key : bookmarkCache.keySet()) {
+      if (key.startsWith(prefix)) {
+        keysToRemove.add(key);
+      }
+    }
+
+    for (String key : keysToRemove) {
+      bookmarkCache.remove(key);
+    }
+
+    if (!keysToRemove.isEmpty()) {
+      Log.infof(
+          "Removed %d bookmarks from cache (cluster=%s, namespace=%s)",
+          keysToRemove.size(), cluster, namespace);
+    }
+
+    return keysToRemove.size();
+  }
+
+  /**
+   * Remove all bookmarks from a specific namespace (across all clusters).
    *
    * @param namespace the namespace
    * @return the number of bookmarks removed
@@ -157,7 +191,8 @@ public class BookmarkCacheService {
     List<String> keysToRemove = new ArrayList<>();
 
     for (String key : bookmarkCache.keySet()) {
-      if (key.startsWith(namespace + "/")) {
+      String[] parts = key.split("/");
+      if (parts.length >= 2 && parts[1].equals(namespace)) {
         keysToRemove.add(key);
       }
     }
@@ -168,6 +203,33 @@ public class BookmarkCacheService {
 
     if (!keysToRemove.isEmpty()) {
       Log.infof("Removed %d bookmarks from cache (namespace=%s)", keysToRemove.size(), namespace);
+    }
+
+    return keysToRemove.size();
+  }
+
+  /**
+   * Remove all bookmarks from a specific cluster.
+   *
+   * @param cluster the cluster name
+   * @return the number of bookmarks removed
+   */
+  public int removeByCluster(String cluster) {
+    List<String> keysToRemove = new ArrayList<>();
+    String prefix = cluster + "/";
+
+    for (String key : bookmarkCache.keySet()) {
+      if (key.startsWith(prefix)) {
+        keysToRemove.add(key);
+      }
+    }
+
+    for (String key : keysToRemove) {
+      bookmarkCache.remove(key);
+    }
+
+    if (!keysToRemove.isEmpty()) {
+      Log.infof("Removed %d bookmarks from cache (cluster=%s)", keysToRemove.size(), cluster);
     }
 
     return keysToRemove.size();

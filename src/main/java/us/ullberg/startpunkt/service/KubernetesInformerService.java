@@ -49,6 +49,7 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 public class KubernetesInformerService {
 
   private final KubernetesClient kubernetesClient;
+  private final MultiClusterKubernetesClientService multiClusterService;
   private final ApplicationCacheService applicationCacheService;
   private final BookmarkCacheService bookmarkCacheService;
   private final EventBroadcaster eventBroadcaster;
@@ -117,12 +118,14 @@ public class KubernetesInformerService {
   /** Constructor with injected dependencies. */
   public KubernetesInformerService(
       KubernetesClient kubernetesClient,
+      MultiClusterKubernetesClientService multiClusterService,
       ApplicationCacheService applicationCacheService,
       BookmarkCacheService bookmarkCacheService,
       EventBroadcaster eventBroadcaster,
       AvailabilityCheckService availabilityCheckService,
       BookmarkService bookmarkService) {
     this.kubernetesClient = kubernetesClient;
+    this.multiClusterService = multiClusterService;
     this.applicationCacheService = applicationCacheService;
     this.bookmarkCacheService = bookmarkCacheService;
     this.eventBroadcaster = eventBroadcaster;
@@ -763,8 +766,8 @@ public class KubernetesInformerService {
 
       Log.debugf("Bookmark deleted: %s/%s", namespace, name);
 
-      // Remove from cache
-      BookmarkResponse removed = bookmarkCacheService.remove(namespace, name);
+      // Remove from cache (assuming local cluster for now)
+      BookmarkResponse removed = bookmarkCacheService.remove("local", namespace, name);
 
       // Broadcast event
       if (removed != null) {
@@ -932,35 +935,75 @@ public class KubernetesInformerService {
     try {
       Log.debug("Reloading application cache");
 
-      var applicationWrappers = new ArrayList<BaseKubernetesObject>();
-      applicationWrappers.add(new StartpunktApplicationWrapper());
-
-      if (hajimariEnabled && hajimariResourcesAvailable) {
-        applicationWrappers.add(new HajimariApplicationWrapper());
-      }
-      if (openshiftEnabled && openshiftResourcesAvailable) {
-        applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
-      }
-      if (ingressEnabled && ingressResourcesAvailable) {
-        applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
-      }
-      if (istioVirtualServiceEnabled && istioResourcesAvailable) {
-        applicationWrappers.add(
-            new IstioVirtualServiceApplicationWrapper(
-                istioVirtualServiceOnlyAnnotated, defaultProtocol));
-      }
-      if (gatewayApiEnabled && gatewayApiResourcesAvailable) {
-        applicationWrappers.add(
-            new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
-      }
-
       var apps = new ArrayList<ApplicationResponse>();
 
-      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        var wrapperApps =
-            applicationWrapper.getApplicationSpecsWithMetadata(
-                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-        apps.addAll(wrapperApps);
+      // Iterate through all active clusters
+      for (String clusterName : multiClusterService.getActiveClusterNames()) {
+        KubernetesClient client = multiClusterService.getClient(clusterName);
+        if (client == null) {
+          Log.warnf("Cluster '%s' is configured but client is null, skipping", clusterName);
+          continue;
+        }
+
+        Log.debugf("Loading applications from cluster '%s'", clusterName);
+
+        var applicationWrappers = new ArrayList<BaseKubernetesObject>();
+        applicationWrappers.add(new StartpunktApplicationWrapper());
+
+        // For local cluster, check resource availability
+        // For remote clusters, we'll need to check availability per cluster
+        // For now, we'll use the flags from local cluster
+        boolean useHajimari = hajimariEnabled;
+        boolean useOpenshift = openshiftEnabled;
+        boolean useIngress = ingressEnabled;
+        boolean useIstio = istioVirtualServiceEnabled;
+        boolean useGatewayApi = gatewayApiEnabled;
+
+        // Only apply resource availability checks for local cluster
+        if ("local".equalsIgnoreCase(clusterName)) {
+          useHajimari = hajimariEnabled && hajimariResourcesAvailable;
+          useOpenshift = openshiftEnabled && openshiftResourcesAvailable;
+          useIngress = ingressEnabled && ingressResourcesAvailable;
+          useIstio = istioVirtualServiceEnabled && istioResourcesAvailable;
+          useGatewayApi = gatewayApiEnabled && gatewayApiResourcesAvailable;
+        }
+
+        if (useHajimari) {
+          applicationWrappers.add(new HajimariApplicationWrapper());
+        }
+        if (useOpenshift) {
+          applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
+        }
+        if (useIngress) {
+          applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+        }
+        if (useIstio) {
+          applicationWrappers.add(
+              new IstioVirtualServiceApplicationWrapper(
+                  istioVirtualServiceOnlyAnnotated, defaultProtocol));
+        }
+        if (useGatewayApi) {
+          applicationWrappers.add(
+              new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
+        }
+
+        for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+          try {
+            var wrapperApps =
+                applicationWrapper.getApplicationSpecsWithMetadata(
+                    client, anyNamespace, matchNames.orElse(List.of()), clusterName);
+            apps.addAll(wrapperApps);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading applications from cluster '%s' using wrapper '%s': %s",
+                clusterName,
+                applicationWrapper.getClass().getSimpleName(),
+                e.getMessage());
+          }
+        }
+
+        Log.debugf("Loaded %d applications from cluster '%s'", apps.size(), clusterName);
       }
 
       // Register URLs for availability checking
@@ -981,7 +1024,7 @@ public class KubernetesInformerService {
       // Individual add/update/delete handlers already broadcast specific events.
       // The AvailabilityCheckService will broadcast STATUS_CHANGED when availability changes.
 
-      Log.debugf("Reloaded %d applications into cache", apps.size());
+      Log.debugf("Reloaded %d applications into cache from all clusters", apps.size());
     } catch (Exception e) {
       Log.error("Error reloading application cache", e);
     }

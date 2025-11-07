@@ -124,7 +124,8 @@ public class BookmarkService {
                   new BookmarkSpec(name, group, icon, url, info, targetBlank, location);
               BookmarkResponse withMetadata = new BookmarkResponse(baseSpec);
 
-              // Populate metadata fields
+              // Populate metadata fields (default to "local" cluster for now)
+              withMetadata.setCluster("local");
               withMetadata.setNamespace(item.getMetadata().getNamespace());
               withMetadata.setResourceName(item.getMetadata().getName());
 
