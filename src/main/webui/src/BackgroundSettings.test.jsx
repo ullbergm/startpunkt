@@ -5,22 +5,36 @@ import { BackgroundSettings } from './BackgroundSettings';
 // Mock the useBackgroundPreferences hook
 const mockUpdatePreference = jest.fn();
 const mockResetToDefaults = jest.fn();
+const mockGetTypePreference = jest.fn((key) => {
+  // Return values based on the current type and key
+  const typePrefs = mockPreferences.typePreferences?.[mockPreferences.type] || {};
+  return typePrefs[key];
+});
 
 let mockPreferences = {
   type: 'solid',
-  color: '#F8F6F1',
-  secondaryColor: '#FFFFFF',
-  gradientDirection: 'to bottom right',
-  imageUrl: '',
-  blur: false,
-  opacity: 1.0
+  typePreferences: {
+    solid: {
+      color: '#F8F6F1',
+      opacity: 1.0,
+      contentOverlayOpacity: 1
+    },
+    gradient: {
+      color: '#FFFFFF',
+      secondaryColor: '#FFFFFF',
+      gradientDirection: 'to bottom right',
+      opacity: 1.0,
+      contentOverlayOpacity: -1
+    }
+  }
 };
 
 jest.mock('./useBackgroundPreferences', () => ({
   useBackgroundPreferences: () => ({
     preferences: mockPreferences,
     updatePreference: mockUpdatePreference,
-    resetToDefaults: mockResetToDefaults
+    resetToDefaults: mockResetToDefaults,
+    getTypePreference: mockGetTypePreference
   })
 }));
 
@@ -35,13 +49,25 @@ describe('BackgroundSettings', () => {
     global._mockTheme = 'auto';
     mockPreferences = {
       type: 'solid',
-      color: '#F8F6F1',
-      secondaryColor: '#FFFFFF',
-      gradientDirection: 'to bottom right',
-      imageUrl: '',
-      blur: false,
-      opacity: 1.0
+      typePreferences: {
+        solid: {
+          color: '#F8F6F1',
+          opacity: 1.0,
+          contentOverlayOpacity: 1
+        },
+        gradient: {
+          color: '#FFFFFF',
+          secondaryColor: '#FFFFFF',
+          gradientDirection: 'to bottom right',
+          opacity: 1.0,
+          contentOverlayOpacity: -1
+        }
+      }
     };
+    mockGetTypePreference.mockImplementation((key) => {
+      const typePrefs = mockPreferences.typePreferences?.[mockPreferences.type] || {};
+      return typePrefs[key];
+    });
   });
 
   test('renders background settings button', () => {

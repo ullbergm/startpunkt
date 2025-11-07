@@ -68,7 +68,18 @@ jest.mock('./useBackgroundPreferences', () => ({
     },
     updatePreference: jest.fn(),
     resetToDefaults: jest.fn(),
-    getBackgroundStyle: jest.fn(() => ({}))
+    getBackgroundStyle: jest.fn(() => ({})),
+    getTypePreference: jest.fn((key) => {
+      // Return values based on key, fallback to the old structure for backward compatibility
+      const prefs = {
+        color: '#F8F6F1',
+        opacity: 1.0,
+        blur: false,
+        imageUrl: '',
+        geopatternSeed: 'startpunkt'
+      };
+      return prefs[key];
+    })
   })),
 }));
 jest.mock('./ApplicationGroupList', () => ({
