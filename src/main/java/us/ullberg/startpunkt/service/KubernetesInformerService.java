@@ -666,8 +666,8 @@ public class KubernetesInformerService {
 
       Log.debugf("Application deleted: %s/%s", namespace, name);
 
-      // Remove from cache
-      ApplicationResponse removed = applicationCacheService.remove(namespace, name);
+      // Remove from cache (assuming local cluster for now)
+      ApplicationResponse removed = applicationCacheService.remove("local", namespace, name);
 
       // Unregister URL from availability checking
       if (removed != null && removed.getUrl() != null && !removed.getUrl().isEmpty()) {

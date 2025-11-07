@@ -1,4 +1,16 @@
 startpunkt:
+  # Multi-cluster configuration
+  clusters:
+    local:
+      enabled: true  # If true, read from the local cluster (the cluster where Startpunkt is running)
+    # remote:  # Example remote cluster configuration
+    #   - name: "prod-cluster"  # Unique name for the cluster
+    #     kubeconfigPath: "/path/to/kubeconfig"  # Path to kubeconfig file
+    #     enabled: true  # If true, read from this remote cluster
+    #   - name: "staging-cluster"
+    #     kubeconfigPath: "/path/to/staging-kubeconfig"
+    #     enabled: true
+
   # Default protocol for  # Istio Virtual Service integration, read Istio VirtualService resources
   istio:
     virtualservice:
