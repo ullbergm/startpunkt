@@ -4,48 +4,53 @@ import GeoPattern from 'geopattern';
 /**
  * Custom hook for managing background preferences with localStorage persistence
  * 
- * Background preferences include:
- * - type: 'solid' | 'gradient' | 'image' | 'pictureOfDay' | 'geopattern' | 'theme' | 'timeGradient' | 'meshGradient'
- * - pictureProvider: 'picsum' | 'bing' (for pictureOfDay type)
- * - color: string (hex color)
- * - secondaryColor: string (hex color for gradients)
- * - gradientDirection: string (CSS gradient direction)
- * - imageUrl: string (URL for custom image)
- * - blur: boolean (whether to blur background)
- * - opacity: number (0.0 to 1.0)
- * - geopatternSeed: string (seed for geopattern generation)
- * - meshColors: string[] (array of hex colors for mesh gradient)
- * - meshAnimated: boolean (whether to animate mesh gradient)
- * - meshComplexity: 'low' | 'medium' | 'high' (complexity of mesh gradient)
+ * Each background type now has its own isolated preferences stored in the typePreferences object.
+ * This prevents settings from one type (e.g., blur in pictureOfDay) from affecting other types.
  */
 
 const DEFAULT_PREFERENCES = {
-  type: 'theme',
-  pictureProvider: 'bing', // 'bing' or 'picsum'
-  color: '#F8F6F1',
-  secondaryColor: '#FFFFFF',
-  gradientDirection: 'to bottom right',
-  imageUrl: '',
-  blur: false,
-  opacity: 1.0,
-  geopatternSeed: 'startpunkt',
-  meshColors: ['#2d5016', '#f4c430', '#003366'],
-  meshAnimated: true,
-  meshComplexity: 'low',
-  contentOverlay: false,
-  contentOverlayOpacity: -0.6, // 0 = transparent (default), negative = white, positive = black
-  // Per-type color settings to avoid sharing colors between types
-  typeColors: {
+  type: 'pictureOfDay',
+  // Per-type preferences - each type maintains its own settings including content overlay
+  typePreferences: {
+    theme: {},
     solid: {
-      color: '#F8F6F1'
+      color: '#408080',
+      opacity: 1,
+      contentOverlayOpacity: 1
     },
     gradient: {
-      color: '#F8F6F1',
-      secondaryColor: '#FFFFFF',
-      gradientDirection: 'to bottom right'
+      color: '#008040',
+      secondaryColor: '#408080',
+      gradientDirection: 'to bottom right',
+      opacity: 1,
+      contentOverlayOpacity: -1
+    },
+    image: {
+      imageUrl: '',
+      blur: false,
+      opacity: 1
+    },
+    pictureOfDay: {
+      pictureProvider: 'bing',
+      blur: false,
+      opacity: 1,
+      contentOverlayOpacity: 0.7
     },
     geopattern: {
-      color: '#F8F6F1'
+      geopatternSeed: 'startpunkt',
+      color: '#408080',
+      opacity: 1,
+      contentOverlayOpacity: -0.5
+    },
+    timeGradient: {
+      opacity: 1
+    },
+    meshGradient: {
+      meshColors: ['#2d5016', '#f4c430', '#00ffff', '#ff0080', '#800000'],
+      meshAnimated: false,
+      meshComplexity: 'high',
+      opacity: 1,
+      contentOverlayOpacity: 0.75
     }
   }
 };
@@ -58,78 +63,125 @@ export function useBackgroundPreferences() {
 
   // Migrate old preferences to new per-type structure
   const preferences = (() => {
-    // If typeColors doesn't exist, migrate old preferences
-    if (!rawPreferences.typeColors) {
-      const typeColors = {
-        solid: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.solid.color
-        },
-        gradient: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.gradient.color,
-          secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.typeColors.gradient.secondaryColor,
-          gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.typeColors.gradient.gradientDirection
-        },
-        geopattern: {
-          color: rawPreferences.color || DEFAULT_PREFERENCES.typeColors.geopattern.color
-        }
-      };
-      
-      return {
-        ...rawPreferences,
-        typeColors
-      };
+    // If typePreferences already exists, we're on the new structure
+    if (rawPreferences.typePreferences) {
+      return rawPreferences;
     }
-    return rawPreferences;
+
+    // Migration from old structure (shared settings) to new per-type structure
+    const typePreferences = {};
+    
+    // Migrate theme
+    typePreferences.theme = {};
+    
+    // Migrate solid
+    typePreferences.solid = {
+      color: rawPreferences.color || DEFAULT_PREFERENCES.typePreferences.solid.color,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.solid.opacity,
+      contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.solid.contentOverlayOpacity
+    };
+    
+    // Migrate gradient
+    typePreferences.gradient = {
+      color: rawPreferences.color || DEFAULT_PREFERENCES.typePreferences.gradient.color,
+      secondaryColor: rawPreferences.secondaryColor || DEFAULT_PREFERENCES.typePreferences.gradient.secondaryColor,
+      gradientDirection: rawPreferences.gradientDirection || DEFAULT_PREFERENCES.typePreferences.gradient.gradientDirection,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.gradient.opacity,
+      contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.gradient.contentOverlayOpacity
+    };
+    
+    // Migrate image
+    typePreferences.image = {
+      imageUrl: rawPreferences.imageUrl || DEFAULT_PREFERENCES.typePreferences.image.imageUrl,
+      blur: rawPreferences.blur !== undefined ? rawPreferences.blur : DEFAULT_PREFERENCES.typePreferences.image.blur,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.image.opacity
+    };
+    
+    // Migrate pictureOfDay
+    typePreferences.pictureOfDay = {
+      pictureProvider: rawPreferences.pictureProvider || DEFAULT_PREFERENCES.typePreferences.pictureOfDay.pictureProvider,
+      blur: rawPreferences.blur !== undefined ? rawPreferences.blur : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.blur,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.opacity,
+      contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.contentOverlayOpacity
+    };
+    
+    // Migrate geopattern
+    typePreferences.geopattern = {
+      geopatternSeed: rawPreferences.geopatternSeed || DEFAULT_PREFERENCES.typePreferences.geopattern.geopatternSeed,
+      color: rawPreferences.color || DEFAULT_PREFERENCES.typePreferences.geopattern.color,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.geopattern.opacity,
+      contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.geopattern.contentOverlayOpacity
+    };
+    
+    // Migrate timeGradient
+    typePreferences.timeGradient = {
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.timeGradient.opacity
+    };
+    
+    // Migrate meshGradient
+    typePreferences.meshGradient = {
+      meshColors: rawPreferences.meshColors || DEFAULT_PREFERENCES.typePreferences.meshGradient.meshColors,
+      meshAnimated: rawPreferences.meshAnimated !== undefined ? rawPreferences.meshAnimated : DEFAULT_PREFERENCES.typePreferences.meshGradient.meshAnimated,
+      meshComplexity: rawPreferences.meshComplexity || DEFAULT_PREFERENCES.typePreferences.meshGradient.meshComplexity,
+      opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.meshGradient.opacity,
+      contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.meshGradient.contentOverlayOpacity
+    };
+    
+    const migratedPrefs = {
+      type: rawPreferences.type || DEFAULT_PREFERENCES.type,
+      typePreferences
+    };
+    
+    // Save the migrated preferences
+    setPreferences(migratedPrefs);
+    
+    return migratedPrefs;
   })();
 
   const updatePreference = (key, value) => {
-    // Special handling for type-specific color properties
-    if (key === 'color') {
-      const currentType = preferences.type;
-      const typeColors = { ...preferences.typeColors };
-      
-      // Update the color for the current type (solid, gradient, or geopattern)
-      if (currentType === 'solid' || currentType === 'gradient' || currentType === 'geopattern') {
-        typeColors[currentType] = {
-          ...typeColors[currentType],
-          [key]: value
-        };
-        
-        setPreferences({
-          ...preferences,
-          [key]: value, // Keep for backward compatibility
-          typeColors
-        });
-      } else {
-        // For other types, just update the global value
-        setPreferences({
-          ...preferences,
-          [key]: value
-        });
-      }
-    } else if ((key === 'secondaryColor' || key === 'gradientDirection') && preferences.type === 'gradient') {
-      // Only update gradient-specific properties when type is gradient
-      const typeColors = { ...preferences.typeColors };
-      typeColors.gradient = {
-        ...typeColors.gradient,
-        [key]: value
-      };
-      
+    // Handle type changes specially - just update the type
+    if (key === 'type') {
       setPreferences({
         ...preferences,
-        [key]: value, // Keep for backward compatibility
-        typeColors
+        type: value
       });
-    } else {
-      setPreferences({
-        ...preferences,
-        [key]: value
-      });
+      return;
     }
+    
+    // All preferences are now type-specific (including contentOverlay and contentOverlayOpacity)
+    const currentType = preferences.type;
+    const typePreferences = { ...preferences.typePreferences };
+    
+    // Update the preference for the current type
+    typePreferences[currentType] = {
+      ...typePreferences[currentType],
+      [key]: value
+    };
+    
+    setPreferences({
+      ...preferences,
+      typePreferences
+    });
   };
 
   const resetToDefaults = () => {
     setPreferences(DEFAULT_PREFERENCES);
+  };
+
+  /**
+   * Helper to get a preference value for the current type
+   * Falls back to default if not set
+   */
+  const getTypePreference = (key) => {
+    const currentType = preferences.type;
+    const typePrefs = preferences.typePreferences?.[currentType];
+    
+    if (typePrefs && typePrefs[key] !== undefined) {
+      return typePrefs[key];
+    }
+    
+    // Fallback to default for this type
+    return DEFAULT_PREFERENCES.typePreferences[currentType]?.[key];
   };
 
   /**
@@ -262,33 +314,9 @@ export function useBackgroundPreferences() {
   const getBackgroundStyle = (isDarkMode) => {
     const style = {};
     
-    // Helper to get type-specific colors
-    const getTypeColor = (type, key) => {
-      // Try to get from typeColors first, fallback to global preferences
-      if (preferences.typeColors && preferences.typeColors[type] && preferences.typeColors[type][key]) {
-        return preferences.typeColors[type][key];
-      }
-      // Fallback to global preference (for backward compatibility)
-      return preferences[key];
-    };
-    
     // Default colors based on theme mode
     const defaultLightColor = '#F8F6F1';
     const defaultDarkColor = '#232530';
-    
-    // Get the appropriate base color depending on type
-    let baseColor;
-    if (preferences.type === 'solid') {
-      baseColor = getTypeColor('solid', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
-    } else if (preferences.type === 'gradient') {
-      baseColor = getTypeColor('gradient', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
-    } else if (preferences.type === 'geopattern') {
-      baseColor = getTypeColor('geopattern', 'color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
-    } else {
-      baseColor = preferences.color || (isDarkMode ? defaultDarkColor : defaultLightColor);
-    }
-    
-    const opacity = preferences.opacity !== undefined ? preferences.opacity : 1.0;
     
     // Helper to validate and sanitize URLs
     const isValidUrl = (url) => {
@@ -303,15 +331,17 @@ export function useBackgroundPreferences() {
     
     switch (preferences.type) {
       case 'timeGradient': {
+        const opacity = getTypePreference('opacity') || 1.0;
         const timeStyle = generateTimeBasedGradient(opacity);
         Object.assign(style, timeStyle);
         break;
       }
       
       case 'meshGradient': {
-        const meshColors = preferences.meshColors || DEFAULT_PREFERENCES.meshColors;
-        const complexity = preferences.meshComplexity || 'low';
-        const animated = preferences.meshAnimated !== undefined ? preferences.meshAnimated : true;
+        const meshColors = getTypePreference('meshColors') || DEFAULT_PREFERENCES.typePreferences.meshGradient.meshColors;
+        const complexity = getTypePreference('meshComplexity') || 'low';
+        const animated = getTypePreference('meshAnimated') !== undefined ? getTypePreference('meshAnimated') : true;
+        const opacity = getTypePreference('opacity') || 1.0;
         
         const meshStyle = generateMeshGradient(meshColors, complexity, animated, opacity);
         Object.assign(style, meshStyle);
@@ -319,91 +349,95 @@ export function useBackgroundPreferences() {
       }
       
       case 'gradient': {
-        const secondaryColor = getTypeColor('gradient', 'secondaryColor') || (isDarkMode ? '#1a1b26' : '#FFFFFF');
-        const direction = getTypeColor('gradient', 'gradientDirection') || 'to bottom right';
+        const color = getTypePreference('color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+        const secondaryColor = getTypePreference('secondaryColor') || (isDarkMode ? '#1a1b26' : '#FFFFFF');
+        const direction = getTypePreference('gradientDirection') || 'to bottom right';
+        const opacity = getTypePreference('opacity') || 1.0;
         
         // Apply opacity to gradient colors
         if (opacity !== 1.0) {
-          const color1 = hexToRgba(baseColor, opacity);
+          const color1 = hexToRgba(color, opacity);
           const color2 = hexToRgba(secondaryColor, opacity);
           style.background = `linear-gradient(${direction}, ${color1}, ${color2})`;
         } else {
-          style.background = `linear-gradient(${direction}, ${baseColor}, ${secondaryColor})`;
+          style.background = `linear-gradient(${direction}, ${color}, ${secondaryColor})`;
         }
         break;
       }
       
-      case 'image':
-        if (preferences.imageUrl && isValidUrl(preferences.imageUrl)) {
-          style.backgroundImage = `url(${encodeURI(preferences.imageUrl)})`;
+      case 'image': {
+        const imageUrl = getTypePreference('imageUrl');
+        const blur = getTypePreference('blur') || false;
+        const opacity = getTypePreference('opacity') || 1.0;
+        
+        if (imageUrl && isValidUrl(imageUrl)) {
+          style.backgroundImage = `url(${encodeURI(imageUrl)})`;
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
-          if (preferences.blur) {
+          if (blur) {
             style.filter = 'blur(5px)';
           }
-          // For images, opacity needs to be applied to a pseudo-element or overlay
           style.opacity = opacity;
         } else {
           // Fallback to solid color if no valid image URL
+          const fallbackColor = isDarkMode ? defaultDarkColor : defaultLightColor;
           if (opacity !== 1.0) {
-            style.backgroundColor = hexToRgba(baseColor, opacity);
+            style.backgroundColor = hexToRgba(fallbackColor, opacity);
           } else {
-            style.backgroundColor = baseColor;
+            style.backgroundColor = fallbackColor;
           }
         }
         break;
+      }
       
-      case 'pictureOfDay':
-        // Use Lorem Picsum with today's date as seed for daily-changing image, matching screen size
-        const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        const picsumUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
-        if (isValidUrl(picsumUrl)) {
-          style.backgroundImage = `url(${encodeURI(picsumUrl)})`;
+      case 'pictureOfDay': {
+        const pictureProvider = getTypePreference('pictureProvider') || 'bing';
+        const blur = getTypePreference('blur') || false;
+        const opacity = getTypePreference('opacity') || 1.0;
+        
+        // Picture provider is handled by Background component via GraphQL for Bing
+        // or directly via URL for Picsum
+        // For now, prepare the style properties
+        if (pictureProvider === 'picsum') {
+          const todaySeed = new Date().toISOString().split('T')[0];
+          const picsumUrl = `https://picsum.photos/seed/${todaySeed}/${window.screen.width}/${window.screen.height}`;
+          if (isValidUrl(picsumUrl)) {
+            style.backgroundImage = `url(${encodeURI(picsumUrl)})`;
+            style.backgroundSize = 'cover';
+            style.backgroundPosition = 'center';
+            style.backgroundRepeat = 'no-repeat';
+            if (blur) {
+              style.filter = 'blur(5px)';
+            }
+            style.opacity = opacity;
+          }
+        } else {
+          // For Bing, just set basic properties
+          // The actual image will be fetched by Background component
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
-          if (preferences.blur) {
+          if (blur) {
             style.filter = 'blur(5px)';
           }
-          // For images, opacity needs to be applied to a pseudo-element or overlay
           style.opacity = opacity;
-        } else {
-          // Fallback to solid color
-          if (opacity !== 1.0) {
-            style.backgroundColor = hexToRgba(baseColor, opacity);
-          } else {
-            style.backgroundColor = baseColor;
-          }
         }
         break;
-      
-      case 'bingImageOfDay':
-        // Bing Image of the Day will be fetched asynchronously
-        // The actual image URL will be set by the Background component
-        // For now, set a placeholder style
-        style.backgroundSize = 'cover';
-        style.backgroundPosition = 'center';
-        style.backgroundRepeat = 'no-repeat';
-        if (preferences.blur) {
-          style.filter = 'blur(5px)';
-        }
-        style.opacity = opacity;
-        break;
+      }
       
       case 'geopattern': {
-        // Generate a geopattern based on seed
-        const seed = preferences.geopatternSeed || 'startpunkt';
-        const pattern = GeoPattern.generate(seed, {
-          color: baseColor
-        });
+        const seed = getTypePreference('geopatternSeed') || 'startpunkt';
+        const color = getTypePreference('color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+        const opacity = getTypePreference('opacity') || 1.0;
+        
+        const pattern = GeoPattern.generate(seed, { color });
         
         style.backgroundImage = pattern.toDataUrl();
         style.backgroundSize = 'auto';
         style.backgroundPosition = 'center';
         style.backgroundRepeat = 'repeat';
         
-        // Apply opacity if needed
         if (opacity !== 1.0) {
           style.opacity = opacity;
         }
@@ -417,14 +451,18 @@ export function useBackgroundPreferences() {
         break;
       
       case 'solid':
-      default:
+      default: {
+        const color = getTypePreference('color') || (isDarkMode ? defaultDarkColor : defaultLightColor);
+        const opacity = getTypePreference('opacity') || 1.0;
+        
         // Apply opacity to solid color using rgba
         if (opacity !== 1.0) {
-          style.backgroundColor = hexToRgba(baseColor, opacity);
+          style.backgroundColor = hexToRgba(color, opacity);
         } else {
-          style.backgroundColor = baseColor;
+          style.backgroundColor = color;
         }
         break;
+      }
     }
     
     return style;
@@ -434,7 +472,8 @@ export function useBackgroundPreferences() {
     preferences,
     updatePreference,
     resetToDefaults,
-    getBackgroundStyle
+    getBackgroundStyle,
+    getTypePreference
   };
 }
 

@@ -31,31 +31,47 @@ describe('useBackgroundPreferences', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
     
     expect(result.current.preferences).toEqual({
-      type: 'theme',
-      color: '#F8F6F1',
-      secondaryColor: '#FFFFFF',
-      gradientDirection: 'to bottom right',
-      imageUrl: '',
-      blur: false,
-      opacity: 1.0,
-      geopatternSeed: 'startpunkt',
-      meshColors: ['#2d5016', '#f4c430', '#003366'],
-      meshAnimated: true,
-      meshComplexity: 'low',
-      contentOverlay: false,
-      contentOverlayOpacity: -0.6,
-      pictureProvider: 'bing',
-      typeColors: {
+      type: 'pictureOfDay',
+      typePreferences: {
+        theme: {},
         solid: {
-          color: '#F8F6F1'
+          color: '#408080',
+          opacity: 1,
+          contentOverlayOpacity: 1
         },
         gradient: {
-          color: '#F8F6F1',
-          secondaryColor: '#FFFFFF',
-          gradientDirection: 'to bottom right'
+          color: '#008040',
+          secondaryColor: '#408080',
+          gradientDirection: 'to bottom right',
+          opacity: 1,
+          contentOverlayOpacity: -1
+        },
+        image: {
+          imageUrl: '',
+          blur: false,
+          opacity: 1
+        },
+        pictureOfDay: {
+          pictureProvider: 'bing',
+          blur: false,
+          opacity: 1,
+          contentOverlayOpacity: 0.7
         },
         geopattern: {
-          color: '#F8F6F1'
+          geopatternSeed: 'startpunkt',
+          color: '#408080',
+          opacity: 1,
+          contentOverlayOpacity: -0.5
+        },
+        timeGradient: {
+          opacity: 1
+        },
+        meshGradient: {
+          meshColors: ['#2d5016','#f4c430','#00ffff','#ff0080','#800000'],
+          meshAnimated: false,
+          meshComplexity: 'high',
+          opacity: 1,
+          contentOverlayOpacity: 0.75
         }
       }
     });
@@ -93,14 +109,14 @@ describe('useBackgroundPreferences', () => {
   test('generates solid background style', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
     
-    // Set type to solid since default is now 'theme'
+    // Set type to solid since default is now 'geopattern'
     act(() => {
       result.current.updatePreference('type', 'solid');
     });
     
     const style = result.current.getBackgroundStyle(false);
     
-    expect(style.backgroundColor).toBe('#F8F6F1');
+    expect(style.backgroundColor).toBe('#408080');
   });
 
   test.skip('applies opacity to solid background using rgba', () => {
@@ -186,7 +202,7 @@ describe('useBackgroundPreferences', () => {
   test('uses dark theme color defaults when in dark mode', () => {
     const { result } = renderHook(() => useBackgroundPreferences());
     
-    // Set type to solid since default is now 'theme'
+    // Set type to solid since default is now 'geopattern'
     act(() => {
       result.current.updatePreference('type', 'solid');
     });
@@ -311,7 +327,7 @@ describe('useBackgroundPreferences', () => {
     });
     
     // Verify solid color was updated
-    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
+    expect(result.current.preferences.typePreferences.solid.color).toBe('#FF0000');
     
     // Switch to gradient and change its color
     act(() => {
@@ -322,10 +338,10 @@ describe('useBackgroundPreferences', () => {
     });
     
     // Verify gradient color was updated
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#0000FF');
+    expect(result.current.preferences.typePreferences.gradient.color).toBe('#0000FF');
     
     // Verify solid color remained unchanged
-    expect(result.current.preferences.typeColors.solid.color).toBe('#FF0000');
+    expect(result.current.preferences.typePreferences.solid.color).toBe('#FF0000');
     
     // Switch back to solid and verify it still has the red color
     act(() => {
@@ -353,9 +369,9 @@ describe('useBackgroundPreferences', () => {
     });
     
     // Verify gradient settings
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
-    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
-    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
+    expect(result.current.preferences.typePreferences.gradient.color).toBe('#FF0000');
+    expect(result.current.preferences.typePreferences.gradient.secondaryColor).toBe('#00FF00');
+    expect(result.current.preferences.typePreferences.gradient.gradientDirection).toBe('to right');
     
     // Switch to solid and set a different color
     act(() => {
@@ -366,11 +382,11 @@ describe('useBackgroundPreferences', () => {
     });
     
     // Verify solid has its own color
-    expect(result.current.preferences.typeColors.solid.color).toBe('#0000FF');
+    expect(result.current.preferences.typePreferences.solid.color).toBe('#0000FF');
     
     // Verify gradient settings are still intact
-    expect(result.current.preferences.typeColors.gradient.color).toBe('#FF0000');
-    expect(result.current.preferences.typeColors.gradient.secondaryColor).toBe('#00FF00');
-    expect(result.current.preferences.typeColors.gradient.gradientDirection).toBe('to right');
+    expect(result.current.preferences.typePreferences.gradient.color).toBe('#FF0000');
+    expect(result.current.preferences.typePreferences.gradient.secondaryColor).toBe('#00FF00');
+    expect(result.current.preferences.typePreferences.gradient.gradientDirection).toBe('to right');
   });
 });

@@ -29,7 +29,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0.7
+        typePreferences: {
+          gradient: {
+            contentOverlayOpacity: 0.7
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0.7;
+        return undefined;
       }
     });
 
@@ -48,7 +56,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'image',
-        contentOverlayOpacity: -0.8
+        typePreferences: {
+          image: {
+            contentOverlayOpacity: -0.8
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return -0.8;
+        return undefined;
       }
     });
 
@@ -63,7 +79,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0
+        typePreferences: {
+          gradient: {
+            contentOverlayOpacity: 0
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0;
+        return undefined;
       }
     });
 
@@ -80,7 +104,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'meshGradient',
-        contentOverlayOpacity: 0.9
+        typePreferences: {
+          meshGradient: {
+            contentOverlayOpacity: 0.9
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0.9;
+        return undefined;
       }
     });
 
@@ -95,7 +127,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'theme',
-        contentOverlayOpacity: 0.7
+        typePreferences: {
+          theme: {
+            contentOverlayOpacity: 0.7
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0.7;
+        return undefined;
       }
     });
 
@@ -111,18 +151,25 @@ describe('ContentOverlay', () => {
     });
   });
 
-  it('uses default opacity if not specified (60% white overlay)', async () => {
+  it('uses default opacity if not specified (70% black overlay)', async () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
-        type: 'gradient'
+        type: 'pictureOfDay',
+        typePreferences: {
+          pictureOfDay: {}
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0.7; // Default value for pictureOfDay
+        return undefined;
       }
     });
 
     render(<ContentOverlay />);
 
     await waitFor(() => {
-      // Default opacity is -0.6, which means 60% white overlay
-      expect(mainElement.style.backgroundColor).toBe('rgba(255, 255, 255, 0.6)');
+      // Default opacity for pictureOfDay is 0.7, which means 70% black overlay
+      expect(mainElement.style.backgroundColor).toBe('rgba(0, 0, 0, 0.7)');
     });
   });
 
@@ -133,7 +180,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0
+        typePreferences: {
+          gradient: {
+            contentOverlayOpacity: 0
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0;
+        return undefined;
       }
     });
     
@@ -147,7 +202,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0.8
+        typePreferences: {
+          gradient: {
+            contentOverlayOpacity: 0.8
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0.8;
+        return undefined;
       }
     });
     
@@ -162,7 +225,15 @@ describe('ContentOverlay', () => {
     useBackgroundPreferences.mockReturnValue({
       preferences: {
         type: 'gradient',
-        contentOverlayOpacity: 0
+        typePreferences: {
+          gradient: {
+            contentOverlayOpacity: 0
+          }
+        }
+      },
+      getTypePreference: (key) => {
+        if (key === 'contentOverlayOpacity') return 0;
+        return undefined;
       }
     });
 

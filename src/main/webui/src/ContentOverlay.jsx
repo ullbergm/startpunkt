@@ -12,7 +12,7 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
  * - Black side (> 0) = black overlay with dark theme colors
  */
 export function ContentOverlay({ children }) {
-  const { preferences } = useBackgroundPreferences();
+  const { preferences, getTypePreference } = useBackgroundPreferences();
 
   useEffect(() => {
     // Don't apply overlay for theme backgrounds
@@ -34,7 +34,7 @@ export function ContentOverlay({ children }) {
       return;
     }
 
-    const opacity = preferences.contentOverlayOpacity !== undefined ? preferences.contentOverlayOpacity : -0.6;
+    const opacity = getTypePreference('contentOverlayOpacity') ?? 0.7;
     
     // Middle position (0) = disabled, no overlay at all
     if (opacity === 0) {
@@ -85,7 +85,7 @@ export function ContentOverlay({ children }) {
       mainElement.style.backdropFilter = 'blur(4px)';
       mainElement.style.transition = 'background-color 0.3s ease';
     }
-  }, [preferences.type, preferences.contentOverlayOpacity]);
+  }, [preferences.type, preferences.typePreferences]);
 
   // This component doesn't render anything - it just applies overlay logic
   return null;

@@ -3,28 +3,8 @@ import { Text } from 'preact-i18n';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 
 export function BackgroundSettings() {
-  const { preferences, updatePreference, resetToDefaults } = useBackgroundPreferences();
+  const { preferences, updatePreference, resetToDefaults, getTypePreference } = useBackgroundPreferences();
   const [theme] = useLocalStorage('theme', 'auto');
-
-  // Helper to get type-specific color values
-  const getTypeColor = (type, key) => {
-    if (preferences.typeColors && preferences.typeColors[type] && preferences.typeColors[type][key] !== undefined) {
-      return preferences.typeColors[type][key];
-    }
-    // Fallback to global preference
-    return preferences[key];
-  };
-
-  // Get current color based on the active type
-  const currentColor = getTypeColor(preferences.type, 'color') || preferences.color;
-  
-  // Get gradient-specific values (only used when type is 'gradient')
-  const currentSecondaryColor = preferences.type === 'gradient' 
-    ? (getTypeColor('gradient', 'secondaryColor') || preferences.secondaryColor)
-    : preferences.secondaryColor;
-  const currentGradientDirection = preferences.type === 'gradient'
-    ? (getTypeColor('gradient', 'gradientDirection') || preferences.gradientDirection)
-    : preferences.gradientDirection;
 
   return (
     <>
@@ -84,7 +64,7 @@ export function BackgroundSettings() {
                 <label class="form-label small mb-1"><Text id="background.pictureProvider">Picture Provider</Text></label>
                 <select 
                   class="form-select form-select-sm"
-                  value={preferences.pictureProvider || 'bing'}
+                  value={getTypePreference('pictureProvider') || 'bing'}
                   onChange={(e) => updatePreference('pictureProvider', e.target.value)}
                 >
                   <option value="bing"><Text id="background.providers.bing">Bing</Text></option>
@@ -177,7 +157,7 @@ export function BackgroundSettings() {
                   type="color"
                   class="form-control form-control-color"
                   id="bgColor"
-                  value={currentColor}
+                  value={getTypePreference('color') || '#F8F6F1'}
                   onChange={(e) => updatePreference('color', e.target.value)}
                 />
               </div>
@@ -194,7 +174,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="bgColorPrimary"
-                    value={currentColor}
+                    value={getTypePreference('color') || '#F8F6F1'}
                     onChange={(e) => updatePreference('color', e.target.value)}
                   />
                 </div>
@@ -207,7 +187,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="bgColorSecondary"
-                    value={currentSecondaryColor}
+                    value={getTypePreference('secondaryColor') || '#FFFFFF'}
                     onChange={(e) => updatePreference('secondaryColor', e.target.value)}
                   />
                 </div>
@@ -216,7 +196,7 @@ export function BackgroundSettings() {
                   <label class="form-label small mb-1"><Text id="background.gradientDirection">Gradient Direction</Text></label>
                   <select 
                     class="form-select form-select-sm"
-                    value={currentGradientDirection}
+                    value={getTypePreference('gradientDirection') || 'to bottom right'}
                     onChange={(e) => updatePreference('gradientDirection', e.target.value)}
                   >
                     <option value="to bottom"><Text id="background.directions.toBottom">Top to Bottom</Text></option>
@@ -241,7 +221,7 @@ export function BackgroundSettings() {
                   class="form-control form-control-sm"
                   id="bgImageUrl"
                   placeholder="https://example.com/image.jpg"
-                  value={preferences.imageUrl}
+                  value={getTypePreference('imageUrl') || ''}
                   onInput={(e) => updatePreference('imageUrl', e.target.value)}
                 />
                 <small class="form-text text-muted"><Text id="background.imageUrlHelp">Enter a valid image URL</Text></small>
@@ -260,7 +240,7 @@ export function BackgroundSettings() {
                     class="form-control form-control-sm"
                     id="geopatternSeed"
                     placeholder="Enter text to generate pattern"
-                    value={preferences.geopatternSeed}
+                    value={getTypePreference('geopatternSeed') || 'startpunkt'}
                     onInput={(e) => updatePreference('geopatternSeed', e.target.value)}
                   />
                   <small class="form-text text-muted"><Text id="background.patternSeedHelp">Change the text to generate different patterns</Text></small>
@@ -274,7 +254,7 @@ export function BackgroundSettings() {
                     type="color"
                     class="form-control form-control-color"
                     id="geopatternColor"
-                    value={currentColor}
+                    value={getTypePreference('color') || '#F8F6F1'}
                     onChange={(e) => updatePreference('color', e.target.value)}
                   />
                 </div>
@@ -298,7 +278,7 @@ export function BackgroundSettings() {
                 <div class="mb-3">
                   <label class="form-label small mb-1"><Text id="background.meshColors">Mesh Colors (3-5)</Text></label>
                   <div class="d-flex gap-2 flex-wrap align-items-center">
-                    {(preferences.meshColors || ['#2d5016', '#f4c430', '#003366']).map((color, index) => (
+                    {(getTypePreference('meshColors') || ['#2d5016', '#f4c430', '#003366']).map((color, index) => (
                       <div key={index} class="d-flex align-items-center gap-1">
                         <input 
                           type="color"
@@ -306,13 +286,13 @@ export function BackgroundSettings() {
                           style="width: 3rem; height: 2rem;"
                           value={color}
                           onChange={(e) => {
-                            const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                            const newColors = [...(getTypePreference('meshColors') || ['#2d5016', '#f4c430', '#003366'])];
                             newColors[index] = e.target.value;
                             updatePreference('meshColors', newColors);
                           }}
                           title={`Color ${index + 1}`}
                         />
-                        {(preferences.meshColors || []).length > 3 && (
+                        {(getTypePreference('meshColors') || []).length > 3 && (
                           <button
                             type="button"
                             class="btn btn-sm btn-outline-danger p-0"
@@ -320,7 +300,7 @@ export function BackgroundSettings() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                              const newColors = [...(getTypePreference('meshColors') || ['#2d5016', '#f4c430', '#003366'])];
                               newColors.splice(index, 1);
                               updatePreference('meshColors', newColors);
                             }}
@@ -331,7 +311,7 @@ export function BackgroundSettings() {
                         )}
                       </div>
                     ))}
-                    {(preferences.meshColors || []).length < 5 && (
+                    {(getTypePreference('meshColors') || []).length < 5 && (
                       <button
                         type="button"
                         class="btn btn-sm btn-outline-primary"
@@ -339,7 +319,7 @@ export function BackgroundSettings() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          const newColors = [...(preferences.meshColors || ['#2d5016', '#f4c430', '#003366'])];
+                          const newColors = [...(getTypePreference('meshColors') || ['#2d5016', '#f4c430', '#003366'])];
                           // Add a random color
                           const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
                           newColors.push(randomColor);
@@ -358,7 +338,7 @@ export function BackgroundSettings() {
                   <label class="form-label small mb-1"><Text id="background.meshComplexity">Complexity</Text></label>
                   <select 
                     class="form-select form-select-sm"
-                    value={preferences.meshComplexity || 'low'}
+                    value={getTypePreference('meshComplexity') || 'low'}
                     onChange={(e) => updatePreference('meshComplexity', e.target.value)}
                   >
                     <option value="low"><Text id="background.complexity.low">Low (Subtle)</Text></option>
@@ -373,7 +353,7 @@ export function BackgroundSettings() {
                       class="form-check-input" 
                       type="checkbox" 
                       id="meshAnimated"
-                      checked={preferences.meshAnimated !== undefined ? preferences.meshAnimated : true}
+                      checked={getTypePreference('meshAnimated') !== undefined ? getTypePreference('meshAnimated') : true}
                       onChange={(e) => updatePreference('meshAnimated', e.target.checked)}
                     />
                     <label class="form-check-label small" for="meshAnimated">
@@ -393,7 +373,7 @@ export function BackgroundSettings() {
                     class="form-check-input" 
                     type="checkbox" 
                     id="bgBlur"
-                    checked={preferences.blur}
+                    checked={getTypePreference('blur') || false}
                     onChange={(e) => updatePreference('blur', e.target.checked)}
                   />
                   <label class="form-check-label small" for="bgBlur">
@@ -407,7 +387,7 @@ export function BackgroundSettings() {
             {preferences.type !== 'theme' && preferences.type !== 'timeGradient' && (
               <div class="mb-3">
                 <label for="bgOpacity" class="form-label small mb-1">
-                  <Text id="background.opacity">Opacity</Text>: {Math.round(preferences.opacity * 100)}%
+                  <Text id="background.opacity">Opacity</Text>: {Math.round((getTypePreference('opacity') || 1.0) * 100)}%
                 </label>
                 <input 
                   type="range"
@@ -416,7 +396,7 @@ export function BackgroundSettings() {
                   min="0.1"
                   max="1.0"
                   step="0.1"
-                  value={preferences.opacity}
+                  value={getTypePreference('opacity') || 1.0}
                   onChange={(e) => updatePreference('opacity', parseFloat(e.target.value))}
                 />
               </div>
@@ -427,9 +407,9 @@ export function BackgroundSettings() {
               <div class="mb-3">
                 <label for="contentOverlayOpacity" class="form-label small mb-1">
                   <Text id="background.overlayOpacity">Overlay Opacity</Text>: 
-                  {preferences.contentOverlayOpacity === 0 ? ' Transparent' : 
-                   preferences.contentOverlayOpacity < 0 ? ` White ${Math.round(Math.abs(preferences.contentOverlayOpacity) * 100)}%` :
-                   ` Black ${Math.round(preferences.contentOverlayOpacity * 100)}%`}
+                  {(getTypePreference('contentOverlayOpacity') || 0) === 0 ? ' Transparent' : 
+                   (getTypePreference('contentOverlayOpacity') || 0) < 0 ? ` White ${Math.round(Math.abs(getTypePreference('contentOverlayOpacity') || 0) * 100)}%` :
+                   ` Black ${Math.round((getTypePreference('contentOverlayOpacity') || 0) * 100)}%`}
                 </label>
                 <input 
                   type="range"
@@ -438,7 +418,7 @@ export function BackgroundSettings() {
                   min="-1"
                   max="1"
                   step="0.05"
-                  value={preferences.contentOverlayOpacity || 0}
+                  value={getTypePreference('contentOverlayOpacity') || 0}
                   onChange={(e) => {
                     let value = parseFloat(e.target.value);
                     // Snap to center (0) when within 0.1 of center
