@@ -290,6 +290,50 @@
          ],
          "groupName": "all minor/patch version npm",
          "groupSlug": "all-npm-minor"
+      },
+      {
+         "matchPackagePatterns": [
+            "^io\\.quarkus"
+         ],
+         "matchUpdateTypes": [
+            "major"
+         ],
+         "groupName": "all major version Quarkus dependencies",
+         "groupSlug": "all-quarkus-major",
+         "commitMessagePrefix": "feat(quarkus)!: ",
+         "addLabels": [
+            "renovate/quarkus"
+         ]
+      },
+      {
+         "matchPackagePatterns": [
+            "^io\\.quarkus"
+         ],
+         "matchUpdateTypes": [
+            "minor"
+         ],
+         "groupName": "all minor version Quarkus dependencies",
+         "groupSlug": "all-quarkus-minor",
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "quarkus",
+         "addLabels": [
+            "renovate/quarkus"
+         ]
+      },
+      {
+         "matchPackagePatterns": [
+            "^io\\.quarkus"
+         ],
+         "matchUpdateTypes": [
+            "patch"
+         ],
+         "groupName": "all patch version Quarkus dependencies",
+         "groupSlug": "all-quarkus-patch",
+         "semanticCommitType": "fix",
+         "semanticCommitScope": "quarkus",
+         "addLabels": [
+            "renovate/quarkus"
+         ]
       }
    ]
 }
