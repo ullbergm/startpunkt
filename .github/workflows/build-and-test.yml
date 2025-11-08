@@ -16,10 +16,15 @@ permissions:
 on:
   push:
     paths-ignore:
-      - deploy/**
-      - docs/**
+      - '.github/**'
+      - 'deploy/**'
+      - 'docs/**'
       - '**/*.md'
-      - renovate.json
+      - 'renovate.json'
+      - 'commitlint.config.js'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
     branches:
       - main
   pull_request:
@@ -31,10 +36,15 @@ on:
     branches:
       - main
     paths-ignore:
-      - deploy/**
-      - docs/**
+      - '.github/**'
+      - 'deploy/**'
+      - 'docs/**'
       - '**/*.md'
-      - renovate.json
+      - 'renovate.json'
+      - 'commitlint.config.js'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
   workflow_dispatch: null
 
 concurrency:
