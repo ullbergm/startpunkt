@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MultiClusterService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">MultiClusterService.java</span></div><h1>MultiClusterService.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.logging.Log;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import us.ullberg.startpunkt.config.ClusterConfig;
+import us.ullberg.startpunkt.config.ClustersConfig;
+
+/**
+ * Service for managing cluster configurations.
+ *
+ * &lt;p&gt;This service manages local Kubernetes client and remote GraphQL cluster configurations.
+ */
+@ApplicationScoped
+public class MultiClusterService {
+
+  private final KubernetesClient localClient;
+  private final ClustersConfig clustersConfig;
+<span class="fc" id="L27">  private final Map&lt;String, ClusterConfig&gt; clusterConfigs = new HashMap&lt;&gt;();</span>
+
+  /**
+   * Constructor with injected local Kubernetes client and clusters configuration.
+   *
+   * @param localClient the local Kubernetes client (injected by Quarkus)
+   * @param clustersConfig the clusters configuration (injected by Quarkus)
+   */
+<span class="fc" id="L35">  public MultiClusterService(KubernetesClient localClient, ClustersConfig clustersConfig) {</span>
+<span class="fc" id="L36">    this.localClient = localClient;</span>
+<span class="fc" id="L37">    this.clustersConfig = clustersConfig;</span>
+<span class="fc" id="L38">  }</span>
+
+  /** Initialize remote cluster configurations on startup. */
+  void onStart(@Observes StartupEvent ev) {
+<span class="fc" id="L42">    Log.info(&quot;Initializing multi-cluster service&quot;);</span>
+
+    // Log local cluster status (no need to add to clusterConfigs as it's handled separately)
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">    if (clustersConfig.local().enabled()) {</span>
+<span class="fc" id="L46">      Log.info(&quot;Local cluster enabled&quot;);</span>
+    } else {
+<span class="nc" id="L48">      Log.info(&quot;Local cluster disabled&quot;);</span>
+    }
+
+    // Initialize remote GraphQL cluster configurations
+<span class="fc" id="L52">    Optional&lt;List&lt;ClustersConfig.RemoteCluster&gt;&gt; remoteClusterConfigs = clustersConfig.remote();</span>
+<span class="pc bpc" id="L53" title="3 of 4 branches missed.">    if (remoteClusterConfigs.isPresent() &amp;&amp; !remoteClusterConfigs.get().isEmpty()) {</span>
+<span class="nc" id="L54">      List&lt;ClustersConfig.RemoteCluster&gt; configs = remoteClusterConfigs.get();</span>
+<span class="nc" id="L55">      Log.infof(&quot;Found %d remote GraphQL cluster configuration(s)&quot;, configs.size());</span>
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      for (ClustersConfig.RemoteCluster remoteConfig : configs) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (remoteConfig.enabled()) {</span>
+<span class="nc" id="L59">          ClusterConfig config = toClusterConfig(remoteConfig);</span>
+<span class="nc" id="L60">          clusterConfigs.put(config.getName(), config);</span>
+<span class="nc" id="L61">          Log.infof(</span>
+              &quot;Registered remote GraphQL cluster '%s' at %s&quot;,
+<span class="nc" id="L63">              config.getName(), config.getGraphqlUrl());</span>
+<span class="nc" id="L64">        } else {</span>
+<span class="nc" id="L65">          Log.infof(&quot;Remote cluster '%s' is disabled, skipping&quot;, remoteConfig.name());</span>
+        }
+<span class="nc" id="L67">      }</span>
+<span class="nc" id="L68">    } else {</span>
+<span class="fc" id="L69">      Log.info(&quot;No remote GraphQL clusters configured&quot;);</span>
+    }
+
+<span class="fc" id="L72">    Log.info(&quot;Multi-cluster service initialization complete&quot;);</span>
+<span class="fc" id="L73">  }</span>
+
+  /**
+   * Convert RemoteCluster interface to ClusterConfig POJO.
+   *
+   * @param remoteConfig the RemoteCluster configuration interface
+   * @return the ClusterConfig POJO
+   */
+  private ClusterConfig toClusterConfig(ClustersConfig.RemoteCluster remoteConfig) {
+<span class="nc" id="L82">    ClusterConfig config = new ClusterConfig();</span>
+<span class="nc" id="L83">    config.setName(remoteConfig.name());</span>
+<span class="nc" id="L84">    config.setEnabled(remoteConfig.enabled());</span>
+<span class="nc" id="L85">    config.setGraphqlUrl(remoteConfig.graphqlUrl());</span>
+<span class="nc" id="L86">    remoteConfig.graphqlToken().ifPresent(config::setGraphqlToken);</span>
+<span class="nc" id="L87">    return config;</span>
+  }
+
+  /** Cleanup on shutdown. */
+  void onStop(@Observes ShutdownEvent ev) {
+<span class="fc" id="L92">    Log.info(&quot;Shutting down multi-cluster service&quot;);</span>
+<span class="fc" id="L93">    clusterConfigs.clear();</span>
+<span class="fc" id="L94">    Log.info(&quot;Multi-cluster service shutdown complete&quot;);</span>
+<span class="fc" id="L95">  }</span>
+
+  /**
+   * Get the Kubernetes client for a specific cluster. Only returns a client for the local cluster.
+   *
+   * @param clusterName the cluster name
+   * @return the Kubernetes client for local cluster, or null if not configured or remote
+   */
+  public KubernetesClient getClient(String clusterName) {
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">      return clustersConfig.local().enabled() ? localClient : null;</span>
+    }
+    // Remote clusters are GraphQL-only, no Kubernetes client
+<span class="nc" id="L108">    return null;</span>
+  }
+
+  /**
+   * Get the local Kubernetes client.
+   *
+   * @return the local client, or null if disabled
+   */
+  public KubernetesClient getLocalClient() {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    return clustersConfig.local().enabled() ? localClient : null;</span>
+  }
+
+  /**
+   * Get all active cluster names (local + remote GraphQL clusters).
+   *
+   * @return list of cluster names
+   */
+  public List&lt;String&gt; getActiveClusterNames() {
+<span class="fc" id="L126">    List&lt;String&gt; names = new ArrayList&lt;&gt;();</span>
+
+    // Add local cluster if enabled
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">    if (clustersConfig.local().enabled()) {</span>
+<span class="fc" id="L130">      names.add(&quot;local&quot;);</span>
+    }
+
+    // Add all remote GraphQL clusters from clusterConfigs
+<span class="fc" id="L134">    names.addAll(clusterConfigs.keySet());</span>
+
+<span class="fc" id="L136">    return names;</span>
+  }
+
+  /**
+   * Get the number of active clusters.
+   *
+   * @return count of active clusters
+   */
+  public int getActiveClusterCount() {
+<span class="nc" id="L145">    return getActiveClusterNames().size();</span>
+  }
+
+  /**
+   * Check if a cluster is configured and active.
+   *
+   * @param clusterName the cluster name
+   * @return true if the cluster is active
+   */
+  public boolean isClusterActive(String clusterName) {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">    if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="nc" id="L156">      return clustersConfig.local().enabled();</span>
+    }
+<span class="nc" id="L158">    return clusterConfigs.containsKey(clusterName);</span>
+  }
+
+  /**
+   * Get configuration for a specific cluster.
+   *
+   * @param clusterName the cluster name
+   * @return the cluster configuration, or empty if not found
+   */
+  public Optional&lt;ClusterConfig&gt; getClusterConfig(String clusterName) {
+<span class="fc" id="L168">    return Optional.ofNullable(clusterConfigs.get(clusterName));</span>
+  }
+
+  /**
+   * Get all active cluster configurations.
+   *
+   * @return map of cluster name to configuration
+   */
+  public Map&lt;String, ClusterConfig&gt; getAllClusterConfigs() {
+<span class="nc" id="L177">    return new HashMap&lt;&gt;(clusterConfigs);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

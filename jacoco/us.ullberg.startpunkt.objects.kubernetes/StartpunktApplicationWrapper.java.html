@@ -354,14 +354,15 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Retrieves the enabled flag from the resource spec. Returns base class enabled if not present.
+   * Retrieves the enabled flag from the resource spec. Defaults to true if not specified in the
+   * spec.
    *
    * @param item Kubernetes resource
-   * @return Boolean indicating if the application is enabled
+   * @return Boolean indicating if the application is enabled (defaults to true)
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="fc" id="L364">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, super.getAppEnabled(item));</span>
+<span class="fc" id="L365">    return getOptionalSpecBoolean(item, &quot;enabled&quot;, true);</span>
   }
 
   /**
@@ -372,7 +373,7 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   @Override
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L375">    return getOptionalSpecString(item, &quot;tags&quot;, super.getAppTags(item));</span>
+<span class="fc" id="L376">    return getOptionalSpecString(item, &quot;tags&quot;, super.getAppTags(item));</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

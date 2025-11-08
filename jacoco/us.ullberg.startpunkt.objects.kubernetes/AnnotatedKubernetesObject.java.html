@@ -36,8 +36,8 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
       &quot;startpunkt.ullberg.us/appName&quot;, &quot;hajimari.io/appName&quot;, &quot;forecastle.stakater.com/appName&quot;
     };
 <span class="fc bfc" id="L38" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L39" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L40">        return annotations.get(key).toLowerCase();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
+<span class="fc" id="L40">        return annotations.get(key).toLowerCase();</span>
       }
     }
 <span class="fc" id="L43">    return super.getAppName(item);</span>
@@ -193,21 +193,27 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * Determines if the application is enabled based on annotations or spec.
    *
    * @param item Kubernetes resource
-   * @return Boolean indicating enabled status or false if not set
+   * @return Boolean indicating enabled status or null if not set
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
 <span class="fc" id="L200">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L202">    String[] annotationKeys = {</span>
+    // Return null if no annotations exist
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">    if (annotations == null) {</span>
+<span class="nc" id="L204">      return null;</span>
+    }
+
+<span class="fc" id="L207">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/enable&quot;, &quot;hajimari.io/enable&quot;, &quot;forecastle.stakater.com/expose&quot;
     };
-<span class="fc bfc" id="L205" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L207">        return Boolean.parseBoolean(annotations.get(key));</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
+<span class="fc" id="L212">        return Boolean.parseBoolean(annotations.get(key));</span>
       }
     }
-<span class="fc" id="L210">    return super.getAppEnabled(item);</span>
+    // Return null when no annotation is present to distinguish from explicitly disabled
+<span class="fc" id="L216">    return null;</span>
   }
 
   /**
@@ -218,15 +224,15 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppProtocol(GenericKubernetesResource item) {
-<span class="fc" id="L221">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L227">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L223">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/protocol&quot;};</span>
-<span class="fc bfc" id="L224" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L225" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L226">        return annotations.get(key);</span>
+<span class="fc" id="L229">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/protocol&quot;};</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L232">        return annotations.get(key);</span>
       }
     }
-<span class="fc" id="L229">    return super.getAppProtocol(item);</span>
+<span class="fc" id="L235">    return super.getAppProtocol(item);</span>
   }
 
   /**
@@ -236,33 +242,37 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * @return comma-separated tags string or null if not set
    */
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L239">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L245">    var annotations = getAnnotations(item);</span>
 
-<span class="pc bpc" id="L241" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
-<span class="nc" id="L242">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+<span class="pc bpc" id="L247" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="nc" id="L248">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
     }
-<span class="fc" id="L244">    return null;</span>
+<span class="fc" id="L250">    return null;</span>
   }
 
   /**
-   * Filters a list of ApplicationSpec to include only those that are enabled.
+   * Filters a list of ApplicationSpec to include only those that are explicitly enabled. When
+   * onlyAnnotated mode is used, this filters for resources that have the
+   * 'startpunkt.ullberg.us/enable' annotation set to 'true'.
    *
    * @param specs list of ApplicationSpec objects
    * @return filtered list containing only enabled applications
    */
   protected List&lt;ApplicationSpec&gt; filterEnabled(List&lt;ApplicationSpec&gt; specs) {
-<span class="fc" id="L254">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="fc" id="L262">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 
   /**
-   * Filters a list of ApplicationResponse to include only those that are enabled.
+   * Filters a list of ApplicationResponse to include only those that are explicitly enabled. When
+   * onlyAnnotated mode is used, this filters for resources that have the
+   * 'startpunkt.ullberg.us/enable' annotation set to 'true'.
    *
    * @param specs list of ApplicationResponse objects
    * @return filtered list containing only enabled applications
    */
   protected List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; filterEnabledWithMetadata(
       List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; specs) {
-<span class="fc" id="L265">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="pc" id="L275">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

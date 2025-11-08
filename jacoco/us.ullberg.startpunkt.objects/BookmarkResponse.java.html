@@ -27,25 +27,29 @@ public class BookmarkResponse extends BookmarkSpec {
   @JsonProperty(&quot;hasOwnerReferences&quot;)
   private Boolean hasOwnerReferences;
 
+  /** The cluster name this bookmark belongs to (for multi-cluster support). */
+  @JsonProperty(&quot;cluster&quot;)
+  private String cluster;
+
   /** Default constructor. */
   public BookmarkResponse() {
-<span class="nc" id="L32">    super();</span>
-<span class="nc" id="L33">  }</span>
+<span class="nc" id="L36">    super();</span>
+<span class="nc" id="L37">  }</span>
 
   /**
    * Creates a response DTO from an existing BookmarkSpec, copying all fields.
    *
    * @param spec the BookmarkSpec to wrap
    */
-<span class="fc" id="L40">  public BookmarkResponse(BookmarkSpec spec) {</span>
-<span class="fc" id="L41">    this.name = spec.getName();</span>
-<span class="fc" id="L42">    this.setGroup(spec.getGroup());</span>
-<span class="fc" id="L43">    this.setIcon(spec.getIcon());</span>
-<span class="fc" id="L44">    this.setUrl(spec.getUrl());</span>
-<span class="fc" id="L45">    this.setInfo(spec.getInfo());</span>
-<span class="fc" id="L46">    this.setTargetBlank(spec.getTargetBlank());</span>
-<span class="fc" id="L47">    this.setLocation(spec.getLocation());</span>
-<span class="fc" id="L48">  }</span>
+<span class="fc" id="L44">  public BookmarkResponse(BookmarkSpec spec) {</span>
+<span class="fc" id="L45">    this.name = spec.getName();</span>
+<span class="fc" id="L46">    this.setGroup(spec.getGroup());</span>
+<span class="fc" id="L47">    this.setIcon(spec.getIcon());</span>
+<span class="fc" id="L48">    this.setUrl(spec.getUrl());</span>
+<span class="fc" id="L49">    this.setInfo(spec.getInfo());</span>
+<span class="fc" id="L50">    this.setTargetBlank(spec.getTargetBlank());</span>
+<span class="fc" id="L51">    this.setLocation(spec.getLocation());</span>
+<span class="fc" id="L52">  }</span>
 
   /**
    * Gets the Kubernetes namespace of the underlying resource.
@@ -53,7 +57,7 @@ public class BookmarkResponse extends BookmarkSpec {
    * @return the namespace
    */
   public String getNamespace() {
-<span class="fc" id="L56">    return namespace;</span>
+<span class="fc" id="L60">    return namespace;</span>
   }
 
   /**
@@ -62,8 +66,8 @@ public class BookmarkResponse extends BookmarkSpec {
    * @param namespace the namespace to set
    */
   public void setNamespace(String namespace) {
-<span class="fc" id="L65">    this.namespace = namespace;</span>
-<span class="fc" id="L66">  }</span>
+<span class="fc" id="L69">    this.namespace = namespace;</span>
+<span class="fc" id="L70">  }</span>
 
   /**
    * Gets the Kubernetes resource name (metadata.name) of the underlying object.
@@ -71,7 +75,7 @@ public class BookmarkResponse extends BookmarkSpec {
    * @return the resource name
    */
   public String getResourceName() {
-<span class="fc" id="L74">    return resourceName;</span>
+<span class="fc" id="L78">    return resourceName;</span>
   }
 
   /**
@@ -80,8 +84,8 @@ public class BookmarkResponse extends BookmarkSpec {
    * @param resourceName the resource name to set
    */
   public void setResourceName(String resourceName) {
-<span class="fc" id="L83">    this.resourceName = resourceName;</span>
-<span class="fc" id="L84">  }</span>
+<span class="fc" id="L87">    this.resourceName = resourceName;</span>
+<span class="fc" id="L88">  }</span>
 
   /**
    * Gets whether the resource has owner references.
@@ -89,7 +93,7 @@ public class BookmarkResponse extends BookmarkSpec {
    * @return true if the resource has owner references, false otherwise
    */
   public Boolean getHasOwnerReferences() {
-<span class="fc" id="L92">    return hasOwnerReferences;</span>
+<span class="fc" id="L96">    return hasOwnerReferences;</span>
   }
 
   /**
@@ -98,7 +102,25 @@ public class BookmarkResponse extends BookmarkSpec {
    * @param hasOwnerReferences true if the resource has owner references
    */
   public void setHasOwnerReferences(Boolean hasOwnerReferences) {
-<span class="fc" id="L101">    this.hasOwnerReferences = hasOwnerReferences;</span>
-<span class="fc" id="L102">  }</span>
+<span class="fc" id="L105">    this.hasOwnerReferences = hasOwnerReferences;</span>
+<span class="fc" id="L106">  }</span>
+
+  /**
+   * Gets the cluster name this bookmark belongs to.
+   *
+   * @return the cluster name
+   */
+  public String getCluster() {
+<span class="fc" id="L114">    return cluster;</span>
+  }
+
+  /**
+   * Sets the cluster name this bookmark belongs to.
+   *
+   * @param cluster the cluster name to set
+   */
+  public void setCluster(String cluster) {
+<span class="fc" id="L123">    this.cluster = cluster;</span>
+<span class="fc" id="L124">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

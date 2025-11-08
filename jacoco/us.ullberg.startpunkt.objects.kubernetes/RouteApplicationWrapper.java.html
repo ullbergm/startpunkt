@@ -71,8 +71,26 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="fc" id="L74">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="nc" id="L74">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+  }
+
+  /**
+   * Retrieves a list of ApplicationResponse objects from OpenShift Route resources with cluster
+   * name. Applies filtering based on annotation settings.
+   *
+   * @param client the Kubernetes client
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames a list of route names to match
+   * @param clusterName the name of the cluster these resources belong to
+   * @return a list of ApplicationResponse objects, possibly filtered to only annotated ones
+   */
+  @Override
+  public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames, String clusterName) {
+<span class="fc" id="L91">    var applicationSpecs =</span>
+<span class="fc" id="L92">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

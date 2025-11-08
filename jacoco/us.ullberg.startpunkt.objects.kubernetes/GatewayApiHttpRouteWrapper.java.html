@@ -89,9 +89,29 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="fc" id="L92">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
+<span class="nc" id="L92">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
 
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+  }
+
+  /**
+   * Retrieves a list of ApplicationResponse objects for matching HTTPRoute resources with cluster
+   * name. If the wrapper is configured to only include annotated resources, filters the result
+   * accordingly.
+   *
+   * @param client Kubernetes client to query resources
+   * @param anyNamespace whether to search across all namespaces
+   * @param matchNames list of resource names to match
+   * @param clusterName the name of the cluster these resources belong to
+   * @return filtered or unfiltered list of ApplicationResponse instances
+   */
+  @Override
+  public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
+      KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames, String clusterName) {
+<span class="fc" id="L111">    var applicationSpecs =</span>
+<span class="fc" id="L112">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
+
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

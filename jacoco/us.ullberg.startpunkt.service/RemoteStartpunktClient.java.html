@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RemoteStartpunktClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.service</a> &gt; <span class="el_source">RemoteStartpunktClient.java</span></div><h1>RemoteStartpunktClient.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.logging.Log;
+import jakarta.enterprise.context.ApplicationScoped;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import us.ullberg.startpunkt.config.ClusterConfig;
+import us.ullberg.startpunkt.objects.ApplicationResponse;
+import us.ullberg.startpunkt.objects.BookmarkResponse;
+
+/**
+ * Client for connecting to remote Startpunkt instances via GraphQL.
+ *
+ * &lt;p&gt;This client allows fetching applications and bookmarks from a remote Startpunkt instance
+ * instead of directly connecting to Kubernetes.
+ */
+@ApplicationScoped
+<span class="fc" id="L25">public class RemoteStartpunktClient {</span>
+
+  private static final String APPLICATION_GROUPS_QUERY =
+      &quot;&quot;&quot;
+      query {
+        applicationGroups {
+          name
+          applications {
+            name
+            group
+            icon
+            url
+            targetBlank
+            location
+            info
+            tags
+            rootPath
+            namespace
+            resourceName
+            hasOwnerReferences
+          }
+        }
+      }
+      &quot;&quot;&quot;;
+
+  private static final String BOOKMARK_GROUPS_QUERY =
+      &quot;&quot;&quot;
+      query {
+        bookmarkGroups {
+          name
+          bookmarks {
+            name
+            group
+            icon
+            url
+            info
+            targetBlank
+            location
+            namespace
+            resourceName
+            hasOwnerReferences
+          }
+        }
+      }
+      &quot;&quot;&quot;;
+
+<span class="fc" id="L71">  private final ObjectMapper objectMapper = new ObjectMapper();</span>
+
+  /**
+   * Fetch applications from a remote Startpunkt instance.
+   *
+   * @param config the cluster configuration containing GraphQL URL and token
+   * @param clusterName the name to assign to fetched applications
+   * @return list of applications with cluster name set
+   */
+  public List&lt;ApplicationResponse&gt; fetchApplications(ClusterConfig config, String clusterName) {
+    try {
+<span class="nc" id="L82">      String graphqlUrl = config.getGraphqlUrl();</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
+<span class="nc" id="L84">        throw new IllegalArgumentException(</span>
+            &quot;GraphQL URL is required for cluster '&quot; + clusterName + &quot;'&quot;);
+      }
+
+<span class="nc" id="L88">      Log.debugf(&quot;Fetching applications from remote Startpunkt at %s&quot;, graphqlUrl);</span>
+
+<span class="nc" id="L90">      String responseBody =</span>
+<span class="nc" id="L91">          executeGraphQLQuery(graphqlUrl, config.getGraphqlToken(), APPLICATION_GROUPS_QUERY);</span>
+
+<span class="nc" id="L93">      Log.infof(&quot;GraphQL response from '%s': %s&quot;, clusterName, responseBody);</span>
+
+      // Parse response
+<span class="nc" id="L96">      JsonNode root = objectMapper.readTree(responseBody);</span>
+<span class="nc" id="L97">      JsonNode data = root.path(&quot;data&quot;);</span>
+<span class="nc" id="L98">      JsonNode applicationGroups = data.path(&quot;applicationGroups&quot;);</span>
+
+<span class="nc" id="L100">      List&lt;ApplicationResponse&gt; applications = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">      if (applicationGroups.isArray()) {</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (JsonNode group : applicationGroups) {</span>
+<span class="nc" id="L104">          JsonNode apps = group.path(&quot;applications&quot;);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">          if (apps.isArray()) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            for (JsonNode app : apps) {</span>
+<span class="nc" id="L107">              ApplicationResponse appResponse =</span>
+<span class="nc" id="L108">                  objectMapper.treeToValue(app, ApplicationResponse.class);</span>
+              // Override cluster name with our remote cluster name
+<span class="nc" id="L110">              appResponse.setCluster(clusterName);</span>
+<span class="nc" id="L111">              applications.add(appResponse);</span>
+<span class="nc" id="L112">            }</span>
+          }
+<span class="nc" id="L114">        }</span>
+      }
+
+<span class="nc" id="L117">      Log.infof(</span>
+<span class="nc" id="L118">          &quot;Fetched %d applications from remote Startpunkt '%s'&quot;, applications.size(), clusterName);</span>
+<span class="nc" id="L119">      return applications;</span>
+
+<span class="nc" id="L121">    } catch (Exception e) {</span>
+<span class="nc" id="L122">      Log.errorf(</span>
+          e,
+          &quot;Failed to fetch applications from remote Startpunkt '%s': %s&quot;,
+          clusterName,
+<span class="nc" id="L126">          e.getMessage());</span>
+<span class="nc" id="L127">      return List.of();</span>
+    }
+  }
+
+  /**
+   * Fetch bookmarks from a remote Startpunkt instance.
+   *
+   * @param config the cluster configuration containing GraphQL URL and token
+   * @param clusterName the name to assign to fetched bookmarks
+   * @return list of bookmarks with cluster name set
+   */
+  public List&lt;BookmarkResponse&gt; fetchBookmarks(ClusterConfig config, String clusterName) {
+    try {
+<span class="nc" id="L140">      String graphqlUrl = config.getGraphqlUrl();</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
+<span class="nc" id="L142">        throw new IllegalArgumentException(</span>
+            &quot;GraphQL URL is required for cluster '&quot; + clusterName + &quot;'&quot;);
+      }
+
+<span class="nc" id="L146">      Log.debugf(&quot;Fetching bookmarks from remote Startpunkt at %s&quot;, graphqlUrl);</span>
+
+<span class="nc" id="L148">      String responseBody =</span>
+<span class="nc" id="L149">          executeGraphQLQuery(graphqlUrl, config.getGraphqlToken(), BOOKMARK_GROUPS_QUERY);</span>
+
+<span class="nc" id="L151">      Log.infof(&quot;GraphQL bookmark response from '%s': %s&quot;, clusterName, responseBody);</span>
+
+      // Parse response
+<span class="nc" id="L154">      JsonNode root = objectMapper.readTree(responseBody);</span>
+<span class="nc" id="L155">      JsonNode data = root.path(&quot;data&quot;);</span>
+<span class="nc" id="L156">      JsonNode bookmarkGroups = data.path(&quot;bookmarkGroups&quot;);</span>
+
+<span class="nc" id="L158">      List&lt;BookmarkResponse&gt; bookmarks = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L160" title="All 2 branches missed.">      if (bookmarkGroups.isArray()) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        for (JsonNode group : bookmarkGroups) {</span>
+<span class="nc" id="L162">          JsonNode bks = group.path(&quot;bookmarks&quot;);</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">          if (bks.isArray()) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            for (JsonNode bk : bks) {</span>
+<span class="nc" id="L165">              BookmarkResponse bookmarkResponse =</span>
+<span class="nc" id="L166">                  objectMapper.treeToValue(bk, BookmarkResponse.class);</span>
+              // Override cluster name with our remote cluster name
+<span class="nc" id="L168">              bookmarkResponse.setCluster(clusterName);</span>
+<span class="nc" id="L169">              bookmarks.add(bookmarkResponse);</span>
+<span class="nc" id="L170">            }</span>
+          }
+<span class="nc" id="L172">        }</span>
+      }
+
+<span class="nc" id="L175">      Log.infof(&quot;Fetched %d bookmarks from remote Startpunkt '%s'&quot;, bookmarks.size(), clusterName);</span>
+<span class="nc" id="L176">      return bookmarks;</span>
+
+<span class="nc" id="L178">    } catch (Exception e) {</span>
+<span class="nc" id="L179">      Log.errorf(</span>
+          e,
+          &quot;Failed to fetch bookmarks from remote Startpunkt '%s': %s&quot;,
+          clusterName,
+<span class="nc" id="L183">          e.getMessage());</span>
+<span class="nc" id="L184">      return List.of();</span>
+    }
+  }
+
+  /**
+   * Execute a GraphQL query against a remote endpoint.
+   *
+   * @param graphqlUrl the GraphQL endpoint URL
+   * @param token optional authentication token
+   * @param query the GraphQL query string
+   * @return the response body as a string
+   * @throws Exception if the request fails
+   */
+  private String executeGraphQLQuery(String graphqlUrl, String token, String query)
+      throws Exception {
+<span class="nc" id="L199">    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();</span>
+
+    // Create GraphQL request body
+<span class="nc" id="L202">    String requestBody = String.format(&quot;{\&quot;query\&quot;:%s}&quot;, objectMapper.writeValueAsString(query));</span>
+
+    HttpRequest.Builder requestBuilder =
+<span class="nc" id="L205">        HttpRequest.newBuilder()</span>
+<span class="nc" id="L206">            .uri(URI.create(graphqlUrl))</span>
+<span class="nc" id="L207">            .header(&quot;Content-Type&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L208">            .POST(HttpRequest.BodyPublishers.ofString(requestBody))</span>
+<span class="nc" id="L209">            .timeout(Duration.ofSeconds(30));</span>
+
+    // Add authentication if token is provided
+<span class="nc bnc" id="L212" title="All 4 branches missed.">    if (token != null &amp;&amp; !token.trim().isEmpty()) {</span>
+<span class="nc" id="L213">      requestBuilder.header(&quot;Authorization&quot;, &quot;Bearer &quot; + token);</span>
+    }
+
+<span class="nc" id="L216">    HttpRequest request = requestBuilder.build();</span>
+<span class="nc" id="L217">    HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (response.statusCode() != 200) {</span>
+<span class="nc" id="L220">      throw new RuntimeException(</span>
+<span class="nc" id="L221">          &quot;GraphQL request failed with status &quot; + response.statusCode() + &quot;: &quot; + response.body());</span>
+    }
+
+<span class="nc" id="L224">    return response.body();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

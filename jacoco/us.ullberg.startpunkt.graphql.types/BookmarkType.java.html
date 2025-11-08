@@ -38,8 +38,11 @@ public class BookmarkType {
   @Description(&quot;Whether the resource is managed by another resource&quot;)
   public Boolean hasOwnerReferences;
 
+  @Description(&quot;Cluster name this bookmark belongs to&quot;)
+  public String cluster;
+
   /** Default constructor for GraphQL. */
-<span class="fc" id="L42">  public BookmarkType() {}</span>
+<span class="fc" id="L45">  public BookmarkType() {}</span>
 
   /**
    * Creates a BookmarkType from a BookmarkResponse.
@@ -48,18 +51,19 @@ public class BookmarkType {
    * @return BookmarkType
    */
   public static BookmarkType fromResponse(us.ullberg.startpunkt.objects.BookmarkResponse response) {
-<span class="fc" id="L51">    BookmarkType type = new BookmarkType();</span>
-<span class="fc" id="L52">    type.name = response.getName();</span>
-<span class="fc" id="L53">    type.group = response.getGroup();</span>
-<span class="fc" id="L54">    type.icon = response.getIcon();</span>
-<span class="fc" id="L55">    type.url = response.getUrl();</span>
-<span class="fc" id="L56">    type.info = response.getInfo();</span>
-<span class="fc" id="L57">    type.targetBlank = response.getTargetBlank();</span>
-<span class="fc" id="L58">    type.location = response.getLocation();</span>
-<span class="fc" id="L59">    type.namespace = response.getNamespace();</span>
-<span class="fc" id="L60">    type.resourceName = response.getResourceName();</span>
-<span class="fc" id="L61">    type.hasOwnerReferences = response.getHasOwnerReferences();</span>
-<span class="fc" id="L62">    return type;</span>
+<span class="fc" id="L54">    BookmarkType type = new BookmarkType();</span>
+<span class="fc" id="L55">    type.name = response.getName();</span>
+<span class="fc" id="L56">    type.group = response.getGroup();</span>
+<span class="fc" id="L57">    type.icon = response.getIcon();</span>
+<span class="fc" id="L58">    type.url = response.getUrl();</span>
+<span class="fc" id="L59">    type.info = response.getInfo();</span>
+<span class="fc" id="L60">    type.targetBlank = response.getTargetBlank();</span>
+<span class="fc" id="L61">    type.location = response.getLocation();</span>
+<span class="fc" id="L62">    type.namespace = response.getNamespace();</span>
+<span class="fc" id="L63">    type.resourceName = response.getResourceName();</span>
+<span class="fc" id="L64">    type.hasOwnerReferences = response.getHasOwnerReferences();</span>
+<span class="fc" id="L65">    type.cluster = response.getCluster();</span>
+<span class="fc" id="L66">    return type;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

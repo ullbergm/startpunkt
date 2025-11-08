@@ -22,21 +22,22 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
 <span class="fc" id="L22">public class ApplicationCacheService {</span>
 
   // Thread-safe map for storing applications
-  // Key format: &quot;namespace/resourceName&quot; - since app.name may differ from
+  // Key format: &quot;cluster/namespace/resourceName&quot; - since app.name may differ from
   // resourceName,
-  // we use the Kubernetes metadata (namespace + resource name) as the unique
+  // we use the Kubernetes metadata (cluster + namespace + resource name) as the unique
   // identifier
 <span class="fc" id="L29">  private final Map&lt;String, ApplicationResponse&gt; applicationCache = new ConcurrentHashMap&lt;&gt;();</span>
 
   /**
    * Generate a cache key for an application.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the cache key
    */
-  private String getCacheKey(String namespace, String resourceName) {
-<span class="fc" id="L39">    return String.format(&quot;%s/%s&quot;, namespace, resourceName);</span>
+  private String getCacheKey(String cluster, String namespace, String resourceName) {
+<span class="fc" id="L40">    return String.format(&quot;%s/%s/%s&quot;, cluster, namespace, resourceName);</span>
   }
 
   /**
@@ -46,9 +47,10 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * @return the cache key
    */
   private String getCacheKey(ApplicationResponse app) {
-<span class="fc" id="L49">    return getCacheKey(</span>
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        app.getNamespace() != null ? app.getNamespace() : &quot;unknown&quot;,</span>
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        app.getResourceName() != null ? app.getResourceName() : &quot;unknown&quot;);</span>
+<span class="fc" id="L50">    return getCacheKey(</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        app.getCluster() != null ? app.getCluster() : &quot;local&quot;,</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        app.getNamespace() != null ? app.getNamespace() : &quot;unknown&quot;,</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        app.getResourceName() != null ? app.getResourceName() : &quot;unknown&quot;);</span>
   }
 
   /**
@@ -57,20 +59,20 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * @param app the application to add or update
    */
   public void put(ApplicationResponse app) {
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    if (app == null) {</span>
-<span class="nc" id="L61">      Log.warn(&quot;Attempted to add null application to cache&quot;);</span>
-<span class="nc" id="L62">      return;</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (app == null) {</span>
+<span class="nc" id="L63">      Log.warn(&quot;Attempted to add null application to cache&quot;);</span>
+<span class="nc" id="L64">      return;</span>
     }
 
-<span class="fc" id="L65">    String key = getCacheKey(app);</span>
-<span class="fc" id="L66">    ApplicationResponse existing = applicationCache.put(key, app);</span>
+<span class="fc" id="L67">    String key = getCacheKey(app);</span>
+<span class="fc" id="L68">    ApplicationResponse existing = applicationCache.put(key, app);</span>
 
-<span class="fc bfc" id="L68" title="All 2 branches covered.">    if (existing == null) {</span>
-<span class="fc" id="L69">      Log.debugf(&quot;Added application to cache: %s&quot;, key);</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (existing == null) {</span>
+<span class="fc" id="L71">      Log.debugf(&quot;Added application to cache: %s&quot;, key);</span>
     } else {
-<span class="fc" id="L71">      Log.debugf(&quot;Updated application in cache: %s&quot;, key);</span>
+<span class="fc" id="L73">      Log.debugf(&quot;Updated application in cache: %s&quot;, key);</span>
     }
-<span class="fc" id="L73">  }</span>
+<span class="fc" id="L75">  }</span>
 
   /**
    * Add or update multiple applications in the cache.
@@ -78,47 +80,49 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * @param apps the applications to add or update
    */
   public void putAll(List&lt;ApplicationResponse&gt; apps) {
-<span class="pc bpc" id="L81" title="1 of 4 branches missed.">    if (apps == null || apps.isEmpty()) {</span>
-<span class="fc" id="L82">      return;</span>
+<span class="pc bpc" id="L83" title="1 of 4 branches missed.">    if (apps == null || apps.isEmpty()) {</span>
+<span class="fc" id="L84">      return;</span>
     }
 
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    for (ApplicationResponse app : apps) {</span>
-<span class="fc" id="L86">      put(app);</span>
-<span class="fc" id="L87">    }</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    for (ApplicationResponse app : apps) {</span>
+<span class="fc" id="L88">      put(app);</span>
+<span class="fc" id="L89">    }</span>
 
-<span class="fc" id="L89">    Log.infof(&quot;Cached %d applications&quot;, apps.size());</span>
-<span class="fc" id="L90">  }</span>
+<span class="fc" id="L91">    Log.infof(&quot;Cached %d applications&quot;, apps.size());</span>
+<span class="fc" id="L92">  }</span>
 
   /**
    * Remove an application from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the removed application, or null if not found
    */
-  public ApplicationResponse remove(String namespace, String resourceName) {
-<span class="fc" id="L100">    String key = getCacheKey(namespace, resourceName);</span>
-<span class="fc" id="L101">    ApplicationResponse removed = applicationCache.remove(key);</span>
+  public ApplicationResponse remove(String cluster, String namespace, String resourceName) {
+<span class="fc" id="L103">    String key = getCacheKey(cluster, namespace, resourceName);</span>
+<span class="fc" id="L104">    ApplicationResponse removed = applicationCache.remove(key);</span>
 
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">    if (removed != null) {</span>
-<span class="fc" id="L104">      Log.debugf(&quot;Removed application from cache: %s&quot;, key);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (removed != null) {</span>
+<span class="fc" id="L107">      Log.debugf(&quot;Removed application from cache: %s&quot;, key);</span>
     } else {
-<span class="nc" id="L106">      Log.debugf(&quot;Application not found in cache for removal: %s&quot;, key);</span>
+<span class="nc" id="L109">      Log.debugf(&quot;Application not found in cache for removal: %s&quot;, key);</span>
     }
 
-<span class="fc" id="L109">    return removed;</span>
+<span class="fc" id="L112">    return removed;</span>
   }
 
   /**
    * Get an application from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the application, or null if not found
    */
-  public ApplicationResponse get(String namespace, String resourceName) {
-<span class="nc" id="L120">    String key = getCacheKey(namespace, resourceName);</span>
-<span class="nc" id="L121">    return applicationCache.get(key);</span>
+  public ApplicationResponse get(String cluster, String namespace, String resourceName) {
+<span class="nc" id="L124">    String key = getCacheKey(cluster, namespace, resourceName);</span>
+<span class="nc" id="L125">    return applicationCache.get(key);</span>
   }
 
   /**
@@ -127,7 +131,7 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * @return a list of all cached applications
    */
   public List&lt;ApplicationResponse&gt; getAll() {
-<span class="nc" id="L130">    return new ArrayList&lt;&gt;(applicationCache.values());</span>
+<span class="nc" id="L134">    return new ArrayList&lt;&gt;(applicationCache.values());</span>
   }
 
   /**
@@ -136,7 +140,7 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * @return the cache size
    */
   public int size() {
-<span class="nc" id="L139">    return applicationCache.size();</span>
+<span class="nc" id="L143">    return applicationCache.size();</span>
   }
 
   /**
@@ -145,36 +149,94 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
    * &lt;p&gt;This is primarily for testing or emergency reset scenarios.
    */
   public void clear() {
-<span class="fc" id="L148">    int size = applicationCache.size();</span>
-<span class="fc" id="L149">    applicationCache.clear();</span>
-<span class="fc" id="L150">    Log.infof(&quot;Cleared application cache (%d applications removed)&quot;, size);</span>
-<span class="fc" id="L151">  }</span>
+<span class="fc" id="L152">    int size = applicationCache.size();</span>
+<span class="fc" id="L153">    applicationCache.clear();</span>
+<span class="fc" id="L154">    Log.infof(&quot;Cleared application cache (%d applications removed)&quot;, size);</span>
+<span class="fc" id="L155">  }</span>
 
   /**
-   * Remove all applications from a specific namespace.
+   * Remove all applications from a specific cluster and namespace.
+   *
+   * @param cluster the cluster name
+   * @param namespace the namespace
+   * @return the number of applications removed
+   */
+  public int removeByClusterAndNamespace(String cluster, String namespace) {
+<span class="nc" id="L165">    List&lt;String&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L166">    String prefix = cluster + &quot;/&quot; + namespace + &quot;/&quot;;</span>
+
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    for (String key : applicationCache.keySet()) {</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">      if (key.startsWith(prefix)) {</span>
+<span class="nc" id="L170">        keysToRemove.add(key);</span>
+      }
+<span class="nc" id="L172">    }</span>
+
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    for (String key : keysToRemove) {</span>
+<span class="nc" id="L175">      applicationCache.remove(key);</span>
+<span class="nc" id="L176">    }</span>
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (!keysToRemove.isEmpty()) {</span>
+<span class="nc" id="L179">      Log.infof(</span>
+          &quot;Removed %d applications from cache (cluster=%s, namespace=%s)&quot;,
+<span class="nc" id="L181">          keysToRemove.size(), cluster, namespace);</span>
+    }
+
+<span class="nc" id="L184">    return keysToRemove.size();</span>
+  }
+
+  /**
+   * Remove all applications from a specific namespace (across all clusters).
    *
    * @param namespace the namespace
    * @return the number of applications removed
    */
   public int removeByNamespace(String namespace) {
-<span class="nc" id="L160">    List&lt;String&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L194">    List&lt;String&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
 
-<span class="nc bnc" id="L162" title="All 2 branches missed.">    for (String key : applicationCache.keySet()) {</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">      if (key.startsWith(namespace + &quot;/&quot;)) {</span>
-<span class="nc" id="L164">        keysToRemove.add(key);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    for (String key : applicationCache.keySet()) {</span>
+<span class="nc" id="L197">      String[] parts = key.split(&quot;/&quot;);</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">      if (parts.length &gt;= 2 &amp;&amp; parts[1].equals(namespace)) {</span>
+<span class="nc" id="L199">        keysToRemove.add(key);</span>
       }
-<span class="nc" id="L166">    }</span>
+<span class="nc" id="L201">    }</span>
 
-<span class="nc bnc" id="L168" title="All 2 branches missed.">    for (String key : keysToRemove) {</span>
-<span class="nc" id="L169">      applicationCache.remove(key);</span>
-<span class="nc" id="L170">    }</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">    for (String key : keysToRemove) {</span>
+<span class="nc" id="L204">      applicationCache.remove(key);</span>
+<span class="nc" id="L205">    }</span>
 
-<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (!keysToRemove.isEmpty()) {</span>
-<span class="nc" id="L173">      Log.infof(</span>
-<span class="nc" id="L174">          &quot;Removed %d applications from cache (namespace=%s)&quot;, keysToRemove.size(), namespace);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    if (!keysToRemove.isEmpty()) {</span>
+<span class="nc" id="L208">      Log.infof(</span>
+<span class="nc" id="L209">          &quot;Removed %d applications from cache (namespace=%s)&quot;, keysToRemove.size(), namespace);</span>
     }
 
-<span class="nc" id="L177">    return keysToRemove.size();</span>
+<span class="nc" id="L212">    return keysToRemove.size();</span>
+  }
+
+  /**
+   * Remove all applications from a specific cluster.
+   *
+   * @param cluster the cluster name
+   * @return the number of applications removed
+   */
+  public int removeByCluster(String cluster) {
+<span class="nc" id="L222">    List&lt;String&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L223">    String prefix = cluster + &quot;/&quot;;</span>
+
+<span class="nc bnc" id="L225" title="All 2 branches missed.">    for (String key : applicationCache.keySet()) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">      if (key.startsWith(prefix)) {</span>
+<span class="nc" id="L227">        keysToRemove.add(key);</span>
+      }
+<span class="nc" id="L229">    }</span>
+
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    for (String key : keysToRemove) {</span>
+<span class="nc" id="L232">      applicationCache.remove(key);</span>
+<span class="nc" id="L233">    }</span>
+
+<span class="nc bnc" id="L235" title="All 2 branches missed.">    if (!keysToRemove.isEmpty()) {</span>
+<span class="nc" id="L236">      Log.infof(&quot;Removed %d applications from cache (cluster=%s)&quot;, keysToRemove.size(), cluster);</span>
+    }
+
+<span class="nc" id="L239">    return keysToRemove.size();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

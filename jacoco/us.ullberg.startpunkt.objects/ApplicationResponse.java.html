@@ -31,30 +31,34 @@ public class ApplicationResponse extends ApplicationSpec {
   @JsonProperty(&quot;hasOwnerReferences&quot;)
   private Boolean hasOwnerReferences;
 
+  /** The cluster name this application belongs to (for multi-cluster support). */
+  @JsonProperty(&quot;cluster&quot;)
+  private String cluster;
+
   /** Default constructor. */
   public ApplicationResponse() {
-<span class="nc" id="L36">    super();</span>
-<span class="nc" id="L37">  }</span>
+<span class="nc" id="L40">    super();</span>
+<span class="nc" id="L41">  }</span>
 
   /**
    * Creates a response DTO from an existing ApplicationSpec, copying all fields.
    *
    * @param spec the ApplicationSpec to wrap
    */
-<span class="fc" id="L44">  public ApplicationResponse(ApplicationSpec spec) {</span>
-<span class="fc" id="L45">    this.name = spec.getName();</span>
-<span class="fc" id="L46">    this.setGroup(spec.getGroup());</span>
-<span class="fc" id="L47">    this.setIcon(spec.getIcon());</span>
-<span class="fc" id="L48">    this.setIconColor(spec.getIconColor());</span>
-<span class="fc" id="L49">    this.setUrl(spec.getUrl());</span>
-<span class="fc" id="L50">    this.setUrlFrom(spec.getUrlFrom());</span>
-<span class="fc" id="L51">    this.setInfo(spec.getInfo());</span>
-<span class="fc" id="L52">    this.setTargetBlank(spec.getTargetBlank());</span>
-<span class="fc" id="L53">    this.setLocation(spec.getLocation());</span>
-<span class="fc" id="L54">    this.setEnabled(spec.getEnabled());</span>
-<span class="fc" id="L55">    this.setRootPath(spec.getRootPath());</span>
-<span class="fc" id="L56">    this.setTags(spec.getTags());</span>
-<span class="fc" id="L57">  }</span>
+<span class="fc" id="L48">  public ApplicationResponse(ApplicationSpec spec) {</span>
+<span class="fc" id="L49">    this.name = spec.getName();</span>
+<span class="fc" id="L50">    this.setGroup(spec.getGroup());</span>
+<span class="fc" id="L51">    this.setIcon(spec.getIcon());</span>
+<span class="fc" id="L52">    this.setIconColor(spec.getIconColor());</span>
+<span class="fc" id="L53">    this.setUrl(spec.getUrl());</span>
+<span class="fc" id="L54">    this.setUrlFrom(spec.getUrlFrom());</span>
+<span class="fc" id="L55">    this.setInfo(spec.getInfo());</span>
+<span class="fc" id="L56">    this.setTargetBlank(spec.getTargetBlank());</span>
+<span class="fc" id="L57">    this.setLocation(spec.getLocation());</span>
+<span class="fc" id="L58">    this.setEnabled(spec.getEnabled());</span>
+<span class="fc" id="L59">    this.setRootPath(spec.getRootPath());</span>
+<span class="fc" id="L60">    this.setTags(spec.getTags());</span>
+<span class="fc" id="L61">  }</span>
 
   /**
    * Gets whether the application is currently available.
@@ -62,7 +66,7 @@ public class ApplicationResponse extends ApplicationSpec {
    * @return true if the application is available, null if not yet checked
    */
   public Boolean getAvailable() {
-<span class="fc" id="L65">    return available;</span>
+<span class="fc" id="L69">    return available;</span>
   }
 
   /**
@@ -71,8 +75,8 @@ public class ApplicationResponse extends ApplicationSpec {
    * @param available whether the application is available
    */
   public void setAvailable(Boolean available) {
-<span class="fc" id="L74">    this.available = available;</span>
-<span class="fc" id="L75">  }</span>
+<span class="fc" id="L78">    this.available = available;</span>
+<span class="fc" id="L79">  }</span>
 
   /**
    * Gets the Kubernetes namespace of the underlying resource.
@@ -80,7 +84,7 @@ public class ApplicationResponse extends ApplicationSpec {
    * @return the namespace
    */
   public String getNamespace() {
-<span class="fc" id="L83">    return namespace;</span>
+<span class="fc" id="L87">    return namespace;</span>
   }
 
   /**
@@ -89,8 +93,8 @@ public class ApplicationResponse extends ApplicationSpec {
    * @param namespace the namespace to set
    */
   public void setNamespace(String namespace) {
-<span class="fc" id="L92">    this.namespace = namespace;</span>
-<span class="fc" id="L93">  }</span>
+<span class="fc" id="L96">    this.namespace = namespace;</span>
+<span class="fc" id="L97">  }</span>
 
   /**
    * Gets the Kubernetes resource name (metadata.name) of the underlying object.
@@ -98,7 +102,7 @@ public class ApplicationResponse extends ApplicationSpec {
    * @return the resource name
    */
   public String getResourceName() {
-<span class="fc" id="L101">    return resourceName;</span>
+<span class="fc" id="L105">    return resourceName;</span>
   }
 
   /**
@@ -107,8 +111,8 @@ public class ApplicationResponse extends ApplicationSpec {
    * @param resourceName the resource name to set
    */
   public void setResourceName(String resourceName) {
-<span class="fc" id="L110">    this.resourceName = resourceName;</span>
-<span class="fc" id="L111">  }</span>
+<span class="fc" id="L114">    this.resourceName = resourceName;</span>
+<span class="fc" id="L115">  }</span>
 
   /**
    * Gets whether the resource has owner references.
@@ -116,7 +120,7 @@ public class ApplicationResponse extends ApplicationSpec {
    * @return true if the resource has owner references, false otherwise
    */
   public Boolean getHasOwnerReferences() {
-<span class="fc" id="L119">    return hasOwnerReferences;</span>
+<span class="fc" id="L123">    return hasOwnerReferences;</span>
   }
 
   /**
@@ -125,7 +129,25 @@ public class ApplicationResponse extends ApplicationSpec {
    * @param hasOwnerReferences true if the resource has owner references
    */
   public void setHasOwnerReferences(Boolean hasOwnerReferences) {
-<span class="fc" id="L128">    this.hasOwnerReferences = hasOwnerReferences;</span>
-<span class="fc" id="L129">  }</span>
+<span class="fc" id="L132">    this.hasOwnerReferences = hasOwnerReferences;</span>
+<span class="fc" id="L133">  }</span>
+
+  /**
+   * Gets the cluster name this application belongs to.
+   *
+   * @return the cluster name
+   */
+  public String getCluster() {
+<span class="fc" id="L141">    return cluster;</span>
+  }
+
+  /**
+   * Sets the cluster name this application belongs to.
+   *
+   * @param cluster the cluster name to set
+   */
+  public void setCluster(String cluster) {
+<span class="fc" id="L150">    this.cluster = cluster;</span>
+<span class="fc" id="L151">  }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -53,8 +53,11 @@ public class ApplicationType {
   @Description(&quot;Whether the resource is managed by another resource&quot;)
   public Boolean hasOwnerReferences;
 
+  @Description(&quot;Cluster name this application belongs to&quot;)
+  public String cluster;
+
   /** Default constructor for GraphQL. */
-<span class="fc" id="L57">  public ApplicationType() {}</span>
+<span class="fc" id="L60">  public ApplicationType() {}</span>
 
   /**
    * Creates an ApplicationType from an ApplicationResponse.
@@ -64,23 +67,24 @@ public class ApplicationType {
    */
   public static ApplicationType fromResponse(
       us.ullberg.startpunkt.objects.ApplicationResponse response) {
-<span class="fc" id="L67">    ApplicationType type = new ApplicationType();</span>
-<span class="fc" id="L68">    type.name = response.getName();</span>
-<span class="fc" id="L69">    type.group = response.getGroup();</span>
-<span class="fc" id="L70">    type.icon = response.getIcon();</span>
-<span class="fc" id="L71">    type.iconColor = response.getIconColor();</span>
-<span class="fc" id="L72">    type.url = response.getUrl();</span>
-<span class="fc" id="L73">    type.info = response.getInfo();</span>
-<span class="fc" id="L74">    type.targetBlank = response.getTargetBlank();</span>
-<span class="fc" id="L75">    type.location = response.getLocation();</span>
-<span class="fc" id="L76">    type.enabled = response.getEnabled();</span>
-<span class="fc" id="L77">    type.rootPath = response.getRootPath();</span>
-<span class="fc" id="L78">    type.tags = response.getTags();</span>
-<span class="fc" id="L79">    type.available = response.getAvailable();</span>
-<span class="fc" id="L80">    type.namespace = response.getNamespace();</span>
-<span class="fc" id="L81">    type.resourceName = response.getResourceName();</span>
-<span class="fc" id="L82">    type.hasOwnerReferences = response.getHasOwnerReferences();</span>
-<span class="fc" id="L83">    return type;</span>
+<span class="fc" id="L70">    ApplicationType type = new ApplicationType();</span>
+<span class="fc" id="L71">    type.name = response.getName();</span>
+<span class="fc" id="L72">    type.group = response.getGroup();</span>
+<span class="fc" id="L73">    type.icon = response.getIcon();</span>
+<span class="fc" id="L74">    type.iconColor = response.getIconColor();</span>
+<span class="fc" id="L75">    type.url = response.getUrl();</span>
+<span class="fc" id="L76">    type.info = response.getInfo();</span>
+<span class="fc" id="L77">    type.targetBlank = response.getTargetBlank();</span>
+<span class="fc" id="L78">    type.location = response.getLocation();</span>
+<span class="fc" id="L79">    type.enabled = response.getEnabled();</span>
+<span class="fc" id="L80">    type.rootPath = response.getRootPath();</span>
+<span class="fc" id="L81">    type.tags = response.getTags();</span>
+<span class="fc" id="L82">    type.available = response.getAvailable();</span>
+<span class="fc" id="L83">    type.namespace = response.getNamespace();</span>
+<span class="fc" id="L84">    type.resourceName = response.getResourceName();</span>
+<span class="fc" id="L85">    type.hasOwnerReferences = response.getHasOwnerReferences();</span>
+<span class="fc" id="L86">    type.cluster = response.getCluster();</span>
+<span class="fc" id="L87">    return type;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
