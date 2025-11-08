@@ -12,10 +12,6 @@ startpunkt:
     #   - name: "staging-cluster"
     #     graphql-url: "https://startpunkt.staging.example.com/graphql"
     #     enabled: true
-    remote:
-      - name: "patrick"
-        graphql-url: "https://apps.openshift.registerfam.net/graphql"
-        enabled: true
 
   defaultProtocol: "http"
 
