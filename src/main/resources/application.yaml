@@ -3,7 +3,8 @@ startpunkt:
   clusters:
     local:
       enabled: true  # If true, read from the local cluster (the cluster where Startpunkt is running)
-    # remote:  # Example remote GraphQL cluster configurations
+      # name: "dev-cluster"  # Optional custom name for the local cluster (default is "local")
+    remote:  # Example remote GraphQL cluster configurations
     #   # Remote Startpunkt instances via GraphQL
     #   - name: "prod-cluster"  # Unique name for the remote cluster
     #     graphql-url: "https://startpunkt.prod.example.com/graphql"  # GraphQL endpoint URL

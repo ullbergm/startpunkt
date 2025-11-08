@@ -187,6 +187,7 @@ export function App() {
 
   // Cluster state
   const [availableClusters, setAvailableClusters] = useState([]);
+  const [localClusterDisplayName, setLocalClusterDisplayName] = useState('local');
   const [clustersDefaultShowAll, setClustersDefaultShowAll] = useState(false);
 
   // Initialize cluster preferences hook with default behavior
@@ -305,6 +306,10 @@ export function App() {
         if (result.data && result.data.activeClusters) {
           console.log('[INIT] Received clusters:', result.data.activeClusters);
           setAvailableClusters(result.data.activeClusters);
+          if (result.data.localClusterName) {
+            console.log('[INIT] Local cluster display name:', result.data.localClusterName);
+            setLocalClusterDisplayName(result.data.localClusterName);
+          }
         }
       })
       .catch((err) => {
@@ -793,7 +798,7 @@ export function App() {
       
       {/* Preference buttons container - horizontal layout */}
       <div class="position-fixed bottom-0 end-0 mb-3 me-3 d-flex gap-2 align-items-center" style="z-index: 1000;">
-        <ClusterSettings clusters={availableClusters} />
+        <ClusterSettings clusters={availableClusters} localClusterDisplayName={localClusterDisplayName} />
         <BackgroundSettings />
         <LayoutSettings layoutPrefs={layoutPrefs} />
         <AccessibilitySettings />

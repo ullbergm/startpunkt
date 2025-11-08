@@ -8,8 +8,11 @@ import { useClusterPreferences } from './useClusterPreferences';
  * 
  * Shows a dropdown menu with toggles for each available cluster.
  * Only visible when multiple clusters are available.
+ * 
+ * @param {Array<string>} clusters - List of cluster names
+ * @param {string} localClusterDisplayName - Display name for the local cluster (defaults to "local")
  */
-export function ClusterSettings({ clusters }) {
+export function ClusterSettings({ clusters, localClusterDisplayName = 'local' }) {
   const clusterPrefs = useClusterPreferences();
 
   // Initialize cluster preferences when clusters become available
@@ -30,6 +33,9 @@ export function ClusterSettings({ clusters }) {
   // Get the single enabled cluster name if only one is selected
   const enabledClusters = clusterPrefs.getEnabledClusters(clusters);
   const singleClusterName = enabledCount === 1 ? enabledClusters[0] : null;
+  
+  // Use display name for local cluster on the button
+  const buttonDisplayName = singleClusterName === 'local' ? localClusterDisplayName : singleClusterName;
 
   return (
     <>
@@ -51,9 +57,9 @@ export function ClusterSettings({ clusters }) {
           <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
             <use href="#server-network"></use>
           </svg>
-          {singleClusterName ? (
+          {buttonDisplayName ? (
             <span class="ms-2 d-none d-md-inline" id="bd-cluster-text">
-              {singleClusterName}
+              {buttonDisplayName}
             </span>
           ) : (
             <span class="visually-hidden" id="bd-cluster-text">
@@ -92,6 +98,7 @@ export function ClusterSettings({ clusters }) {
               {clusters.map((clusterName) => {
                 const isEnabled = clusterPrefs.isClusterEnabled(clusterName);
                 const isLocal = clusterName === 'local';
+                const displayName = isLocal ? localClusterDisplayName : clusterName;
                 
                 return (
                   <div 
@@ -123,8 +130,8 @@ export function ClusterSettings({ clusters }) {
                         aria-hidden="true"
                       />
                       <span class="small" style={{ fontWeight: isLocal ? '600' : 'normal' }}>
-                        {clusterName}
-                        {isLocal && (
+                        {displayName}
+                        {isLocal && localClusterDisplayName !== 'local' && (
                           <small class="text-muted ms-1">
                             (<Text id="cluster.local">local</Text>)
                           </small>

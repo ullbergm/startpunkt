@@ -43,7 +43,8 @@ public class MultiClusterService {
 
     // Log local cluster status (no need to add to clusterConfigs as it's handled separately)
     if (clustersConfig.local().enabled()) {
-      Log.info("Local cluster enabled");
+      String localClusterName = clustersConfig.local().name().orElse("local");
+      Log.infof("Local cluster enabled with name '%s'", localClusterName);
     } else {
       Log.info("Local cluster disabled");
     }
@@ -101,7 +102,9 @@ public class MultiClusterService {
    * @return the Kubernetes client for local cluster, or null if not configured or remote
    */
   public KubernetesClient getClient(String clusterName) {
-    if ("local".equalsIgnoreCase(clusterName)) {
+    // Check if this is the local cluster (either "local" or custom name)
+    String localClusterName = clustersConfig.local().name().orElse("local");
+    if (localClusterName.equalsIgnoreCase(clusterName) || "local".equalsIgnoreCase(clusterName)) {
       return clustersConfig.local().enabled() ? localClient : null;
     }
     // Remote clusters are GraphQL-only, no Kubernetes client
@@ -125,7 +128,7 @@ public class MultiClusterService {
   public List<String> getActiveClusterNames() {
     List<String> names = new ArrayList<>();
 
-    // Add local cluster if enabled
+    // Add local cluster if enabled (always use "local" as identifier)
     if (clustersConfig.local().enabled()) {
       names.add("local");
     }
@@ -152,7 +155,9 @@ public class MultiClusterService {
    * @return true if the cluster is active
    */
   public boolean isClusterActive(String clusterName) {
-    if ("local".equalsIgnoreCase(clusterName)) {
+    // Check if this is the local cluster (either "local" or custom name)
+    String localClusterName = clustersConfig.local().name().orElse("local");
+    if (localClusterName.equalsIgnoreCase(clusterName) || "local".equalsIgnoreCase(clusterName)) {
       return clustersConfig.local().enabled();
     }
     return clusterConfigs.containsKey(clusterName);
@@ -175,5 +180,14 @@ public class MultiClusterService {
    */
   public Map<String, ClusterConfig> getAllClusterConfigs() {
     return new HashMap<>(clusterConfigs);
+  }
+
+  /**
+   * Get the display name for the local cluster.
+   *
+   * @return the local cluster display name, or "local" if not configured
+   */
+  public String getLocalClusterDisplayName() {
+    return clustersConfig.local().name().orElse("local");
   }
 }

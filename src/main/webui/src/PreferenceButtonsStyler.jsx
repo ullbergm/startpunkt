@@ -18,8 +18,15 @@ export function PreferenceButtonsStyler() {
   const { preferences, getTypePreference } = useBackgroundPreferences();
 
   useEffect(() => {
+    // Store event listeners for cleanup
+    let cleanupFunctions = [];
+
     // Function to apply styles to buttons
     const applyStyles = () => {
+      // Clean up any existing event listeners before reapplying
+      cleanupFunctions.forEach(cleanup => cleanup());
+      cleanupFunctions = [];
+
       // Query buttons - re-query each time to catch dynamically added buttons
       const buttons = document.querySelectorAll(
         '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn, .bd-cluster-toggle .btn, .bd-websocket-heart .btn'
@@ -67,12 +74,13 @@ export function PreferenceButtonsStyler() {
         btn.addEventListener('mouseleave', handleMouseLeave);
       });
 
-      return () => {
+      cleanupFunctions.push(() => {
         buttons.forEach(btn => {
           btn.removeEventListener('mouseenter', handleMouseEnter);
           btn.removeEventListener('mouseleave', handleMouseLeave);
         });
-      };
+      });
+      return;
     }
     
     // Determine background color and text color based on slider value
@@ -126,13 +134,12 @@ export function PreferenceButtonsStyler() {
       btn.addEventListener('mouseleave', handleMouseLeave);
     });
 
-    // Cleanup function - removes event listeners from the same buttons captured above
-    return () => {
+    cleanupFunctions.push(() => {
       buttons.forEach(btn => {
         btn.removeEventListener('mouseenter', handleMouseEnter);
         btn.removeEventListener('mouseleave', handleMouseLeave);
       });
-    };
+    });
     }; // End of applyStyles function
 
     // Apply styles immediately
@@ -141,8 +148,37 @@ export function PreferenceButtonsStyler() {
     // Also apply after a short delay to catch any dynamically added buttons (like ClusterSettings)
     const timeoutId = setTimeout(applyStyles, 100);
 
+    // Set up a MutationObserver to watch for new buttons being added to the DOM
+    const observer = new MutationObserver((mutations) => {
+      // Check if any of the mutations added our preference buttons
+      const hasRelevantChanges = mutations.some(mutation => 
+        Array.from(mutation.addedNodes).some(node => 
+          node.nodeType === 1 && (
+            node.classList?.contains('bd-cluster-toggle') ||
+            node.classList?.contains('bd-background-toggle') ||
+            node.classList?.contains('bd-layout-toggle') ||
+            node.classList?.contains('bd-accessibility-toggle') ||
+            node.classList?.contains('bd-websocket-heart') ||
+            node.querySelector?.('.bd-cluster-toggle, .bd-background-toggle, .bd-layout-toggle, .bd-accessibility-toggle, .bd-websocket-heart')
+          )
+        )
+      );
+
+      if (hasRelevantChanges) {
+        applyStyles();
+      }
+    });
+
+    // Start observing the preference buttons container
+    const container = document.querySelector('.position-fixed.bottom-0.end-0');
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
+    }
+
     return () => {
       clearTimeout(timeoutId);
+      observer.disconnect();
+      cleanupFunctions.forEach(cleanup => cleanup());
     };
   }, [preferences.type, preferences.typePreferences]);
 

@@ -36,6 +36,7 @@ export const CONFIG_QUERY = gql`
 export const ACTIVE_CLUSTERS_QUERY = gql`
   query GetActiveClusters {
     activeClusters
+    localClusterName
   }
 `;
 

@@ -36,6 +36,14 @@ public interface ClustersConfig {
      */
     @WithDefault("true")
     boolean enabled();
+
+    /**
+     * Display name for the local cluster.
+     *
+     * @return the cluster name, defaults to "local" if not set
+     */
+    @WithDefault("local")
+    Optional<String> name();
   }
 
   /** Remote cluster configuration. */

@@ -81,6 +81,19 @@ public class ConfigGraphQLResource {
     return multiClusterService.getActiveClusterNames();
   }
 
+  /**
+   * Retrieve the display name for the local cluster.
+   *
+   * @return the local cluster display name
+   */
+  @Query("localClusterName")
+  @Description("Retrieve the display name for the local cluster")
+  @Timed(value = "graphql.query.localClusterName")
+  public String getLocalClusterName() {
+    Log.debug("GraphQL query: localClusterName");
+    return multiClusterService.getLocalClusterDisplayName();
+  }
+
   /** Configuration response type. */
   public static class ConfigResponse {
     public String version;
