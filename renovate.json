@@ -292,9 +292,6 @@
          "groupSlug": "all-npm-minor"
       },
       {
-         "matchPackagePatterns": [
-            "^io\\.quarkus"
-         ],
          "matchUpdateTypes": [
             "major"
          ],
@@ -303,12 +300,12 @@
          "commitMessagePrefix": "feat(quarkus)!: ",
          "addLabels": [
             "renovate/quarkus"
+         ],
+         "matchPackageNames": [
+            "/^io\\.quarkus/"
          ]
       },
       {
-         "matchPackagePatterns": [
-            "^io\\.quarkus"
-         ],
          "matchUpdateTypes": [
             "minor"
          ],
@@ -318,12 +315,12 @@
          "semanticCommitScope": "quarkus",
          "addLabels": [
             "renovate/quarkus"
+         ],
+         "matchPackageNames": [
+            "/^io\\.quarkus/"
          ]
       },
       {
-         "matchPackagePatterns": [
-            "^io\\.quarkus"
-         ],
          "matchUpdateTypes": [
             "patch"
          ],
@@ -333,6 +330,9 @@
          "semanticCommitScope": "quarkus",
          "addLabels": [
             "renovate/quarkus"
+         ],
+         "matchPackageNames": [
+            "/^io\\.quarkus/"
          ]
       }
    ]
