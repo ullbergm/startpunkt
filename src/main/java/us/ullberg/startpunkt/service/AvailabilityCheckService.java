@@ -32,19 +32,26 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
  * in the background to maintain up-to-date availability status.
  *
- * <p>This service implements exponential backoff for failing services to reduce load on both the
- * Kubernetes cluster and unresponsive applications. When an application fails availability checks
- * consecutively, the service increases the delay between checks exponentially until a maximum delay
- * is reached. Once a service becomes available again, the backoff state is reset and normal
- * checking resumes.
+ * <p>The service uses a dual-speed approach for efficient availability checking:
+ *
+ * <ul>
+ *   <li><b>Healthy URLs</b>: Checked at the regular interval (e.g., every 60 seconds)
+ *   <li><b>Failing URLs</b>: Use exponential backoff (5s, 10s, 20s, 40s, etc.) to reduce load on
+ *       unresponsive services
+ * </ul>
+ *
+ * <p>This design ensures that healthy applications are monitored regularly, while failing
+ * applications are checked less frequently to avoid overwhelming them. When a failing application
+ * recovers, its backoff state is reset and it returns to regular interval checking.
  *
  * <p>Backoff behavior can be configured via the following properties:
  *
  * <ul>
+ *   <li>{@code startpunkt.availability.interval} - Check interval for healthy URLs (default: 60s)
  *   <li>{@code startpunkt.availability.maxRetries} - Maximum number of consecutive failures before
- *       extended backoff (default: 5)
+ *       warning (default: 5)
  *   <li>{@code startpunkt.availability.initialDelayMs} - Initial backoff delay in milliseconds
- *       (default: 1000ms)
+ *       (default: 5000ms)
  *   <li>{@code startpunkt.availability.maxDelayMs} - Maximum backoff delay in milliseconds
  *       (default: 300000ms = 5 minutes)
  *   <li>{@code startpunkt.availability.backoffMultiplier} - Exponential multiplier for backoff
@@ -152,29 +159,43 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Checks the availability of a single application URL with exponential backoff support.
-   *
-   * <p>When an application fails repeatedly, this method implements exponential backoff to reduce
-   * load on failing services. The backoff delay increases exponentially with each consecutive
-   * failure up to a maximum delay. After a successful check, the backoff state is reset.
+   * Checks the availability of a single application URL. By default, this method always performs
+   * the check regardless of backoff state, which is suitable for on-demand checks.
    *
    * @param url the URL to check
    * @return true if the application is available, false otherwise
    */
   public boolean checkAvailability(String url) {
+    return checkAvailability(url, false);
+  }
+
+  /**
+   * Checks the availability of a single application URL with exponential backoff support.
+   *
+   * <p>This method performs an actual HTTP check for the URL. For healthy URLs, checks are
+   * performed at the regular interval. For failing URLs, exponential backoff is applied to reduce
+   * load on unresponsive services.
+   *
+   * @param url the URL to check
+   * @param respectBackoff if true, skip the check if the URL is in backoff period
+   * @return true if the application is available, false otherwise
+   */
+  public boolean checkAvailability(String url, boolean respectBackoff) {
     if (!availabilityCheckEnabled) {
       return true; // Default to available if checking is disabled
     }
 
     // Check if we should skip this check due to exponential backoff
-    long currentTime = System.currentTimeMillis();
-    Long nextCheck = nextCheckTime.get(url);
-    if (nextCheck != null && currentTime < nextCheck) {
-      // Still in backoff period, return cached availability
-      Log.tracef(
-          "Skipping availability check for %s due to backoff (next check in %d ms)",
-          url, nextCheck - currentTime);
-      return availabilityCache.getOrDefault(url, false);
+    if (respectBackoff) {
+      long currentTime = System.currentTimeMillis();
+      Long nextCheck = nextCheckTime.get(url);
+      if (nextCheck != null && currentTime < nextCheck) {
+        // Still in backoff period, return cached availability
+        Log.tracef(
+            "Skipping availability check for %s due to backoff (next check in %d ms)",
+            url, nextCheck - currentTime);
+        return availabilityCache.getOrDefault(url, false);
+      }
     }
 
     try {
@@ -329,6 +350,10 @@ public class AvailabilityCheckService {
   /**
    * Background job that periodically checks application availability. This runs asynchronously to
    * avoid blocking the main request flow.
+   *
+   * <p>The job runs at the configured interval and checks all registered URLs. Healthy URLs are
+   * checked every interval, while failing URLs use exponential backoff (5s, 10s, 20s, etc.) to
+   * reduce load on unresponsive services.
    */
   @Scheduled(every = "{startpunkt.availability.interval}", delayed = "5s")
   void refreshAvailability() {
@@ -343,7 +368,9 @@ public class AvailabilityCheckService {
     // Get all unique URLs from the cache keys
     for (String url : availabilityCache.keySet()) {
       try {
-        boolean isAvailable = checkAvailability(url);
+        // Use respectBackoff=true so failing URLs use exponential backoff
+        // Healthy URLs get checked every interval
+        boolean isAvailable = checkAvailability(url, true);
         Boolean previousValue = previousAvailabilityCache.get(url);
 
         availabilityCache.put(url, isAvailable);

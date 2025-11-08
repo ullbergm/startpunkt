@@ -26,18 +26,24 @@ startpunkt:
   availability:
     enabled: true  # If true, check application availability
     timeout: 5  # Timeout in seconds for availability checks
-    interval: 10s  # Interval between availability checks (e.g., 10s, 60s, 5m, 1h) - set to 10s for testing, use 60s for production
+    
+    # Background job interval - how often to check healthy application URLs
+    # Healthy URLs are checked at this interval (e.g., every 60s)
+    # Failing URLs use exponential backoff instead (independent of this interval)
+    interval: 60s
+    
     ignoreCertificates: false  # If true, ignore SSL certificate validation errors (insecure, use only in development)
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
     
-    # Exponential backoff configuration for availability checks
-    # When an application fails availability checks, the system will back off checking it frequently
-    # to reduce load on failing services and the Kubernetes cluster
-    maxRetries: 5  # Maximum number of consecutive failures before stopping checks temporarily
-    initialDelayMs: 500  # Initial delay in milliseconds before retrying after first failure (500ms for testing, 1000ms for prod)
-    maxDelayMs: 30000  # Maximum delay in milliseconds between checks for failing services (30s for testing, 300000ms/5min for prod)
-    backoffMultiplier: 2.0  # Multiplier for exponential backoff (delay doubles after each failure)
+    # Exponential backoff configuration for failing URLs
+    # When an application fails, it enters exponential backoff to reduce load on unresponsive services
+    # Backoff delays: 5s -> 10s -> 20s -> 40s -> 80s -> 160s -> 300s (capped at 5 minutes)
+    # Successful checks reset backoff, and the URL returns to normal interval checking
+    maxRetries: 6  # Number of retries before warning (but checks continue with max backoff)
+    initialDelayMs: 5000  # Initial backoff delay after first failure (5 seconds)
+    maxDelayMs: 300000  # Maximum backoff delay for failing services (5 minutes)
+    backoffMultiplier: 2.0  # Exponential multiplier (delay doubles after each failure)
 
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:
