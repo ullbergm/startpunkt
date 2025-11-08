@@ -194,6 +194,5 @@ node capture-screenshots.js
 
 Screenshots will be saved to `.github/workflows/screenshot-scripts/screenshots/`.
 
-For more details, see the [screenshot scripts README](.github/workflows/screenshot-scripts/README.md).
 
 
