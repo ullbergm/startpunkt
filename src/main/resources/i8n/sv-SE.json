@@ -73,6 +73,18 @@
         "overlayOpacity" : "Överläggets opacitet",
         "resetToDefaults" : "Återställ till standard"
     },
+    "cluster" : {
+        "title" : "Klusterfilter",
+        "settings" : "Klusterfilter",
+        "description" : "Filtrera vilka applikationer som visas baserat på deras kluster",
+        "available" : "Tillgängliga kluster",
+        "enableAll" : "Aktivera alla",
+        "enabled" : "På",
+        "disabled" : "Av",
+        "local" : "lokal",
+        "help" : "Inaktiverade kluster kommer att dölja sina applikationer från vyn",
+        "clickHelp" : "Klicka på klusternamnet för att endast visa det klustret"
+    },
     "layout" : {
         "title" : "Layout",
         "settings" : "Layoutinställningar",
@@ -88,6 +100,7 @@
         "description" : "Beskrivning",
         "tags" : "Taggar",
         "statusIndicators" : "Statusindikatorer",
+        "hideUnreachable" : "Dölj onåbara appar",
         "presets" : "Layoutförval",
         "presetName" : "Förvalnamn",
         "save" : "Spara",

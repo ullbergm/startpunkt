@@ -193,11 +193,16 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * Determines if the application is enabled based on annotations or spec.
    *
    * @param item Kubernetes resource
-   * @return Boolean indicating enabled status or false if not set
+   * @return Boolean indicating enabled status or null if not set
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
     var annotations = getAnnotations(item);
+
+    // Return null if no annotations exist
+    if (annotations == null) {
+      return null;
+    }
 
     String[] annotationKeys = {
       "startpunkt.ullberg.us/enable", "hajimari.io/enable", "forecastle.stakater.com/expose"
@@ -207,7 +212,8 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
         return Boolean.parseBoolean(annotations.get(key));
       }
     }
-    return super.getAppEnabled(item);
+    // Return null when no annotation is present to distinguish from explicitly disabled
+    return null;
   }
 
   /**
@@ -245,7 +251,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
-   * Filters a list of ApplicationSpec to include only those that are enabled.
+   * Filters a list of ApplicationSpec to include only those that are explicitly enabled. When
+   * onlyAnnotated mode is used, this filters for resources that have the
+   * 'startpunkt.ullberg.us/enable' annotation set to 'true'.
    *
    * @param specs list of ApplicationSpec objects
    * @return filtered list containing only enabled applications
@@ -255,7 +263,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
-   * Filters a list of ApplicationResponse to include only those that are enabled.
+   * Filters a list of ApplicationResponse to include only those that are explicitly enabled. When
+   * onlyAnnotated mode is used, this filters for resources that have the
+   * 'startpunkt.ullberg.us/enable' annotation set to 'true'.
    *
    * @param specs list of ApplicationResponse objects
    * @return filtered list containing only enabled applications

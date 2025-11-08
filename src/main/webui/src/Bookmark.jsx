@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react';
 import { Text } from 'preact-i18n';
 
 export function Bookmark(props) {
-  const { layoutPrefs, onEdit } = props;
+  const { layoutPrefs, onEdit, showClusterName } = props;
   const isEditable = !props.bookmark.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode;
   
@@ -133,6 +133,20 @@ export function Bookmark(props) {
         </h4>
         {showDescription && props.bookmark.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.bookmark.info}</p>
+        )}
+        {showClusterName && props.bookmark.cluster && props.bookmark.cluster !== 'local' && (
+          <div class="mt-1">
+            <span 
+              class="badge bg-info text-dark" 
+              style={{ fontSize: '0.65rem' }} 
+              role="status"
+              aria-label={`Cluster: ${props.bookmark.cluster}`}
+              title={`This bookmark is from the ${props.bookmark.cluster} cluster`}
+            >
+              <Icon icon="mdi:server-network" width="12" height="12" style={{ marginRight: '0.2rem', verticalAlign: 'middle' }} />
+              {props.bookmark.cluster}
+            </span>
+          </div>
         )}
       </div>
     </div>

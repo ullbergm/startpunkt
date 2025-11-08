@@ -9,6 +9,7 @@ import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
  * - showDescription: boolean
  * - showTags: boolean
  * - showStatus: boolean
+ * - hideUnreachable: boolean (hide applications that are unavailable/unreachable)
  * - spacing: 'tight' | 'normal' | 'relaxed'
  * - editMode: boolean (enables editing of applications and bookmarks)
  * - currentPreset: string | null
@@ -21,6 +22,7 @@ const DEFAULT_PREFERENCES = {
   showDescription: true,
   showTags: false,
   showStatus: true,
+  hideUnreachable: false,
   spacing: 'normal',
   editMode: false,
   currentPreset: null,
@@ -73,6 +75,7 @@ export function useLayoutPreferences() {
       showDescription: preferences.showDescription,
       showTags: preferences.showTags,
       showStatus: preferences.showStatus,
+      hideUnreachable: preferences.hideUnreachable,
       spacing: preferences.spacing,
       editMode: preferences.editMode,
       // Background settings (if available)

@@ -21,11 +21,21 @@ export const CONFIG_QUERY = gql`
         showGithubLink
         checkForUpdates
         refreshInterval
+        defaultShowAllClusters
       }
       websocket {
         enabled
       }
+      clusters {
+        defaultShowAll
+      }
     }
+  }
+`;
+
+export const ACTIVE_CLUSTERS_QUERY = gql`
+  query GetActiveClusters {
+    activeClusters
   }
 `;
 
@@ -81,6 +91,7 @@ export const APPLICATION_GROUPS_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -101,6 +112,7 @@ export const BOOKMARK_GROUPS_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }
@@ -126,9 +138,13 @@ export const INIT_QUERY = gql`
         showGithubLink
         checkForUpdates
         refreshInterval
+        defaultShowAllClusters
       }
       websocket {
         enabled
+      }
+      clusters {
+        defaultShowAll
       }
     }
     theme {
@@ -158,6 +174,7 @@ export const INIT_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
     bookmarkGroups {
@@ -173,6 +190,7 @@ export const INIT_QUERY = gql`
         namespace
         resourceName
         hasOwnerReferences
+        cluster
       }
     }
   }

@@ -22,21 +22,22 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
 public class ApplicationCacheService {
 
   // Thread-safe map for storing applications
-  // Key format: "namespace/resourceName" - since app.name may differ from
+  // Key format: "cluster/namespace/resourceName" - since app.name may differ from
   // resourceName,
-  // we use the Kubernetes metadata (namespace + resource name) as the unique
+  // we use the Kubernetes metadata (cluster + namespace + resource name) as the unique
   // identifier
   private final Map<String, ApplicationResponse> applicationCache = new ConcurrentHashMap<>();
 
   /**
    * Generate a cache key for an application.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the cache key
    */
-  private String getCacheKey(String namespace, String resourceName) {
-    return String.format("%s/%s", namespace, resourceName);
+  private String getCacheKey(String cluster, String namespace, String resourceName) {
+    return String.format("%s/%s/%s", cluster, namespace, resourceName);
   }
 
   /**
@@ -47,6 +48,7 @@ public class ApplicationCacheService {
    */
   private String getCacheKey(ApplicationResponse app) {
     return getCacheKey(
+        app.getCluster() != null ? app.getCluster() : "local",
         app.getNamespace() != null ? app.getNamespace() : "unknown",
         app.getResourceName() != null ? app.getResourceName() : "unknown");
   }
@@ -92,12 +94,13 @@ public class ApplicationCacheService {
   /**
    * Remove an application from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the removed application, or null if not found
    */
-  public ApplicationResponse remove(String namespace, String resourceName) {
-    String key = getCacheKey(namespace, resourceName);
+  public ApplicationResponse remove(String cluster, String namespace, String resourceName) {
+    String key = getCacheKey(cluster, namespace, resourceName);
     ApplicationResponse removed = applicationCache.remove(key);
 
     if (removed != null) {
@@ -112,12 +115,13 @@ public class ApplicationCacheService {
   /**
    * Get an application from the cache.
    *
+   * @param cluster the cluster name
    * @param namespace the namespace
    * @param resourceName the resource name
    * @return the application, or null if not found
    */
-  public ApplicationResponse get(String namespace, String resourceName) {
-    String key = getCacheKey(namespace, resourceName);
+  public ApplicationResponse get(String cluster, String namespace, String resourceName) {
+    String key = getCacheKey(cluster, namespace, resourceName);
     return applicationCache.get(key);
   }
 
@@ -151,7 +155,37 @@ public class ApplicationCacheService {
   }
 
   /**
-   * Remove all applications from a specific namespace.
+   * Remove all applications from a specific cluster and namespace.
+   *
+   * @param cluster the cluster name
+   * @param namespace the namespace
+   * @return the number of applications removed
+   */
+  public int removeByClusterAndNamespace(String cluster, String namespace) {
+    List<String> keysToRemove = new ArrayList<>();
+    String prefix = cluster + "/" + namespace + "/";
+
+    for (String key : applicationCache.keySet()) {
+      if (key.startsWith(prefix)) {
+        keysToRemove.add(key);
+      }
+    }
+
+    for (String key : keysToRemove) {
+      applicationCache.remove(key);
+    }
+
+    if (!keysToRemove.isEmpty()) {
+      Log.infof(
+          "Removed %d applications from cache (cluster=%s, namespace=%s)",
+          keysToRemove.size(), cluster, namespace);
+    }
+
+    return keysToRemove.size();
+  }
+
+  /**
+   * Remove all applications from a specific namespace (across all clusters).
    *
    * @param namespace the namespace
    * @return the number of applications removed
@@ -160,7 +194,8 @@ public class ApplicationCacheService {
     List<String> keysToRemove = new ArrayList<>();
 
     for (String key : applicationCache.keySet()) {
-      if (key.startsWith(namespace + "/")) {
+      String[] parts = key.split("/");
+      if (parts.length >= 2 && parts[1].equals(namespace)) {
         keysToRemove.add(key);
       }
     }
@@ -172,6 +207,33 @@ public class ApplicationCacheService {
     if (!keysToRemove.isEmpty()) {
       Log.infof(
           "Removed %d applications from cache (namespace=%s)", keysToRemove.size(), namespace);
+    }
+
+    return keysToRemove.size();
+  }
+
+  /**
+   * Remove all applications from a specific cluster.
+   *
+   * @param cluster the cluster name
+   * @return the number of applications removed
+   */
+  public int removeByCluster(String cluster) {
+    List<String> keysToRemove = new ArrayList<>();
+    String prefix = cluster + "/";
+
+    for (String key : applicationCache.keySet()) {
+      if (key.startsWith(prefix)) {
+        keysToRemove.add(key);
+      }
+    }
+
+    for (String key : keysToRemove) {
+      applicationCache.remove(key);
+    }
+
+    if (!keysToRemove.isEmpty()) {
+      Log.infof("Removed %d applications from cache (cluster=%s)", keysToRemove.size(), cluster);
     }
 
     return keysToRemove.size();

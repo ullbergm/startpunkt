@@ -35,7 +35,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
 }
 
 export function Application(props) {
-  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite, skeleton } = props;
+  const { layoutPrefs, onEdit, isFavorite, onToggleFavorite, skeleton, showClusterName } = props;
   const isUnavailable = props.app?.available === false;
   const isEditable = !props.app?.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode && !skeleton;
@@ -251,6 +251,20 @@ export function Application(props) {
         </h4>
         {showDescription && props.app.info && (
           <p class="accent text-uppercase" style={{ marginBottom: 0 }}>{props.app.info}</p>
+        )}
+        {showClusterName && props.app.cluster && props.app.cluster !== 'local' && (
+          <div class="mt-1">
+            <span 
+              class="badge bg-info text-dark" 
+              style={{ fontSize: '0.65rem' }} 
+              role="status"
+              aria-label={`Cluster: ${props.app.cluster}`}
+              title={`This application is from the ${props.app.cluster} cluster`}
+            >
+              <Icon icon="mdi:server-network" width="12" height="12" style={{ marginRight: '0.2rem', verticalAlign: 'middle' }} />
+              {props.app.cluster}
+            </span>
+          </div>
         )}
         {showTags && tags.length > 0 && (
           <div class="mt-1" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }} role="list" aria-label="Tags">

@@ -31,6 +31,10 @@ public class ApplicationResponse extends ApplicationSpec {
   @JsonProperty("hasOwnerReferences")
   private Boolean hasOwnerReferences;
 
+  /** The cluster name this application belongs to (for multi-cluster support). */
+  @JsonProperty("cluster")
+  private String cluster;
+
   /** Default constructor. */
   public ApplicationResponse() {
     super();
@@ -126,5 +130,23 @@ public class ApplicationResponse extends ApplicationSpec {
    */
   public void setHasOwnerReferences(Boolean hasOwnerReferences) {
     this.hasOwnerReferences = hasOwnerReferences;
+  }
+
+  /**
+   * Gets the cluster name this application belongs to.
+   *
+   * @return the cluster name
+   */
+  public String getCluster() {
+    return cluster;
+  }
+
+  /**
+   * Sets the cluster name this application belongs to.
+   *
+   * @param cluster the cluster name to set
+   */
+  public void setCluster(String cluster) {
+    this.cluster = cluster;
   }
 }

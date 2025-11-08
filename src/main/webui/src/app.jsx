@@ -9,6 +9,7 @@ import { Icon } from '@iconify/react';
 import SpotlightSearch from './SpotlightSearch';
 import { useLayoutPreferences } from './useLayoutPreferences';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
+import { useClusterPreferences } from './useClusterPreferences';
 import { LayoutSettings } from './LayoutSettings';
 import { AccessibilitySettings } from './AccessibilitySettings';
 import { ApplicationEditor } from './ApplicationEditor';
@@ -16,7 +17,7 @@ import { BookmarkEditor } from './BookmarkEditor';
 import { WhatsNewModal, useWhatsNew } from './components/WhatsNewModal';
 import { getLatestRelease } from './services/changelogService';
 import { client, setOnPingCallback } from './graphql/client';
-import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY } from './graphql/queries';
+import { INIT_QUERY, APPLICATION_GROUPS_QUERY, BOOKMARK_GROUPS_QUERY, ACTIVE_CLUSTERS_QUERY } from './graphql/queries';
 import { DELETE_APPLICATION_MUTATION, DELETE_BOOKMARK_MUTATION, CREATE_APPLICATION_MUTATION, UPDATE_APPLICATION_MUTATION, CREATE_BOOKMARK_MUTATION, UPDATE_BOOKMARK_MUTATION } from './graphql/mutations';
 import { APPLICATION_UPDATES_SUBSCRIPTION, BOOKMARK_UPDATES_SUBSCRIPTION } from './graphql/subscriptions';
 import { useSubscription } from './graphql/useSubscription';
@@ -36,6 +37,7 @@ import { ContentOverlay } from './ContentOverlay';
 import { PreferenceButtonsStyler } from './PreferenceButtonsStyler';
 import { WebSocketHeartIndicator } from './WebSocketHeartIndicator';
 import { SkeletonLoader } from './components/SkeletonLoader';
+import { ClusterSettings } from './ClusterSettings';
 
 /**
  * ThemeApplier - applies theme colors to CSS variables without rendering UI
@@ -183,6 +185,13 @@ export function App() {
   const [bookmarkGroups, setBookmarkGroups] = useState(null);
   const [lastDataReceived, setLastDataReceived] = useState(null);
 
+  // Cluster state
+  const [availableClusters, setAvailableClusters] = useState([]);
+  const [clustersDefaultShowAll, setClustersDefaultShowAll] = useState(false);
+
+  // Initialize cluster preferences hook with default behavior
+  const clusterPrefs = useClusterPreferences(clustersDefaultShowAll);
+
   // Helper function to compute subscription connection status
   const getSubscriptionStatus = (appSub, bookmarkSub) => {
     const isConnected = appSub.isSubscribed || bookmarkSub.isSubscribed;
@@ -248,6 +257,13 @@ export function App() {
             const subEnabled = config.graphql?.subscription?.enabled !== false;
             console.log('[INIT] GraphQL Subscriptions enabled:', subEnabled);
             setSubscriptionsEnabled(subEnabled);
+            
+            // Set cluster default behavior
+            if (config.web) {
+              const defaultShowAll = config.web.defaultShowAllClusters ?? false;
+              console.log('[INIT] Clusters defaultShowAllClusters:', defaultShowAll);
+              setClustersDefaultShowAll(defaultShowAll);
+            }
           }
           
           // Set theme
@@ -279,6 +295,21 @@ export function App() {
         // Set empty arrays to prevent loading state
         setApplicationGroups([]);
         setBookmarkGroups([]);
+      });
+    
+    // Fetch available clusters
+    console.log('[INIT] Fetching available clusters');
+    client.query({
+      query: ACTIVE_CLUSTERS_QUERY
+    }).then((result) => {
+        if (result.data && result.data.activeClusters) {
+          console.log('[INIT] Received clusters:', result.data.activeClusters);
+          setAvailableClusters(result.data.activeClusters);
+        }
+      })
+      .catch((err) => {
+        console.error('[INIT] Error fetching clusters:', err);
+        setAvailableClusters([]);
       });
   }, []);
 
@@ -431,13 +462,43 @@ export function App() {
       applicationGroups.some(group => Array.isArray(group.applications) && group.applications.length > 0);
   };
 
+  // Filter bookmark groups by enabled clusters
+  const getFilteredBookmarkGroups = () => {
+    if (!bookmarkGroups) return null;
+    
+    // Apply cluster filtering to each group's bookmarks
+    return bookmarkGroups.map(group => ({
+      ...group,
+      bookmarks: clusterPrefs.filterBookmarks(group.bookmarks)
+    })).filter(group => group.bookmarks.length > 0); // Remove empty groups after filtering
+  };
+
   const hasBookmarks = () => {
-    return Array.isArray(bookmarkGroups) &&
-      bookmarkGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
+    const filteredGroups = getFilteredBookmarkGroups();
+    return Array.isArray(filteredGroups) &&
+      filteredGroups.some(group => Array.isArray(group.bookmarks) && group.bookmarks.length > 0);
+  };
+
+  // Filter application groups by enabled clusters
+  const getFilteredApplicationGroups = () => {
+    if (!applicationGroups) return null;
+    
+    // Apply cluster filtering to each group's applications
+    return applicationGroups.map(group => ({
+      ...group,
+      applications: clusterPrefs.filterApplications(group.applications)
+    })).filter(group => group.applications.length > 0); // Remove empty groups after filtering
+  };
+
+  // Check if there are any applications after cluster filtering
+  const hasFilteredApplications = () => {
+    const filteredGroups = getFilteredApplicationGroups();
+    return Array.isArray(filteredGroups) &&
+      filteredGroups.some(group => Array.isArray(group.applications) && group.applications.length > 0);
   };
 
   const getDefaultPage = () => {
-    if (hasApplications()) return "applications";
+    if (hasFilteredApplications()) return "applications";
     if (hasBookmarks()) return "bookmarks";
     return "empty";
   };
@@ -451,17 +512,17 @@ export function App() {
 
     const defaultPage = getDefaultPage();
 
-    // Update page based on available content
-    if (currentPage === "applications" && !hasApplications() && hasBookmarks()) {
+    // Update page based on available content (considering cluster filtering)
+    if (currentPage === "applications" && !hasFilteredApplications() && hasBookmarks()) {
       setCurrentPage("bookmarks");
-    } else if (currentPage === "bookmarks" && !hasBookmarks() && hasApplications()) {
+    } else if (currentPage === "bookmarks" && !hasBookmarks() && hasFilteredApplications()) {
       setCurrentPage("applications");
-    } else if (!hasApplications() && !hasBookmarks()) {
+    } else if (!hasFilteredApplications() && !hasBookmarks()) {
       setCurrentPage("empty");
-    } else if (currentPage === "empty" && (hasApplications() || hasBookmarks())) {
+    } else if (currentPage === "empty" && (hasFilteredApplications() || hasBookmarks())) {
       setCurrentPage(defaultPage);
     }
-  }, [applicationGroups, bookmarkGroups]);
+  }, [applicationGroups, bookmarkGroups, clusterPrefs.preferences]);
 
   const bookmarksClass = currentPage === "bookmarks" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
   const applicationsClass = currentPage === "applications" ? "nav-link fw-bold py-1 px-0 active" : "nav-link fw-bold py-1 px-0";
@@ -732,6 +793,7 @@ export function App() {
       
       {/* Preference buttons container - horizontal layout */}
       <div class="position-fixed bottom-0 end-0 mb-3 me-3 d-flex gap-2 align-items-center" style="z-index: 1000;">
+        <ClusterSettings clusters={availableClusters} />
         <BackgroundSettings />
         <LayoutSettings layoutPrefs={layoutPrefs} />
         <AccessibilitySettings />
@@ -788,9 +850,9 @@ export function App() {
             </nav>
           )}
           {/* Show actual navigation when loaded */}
-          {(hasApplications() || hasBookmarks()) && applicationGroups !== null && bookmarkGroups !== null && (
+          {(hasFilteredApplications() || hasBookmarks()) && applicationGroups !== null && bookmarkGroups !== null && (
             <nav class="nav nav-masthead app-navigation" role="navigation" aria-label="Main navigation">
-              {hasApplications() && (
+              {hasFilteredApplications() && (
                 <a class={applicationsClass} aria-current={currentPage === "applications" ? "page" : undefined} href="#" onClick={() => { setCurrentPage("applications"); }}><Text id="home.applications">Applications</Text></a>
               )}
               {hasBookmarks() && (
@@ -807,8 +869,8 @@ export function App() {
             {/* Show actual content once loaded */}
             {applicationGroups !== null && bookmarkGroups !== null && (
               <>
-                {currentPage === 'applications' && hasApplications() && <ApplicationGroupList groups={applicationGroups} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} />}
-                {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={bookmarkGroups} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} />}
+                {currentPage === 'applications' && hasFilteredApplications() && <ApplicationGroupList groups={getFilteredApplicationGroups()} layoutPrefs={layoutPrefs} onEditApp={handleEditApp} showClusterName={clusterPrefs.getEnabledCount() > 1} />}
+                {currentPage === 'bookmarks' && hasBookmarks() && <BookmarkGroupList groups={getFilteredBookmarkGroups()} layoutPrefs={layoutPrefs} onEditBookmark={handleEditBookmark} showClusterName={clusterPrefs.getEnabledCount() > 1} />}
                 {currentPage === "empty" && (
                   <div class="text-center" role="status">
                     <h1 class="display-4"><Text id="home.noItemsAvailable">No Items Available</Text></h1>

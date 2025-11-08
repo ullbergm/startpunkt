@@ -27,6 +27,10 @@ public class BookmarkResponse extends BookmarkSpec {
   @JsonProperty("hasOwnerReferences")
   private Boolean hasOwnerReferences;
 
+  /** The cluster name this bookmark belongs to (for multi-cluster support). */
+  @JsonProperty("cluster")
+  private String cluster;
+
   /** Default constructor. */
   public BookmarkResponse() {
     super();
@@ -99,5 +103,23 @@ public class BookmarkResponse extends BookmarkSpec {
    */
   public void setHasOwnerReferences(Boolean hasOwnerReferences) {
     this.hasOwnerReferences = hasOwnerReferences;
+  }
+
+  /**
+   * Gets the cluster name this bookmark belongs to.
+   *
+   * @return the cluster name
+   */
+  public String getCluster() {
+    return cluster;
+  }
+
+  /**
+   * Sets the cluster name this bookmark belongs to.
+   *
+   * @param cluster the cluster name to set
+   */
+  public void setCluster(String cluster) {
+    this.cluster = cluster;
   }
 }

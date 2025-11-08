@@ -419,4 +419,98 @@ describe('ApplicationGroup component', () => {
       expect(grid.style.justifyContent).toBe('start');
     });
   });
+
+  describe('hideUnreachable filtering', () => {
+    const layoutPrefs = {
+      preferences: { compactMode: false, columnCount: 5, hideUnreachable: true },
+      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' })
+    };
+
+    test('filters out unavailable applications when hideUnreachable is enabled', () => {
+      const appsWithUnavailable = [
+        { ...apps[0], available: true },
+        { ...apps[1], available: false },
+      ];
+      
+      render(
+        <ApplicationGroup 
+          group="Test Group"
+          applications={appsWithUnavailable} 
+          isCollapsed={false}
+          layoutPrefs={layoutPrefs}
+        />
+      );
+      
+      const renderedApps = screen.getAllByTestId('application');
+      // Should only render the available app
+      expect(renderedApps).toHaveLength(1);
+      expect(renderedApps[0]).toHaveTextContent('App One');
+    });
+
+    test('hides entire group including heading when all apps are filtered out', () => {
+      const appsAllUnavailable = [
+        { ...apps[0], available: false },
+        { ...apps[1], available: false },
+      ];
+      
+      const { container } = render(
+        <ApplicationGroup 
+          group="Test Group"
+          applications={appsAllUnavailable} 
+          isCollapsed={false}
+          layoutPrefs={layoutPrefs}
+        />
+      );
+      
+      // Should not render anything - no heading, no grid
+      expect(container.firstChild).toBeNull();
+    });
+
+    test('shows all apps when hideUnreachable is disabled', () => {
+      const layoutPrefsNoHide = {
+        ...layoutPrefs,
+        preferences: { ...layoutPrefs.preferences, hideUnreachable: false }
+      };
+      
+      const appsWithUnavailable = [
+        { ...apps[0], available: true },
+        { ...apps[1], available: false },
+      ];
+      
+      render(
+        <ApplicationGroup 
+          group="Test Group"
+          applications={appsWithUnavailable} 
+          isCollapsed={false}
+          layoutPrefs={layoutPrefsNoHide}
+        />
+      );
+      
+      const renderedApps = screen.getAllByTestId('application');
+      // Should render all apps regardless of availability
+      expect(renderedApps).toHaveLength(2);
+    });
+
+    test('does not hide group in skeleton mode even if empty', () => {
+      const appsAllUnavailable = [
+        { ...apps[0], available: false },
+        { ...apps[1], available: false },
+      ];
+      
+      const { container } = render(
+        <ApplicationGroup 
+          group="Test Group"
+          applications={appsAllUnavailable} 
+          isCollapsed={false}
+          layoutPrefs={layoutPrefs}
+          skeleton={true}
+        />
+      );
+      
+      // Should still render skeleton even with filtered apps
+      expect(container.firstChild).not.toBeNull();
+      const heading = container.querySelector('h3');
+      expect(heading).toBeInTheDocument();
+    });
+  });
 });

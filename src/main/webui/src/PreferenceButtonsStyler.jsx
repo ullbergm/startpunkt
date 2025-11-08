@@ -3,7 +3,7 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
 
 /**
  * PreferenceButtonsStyler component applies the content overlay opacity
- * to the preference buttons (Background, Layout, Accessibility, WebSocket heart)
+ * to the preference buttons (Background, Layout, Accessibility, Cluster, WebSocket heart)
  * so they follow the same overlay styling as the main content.
  * 
  * Opacity behavior:
@@ -18,23 +18,25 @@ export function PreferenceButtonsStyler() {
   const { preferences, getTypePreference } = useBackgroundPreferences();
 
   useEffect(() => {
-    // Query buttons once at the start
-    const buttons = document.querySelectorAll(
-      '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn, .bd-websocket-heart .btn'
-    );
-    
-    // Don't apply overlay styling for theme backgrounds
-    if (preferences.type === 'theme') {
-      // Reset to default white background styling
-      buttons.forEach(btn => {
-        btn.style.backgroundColor = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.style.boxShadow = '';
-        btn.style.backdropFilter = '';
-      });
-      return;
-    }
+    // Function to apply styles to buttons
+    const applyStyles = () => {
+      // Query buttons - re-query each time to catch dynamically added buttons
+      const buttons = document.querySelectorAll(
+        '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn, .bd-cluster-toggle .btn, .bd-websocket-heart .btn'
+      );
+      
+      // Don't apply overlay styling for theme backgrounds
+      if (preferences.type === 'theme') {
+        // Reset to default white background styling
+        buttons.forEach(btn => {
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+          btn.style.boxShadow = '';
+          btn.style.backdropFilter = '';
+        });
+        return;
+      }
 
     const opacity = getTypePreference('contentOverlayOpacity') ?? 0.7;
     
@@ -130,6 +132,17 @@ export function PreferenceButtonsStyler() {
         btn.removeEventListener('mouseenter', handleMouseEnter);
         btn.removeEventListener('mouseleave', handleMouseLeave);
       });
+    };
+    }; // End of applyStyles function
+
+    // Apply styles immediately
+    applyStyles();
+
+    // Also apply after a short delay to catch any dynamically added buttons (like ClusterSettings)
+    const timeoutId = setTimeout(applyStyles, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
     };
   }, [preferences.type, preferences.typePreferences]);
 

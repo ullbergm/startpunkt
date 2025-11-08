@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import us.ullberg.startpunkt.config.ClusterConfig;
 import us.ullberg.startpunkt.crd.v1alpha4.Application;
 import us.ullberg.startpunkt.crd.v1alpha4.Bookmark;
 import us.ullberg.startpunkt.messaging.EventBroadcaster;
@@ -49,11 +50,13 @@ import us.ullberg.startpunkt.objects.kubernetes.StartpunktApplicationWrapper;
 public class KubernetesInformerService {
 
   private final KubernetesClient kubernetesClient;
+  private final MultiClusterService multiClusterService;
   private final ApplicationCacheService applicationCacheService;
   private final BookmarkCacheService bookmarkCacheService;
   private final EventBroadcaster eventBroadcaster;
   private final AvailabilityCheckService availabilityCheckService;
   private final BookmarkService bookmarkService;
+  private final RemoteStartpunktClient remoteStartpunktClient;
 
   // List to hold all active informers for cleanup on shutdown
   private final List<SharedIndexInformer<?>> informers = new CopyOnWriteArrayList<>();
@@ -117,17 +120,21 @@ public class KubernetesInformerService {
   /** Constructor with injected dependencies. */
   public KubernetesInformerService(
       KubernetesClient kubernetesClient,
+      MultiClusterService multiClusterService,
       ApplicationCacheService applicationCacheService,
       BookmarkCacheService bookmarkCacheService,
       EventBroadcaster eventBroadcaster,
       AvailabilityCheckService availabilityCheckService,
-      BookmarkService bookmarkService) {
+      BookmarkService bookmarkService,
+      RemoteStartpunktClient remoteStartpunktClient) {
     this.kubernetesClient = kubernetesClient;
+    this.multiClusterService = multiClusterService;
     this.applicationCacheService = applicationCacheService;
     this.bookmarkCacheService = bookmarkCacheService;
     this.eventBroadcaster = eventBroadcaster;
     this.availabilityCheckService = availabilityCheckService;
     this.bookmarkService = bookmarkService;
+    this.remoteStartpunktClient = remoteStartpunktClient;
   }
 
   /**
@@ -666,8 +673,8 @@ public class KubernetesInformerService {
 
       Log.debugf("Application deleted: %s/%s", namespace, name);
 
-      // Remove from cache
-      ApplicationResponse removed = applicationCacheService.remove(namespace, name);
+      // Remove from cache (assuming local cluster for now)
+      ApplicationResponse removed = applicationCacheService.remove("local", namespace, name);
 
       // Unregister URL from availability checking
       if (removed != null && removed.getUrl() != null && !removed.getUrl().isEmpty()) {
@@ -763,8 +770,8 @@ public class KubernetesInformerService {
 
       Log.debugf("Bookmark deleted: %s/%s", namespace, name);
 
-      // Remove from cache
-      BookmarkResponse removed = bookmarkCacheService.remove(namespace, name);
+      // Remove from cache (assuming local cluster for now)
+      BookmarkResponse removed = bookmarkCacheService.remove("local", namespace, name);
 
       // Broadcast event
       if (removed != null) {
@@ -932,35 +939,104 @@ public class KubernetesInformerService {
     try {
       Log.debug("Reloading application cache");
 
-      var applicationWrappers = new ArrayList<BaseKubernetesObject>();
-      applicationWrappers.add(new StartpunktApplicationWrapper());
-
-      if (hajimariEnabled && hajimariResourcesAvailable) {
-        applicationWrappers.add(new HajimariApplicationWrapper());
-      }
-      if (openshiftEnabled && openshiftResourcesAvailable) {
-        applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
-      }
-      if (ingressEnabled && ingressResourcesAvailable) {
-        applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
-      }
-      if (istioVirtualServiceEnabled && istioResourcesAvailable) {
-        applicationWrappers.add(
-            new IstioVirtualServiceApplicationWrapper(
-                istioVirtualServiceOnlyAnnotated, defaultProtocol));
-      }
-      if (gatewayApiEnabled && gatewayApiResourcesAvailable) {
-        applicationWrappers.add(
-            new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
-      }
-
       var apps = new ArrayList<ApplicationResponse>();
 
-      for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
-        var wrapperApps =
-            applicationWrapper.getApplicationSpecsWithMetadata(
-                kubernetesClient, anyNamespace, matchNames.orElse(List.of()));
-        apps.addAll(wrapperApps);
+      // Iterate through all active clusters
+      for (String clusterName : multiClusterService.getActiveClusterNames()) {
+        Log.infof("Processing cluster: %s", clusterName);
+        Optional<ClusterConfig> configOpt = multiClusterService.getClusterConfig(clusterName);
+
+        // Check if this is a remote GraphQL cluster (not local)
+        if (configOpt.isPresent() && !"local".equalsIgnoreCase(clusterName)) {
+          Log.infof("Loading applications from remote Startpunkt '%s' via GraphQL", clusterName);
+          try {
+            List<ApplicationResponse> remoteApps =
+                remoteStartpunktClient.fetchApplications(configOpt.get(), clusterName);
+            apps.addAll(remoteApps);
+            Log.infof(
+                "Loaded %d applications from remote Startpunkt '%s'",
+                remoteApps.size(), clusterName);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading applications from remote Startpunkt '%s': %s",
+                clusterName,
+                e.getMessage());
+          }
+          continue; // Skip Kubernetes client logic for GraphQL connections
+        }
+
+        // Local Kubernetes cluster logic below
+        Log.infof("Attempting to get Kubernetes client for local cluster");
+        KubernetesClient client = multiClusterService.getClient(clusterName);
+        if (client == null) {
+          Log.warnf("Local cluster is configured but client is null, skipping");
+          continue;
+        }
+
+        Log.debugf("Loading applications from cluster '%s'", clusterName);
+
+        var applicationWrappers = new ArrayList<BaseKubernetesObject>();
+        applicationWrappers.add(new StartpunktApplicationWrapper());
+
+        // For local cluster, check resource availability
+        // For remote clusters, we'll need to check availability per cluster
+        // For now, we'll use the flags from local cluster
+        boolean useHajimari = hajimariEnabled;
+        boolean useOpenshift = openshiftEnabled;
+        boolean useIngress = ingressEnabled;
+        boolean useIstio = istioVirtualServiceEnabled;
+        boolean useGatewayApi = gatewayApiEnabled;
+
+        // Only apply resource availability checks for local cluster
+        if ("local".equalsIgnoreCase(clusterName)) {
+          useHajimari = hajimariEnabled && hajimariResourcesAvailable;
+          useOpenshift = openshiftEnabled && openshiftResourcesAvailable;
+          useIngress = ingressEnabled && ingressResourcesAvailable;
+          useIstio = istioVirtualServiceEnabled && istioResourcesAvailable;
+          useGatewayApi = gatewayApiEnabled && gatewayApiResourcesAvailable;
+        }
+
+        if (useHajimari) {
+          applicationWrappers.add(new HajimariApplicationWrapper());
+        }
+        if (useOpenshift) {
+          applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
+        }
+        if (useIngress) {
+          applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+        }
+        if (useIstio) {
+          applicationWrappers.add(
+              new IstioVirtualServiceApplicationWrapper(
+                  istioVirtualServiceOnlyAnnotated, defaultProtocol));
+        }
+        if (useGatewayApi) {
+          applicationWrappers.add(
+              new GatewayApiHttpRouteWrapper(gatewayApiHttpRouteOnlyAnnotated, defaultProtocol));
+        }
+
+        for (BaseKubernetesObject applicationWrapper : applicationWrappers) {
+          try {
+            var wrapperApps =
+                applicationWrapper.getApplicationSpecsWithMetadata(
+                    client, anyNamespace, matchNames.orElse(List.of()), clusterName);
+            Log.infof(
+                "Wrapper %s loaded %d apps from cluster %s",
+                applicationWrapper.getClass().getSimpleName(), wrapperApps.size(), clusterName);
+            apps.addAll(wrapperApps);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading applications from cluster '%s' using wrapper '%s': %s",
+                clusterName,
+                applicationWrapper.getClass().getSimpleName(),
+                e.getMessage());
+          }
+        }
+        Log.infof("Total apps after processing cluster %s: %d", clusterName, apps.size());
+
+        Log.debugf("Loaded %d applications from cluster '%s'", apps.size(), clusterName);
       }
 
       // Register URLs for availability checking
@@ -981,25 +1057,55 @@ public class KubernetesInformerService {
       // Individual add/update/delete handlers already broadcast specific events.
       // The AvailabilityCheckService will broadcast STATUS_CHANGED when availability changes.
 
-      Log.debugf("Reloaded %d applications into cache", apps.size());
+      Log.debugf("Reloaded %d applications into cache from all clusters", apps.size());
     } catch (Exception e) {
       Log.error("Error reloading application cache", e);
     }
   }
 
-  /** Reloads the entire bookmark cache from Kubernetes. */
+  /** Reloads the entire bookmark cache from Kubernetes and remote Startpunkt instances. */
   private void reloadBookmarkCache() {
     try {
       Log.debug("Reloading bookmark cache");
 
       List<BookmarkResponse> bookmarks = new ArrayList<>();
 
-      // Load Startpunkt bookmarks
-      bookmarks.addAll(bookmarkService.retrieveBookmarks());
+      // Iterate through all active clusters
+      for (String clusterName : multiClusterService.getActiveClusterNames()) {
+        Log.debugf("Processing bookmarks from cluster: %s", clusterName);
+        Optional<ClusterConfig> configOpt = multiClusterService.getClusterConfig(clusterName);
 
-      // Load Hajimari bookmarks if enabled and available
-      if (hajimariEnabled && hajimariResourcesAvailable) {
-        bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+        // Check if this is a remote GraphQL cluster (not local)
+        if (configOpt.isPresent() && !"local".equalsIgnoreCase(clusterName)) {
+          Log.debugf("Loading bookmarks from remote Startpunkt '%s' via GraphQL", clusterName);
+          try {
+            List<BookmarkResponse> remoteBookmarks =
+                remoteStartpunktClient.fetchBookmarks(configOpt.get(), clusterName);
+            bookmarks.addAll(remoteBookmarks);
+            Log.debugf(
+                "Loaded %d bookmarks from remote Startpunkt '%s'",
+                remoteBookmarks.size(), clusterName);
+          } catch (Exception e) {
+            Log.warnf(
+                e,
+                "Error loading bookmarks from remote Startpunkt '%s': %s",
+                clusterName,
+                e.getMessage());
+          }
+          continue; // Skip local cluster logic for GraphQL remote clusters
+        }
+
+        // Local cluster logic
+        if ("local".equalsIgnoreCase(clusterName)) {
+          Log.debugf("Loading bookmarks from local cluster");
+          // Load Startpunkt bookmarks
+          bookmarks.addAll(bookmarkService.retrieveBookmarks());
+
+          // Load Hajimari bookmarks if enabled and available
+          if (hajimariEnabled && hajimariResourcesAvailable) {
+            bookmarks.addAll(bookmarkService.retrieveHajimariBookmarks());
+          }
+        }
       }
 
       // Clear and repopulate cache
@@ -1009,7 +1115,7 @@ public class KubernetesInformerService {
       // Note: We don't broadcast STATUS_CHANGED here to avoid feedback loops.
       // Individual add/update/delete handlers already broadcast specific events.
 
-      Log.debugf("Reloaded %d bookmarks into cache", bookmarks.size());
+      Log.debugf("Reloaded %d bookmarks into cache from all clusters", bookmarks.size());
     } catch (Exception e) {
       Log.error("Error reloading bookmark cache", e);
     }

@@ -6,7 +6,6 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
@@ -60,11 +59,14 @@ class IngressApplicationWrapperTest {
     IngressApplicationWrapper wrapper = new IngressApplicationWrapper(true);
     List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
 
-    // With onlyAnnotated=true, should only get enabled applications
+    // With onlyAnnotated=true, should only get applications with explicit enable=true annotation
     assertNotNull(specs, "Specs should not be null");
-    // Verify filtering behavior (only enabled apps)
+    assertEquals(1, specs.size(), "Should only get one enabled application");
+    // Verify all returned specs have enabled=true
     for (ApplicationSpec spec : specs) {
-      assertTrue(spec.getEnabled() == null || spec.getEnabled(), "All specs should be enabled");
+      assertTrue(
+          Boolean.TRUE.equals(spec.getEnabled()),
+          "All specs should be explicitly enabled when onlyAnnotated=true");
     }
   }
 
@@ -76,8 +78,12 @@ class IngressApplicationWrapperTest {
     IngressApplicationWrapper wrapper = new IngressApplicationWrapper(false);
     List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
 
-    // With onlyAnnotated=false, should get all applications
+    // With onlyAnnotated=false, should get all applications (enabled, disabled, and unannotated)
     assertNotNull(specs, "Specs should not be null");
+    assertEquals(
+        3,
+        specs.size(),
+        "Should get all three applications: enabled, disabled, and without annotation");
   }
 
   @Test
@@ -113,24 +119,21 @@ class IngressApplicationWrapperTest {
   }
 
   private void setupMockIngressResources() {
-    ResourceDefinitionContext context =
-        new ResourceDefinitionContext.Builder()
-            .withGroup("networking.k8s.io")
-            .withVersion("v1")
-            .withPlural("ingresses")
-            .withNamespaced(true)
-            .build();
-
-    // Create enabled ingress
+    // Create enabled ingress (with annotation enable=true)
     GenericKubernetesResource enabledIngress = createMockIngress("app1", "default", true);
 
-    // Create disabled ingress
+    // Create disabled ingress (with annotation enable=false)
     GenericKubernetesResource disabledIngress = createMockIngress("app2", "default", false);
+
+    // Create unannotated ingress (without the enable annotation)
+    GenericKubernetesResource unannotatedIngress =
+        createMockIngressWithoutAnnotation("app3", "default");
 
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
     List<GenericKubernetesResource> items = new ArrayList<>();
     items.add(enabledIngress);
     items.add(disabledIngress);
+    items.add(unannotatedIngress);
     list.setItems(items);
 
     server
@@ -142,14 +145,6 @@ class IngressApplicationWrapperTest {
   }
 
   private void setupMockIngressResourcesMultipleNamespaces() {
-    ResourceDefinitionContext context =
-        new ResourceDefinitionContext.Builder()
-            .withGroup("networking.k8s.io")
-            .withVersion("v1")
-            .withPlural("ingresses")
-            .withNamespaced(true)
-            .build();
-
     // Create ingresses in different namespaces
     GenericKubernetesResource ingress1 = createMockIngress("app1", "default", true);
     GenericKubernetesResource ingress2 = createMockIngress("app2", "kube-system", true);
@@ -175,8 +170,9 @@ class IngressApplicationWrapperTest {
     ingress.setKind("Ingress");
 
     Map<String, String> annotations = new HashMap<>();
-    annotations.put("startpunkt.ullberg.us/enabled", String.valueOf(enabled));
-    annotations.put("startpunkt.ullberg.us/name", name);
+    // Use the correct annotation key: 'enable' not 'enabled'
+    annotations.put("startpunkt.ullberg.us/enable", String.valueOf(enabled));
+    annotations.put("startpunkt.ullberg.us/appName", name);
 
     ingress.setMetadata(
         new ObjectMetaBuilder()
@@ -184,6 +180,30 @@ class IngressApplicationWrapperTest {
             .withNamespace(namespace)
             .withAnnotations(annotations)
             .build());
+
+    // Add spec with rules
+    Map<String, Object> spec = new HashMap<>();
+    List<Map<String, Object>> rules = new ArrayList<>();
+    Map<String, Object> rule = new HashMap<>();
+    rule.put("host", name + ".example.com");
+    rules.add(rule);
+    spec.put("rules", rules);
+
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    ingress.setAdditionalProperties(additionalProperties);
+
+    return ingress;
+  }
+
+  private GenericKubernetesResource createMockIngressWithoutAnnotation(
+      String name, String namespace) {
+    GenericKubernetesResource ingress = new GenericKubernetesResource();
+    ingress.setApiVersion("networking.k8s.io/v1");
+    ingress.setKind("Ingress");
+
+    // No annotations at all
+    ingress.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
 
     // Add spec with rules
     Map<String, Object> spec = new HashMap<>();

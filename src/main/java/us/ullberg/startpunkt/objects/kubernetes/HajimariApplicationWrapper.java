@@ -63,15 +63,15 @@ public class HajimariApplicationWrapper extends BaseKubernetesObject {
   }
 
   /**
-   * Gets the application enabled status from the resource spec. Falls back to parent implementation
-   * if not set.
+   * Gets the application enabled status from the resource spec. Defaults to true if not specified
+   * in the spec.
    *
    * @param item the Kubernetes resource
-   * @return true if app is enabled, otherwise value from super
+   * @return true if app is enabled (defaults to true)
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-    return getOptionalSpecBoolean(item, "enabled", super.getAppEnabled(item));
+    return getOptionalSpecBoolean(item, "enabled", true);
   }
 
   /**

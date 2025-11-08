@@ -92,6 +92,7 @@ export function ApplicationGroupList(props) {
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onReorderFavorites={reorderFavorites}
+            showClusterName={props.showClusterName}
           />
         )}
 
@@ -108,6 +109,7 @@ export function ApplicationGroupList(props) {
             onEditApp={props.onEditApp}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
+            showClusterName={props.showClusterName}
           />
         ))}
       </div>
