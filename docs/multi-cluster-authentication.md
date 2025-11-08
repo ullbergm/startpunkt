@@ -28,32 +28,19 @@ Add remote Startpunkt instances to your `application.yaml`:Add remote Startpunkt
 
 
 
-```yaml**Configuration:**
-
+```yaml
 startpunkt:
-
-  clusters:```yaml
-
-    local:startpunkt:
-
-      enabled: true  # Read from local Kubernetes cluster  clusters:
-
-    remote:    remote:
-
-      - name: "production"      - name: "prod-cluster"
-
-        graphql-url: "https://startpunkt.prod.example.com/graphql"        hostname: "https://api.prod-cluster.example.com:6443"
-
-        enabled: true        tokenSecret: "prod-cluster-token"  # Recommended: read from Secret
-
-      - name: "staging"        tokenSecretNamespace: "startpunkt"  # Optional, defaults to current namespace
-
-        graphql-url: "https://startpunkt.staging.example.com/graphql"        tokenSecretKey: "token"  # Optional, defaults to "token"
-
-        graphql-token: "optional-bearer-token"        enabled: true
-
-        enabled: true```
-
+  clusters:
+    local:
+      enabled: true  # Read from local Kubernetes cluster
+    remote:
+      - name: "production"
+        graphql-url: "https://startpunkt.prod.example.com/graphql"
+        # graphql-token: "optional-bearer-token"  # Optional, if the remote requires authentication
+        enabled: true
+      - name: "staging"
+        graphql-url: "https://startpunkt.staging.example.com/graphql"
+        enabled: true
 ```
 
 **Creating the token Secret:**
