@@ -14,7 +14,6 @@ on:
     workflows:
       - "Build and test"
     branches:
-      - dev
       - main
     types:
       - completed
@@ -33,28 +32,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  init:
-    runs-on: ubuntu-latest
-    outputs:
-      run: ${{ steps.conditional.outputs.run }}
-    steps:
-      - name: Conditional job
-        id: conditional
-        run: |
-            echo "repository: ${{ github.repository }}"
-            echo "ref: ${{ github.ref }}"
-            echo "event name: ${{ github.event_name }}"
-            echo "workflow run event: ${{ github.event.workflow_run.event }}"
-            echo "workflow run conclusion: ${{ github.event.workflow_run.conclusion }}"
-
-            echo "run=${{
-              (github.repository == 'ullbergm/startpunkt' && ((github.ref == 'refs/heads/dev') || (github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v'))) &&
-              (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && github.event.workflow_run.conclusion == 'success'))
-            }}" >>$GITHUB_OUTPUT
-
   build-and-push-native-images:
-    needs: init
-    if: ${{ needs.init.outputs.run == 'true' }}
+    if: |
+      github.repository == 'ullbergm/startpunkt' &&
+      (
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+        (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     name: "Build and Push Native images"
     steps:
