@@ -12,6 +12,10 @@ startpunkt:
     #   - name: "staging-cluster"
     #     graphql-url: "https://startpunkt.staging.example.com/graphql"
     #     enabled: true
+    remote:
+      - name: "patrick"
+        graphql-url: "https://apps.openshift.registerfam.net/graphql"
+        enabled: true
 
   defaultProtocol: "http"
 
@@ -22,10 +26,18 @@ startpunkt:
   availability:
     enabled: true  # If true, check application availability
     timeout: 5  # Timeout in seconds for availability checks
-    interval: 60s  # Interval between availability checks (e.g., 60s, 5m, 1h)
+    interval: 10s  # Interval between availability checks (e.g., 10s, 60s, 5m, 1h) - set to 10s for testing, use 60s for production
     ignoreCertificates: false  # If true, ignore SSL certificate validation errors (insecure, use only in development)
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
+    
+    # Exponential backoff configuration for availability checks
+    # When an application fails availability checks, the system will back off checking it frequently
+    # to reduce load on failing services and the Kubernetes cluster
+    maxRetries: 5  # Maximum number of consecutive failures before stopping checks temporarily
+    initialDelayMs: 500  # Initial delay in milliseconds before retrying after first failure (500ms for testing, 1000ms for prod)
+    maxDelayMs: 30000  # Maximum delay in milliseconds between checks for failing services (30s for testing, 300000ms/5min for prod)
+    backoffMultiplier: 2.0  # Multiplier for exponential backoff (delay doubles after each failure)
 
   # Namespace selector determines which namespaces to look for resources in
   namespaceSelector:

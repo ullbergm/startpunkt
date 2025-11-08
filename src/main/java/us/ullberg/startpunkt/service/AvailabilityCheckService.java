@@ -31,6 +31,25 @@ import us.ullberg.startpunkt.objects.ApplicationResponse;
 /**
  * Service for checking the availability of applications by probing their URLs. Runs periodic checks
  * in the background to maintain up-to-date availability status.
+ *
+ * <p>This service implements exponential backoff for failing services to reduce load on both the
+ * Kubernetes cluster and unresponsive applications. When an application fails availability checks
+ * consecutively, the service increases the delay between checks exponentially until a maximum delay
+ * is reached. Once a service becomes available again, the backoff state is reset and normal
+ * checking resumes.
+ *
+ * <p>Backoff behavior can be configured via the following properties:
+ *
+ * <ul>
+ *   <li>{@code startpunkt.availability.maxRetries} - Maximum number of consecutive failures before
+ *       extended backoff (default: 5)
+ *   <li>{@code startpunkt.availability.initialDelayMs} - Initial backoff delay in milliseconds
+ *       (default: 1000ms)
+ *   <li>{@code startpunkt.availability.maxDelayMs} - Maximum backoff delay in milliseconds
+ *       (default: 300000ms = 5 minutes)
+ *   <li>{@code startpunkt.availability.backoffMultiplier} - Exponential multiplier for backoff
+ *       delay (default: 2.0)
+ * </ul>
  */
 @ApplicationScoped
 public class AvailabilityCheckService {
@@ -52,8 +71,22 @@ public class AvailabilityCheckService {
   @ConfigProperty(name = "startpunkt.availability.ignoreCertificates", defaultValue = "false")
   private boolean ignoreCertificates;
 
+  @ConfigProperty(name = "startpunkt.availability.maxRetries", defaultValue = "5")
+  private int maxRetries;
+
+  @ConfigProperty(name = "startpunkt.availability.initialDelayMs", defaultValue = "1000")
+  private long initialDelayMs;
+
+  @ConfigProperty(name = "startpunkt.availability.maxDelayMs", defaultValue = "300000")
+  private long maxDelayMs;
+
+  @ConfigProperty(name = "startpunkt.availability.backoffMultiplier", defaultValue = "2.0")
+  private double backoffMultiplier;
+
   private final Map<String, Boolean> availabilityCache = new ConcurrentHashMap<>();
   private final Map<String, Boolean> previousAvailabilityCache = new ConcurrentHashMap<>();
+  private final Map<String, Integer> consecutiveFailures = new ConcurrentHashMap<>();
+  private final Map<String, Long> nextCheckTime = new ConcurrentHashMap<>();
   private final HttpClient httpClient;
   private final EventBroadcaster eventBroadcaster;
 
@@ -119,7 +152,11 @@ public class AvailabilityCheckService {
   }
 
   /**
-   * Checks the availability of a single application URL.
+   * Checks the availability of a single application URL with exponential backoff support.
+   *
+   * <p>When an application fails repeatedly, this method implements exponential backoff to reduce
+   * load on failing services. The backoff delay increases exponentially with each consecutive
+   * failure up to a maximum delay. After a successful check, the backoff state is reset.
    *
    * @param url the URL to check
    * @return true if the application is available, false otherwise
@@ -127,6 +164,17 @@ public class AvailabilityCheckService {
   public boolean checkAvailability(String url) {
     if (!availabilityCheckEnabled) {
       return true; // Default to available if checking is disabled
+    }
+
+    // Check if we should skip this check due to exponential backoff
+    long currentTime = System.currentTimeMillis();
+    Long nextCheck = nextCheckTime.get(url);
+    if (nextCheck != null && currentTime < nextCheck) {
+      // Still in backoff period, return cached availability
+      Log.tracef(
+          "Skipping availability check for %s due to backoff (next check in %d ms)",
+          url, nextCheck - currentTime);
+      return availabilityCache.getOrDefault(url, false);
     }
 
     try {
@@ -148,14 +196,63 @@ public class AvailabilityCheckService {
       int statusCode = response.statusCode();
       if ((statusCode >= 200 && statusCode < 400)
           || (statusCode >= 400 && statusCode < 500 && statusCode != 404)) {
+        // Success - reset backoff state and update cache
+        availabilityCache.put(url, true);
+        resetBackoffState(url);
         return true;
       } else {
         Log.warnf("Availability check for %s returned status code %d", url, statusCode);
+        // Failure - update cache and increment backoff
+        availabilityCache.put(url, false);
+        incrementBackoff(url);
         return false;
       }
     } catch (Exception e) {
       Log.warnf("Availability check failed for %s: %s", url, e.getMessage());
+      // Failure - update cache and increment backoff
+      availabilityCache.put(url, false);
+      incrementBackoff(url);
       return false;
+    }
+  }
+
+  /**
+   * Resets the exponential backoff state for a URL after a successful check.
+   *
+   * @param url the URL to reset
+   */
+  private void resetBackoffState(String url) {
+    Integer previousFailures = consecutiveFailures.remove(url);
+    nextCheckTime.remove(url);
+    if (previousFailures != null && previousFailures > 0) {
+      Log.infof("Reset backoff state for %s after successful check", url);
+    }
+  }
+
+  /**
+   * Increments the exponential backoff for a URL after a failed check.
+   *
+   * @param url the URL to increment backoff for
+   */
+  private void incrementBackoff(String url) {
+    int failures = consecutiveFailures.getOrDefault(url, 0) + 1;
+    consecutiveFailures.put(url, failures);
+
+    // Calculate exponential backoff delay
+    long delay = (long) (initialDelayMs * Math.pow(backoffMultiplier, failures - 1));
+    delay = Math.min(delay, maxDelayMs); // Cap at max delay
+
+    long nextCheck = System.currentTimeMillis() + delay;
+    nextCheckTime.put(url, nextCheck);
+
+    if (failures <= maxRetries) {
+      Log.infof(
+          "Availability check failed for %s (attempt %d/%d), backing off for %d ms",
+          url, failures, maxRetries, delay);
+    } else {
+      Log.warnf(
+          "Availability check failed for %s (attempt %d, exceeded max retries %d), backing off for %d ms",
+          url, failures, maxRetries, delay);
     }
   }
 
@@ -312,6 +409,8 @@ public class AvailabilityCheckService {
     if (url != null && !url.isEmpty()) {
       boolean wasPresent = availabilityCache.remove(url) != null;
       previousAvailabilityCache.remove(url);
+      consecutiveFailures.remove(url);
+      nextCheckTime.remove(url);
       if (wasPresent) {
         Log.infof(
             "Unregistered URL from availability checking: %s (remaining: %d)",
