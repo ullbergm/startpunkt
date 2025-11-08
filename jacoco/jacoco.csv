@@ -48,8 +48,8 @@ startpunkt,us.ullberg.startpunkt.service,BookmarkService,72,313,21,19,16,88,17,1
 startpunkt,us.ullberg.startpunkt.service,MultiClusterService,43,158,10,10,9,42,12,9,4,7
 startpunkt,us.ullberg.startpunkt.service,ApplicationCacheService,208,128,31,13,45,30,24,11,6,7
 startpunkt,us.ullberg.startpunkt.service,RemoteStartpunktClient,203,93,25,5,47,27,15,4,0,4
-startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,345,1284,90,108,103,361,80,46,4,23
-startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,280,373,41,35,61,92,30,24,3,13
+startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,353,1276,90,108,107,357,80,46,4,23
+startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,313,348,45,33,67,88,32,24,3,14
 startpunkt,us.ullberg.startpunkt.service,BookmarkCacheService,201,135,31,13,43,31,23,12,5,8
 startpunkt,us.ullberg.startpunkt.service,BookmarkManagementService,4,187,7,17,2,44,7,12,0,7
 startpunkt,us.ullberg.startpunkt.service,ApplicationService,4,187,7,17,2,45,7,12,0,7

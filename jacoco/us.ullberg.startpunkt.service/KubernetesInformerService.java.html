@@ -562,8 +562,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L563">      informers.add(informer);</span>
 <span class="fc" id="L564">      Log.info(&quot;Started HTTPRoute informer&quot;);</span>
-<span class="fc" id="L565">    } catch (Exception e) {</span>
-<span class="fc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
+<span class="nc" id="L565">    } catch (Exception e) {</span>
+<span class="nc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
 <span class="fc" id="L567">    }</span>
 <span class="fc" id="L568">  }</span>
 
@@ -1058,8 +1058,8 @@ public class KubernetesInformerService {
       // The AvailabilityCheckService will broadcast STATUS_CHANGED when availability changes.
 
 <span class="fc" id="L1060">      Log.debugf(&quot;Reloaded %d applications into cache from all clusters&quot;, apps.size());</span>
-<span class="fc" id="L1061">    } catch (Exception e) {</span>
-<span class="fc" id="L1062">      Log.error(&quot;Error reloading application cache&quot;, e);</span>
+<span class="nc" id="L1061">    } catch (Exception e) {</span>
+<span class="nc" id="L1062">      Log.error(&quot;Error reloading application cache&quot;, e);</span>
 <span class="fc" id="L1063">    }</span>
 <span class="fc" id="L1064">  }</span>
 
