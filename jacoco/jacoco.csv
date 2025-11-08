@@ -17,7 +17,7 @@ startpunkt,us.ullberg.startpunkt.objects.kubernetes,HajimariApplicationWrapper,0
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IngressApplicationWrapper,17,38,3,3,5,11,3,4,1,3
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,GatewayApiHttpRouteWrapper,24,89,6,6,3,21,6,5,1,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,BaseKubernetesObject,101,405,33,29,23,110,30,38,5,32
-startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,66,461,12,36,12,62,13,27,1,15
+startpunkt,us.ullberg.startpunkt.objects.kubernetes,AnnotatedKubernetesObject,61,466,12,36,12,62,12,28,0,16
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,RouteApplicationWrapper,24,75,6,6,2,14,6,5,1,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,IstioVirtualServiceApplicationWrapper,23,80,6,6,3,17,6,5,1,4
 startpunkt,us.ullberg.startpunkt.objects.kubernetes,StartpunktApplicationWrapper,130,393,43,31,29,87,32,23,0,18
@@ -44,11 +44,11 @@ startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceE
 startpunkt,us.ullberg.startpunkt.service,I8nService,0,53,0,4,0,13,0,4,0,2
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService.new X509TrustManager() {...},8,0,0,0,4,0,4,0,4,0
 startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService.new ResourceEventHandler() {...},27,6,6,0,9,1,6,1,3,1
-startpunkt,us.ullberg.startpunkt.service,BookmarkService,72,313,21,19,16,88,17,12,1,8
+startpunkt,us.ullberg.startpunkt.service,BookmarkService,84,301,21,19,22,82,17,12,1,8
 startpunkt,us.ullberg.startpunkt.service,MultiClusterService,140,102,19,5,28,28,18,6,6,6
 startpunkt,us.ullberg.startpunkt.service,ApplicationCacheService,208,128,31,13,45,30,24,11,6,7
 startpunkt,us.ullberg.startpunkt.service,RemoteStartpunktClient,288,8,30,0,72,2,18,1,3,1
-startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,406,1223,99,99,121,343,87,39,4,23
+startpunkt,us.ullberg.startpunkt.service,KubernetesInformerService,413,1216,96,102,125,339,84,42,4,23
 startpunkt,us.ullberg.startpunkt.service,AvailabilityCheckService,313,348,45,33,67,88,32,24,3,14
 startpunkt,us.ullberg.startpunkt.service,BookmarkCacheService,201,135,31,13,43,31,23,12,5,8
 startpunkt,us.ullberg.startpunkt.service,BookmarkManagementService,4,187,7,17,2,44,7,12,0,7
@@ -70,7 +70,7 @@ startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationStatus,3,0,0,0,2,0,1,0,
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationList,0,3,0,0,0,2,0,1,0,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Application,107,3,4,0,23,2,8,1,6,1
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,Bookmark,68,3,4,0,17,1,6,1,4,1
-startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,411,163,91,7,67,59,53,28,4,28
+startpunkt,us.ullberg.startpunkt.crd.v1alpha4,ApplicationSpec,421,153,92,6,70,56,54,27,5,27
 startpunkt,us.ullberg.startpunkt.crd.v1alpha4,BookmarkStatus,3,0,0,0,2,0,1,0,1,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,BookmarkConflictException,9,0,0,0,4,0,2,0,2,0
 startpunkt,us.ullberg.startpunkt.graphql.exception,ApplicationConflictException,9,0,0,0,4,0,2,0,2,0
