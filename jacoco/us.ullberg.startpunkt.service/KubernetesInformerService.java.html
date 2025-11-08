@@ -512,8 +512,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L513">      informers.add(informer);</span>
 <span class="fc" id="L514">      Log.info(&quot;Started VirtualService informer&quot;);</span>
-<span class="nc" id="L515">    } catch (Exception e) {</span>
-<span class="nc" id="L516">      Log.error(&quot;Failed to start VirtualService informer&quot;, e);</span>
+<span class="fc" id="L515">    } catch (Exception e) {</span>
+<span class="fc" id="L516">      Log.error(&quot;Failed to start VirtualService informer&quot;, e);</span>
 <span class="fc" id="L517">    }</span>
 <span class="fc" id="L518">  }</span>
 
@@ -562,8 +562,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L563">      informers.add(informer);</span>
 <span class="fc" id="L564">      Log.info(&quot;Started HTTPRoute informer&quot;);</span>
-<span class="nc" id="L565">    } catch (Exception e) {</span>
-<span class="nc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
+<span class="fc" id="L565">    } catch (Exception e) {</span>
+<span class="fc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
 <span class="fc" id="L567">    }</span>
 <span class="fc" id="L568">  }</span>
 
@@ -947,31 +947,31 @@ public class KubernetesInformerService {
 <span class="fc" id="L947">        Optional&lt;ClusterConfig&gt; configOpt = multiClusterService.getClusterConfig(clusterName);</span>
 
         // Check if this is a remote GraphQL cluster (not local)
-<span class="pc bpc" id="L950" title="3 of 4 branches missed.">        if (configOpt.isPresent() &amp;&amp; !&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
-<span class="nc" id="L951">          Log.infof(&quot;Loading applications from remote Startpunkt '%s' via GraphQL&quot;, clusterName);</span>
+<span class="pc bpc" id="L950" title="1 of 4 branches missed.">        if (configOpt.isPresent() &amp;&amp; !&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="fc" id="L951">          Log.infof(&quot;Loading applications from remote Startpunkt '%s' via GraphQL&quot;, clusterName);</span>
           try {
-<span class="nc" id="L953">            List&lt;ApplicationResponse&gt; remoteApps =</span>
-<span class="nc" id="L954">                remoteStartpunktClient.fetchApplications(configOpt.get(), clusterName);</span>
-<span class="nc" id="L955">            apps.addAll(remoteApps);</span>
-<span class="nc" id="L956">            Log.infof(</span>
+<span class="fc" id="L953">            List&lt;ApplicationResponse&gt; remoteApps =</span>
+<span class="fc" id="L954">                remoteStartpunktClient.fetchApplications(configOpt.get(), clusterName);</span>
+<span class="fc" id="L955">            apps.addAll(remoteApps);</span>
+<span class="fc" id="L956">            Log.infof(</span>
                 &quot;Loaded %d applications from remote Startpunkt '%s'&quot;,
-<span class="nc" id="L958">                remoteApps.size(), clusterName);</span>
+<span class="fc" id="L958">                remoteApps.size(), clusterName);</span>
 <span class="nc" id="L959">          } catch (Exception e) {</span>
 <span class="nc" id="L960">            Log.warnf(</span>
                 e,
                 &quot;Error loading applications from remote Startpunkt '%s': %s&quot;,
                 clusterName,
 <span class="nc" id="L964">                e.getMessage());</span>
-<span class="nc" id="L965">          }</span>
+<span class="fc" id="L965">          }</span>
 <span class="nc" id="L966">          continue; // Skip Kubernetes client logic for GraphQL connections</span>
         }
 
         // Local Kubernetes cluster logic below
 <span class="fc" id="L970">        Log.infof(&quot;Attempting to get Kubernetes client for local cluster&quot;);</span>
 <span class="fc" id="L971">        KubernetesClient client = multiClusterService.getClient(clusterName);</span>
-<span class="pc bpc" id="L972" title="1 of 2 branches missed.">        if (client == null) {</span>
-<span class="nc" id="L973">          Log.warnf(&quot;Local cluster is configured but client is null, skipping&quot;);</span>
-<span class="nc" id="L974">          continue;</span>
+<span class="fc bfc" id="L972" title="All 2 branches covered.">        if (client == null) {</span>
+<span class="fc" id="L973">          Log.warnf(&quot;Local cluster is configured but client is null, skipping&quot;);</span>
+<span class="fc" id="L974">          continue;</span>
         }
 
 <span class="fc" id="L977">        Log.debugf(&quot;Loading applications from cluster '%s'&quot;, clusterName);</span>
@@ -1076,27 +1076,27 @@ public class KubernetesInformerService {
 <span class="fc" id="L1076">        Optional&lt;ClusterConfig&gt; configOpt = multiClusterService.getClusterConfig(clusterName);</span>
 
         // Check if this is a remote GraphQL cluster (not local)
-<span class="pc bpc" id="L1079" title="3 of 4 branches missed.">        if (configOpt.isPresent() &amp;&amp; !&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
-<span class="nc" id="L1080">          Log.debugf(&quot;Loading bookmarks from remote Startpunkt '%s' via GraphQL&quot;, clusterName);</span>
+<span class="pc bpc" id="L1079" title="1 of 4 branches missed.">        if (configOpt.isPresent() &amp;&amp; !&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="fc" id="L1080">          Log.debugf(&quot;Loading bookmarks from remote Startpunkt '%s' via GraphQL&quot;, clusterName);</span>
           try {
-<span class="nc" id="L1082">            List&lt;BookmarkResponse&gt; remoteBookmarks =</span>
-<span class="nc" id="L1083">                remoteStartpunktClient.fetchBookmarks(configOpt.get(), clusterName);</span>
-<span class="nc" id="L1084">            bookmarks.addAll(remoteBookmarks);</span>
-<span class="nc" id="L1085">            Log.debugf(</span>
+<span class="fc" id="L1082">            List&lt;BookmarkResponse&gt; remoteBookmarks =</span>
+<span class="fc" id="L1083">                remoteStartpunktClient.fetchBookmarks(configOpt.get(), clusterName);</span>
+<span class="fc" id="L1084">            bookmarks.addAll(remoteBookmarks);</span>
+<span class="fc" id="L1085">            Log.debugf(</span>
                 &quot;Loaded %d bookmarks from remote Startpunkt '%s'&quot;,
-<span class="nc" id="L1087">                remoteBookmarks.size(), clusterName);</span>
+<span class="fc" id="L1087">                remoteBookmarks.size(), clusterName);</span>
 <span class="nc" id="L1088">          } catch (Exception e) {</span>
 <span class="nc" id="L1089">            Log.warnf(</span>
                 e,
                 &quot;Error loading bookmarks from remote Startpunkt '%s': %s&quot;,
                 clusterName,
 <span class="nc" id="L1093">                e.getMessage());</span>
-<span class="nc" id="L1094">          }</span>
+<span class="fc" id="L1094">          }</span>
 <span class="nc" id="L1095">          continue; // Skip local cluster logic for GraphQL remote clusters</span>
         }
 
         // Local cluster logic
-<span class="pc bpc" id="L1099" title="1 of 2 branches missed.">        if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="fc bfc" id="L1099" title="All 2 branches covered.">        if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
 <span class="fc" id="L1100">          Log.debugf(&quot;Loading bookmarks from local cluster&quot;);</span>
           // Load Startpunkt bookmarks
 <span class="fc" id="L1102">          bookmarks.addAll(bookmarkService.retrieveBookmarks());</span>
