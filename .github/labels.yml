@@ -32,6 +32,7 @@
   color: "72ccf3"
   description: >-
     Changes made to the test
+
 # Features
 - name: feature/codebase
   color: "793A6C"
@@ -53,6 +54,7 @@
   color: "793A6C"
   description: >-
     Feature related to the user interface
+
 # Renovate
 - name: renovate/go
   color: "ffc300"
@@ -75,6 +77,7 @@
   color: "FF9800"
 - name: type/major
   color: "F6412D"
+
 # Size
 - name: size/XS
   color: "009900"
@@ -100,6 +103,7 @@
   color: "ee0000"
   description: >-
     Denotes a PR that changes 1000+ lines, ignoring generated files.
+
 # Uncategorized
 - name: bug
   color: "ee0701"
@@ -115,9 +119,15 @@
   color: "cc317c"
 - name: report
   color: "7B55D7"
-- name: automated issue
-  color: "7B55D7"
-- name: stale
-  color: "7B55D7"
-- name: no-stale
-  color: "7B55D7"
+- name: automated-issue
+  color: fef2c0
+  description: "Automatic issue. This issue was created by a bot and should not be closed manually."
+- name: "stale"
+  color: fef2c0
+  description: "No activity for quite some time."
+- name: "no-stale"
+  color: fef2c0
+  description: "This is exempt from the stale bot."
+- name: "in-progress"
+  color: fbca04
+  description: "Issue is currently being worked on by a developer."

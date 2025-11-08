@@ -1,5 +1,5 @@
 ---
-name: Meta - Labeler
+name: Apply PR Labels
 
 on: # yamllint disable-line rule:truthy
   pull_request:

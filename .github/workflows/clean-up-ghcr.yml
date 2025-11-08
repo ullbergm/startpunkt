@@ -6,8 +6,6 @@ on:
       - "Push Images"
     types:
       - completed
-  schedule:
-    - cron: "30 1 * * *"
   workflow_dispatch:
 
 jobs:

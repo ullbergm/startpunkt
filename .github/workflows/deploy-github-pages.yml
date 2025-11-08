@@ -1,8 +1,9 @@
-name: Build and Deploy Maven Site
+name: Deploy Maven Site to GitHub Pages
 
-on:
+on: # yamllint disable-line rule:truthy
   push:
-    branches: [main]
+    tags:
+      - 'v*'
 
 permissions:
   contents: write  # Required for deploying to GitHub Pages
@@ -19,15 +20,14 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven  # Add caching!
 
-      - name: Build with Maven
-        run: mvn clean install verify
-
-      - name: Generate Maven Site
-        run: mvn site
+      - name: Build and Generate Site
+        run: mvn -B verify site site:stage  # Combine steps
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
+        if: github.event_name == 'push'  # Don't deploy on workflow_dispatch
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site
+          publish_dir: ./target/staging  # Use staged site
