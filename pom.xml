@@ -290,7 +290,7 @@
     <dependency>
       <groupId>io.quarkus.resteasy.reactive</groupId>
       <artifactId>resteasy-reactive-common</artifactId>
-      <version>3.29.0</version>
+      <version>3.29.2</version>
     </dependency>
 
     <!-- Test Dependencies -->
