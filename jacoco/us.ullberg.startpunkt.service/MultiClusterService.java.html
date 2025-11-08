@@ -50,23 +50,23 @@ public class MultiClusterService {
 
     // Initialize remote GraphQL cluster configurations
 <span class="fc" id="L52">    Optional&lt;List&lt;ClustersConfig.RemoteCluster&gt;&gt; remoteClusterConfigs = clustersConfig.remote();</span>
-<span class="pc bpc" id="L53" title="2 of 4 branches missed.">    if (remoteClusterConfigs.isPresent() &amp;&amp; !remoteClusterConfigs.get().isEmpty()) {</span>
-<span class="fc" id="L54">      List&lt;ClustersConfig.RemoteCluster&gt; configs = remoteClusterConfigs.get();</span>
-<span class="fc" id="L55">      Log.infof(&quot;Found %d remote GraphQL cluster configuration(s)&quot;, configs.size());</span>
+<span class="pc bpc" id="L53" title="3 of 4 branches missed.">    if (remoteClusterConfigs.isPresent() &amp;&amp; !remoteClusterConfigs.get().isEmpty()) {</span>
+<span class="nc" id="L54">      List&lt;ClustersConfig.RemoteCluster&gt; configs = remoteClusterConfigs.get();</span>
+<span class="nc" id="L55">      Log.infof(&quot;Found %d remote GraphQL cluster configuration(s)&quot;, configs.size());</span>
 
-<span class="fc bfc" id="L57" title="All 2 branches covered.">      for (ClustersConfig.RemoteCluster remoteConfig : configs) {</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        if (remoteConfig.enabled()) {</span>
-<span class="fc" id="L59">          ClusterConfig config = toClusterConfig(remoteConfig);</span>
-<span class="fc" id="L60">          clusterConfigs.put(config.getName(), config);</span>
-<span class="fc" id="L61">          Log.infof(</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      for (ClustersConfig.RemoteCluster remoteConfig : configs) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (remoteConfig.enabled()) {</span>
+<span class="nc" id="L59">          ClusterConfig config = toClusterConfig(remoteConfig);</span>
+<span class="nc" id="L60">          clusterConfigs.put(config.getName(), config);</span>
+<span class="nc" id="L61">          Log.infof(</span>
               &quot;Registered remote GraphQL cluster '%s' at %s&quot;,
-<span class="fc" id="L63">              config.getName(), config.getGraphqlUrl());</span>
-<span class="fc" id="L64">        } else {</span>
+<span class="nc" id="L63">              config.getName(), config.getGraphqlUrl());</span>
+<span class="nc" id="L64">        } else {</span>
 <span class="nc" id="L65">          Log.infof(&quot;Remote cluster '%s' is disabled, skipping&quot;, remoteConfig.name());</span>
         }
-<span class="fc" id="L67">      }</span>
-<span class="fc" id="L68">    } else {</span>
-<span class="nc" id="L69">      Log.info(&quot;No remote GraphQL clusters configured&quot;);</span>
+<span class="nc" id="L67">      }</span>
+<span class="nc" id="L68">    } else {</span>
+<span class="fc" id="L69">      Log.info(&quot;No remote GraphQL clusters configured&quot;);</span>
     }
 
 <span class="fc" id="L72">    Log.info(&quot;Multi-cluster service initialization complete&quot;);</span>
@@ -79,12 +79,12 @@ public class MultiClusterService {
    * @return the ClusterConfig POJO
    */
   private ClusterConfig toClusterConfig(ClustersConfig.RemoteCluster remoteConfig) {
-<span class="fc" id="L82">    ClusterConfig config = new ClusterConfig();</span>
-<span class="fc" id="L83">    config.setName(remoteConfig.name());</span>
-<span class="fc" id="L84">    config.setEnabled(remoteConfig.enabled());</span>
-<span class="fc" id="L85">    config.setGraphqlUrl(remoteConfig.graphqlUrl());</span>
-<span class="fc" id="L86">    remoteConfig.graphqlToken().ifPresent(config::setGraphqlToken);</span>
-<span class="fc" id="L87">    return config;</span>
+<span class="nc" id="L82">    ClusterConfig config = new ClusterConfig();</span>
+<span class="nc" id="L83">    config.setName(remoteConfig.name());</span>
+<span class="nc" id="L84">    config.setEnabled(remoteConfig.enabled());</span>
+<span class="nc" id="L85">    config.setGraphqlUrl(remoteConfig.graphqlUrl());</span>
+<span class="nc" id="L86">    remoteConfig.graphqlToken().ifPresent(config::setGraphqlToken);</span>
+<span class="nc" id="L87">    return config;</span>
   }
 
   /** Cleanup on shutdown. */
@@ -101,11 +101,11 @@ public class MultiClusterService {
    * @return the Kubernetes client for local cluster, or null if not configured or remote
    */
   public KubernetesClient getClient(String clusterName) {
-<span class="fc bfc" id="L104" title="All 2 branches covered.">    if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
 <span class="pc bpc" id="L105" title="1 of 2 branches missed.">      return clustersConfig.local().enabled() ? localClient : null;</span>
     }
     // Remote clusters are GraphQL-only, no Kubernetes client
-<span class="fc" id="L108">    return null;</span>
+<span class="nc" id="L108">    return null;</span>
   }
 
   /**

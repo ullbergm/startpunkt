@@ -79,15 +79,15 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
    */
   public List&lt;ApplicationResponse&gt; fetchApplications(ClusterConfig config, String clusterName) {
     try {
-<span class="fc" id="L82">      String graphqlUrl = config.getGraphqlUrl();</span>
-<span class="pc bpc" id="L83" title="2 of 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
+<span class="nc" id="L82">      String graphqlUrl = config.getGraphqlUrl();</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
 <span class="nc" id="L84">        throw new IllegalArgumentException(</span>
             &quot;GraphQL URL is required for cluster '&quot; + clusterName + &quot;'&quot;);
       }
 
-<span class="fc" id="L88">      Log.debugf(&quot;Fetching applications from remote Startpunkt at %s&quot;, graphqlUrl);</span>
+<span class="nc" id="L88">      Log.debugf(&quot;Fetching applications from remote Startpunkt at %s&quot;, graphqlUrl);</span>
 
-<span class="fc" id="L90">      String responseBody =</span>
+<span class="nc" id="L90">      String responseBody =</span>
 <span class="nc" id="L91">          executeGraphQLQuery(graphqlUrl, config.getGraphqlToken(), APPLICATION_GROUPS_QUERY);</span>
 
 <span class="nc" id="L93">      Log.infof(&quot;GraphQL response from '%s': %s&quot;, clusterName, responseBody);</span>
@@ -118,13 +118,13 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
 <span class="nc" id="L118">          &quot;Fetched %d applications from remote Startpunkt '%s'&quot;, applications.size(), clusterName);</span>
 <span class="nc" id="L119">      return applications;</span>
 
-<span class="fc" id="L121">    } catch (Exception e) {</span>
-<span class="fc" id="L122">      Log.errorf(</span>
+<span class="nc" id="L121">    } catch (Exception e) {</span>
+<span class="nc" id="L122">      Log.errorf(</span>
           e,
           &quot;Failed to fetch applications from remote Startpunkt '%s': %s&quot;,
           clusterName,
-<span class="fc" id="L126">          e.getMessage());</span>
-<span class="fc" id="L127">      return List.of();</span>
+<span class="nc" id="L126">          e.getMessage());</span>
+<span class="nc" id="L127">      return List.of();</span>
     }
   }
 
@@ -137,15 +137,15 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
    */
   public List&lt;BookmarkResponse&gt; fetchBookmarks(ClusterConfig config, String clusterName) {
     try {
-<span class="fc" id="L140">      String graphqlUrl = config.getGraphqlUrl();</span>
-<span class="pc bpc" id="L141" title="2 of 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
+<span class="nc" id="L140">      String graphqlUrl = config.getGraphqlUrl();</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">      if (graphqlUrl == null || graphqlUrl.trim().isEmpty()) {</span>
 <span class="nc" id="L142">        throw new IllegalArgumentException(</span>
             &quot;GraphQL URL is required for cluster '&quot; + clusterName + &quot;'&quot;);
       }
 
-<span class="fc" id="L146">      Log.debugf(&quot;Fetching bookmarks from remote Startpunkt at %s&quot;, graphqlUrl);</span>
+<span class="nc" id="L146">      Log.debugf(&quot;Fetching bookmarks from remote Startpunkt at %s&quot;, graphqlUrl);</span>
 
-<span class="fc" id="L148">      String responseBody =</span>
+<span class="nc" id="L148">      String responseBody =</span>
 <span class="nc" id="L149">          executeGraphQLQuery(graphqlUrl, config.getGraphqlToken(), BOOKMARK_GROUPS_QUERY);</span>
 
 <span class="nc" id="L151">      Log.infof(&quot;GraphQL bookmark response from '%s': %s&quot;, clusterName, responseBody);</span>
@@ -175,13 +175,13 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
 <span class="nc" id="L175">      Log.infof(&quot;Fetched %d bookmarks from remote Startpunkt '%s'&quot;, bookmarks.size(), clusterName);</span>
 <span class="nc" id="L176">      return bookmarks;</span>
 
-<span class="fc" id="L178">    } catch (Exception e) {</span>
-<span class="fc" id="L179">      Log.errorf(</span>
+<span class="nc" id="L178">    } catch (Exception e) {</span>
+<span class="nc" id="L179">      Log.errorf(</span>
           e,
           &quot;Failed to fetch bookmarks from remote Startpunkt '%s': %s&quot;,
           clusterName,
-<span class="fc" id="L183">          e.getMessage());</span>
-<span class="fc" id="L184">      return List.of();</span>
+<span class="nc" id="L183">          e.getMessage());</span>
+<span class="nc" id="L184">      return List.of();</span>
     }
   }
 
@@ -196,24 +196,24 @@ import us.ullberg.startpunkt.objects.BookmarkResponse;
    */
   private String executeGraphQLQuery(String graphqlUrl, String token, String query)
       throws Exception {
-<span class="fc" id="L199">    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();</span>
+<span class="nc" id="L199">    HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();</span>
 
     // Create GraphQL request body
-<span class="fc" id="L202">    String requestBody = String.format(&quot;{\&quot;query\&quot;:%s}&quot;, objectMapper.writeValueAsString(query));</span>
+<span class="nc" id="L202">    String requestBody = String.format(&quot;{\&quot;query\&quot;:%s}&quot;, objectMapper.writeValueAsString(query));</span>
 
     HttpRequest.Builder requestBuilder =
-<span class="fc" id="L205">        HttpRequest.newBuilder()</span>
-<span class="fc" id="L206">            .uri(URI.create(graphqlUrl))</span>
-<span class="fc" id="L207">            .header(&quot;Content-Type&quot;, &quot;application/json&quot;)</span>
-<span class="fc" id="L208">            .POST(HttpRequest.BodyPublishers.ofString(requestBody))</span>
-<span class="fc" id="L209">            .timeout(Duration.ofSeconds(30));</span>
+<span class="nc" id="L205">        HttpRequest.newBuilder()</span>
+<span class="nc" id="L206">            .uri(URI.create(graphqlUrl))</span>
+<span class="nc" id="L207">            .header(&quot;Content-Type&quot;, &quot;application/json&quot;)</span>
+<span class="nc" id="L208">            .POST(HttpRequest.BodyPublishers.ofString(requestBody))</span>
+<span class="nc" id="L209">            .timeout(Duration.ofSeconds(30));</span>
 
     // Add authentication if token is provided
-<span class="pc bpc" id="L212" title="3 of 4 branches missed.">    if (token != null &amp;&amp; !token.trim().isEmpty()) {</span>
+<span class="nc bnc" id="L212" title="All 4 branches missed.">    if (token != null &amp;&amp; !token.trim().isEmpty()) {</span>
 <span class="nc" id="L213">      requestBuilder.header(&quot;Authorization&quot;, &quot;Bearer &quot; + token);</span>
     }
 
-<span class="fc" id="L216">    HttpRequest request = requestBuilder.build();</span>
+<span class="nc" id="L216">    HttpRequest request = requestBuilder.build();</span>
 <span class="nc" id="L217">    HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
 
 <span class="nc bnc" id="L219" title="All 2 branches missed.">    if (response.statusCode() != 200) {</span>
