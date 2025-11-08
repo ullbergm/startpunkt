@@ -81,6 +81,19 @@ public class ConfigGraphQLResource {
 <span class="nc" id="L81">    return multiClusterService.getActiveClusterNames();</span>
   }
 
+  /**
+   * Retrieve the display name for the local cluster.
+   *
+   * @return the local cluster display name
+   */
+  @Query(&quot;localClusterName&quot;)
+  @Description(&quot;Retrieve the display name for the local cluster&quot;)
+  @Timed(value = &quot;graphql.query.localClusterName&quot;)
+  public String getLocalClusterName() {
+<span class="nc" id="L93">    Log.debug(&quot;GraphQL query: localClusterName&quot;);</span>
+<span class="nc" id="L94">    return multiClusterService.getLocalClusterDisplayName();</span>
+  }
+
   /** Configuration response type. */
   public static class ConfigResponse {
     public String version;
@@ -89,12 +102,12 @@ public class ConfigGraphQLResource {
     public ClustersConfig clusters;
 
     public ConfigResponse(
-<span class="fc" id="L92">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
-<span class="fc" id="L93">      this.version = version;</span>
-<span class="fc" id="L94">      this.web = web;</span>
-<span class="fc" id="L95">      this.websocket = websocket;</span>
-<span class="fc" id="L96">      this.clusters = clusters;</span>
-<span class="fc" id="L97">    }</span>
+<span class="fc" id="L105">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
+<span class="fc" id="L106">      this.version = version;</span>
+<span class="fc" id="L107">      this.web = web;</span>
+<span class="fc" id="L108">      this.websocket = websocket;</span>
+<span class="fc" id="L109">      this.clusters = clusters;</span>
+<span class="fc" id="L110">    }</span>
   }
 
   /** Web configuration type. */
@@ -110,31 +123,31 @@ public class ConfigGraphQLResource {
         boolean checkForUpdates,
         String title,
         int refreshInterval,
-<span class="fc" id="L113">        boolean defaultShowAllClusters) {</span>
-<span class="fc" id="L114">      this.showGithubLink = showGithubLink;</span>
-<span class="fc" id="L115">      this.checkForUpdates = checkForUpdates;</span>
-<span class="fc" id="L116">      this.title = title;</span>
-<span class="fc" id="L117">      this.refreshInterval = refreshInterval;</span>
-<span class="fc" id="L118">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
-<span class="fc" id="L119">    }</span>
+<span class="fc" id="L126">        boolean defaultShowAllClusters) {</span>
+<span class="fc" id="L127">      this.showGithubLink = showGithubLink;</span>
+<span class="fc" id="L128">      this.checkForUpdates = checkForUpdates;</span>
+<span class="fc" id="L129">      this.title = title;</span>
+<span class="fc" id="L130">      this.refreshInterval = refreshInterval;</span>
+<span class="fc" id="L131">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
+<span class="fc" id="L132">    }</span>
   }
 
   /** WebSocket configuration type. */
   public static class WebSocketConfig {
     public boolean enabled;
 
-<span class="fc" id="L126">    public WebSocketConfig(boolean enabled) {</span>
-<span class="fc" id="L127">      this.enabled = enabled;</span>
-<span class="fc" id="L128">    }</span>
+<span class="fc" id="L139">    public WebSocketConfig(boolean enabled) {</span>
+<span class="fc" id="L140">      this.enabled = enabled;</span>
+<span class="fc" id="L141">    }</span>
   }
 
   /** Clusters configuration type. */
   public static class ClustersConfig {
     public boolean defaultShowAll;
 
-<span class="fc" id="L135">    public ClustersConfig(boolean defaultShowAll) {</span>
-<span class="fc" id="L136">      this.defaultShowAll = defaultShowAll;</span>
-<span class="fc" id="L137">    }</span>
+<span class="fc" id="L148">    public ClustersConfig(boolean defaultShowAll) {</span>
+<span class="fc" id="L149">      this.defaultShowAll = defaultShowAll;</span>
+<span class="fc" id="L150">    }</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
