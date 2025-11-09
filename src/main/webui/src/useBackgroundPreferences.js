@@ -27,12 +27,12 @@ const DEFAULT_PREFERENCES = {
     },
     image: {
       imageUrl: '',
-      blur: false,
+      blur: 0,
       opacity: 1
     },
     pictureOfDay: {
       pictureProvider: 'bing',
-      blur: false,
+      blur: 0,
       opacity: 1,
       contentOverlayOpacity: 0.7
     },
@@ -93,14 +93,14 @@ export function useBackgroundPreferences() {
     // Migrate image
     typePreferences.image = {
       imageUrl: rawPreferences.imageUrl || DEFAULT_PREFERENCES.typePreferences.image.imageUrl,
-      blur: rawPreferences.blur !== undefined ? rawPreferences.blur : DEFAULT_PREFERENCES.typePreferences.image.blur,
+      blur: rawPreferences.blur !== undefined ? (typeof rawPreferences.blur === 'boolean' ? (rawPreferences.blur ? 10 : 0) : rawPreferences.blur) : DEFAULT_PREFERENCES.typePreferences.image.blur,
       opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.image.opacity
     };
     
     // Migrate pictureOfDay
     typePreferences.pictureOfDay = {
       pictureProvider: rawPreferences.pictureProvider || DEFAULT_PREFERENCES.typePreferences.pictureOfDay.pictureProvider,
-      blur: rawPreferences.blur !== undefined ? rawPreferences.blur : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.blur,
+      blur: rawPreferences.blur !== undefined ? (typeof rawPreferences.blur === 'boolean' ? (rawPreferences.blur ? 10 : 0) : rawPreferences.blur) : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.blur,
       opacity: rawPreferences.opacity !== undefined ? rawPreferences.opacity : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.opacity,
       contentOverlayOpacity: rawPreferences.contentOverlayOpacity !== undefined ? rawPreferences.contentOverlayOpacity : DEFAULT_PREFERENCES.typePreferences.pictureOfDay.contentOverlayOpacity
     };
@@ -367,7 +367,7 @@ export function useBackgroundPreferences() {
       
       case 'image': {
         const imageUrl = getTypePreference('imageUrl');
-        const blur = getTypePreference('blur') || false;
+        const blur = getTypePreference('blur') || 0;
         const opacity = getTypePreference('opacity') || 1.0;
         
         if (imageUrl && isValidUrl(imageUrl)) {
@@ -375,8 +375,8 @@ export function useBackgroundPreferences() {
           style.backgroundSize = 'cover';
           style.backgroundPosition = 'center';
           style.backgroundRepeat = 'no-repeat';
-          if (blur) {
-            style.filter = 'blur(5px)';
+          if (blur > 0) {
+            style.filter = `blur(${blur}px)`;
           }
           style.opacity = opacity;
         } else {
@@ -393,7 +393,7 @@ export function useBackgroundPreferences() {
       
       case 'pictureOfDay': {
         const pictureProvider = getTypePreference('pictureProvider') || 'bing';
-        const blur = getTypePreference('blur') || false;
+        const blur = getTypePreference('blur') || 0;
         const opacity = getTypePreference('opacity') || 1.0;
         
         // Picture provider is handled by Background component via GraphQL for Bing
@@ -407,8 +407,8 @@ export function useBackgroundPreferences() {
             style.backgroundSize = 'cover';
             style.backgroundPosition = 'center';
             style.backgroundRepeat = 'no-repeat';
-            if (blur) {
-              style.filter = 'blur(5px)';
+            if (blur > 0) {
+              style.filter = `blur(${blur}px)`;
             }
             style.opacity = opacity;
           }

@@ -126,14 +126,15 @@ export function Background() {
           overlay.style.opacity = style.opacity || 1.0;
           
           // Apply blur if enabled
-          const blur = backgroundPrefs.getTypePreference('blur') || false;
-          if (blur) {
-            overlay.style.filter = 'blur(10px)';
-            overlay.style.transform = 'scale(1.1)'; // Prevent blur edges from showing
+          const blur = backgroundPrefs.getTypePreference('blur') || 0;
+          if (blur > 0) {
+            overlay.style.filter = `blur(${blur}px)`;
           } else {
             overlay.style.filter = 'none';
-            overlay.style.transform = 'none';
           }
+          
+          // Always apply a slight scale to prevent blur edges from showing at the viewport boundaries
+          overlay.style.transform = 'scale(1.05)';
           
           // Clear body background to prevent doubling
           document.body.style.backgroundImage = 'none';

@@ -242,7 +242,7 @@ describe('Background', () => {
     it('should apply blur to image overlay when blur is enabled', async () => {
       mockPreferences.type = 'image';
       mockPreferences.imageUrl = 'https://example.com/image.jpg';
-      mockPreferences.blur = true;
+      mockPreferences.blur = 10;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -253,14 +253,14 @@ describe('Background', () => {
       await waitFor(() => {
         const overlay = document.getElementById('background-overlay');
         expect(overlay.style.filter).toBe('blur(10px)');
-        expect(overlay.style.transform).toBe('scale(1.1)');
+        expect(overlay.style.transform).toBe('scale(1.05)');
       });
     });
 
     it('should not apply blur when blur is disabled', async () => {
       mockPreferences.type = 'image';
       mockPreferences.imageUrl = 'https://example.com/image.jpg';
-      mockPreferences.blur = false;
+      mockPreferences.blur = 0;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://example.com/image.jpg)',
         opacity: 1.0
@@ -271,7 +271,7 @@ describe('Background', () => {
       await waitFor(() => {
         const overlay = document.getElementById('background-overlay');
         expect(overlay.style.filter).toBe('none');
-        expect(overlay.style.transform).toBe('none');
+        expect(overlay.style.transform).toBe('scale(1.05)');
       });
     });
 
@@ -338,7 +338,7 @@ describe('Background', () => {
 
     it('should apply blur to picture of day when enabled', async () => {
       mockPreferences.type = 'pictureOfDay';
-      mockPreferences.blur = true;
+      mockPreferences.blur = 10;
       mockGetBackgroundStyle.mockReturnValue({
         backgroundImage: 'url(https://picsum.photos/...)',
         opacity: 1.0
@@ -411,7 +411,7 @@ describe('Background', () => {
     it('should apply blur to Bing image when enabled', async () => {
       mockPreferences.type = 'pictureOfDay';
       mockPreferences.pictureProvider = 'bing';
-      mockPreferences.blur = true;
+      mockPreferences.blur = 10;
       
       const mockBingData = {
         imageUrl: 'https://www.bing.com/th?id=OHR.TestImage_1920x1080.jpg',

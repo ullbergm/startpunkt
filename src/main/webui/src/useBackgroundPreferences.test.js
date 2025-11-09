@@ -48,12 +48,12 @@ describe('useBackgroundPreferences', () => {
         },
         image: {
           imageUrl: '',
-          blur: false,
+          blur: 0,
           opacity: 1
         },
         pictureOfDay: {
           pictureProvider: 'bing',
-          blur: false,
+          blur: 0,
           opacity: 1,
           contentOverlayOpacity: 0.7
         },

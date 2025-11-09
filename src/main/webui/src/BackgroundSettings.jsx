@@ -368,17 +368,22 @@ export function BackgroundSettings() {
             {/* Blur Option for Images */}
             {(preferences.type === 'image' || preferences.type === 'pictureOfDay') && (
               <div class="mb-3">
-                <div class="form-check form-switch">
-                  <input 
-                    class="form-check-input" 
-                    type="checkbox" 
-                    id="bgBlur"
-                    checked={getTypePreference('blur') || false}
-                    onChange={(e) => updatePreference('blur', e.target.checked)}
-                  />
-                  <label class="form-check-label small" for="bgBlur">
-                    <Text id="background.blur">Blur Background</Text>
-                  </label>
+                <label for="bgBlur" class="form-label small mb-1">
+                  <Text id="background.blur">Blur Background</Text>: {getTypePreference('blur') || 0}px
+                </label>
+                <input 
+                  type="range"
+                  class="form-range"
+                  id="bgBlur"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value={getTypePreference('blur') || 0}
+                  onChange={(e) => updatePreference('blur', parseInt(e.target.value))}
+                />
+                <div class="d-flex justify-content-between">
+                  <small class="text-muted">No blur</small>
+                  <small class="text-muted">Maximum</small>
                 </div>
               </div>
             )}
