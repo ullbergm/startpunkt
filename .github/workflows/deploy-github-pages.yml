@@ -23,11 +23,11 @@ jobs:
           cache: maven  # Add caching!
 
       - name: Build and Generate Site
-        run: mvn -B verify site site:stage  # Combine steps
+        run: mvn -B verify site
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: github.event_name == 'push'  # Don't deploy on workflow_dispatch
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/staging  # Use staged site
+          publish_dir: ./target/site
