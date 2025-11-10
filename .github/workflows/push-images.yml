@@ -68,7 +68,7 @@ jobs:
 
       - name: Download native executable artifact
         if: github.event_name == 'workflow_run'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: native-executable
           path: target/
