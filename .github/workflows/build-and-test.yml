@@ -67,13 +67,6 @@ jobs:
           java-version: '${{ env.JAVA_VERSION }}'
           cache: maven
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
       - name: Build and test with coverage
         run: |
           ./mvnw -B clean verify -Dmaven.compiler.release=${{ env.JAVA_VERSION }}
@@ -104,27 +97,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Cache and restore Mandrel distro
-        id: check-mandrel-cache
-        uses: actions/cache@v4
-        with:
-          path: 'mandrel-${{ env.MANDREL_VERSION }}-${{ env.JAVA_VERSION }}.tar.gz'
-          key: 'mandrel-distro-${{ env.MANDREL_VERSION }}-${{ env.JAVA_VERSION }}'
-
-      - name: Download Mandrel
-        if: steps.check-mandrel-cache.outputs.cache-hit != 'true'
-        run: >
-          download_url="https://github.com/graalvm/mandrel/releases/download/mandrel-${MANDREL_VERSION}/mandrel-java${{ env.JAVA_VERSION }}-linux-amd64-${MANDREL_VERSION}.tar.gz"
-
-          wget -q -O mandrel-${{ env.MANDREL_VERSION }}-${{ env.JAVA_VERSION }}.tar.gz $download_url
-
-      - name: Setup Maven+OpenJDK Distro
+      - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: jdkfile
-          jdkFile: 'mandrel-${{ env.MANDREL_VERSION }}-${{ env.JAVA_VERSION }}.tar.gz'
+          distribution: 'temurin'
           java-version: '${{ env.JAVA_VERSION }}'
-          architecture: x64
           cache: maven
 
       - name: 'build-test-native-java-${{ env.JAVA_VERSION }}'
@@ -133,7 +110,16 @@ jobs:
           ./mvnw -B -fae clean verify -Pnative \
             -Dquarkus.http.host=0.0.0.0 \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
-            -Dquarkus.native.container-build=false
+            -Dquarkus.native.container-build=true \
+            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64
+
+      - name: Upload native executable artifact
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-executable
+          path: target/*-runner
+          retention-days: 1
 
       - name: Publish JUnit test results to GitHub
         if: always()

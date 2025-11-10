@@ -631,7 +631,7 @@ spec:
       serviceAccountName: startpunkt
       containers:
       - name: backend
-        image: quay.io/ullbergm/startpunkt-backend:latest
+        image: ghcr.io/ullbergm/startpunkt-backend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
@@ -729,7 +729,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: quay.io/ullbergm/startpunkt-frontend:latest
+        image: ghcr.io/ullbergm/startpunkt-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

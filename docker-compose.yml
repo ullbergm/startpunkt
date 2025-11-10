@@ -3,9 +3,7 @@ version: '3.8'
 services:
   # Backend API service
   backend:
-    build:
-      context: .
-      dockerfile: src/main/docker/Dockerfile.backend
+    image: ghcr.io/ullbergm/startpunkt-backend:latest
     container_name: startpunkt-backend
     ports:
       - "8081:8081"
@@ -25,9 +23,7 @@ services:
 
   # Frontend service
   frontend:
-    build:
-      context: .
-      dockerfile: src/main/docker/Dockerfile.frontend
+    image: ghcr.io/ullbergm/startpunkt-frontend:latest
     container_name: startpunkt-frontend
     ports:
       - "8080:8080"

@@ -1,9 +1,9 @@
 ####
-# This Dockerfile builds the backend API service only (without frontend)
+# This Dockerfile builds the backend API service only (without frontend) in native mode
 #
 # Before building the container image run:
 #
-# ./mvnw package -DskipTests
+# ./mvnw package -DskipTests -Pnative
 #
 # Then, build the image with:
 #
@@ -14,21 +14,15 @@
 # docker run -i --rm -p 8081:8081 startpunkt-backend
 #
 ###
-FROM registry.access.redhat.com/ubi8/openjdk-21:1.23-3.1761164965
-
-ENV LANGUAGE='en_US:en'
-
-# We make four distinct layers so if there are application changes the library layers can be re-used
-COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
-COPY --chown=185 target/quarkus-app/*.jar /deployments/
-COPY --chown=185 target/quarkus-app/app/ /deployments/app/
-COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+FROM quay.io/quarkus/quarkus-micro-image:2.0
+WORKDIR /work/
+RUN chown 1001 /work \
+    && chmod "g+rwX" /work \
+    && chown 1001:root /work
+COPY --chown=1001:root target/*-runner /work/application
 
 EXPOSE 8081
-USER 185
+USER 1001
 
-# Enable microservices mode and configure for backend-only operation
-ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081 -Dquarkus.profile=microservices -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
-
-ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
+# Configure for microservices backend mode on port 8081
+ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0", "-Dquarkus.http.port=8081", "-Dquarkus.profile=microservices"]

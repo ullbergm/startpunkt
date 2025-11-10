@@ -20,7 +20,9 @@ RUN chown 1001 /work \
     && chown 1001:root /work
 COPY --chown=1001:root target/*-runner /work/application
 
-EXPOSE 8080
+EXPOSE 8080 8081
 USER 1001
 
+# Default to port 8080 (monolithic mode)
+# For microservices backend mode, override with: -Dquarkus.http.port=8081 -Dquarkus.profile=microservices
 ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]
