@@ -1,64 +1,75 @@
 # Startpunkt Feature Screenshots
 
-This directory contains automatically generated screenshots of Startpunkt's features. These screenshots are captured monthly by the [Capture Feature Screenshots workflow](../../../.github/workflows/capture-screenshots.yml) and used in documentation.
+This directory contains screenshots showcasing Startpunkt's features and capabilities.
 
-## Available Screenshots
+## Theme Options
 
-Screenshots demonstrate the following features:
+### Light Theme
 
-### Core Features
-- **Main View** - Landing page with application overview
-- **Applications View** - Applications organized by groups/namespaces
-- **Bookmarks View** - Quick links and bookmarks
+![Light Theme](01-theme-light.png)
 
-### Interactive Features
-- **Spotlight Search** - Fast search across all applications and bookmarks
-- **Layout Settings** - Customizable layout options
-- **Background Settings** - Multiple background themes (auto theme, solid color, gradient, pattern)
+The default light theme provides a clean, bright interface with excellent readability for daytime use.
 
-### Accessibility Features
-- **Accessibility Settings** - Font size controls and high contrast mode
-- **Large Font** - Demonstration of increased font sizes (75%-200%)
-- **High Contrast Mode** - WCAG-compliant high contrast theme
+### Dark Theme
 
-### Responsive Design
-- **Mobile Portrait** - Mobile-optimized layout (375x812)
-- **Tablet View** - Tablet-optimized layout (768x1024)
-- **Desktop View** - Full desktop experience (1920x1080)
+![Dark Theme](02-theme-dark.png)
 
-### Themes
-- **Light Theme** - Default light color scheme
-- **Dark Theme** - Dark color scheme for reduced eye strain
+The dark theme reduces eye strain in low-light environments while maintaining visual hierarchy and contrast.
 
-## Updating Screenshots
+## Background Styles
 
-Screenshots are automatically updated on the 1st of each month. To manually update:
+### Solid Background
 
-1. Go to [Actions → Capture Feature Screenshots](https://github.com/ullbergm/startpunkt/actions/workflows/capture-screenshots.yml)
-2. Click "Run workflow"
-3. Select "true" for "Commit screenshots to repository"
-4. Wait for the workflow to complete
+![Solid Background](03-solid-background.png)
 
-Alternatively, download the latest screenshots from workflow artifacts and manually commit them to this directory.
+A simple solid color background for a minimalist, distraction-free experience.
 
-## Using Screenshots in Documentation
+### Gradient Background
 
-Reference screenshots in markdown documentation like this:
+![Gradient Background](04-gradient.png)
 
-```markdown
-![Main View](images/features/01-main-view.png)
-![Spotlight Search](images/features/04-spotlight-search-open.png)
-```
+Smooth gradient backgrounds add visual depth and modern aesthetics to the interface.
 
-## Screenshot Naming Convention
+### Time of Day Background
 
-Screenshots follow a numbered naming convention:
-- `01-*.png` - Main views
-- `04-05-*.png` - Search features  
-- `06-09-*.png` - Settings panels
-- `10-14-*.png` - Accessibility features
-- `15-17-*.png` - Background variations
-- `18-20-*.png` - Responsive views
-- `21-22-*.png` - Theme variations
+![Time of Day Background](05-time-of-day.png)
 
-See the [screenshot scripts README](../../../.github/workflows/screenshot-scripts/README.md) for a complete list.
+Dynamic backgrounds that automatically adjust based on the current time of day for a more immersive experience.
+
+### Mesh Gradient
+
+![Mesh Gradient](06-mesh-gradient.png)
+
+Advanced mesh gradient backgrounds create stunning, organic color transitions.
+
+### Picture of the Day
+
+![Picture of the Day](07-picture-of-the-day.png)
+
+Daily rotating background images featuring curated photography or artwork.
+
+### Geopattern Background
+
+![Geopattern Background](08-geopattern.png)
+
+Unique geometric patterns generated dynamically for a distinctive visual identity.
+
+## Layout & Features
+
+### Three Column Layout
+
+![Three Column Layout](09-3-columns.png)
+
+Flexible multi-column layout that efficiently organizes applications and bookmarks across the screen.
+
+### Create Application
+
+![Create Application](10-create-application.png)
+
+Intuitive interface for adding new applications to your Startpunkt dashboard.
+
+### Remote Instances
+
+![Remote Instances](11-remote-instances.png)
+
+Connect and manage multiple remote Kubernetes cluster instances from a single Startpunkt interface.
