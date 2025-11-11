@@ -115,14 +115,6 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest-jackson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-cache</artifactId>
     </dependency>
     <dependency>
@@ -131,15 +123,7 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-openapi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-messaging</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -282,15 +266,6 @@
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
       <artifactId>microprofile-config-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile.openapi</groupId>
-      <artifactId>microprofile-openapi-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus.resteasy.reactive</groupId>
-      <artifactId>resteasy-reactive-common</artifactId>
-      <version>3.29.2</version>
     </dependency>
 
     <!-- Test Dependencies -->
@@ -575,10 +550,7 @@
               <ignoredUnusedDeclaredDependencies>
                 <!-- Quarkus -->
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-arc</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-rest-jackson</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-jacoco</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-openapi</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-cache-runtime-spi</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-smallrye-fault-tolerance</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-micrometer-registry-prometheus</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus:quarkus-config-yaml</ignoredUnusedDeclaredDependency>
@@ -609,7 +581,6 @@
                 <ignoredUnusedDeclaredDependency>jakarta.ws.rs:jakarta.ws.rs-api</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.smallrye.common:smallrye-common-annotation</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.quarkus.resteasy.reactive:resteasy-reactive-common</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.eclipse.microprofile.openapi:microprofile-openapi-api</ignoredUnusedDeclaredDependency>
 
                 <!-- Explicitly used but Maven misses it -->
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
@@ -715,6 +686,11 @@
       </activation>
       <properties>
         <quarkus.profile>microservices</quarkus.profile>
+        <!-- Aggressive native image optimizations for smaller binaries -->
+        <quarkus.native.additional-build-args>--gc=serial,
+          -H:+RemoveUnusedSymbols,
+          -H:+StripDebugInfo,
+          -O3</quarkus.native.additional-build-args>
       </properties>
       <build>
         <plugins>

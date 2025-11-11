@@ -3,15 +3,26 @@ package us.ullberg.startpunkt.service;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 import us.ullberg.startpunkt.objects.ApplicationResponse;
 
 @QuarkusTest
+@TestProfile(AvailabilityCheckServiceTest.NoSchedulerProfile.class)
 class AvailabilityCheckServiceTest {
+
+  public static class NoSchedulerProfile implements QuarkusTestProfile {
+    @Override
+    public Map<String, String> getConfigOverrides() {
+      return Map.of("quarkus.scheduler.enabled", "false");
+    }
+  }
 
   @Inject AvailabilityCheckService service;
 

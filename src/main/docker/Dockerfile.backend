@@ -1,9 +1,10 @@
 ####
 # This Dockerfile builds the backend API service only (without frontend) in native mode
+# with UPX compression for smaller image size
 #
 # Before building the container image run:
 #
-# ./mvnw package -DskipTests -Pnative
+# ./mvnw package -DskipTests -Pnative,backend-only
 #
 # Then, build the image with:
 #
@@ -14,12 +15,27 @@
 # docker run -i --rm -p 8081:8081 startpunkt-backend
 #
 ###
+
+# Stage 1: Compress the native executable with UPX
+FROM alpine:3.20 AS compressor
+RUN apk add --no-cache upx
+
+WORKDIR /work
+COPY target/*-runner /work/application
+
+# Compress with UPX (--best for maximum compression, --lzma for better ratio)
+# Note: This adds ~2-3s startup time but saves ~40-60% file size
+RUN upx --best --lzma /work/application
+
+# Stage 2: Runtime image
 FROM quay.io/quarkus/quarkus-micro-image:2.0
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
-COPY --chown=1001:root target/*-runner /work/application
+
+# Copy compressed executable from compressor stage
+COPY --from=compressor --chown=1001:root /work/application /work/application
 
 EXPOSE 8081
 USER 1001
