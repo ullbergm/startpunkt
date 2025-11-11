@@ -103,7 +103,7 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
       return false;
     }
     ApplicationGroup otherGroup = (ApplicationGroup) other;
-    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
+    return (name != null ? name.equalsIgnoreCase(otherGroup.name) : otherGroup.name == null)
         && (applications != null
             ? applications.equals(otherGroup.applications)
             : otherGroup.applications == null);
@@ -111,7 +111,8 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
 
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
+    // Use lowercase for case-insensitive hash consistency
+    int result = name != null ? name.toLowerCase().hashCode() : 0;
     result = 31 * result + (applications != null ? applications.hashCode() : 0);
     return result;
   }

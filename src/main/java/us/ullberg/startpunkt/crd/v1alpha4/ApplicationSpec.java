@@ -416,13 +416,14 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
 
   /**
    * Compares this ApplicationSpec with another for sorting by group, location, and name.
+   * Group and name comparisons are case-insensitive.
    *
    * @param other the other ApplicationSpec
    * @return negative, zero, or positive integer
    */
   @Override
   public int compareTo(ApplicationSpec other) {
-    int groupCompare = this.getGroup().compareTo(other.getGroup());
+    int groupCompare = this.getGroup().compareToIgnoreCase(other.getGroup());
     if (groupCompare != 0) {
       return groupCompare;
     }
@@ -432,7 +433,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
       return locationCompare;
     }
 
-    return this.getName().compareTo(other.getName());
+    return this.getName().compareToIgnoreCase(other.getName());
   }
 
   /**

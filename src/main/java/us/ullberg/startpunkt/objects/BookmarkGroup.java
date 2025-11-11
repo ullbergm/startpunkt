@@ -88,7 +88,7 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
       return false;
     }
     BookmarkGroup otherGroup = (BookmarkGroup) other;
-    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)
+    return (name != null ? name.equalsIgnoreCase(otherGroup.name) : otherGroup.name == null)
         && (bookmarks != null
             ? bookmarks.equals(otherGroup.bookmarks)
             : otherGroup.bookmarks == null);
@@ -96,7 +96,8 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
 
   @Override
   public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
+    // Use lowercase for case-insensitive hash consistency
+    int result = name != null ? name.toLowerCase().hashCode() : 0;
     result = 31 * result + (bookmarks != null ? bookmarks.hashCode() : 0);
     return result;
   }

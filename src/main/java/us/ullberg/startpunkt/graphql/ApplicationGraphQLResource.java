@@ -181,7 +181,7 @@ public class ApplicationGraphQLResource {
     Log.debugf("GraphQL query: application with groupName=%s, appName=%s", groupName, appName);
 
     for (ApplicationResponse a : retrieveAppsWithAvailability()) {
-      if (a.getGroup().equals(groupName) && a.getName().equals(appName)) {
+      if (a.getGroup().equalsIgnoreCase(groupName) && a.getName().equalsIgnoreCase(appName)) {
         return ApplicationType.fromResponse(a);
       }
     }
