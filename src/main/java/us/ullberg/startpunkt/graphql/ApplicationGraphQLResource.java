@@ -140,12 +140,12 @@ public class ApplicationGraphQLResource {
       applist = filterApplicationsWithoutTags(applist);
     }
 
-    // Group applications
+    // Group applications (case-insensitive grouping)
     ArrayList<ApplicationGroup> groups = new ArrayList<>();
     for (ApplicationResponse a : applist) {
       ApplicationGroup group = null;
       for (ApplicationGroup g : groups) {
-        if (g.getName().equals(a.getGroup())) {
+        if (g.getName().equalsIgnoreCase(a.getGroup())) {
           group = g;
           break;
         }

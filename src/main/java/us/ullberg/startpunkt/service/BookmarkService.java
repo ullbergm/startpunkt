@@ -185,12 +185,12 @@ public class BookmarkService {
     Log.debugf("Generating bookmark groups from %d bookmarks", bookmarklist.size());
     var groups = new LinkedList<BookmarkGroup>();
 
-    // Group the bookmarks by their group property
+    // Group the bookmarks by their group property (case-insensitive grouping)
     for (BookmarkResponse bookmark : bookmarklist) {
       // Find the existing group
       BookmarkGroup group = null;
       for (BookmarkGroup g : groups) {
-        if (g.getName().equals(bookmark.getGroup())) {
+        if (g.getName().equalsIgnoreCase(bookmark.getGroup())) {
           group = g;
           break;
         }
