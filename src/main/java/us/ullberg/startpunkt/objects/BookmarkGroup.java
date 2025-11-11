@@ -69,14 +69,14 @@ public class BookmarkGroup implements Comparable<BookmarkGroup> {
   }
 
   /**
-   * Compares this BookmarkGroup to another based on the group name.
+   * Compares this BookmarkGroup to another based on the group name (case-insensitive).
    *
    * @param other the other BookmarkGroup to compare to
    * @return comparison result based on name lexicographical order
    */
   @Override
   public int compareTo(BookmarkGroup other) {
-    return this.getName().compareTo(other.getName());
+    return this.getName().compareToIgnoreCase(other.getName());
   }
 
   @Override

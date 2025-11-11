@@ -84,14 +84,14 @@ public final class ApplicationGroup implements Comparable<ApplicationGroup> {
   }
 
   /**
-   * Compares this ApplicationGroup to another by their name.
+   * Compares this ApplicationGroup to another by their name (case-insensitive).
    *
    * @param other the other ApplicationGroup to compare to
    * @return comparison result based on group name
    */
   @Override
   public int compareTo(ApplicationGroup other) {
-    return this.getName().compareTo(other.getName());
+    return this.getName().compareToIgnoreCase(other.getName());
   }
 
   @Override
