@@ -108,13 +108,11 @@ jobs:
         if: github.event_name != 'workflow_run' && matrix.image == 'backend'
         working-directory: .
         run: |
-          ./mvnw -B clean package -DskipTests -Pnative \
+          ./mvnw -B clean package -DskipTests -Pnative,backend-only \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
             -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
-            -Dquarkus.quinoa.enabled=false \
-            -Dquarkus.profile=microservices \
             -Dquarkus.container-image.build=false \
             -Dquarkus.container-image.push=false
 

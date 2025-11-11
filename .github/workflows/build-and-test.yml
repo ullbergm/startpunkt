@@ -117,14 +117,12 @@ jobs:
       - name: Build backend native image (no frontend)
         run: |
           ./mvnw -B clean package \
-            -Pnative \
+            -Pnative,backend-only \
             -DskipTests \
             -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
-            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
-            -Dquarkus.quinoa.enabled=false \
-            -Dquarkus.profile=microservices
+            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64
 
       - name: Upload backend native executable artifact
         if: success() && github.ref == 'refs/heads/main'

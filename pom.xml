@@ -706,5 +706,31 @@
         <quarkus.native.container-build>true</quarkus.native.container-build>
       </properties>
     </profile>
+    <profile>
+      <id>backend-only</id>
+      <activation>
+        <property>
+          <name>backend-only</name>
+        </property>
+      </activation>
+      <properties>
+        <quarkus.profile>microservices</quarkus.profile>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>${quarkus.platform.group-id}</groupId>
+            <artifactId>quarkus-maven-plugin</artifactId>
+            <version>${quarkus.platform.version}</version>
+            <configuration>
+              <excludedGroupIds>
+                <excludedGroupId>io.quarkiverse.quinoa</excludedGroupId>
+                <excludedGroupId>io.quarkiverse.helm</excludedGroupId>
+              </excludedGroupIds>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
