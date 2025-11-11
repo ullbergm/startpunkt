@@ -198,6 +198,14 @@ QUARKUS_HTTP_CORS_ORIGINS=https://example.com,https://app.example.com
 QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS
 ```
 
+### WebSocket Support
+
+The frontend Nginx proxy is configured to support WebSocket connections for GraphQL subscriptions:
+
+- **Upgrade headers**: Automatically handles WebSocket upgrade requests
+- **Long-lived connections**: 24-hour timeout for subscription connections
+- **Proxy configuration**: Maps WebSocket upgrade headers correctly
+
 ### Caching Strategy
 
 **Frontend (Nginx):**
@@ -250,6 +258,14 @@ Backend exposes Prometheus metrics at `/q/metrics`:
 1. Verify frontend container built successfully
 2. Check Nginx logs: `docker logs startpunkt-frontend`
 3. Ensure `dist/` directory exists in frontend build
+
+### WebSocket connections failing (405 errors)
+
+1. Ensure you're using the latest frontend image with WebSocket support
+2. Check that Nginx has the `Upgrade` and `Connection` headers configured
+3. Verify backend is accessible from frontend container
+4. Check browser console for WebSocket connection errors
+5. Ensure no proxy/load balancer between client and frontend is blocking WebSocket upgrades
 
 ## Migration from Monolithic
 

@@ -514,30 +514,50 @@ metadata:
   name: startpunkt-role
   namespace: default
 rules:
-  - apiGroups: ['']
-    resources: [namespaces]
-    verbs: [get, list, watch]
-  - apiGroups: [startpunkt.ullberg.us]
-    resources: [applications, bookmarks]
-    verbs: [get, list, watch, create, update, delete]
-  - apiGroups: [networking.k8s.io]
-    resources: [ingresses]
-    verbs: [get, list, watch]
-  - apiGroups: [route.openshift.io]
-    resources: [routes]
-    verbs: [get, list, watch]
-  - apiGroups: [hajimari.io]
-    resources: [applications, bookmarks]
-    verbs: [get, list, watch]
-  - apiGroups: [traefik.io]
-    resources: [ingressroutes]
-    verbs: [get, list, watch]
-  - apiGroups: [forecastle.stakater.com]
-    resources: [forecastleapps]
-    verbs: [get, list, watch]
-  - apiGroups: [gateway.networking.k8s.io]
-    resources: [httproutes]
-    verbs: [get, list, watch]
+  - verbs:
+      - get
+      - list
+      - watch
+    apiGroups:
+      - ''
+      - extensions
+      - networking.k8s.io
+      - discovery.k8s.io
+    resources:
+      - ingresses
+      - namespaces
+      - endpointslices
+      - routes
+      - nodes
+  - verbs:
+      - get
+      - list
+      - watch
+    apiGroups:
+      - hajimari.io
+    resources:
+      - applications
+      - bookmarks
+  - verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+    apiGroups:
+      - startpunkt.ullberg.us
+    resources:
+      - applications
+      - bookmarks
+  - verbs:
+      - get
+      - list
+      - watch
+    apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
