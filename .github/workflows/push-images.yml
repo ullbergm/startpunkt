@@ -67,10 +67,19 @@ jobs:
             latest=auto
 
       - name: Download native executable artifact
-        if: github.event_name == 'workflow_run'
+        if: github.event_name == 'workflow_run' && matrix.image == 'monolithic'
         uses: actions/download-artifact@v6
         with:
           name: native-executable
+          path: target/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download backend native executable artifact
+        if: github.event_name == 'workflow_run' && matrix.image == 'backend'
+        uses: actions/download-artifact@v6
+        with:
+          name: backend-native-executable
           path: target/
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -83,8 +92,8 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build native executable with Quarkus
-        if: github.event_name != 'workflow_run'
+      - name: Build monolithic native executable with Quarkus
+        if: github.event_name != 'workflow_run' && matrix.image == 'monolithic'
         working-directory: .
         run: |
           ./mvnw -B clean package -DskipTests -Pnative \
@@ -92,6 +101,20 @@ jobs:
             -Dquarkus.http.host=0.0.0.0 \
             -Dquarkus.native.container-build=true \
             -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
+            -Dquarkus.container-image.build=false \
+            -Dquarkus.container-image.push=false
+
+      - name: Build backend native executable with Quarkus
+        if: github.event_name != 'workflow_run' && matrix.image == 'backend'
+        working-directory: .
+        run: |
+          ./mvnw -B clean package -DskipTests -Pnative \
+            -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
+            -Dquarkus.http.host=0.0.0.0 \
+            -Dquarkus.native.container-build=true \
+            -Dquarkus.native.builder-image=${{ env.MANDREL_IMAGE }}:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
+            -Dquarkus.quinoa.enabled=false \
+            -Dquarkus.profile=microservices \
             -Dquarkus.container-image.build=false \
             -Dquarkus.container-image.push=false
 

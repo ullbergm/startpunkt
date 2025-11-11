@@ -99,3 +99,37 @@ jobs:
           name: native-executable
           path: target/*-runner
           retention-days: 1
+
+  build-backend-native:
+    runs-on: ubuntu-latest
+    if: github.repository == 'ullbergm/startpunkt'
+    name: build-backend-native
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '${{ env.JAVA_VERSION }}'
+          cache: maven
+
+      - name: Build backend native image (no frontend)
+        run: |
+          ./mvnw -B clean package \
+            -Pnative \
+            -DskipTests \
+            -Dmaven.compiler.release=${{ env.JAVA_VERSION }} \
+            -Dquarkus.http.host=0.0.0.0 \
+            -Dquarkus.native.container-build=true \
+            -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:${{ env.MANDREL_VERSION }}-java${{ env.JAVA_VERSION }}-amd64 \
+            -Dquarkus.quinoa.enabled=false \
+            -Dquarkus.profile=microservices
+
+      - name: Upload backend native executable artifact
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v5
+        with:
+          name: backend-native-executable
+          path: target/*-runner
+          retention-days: 1
