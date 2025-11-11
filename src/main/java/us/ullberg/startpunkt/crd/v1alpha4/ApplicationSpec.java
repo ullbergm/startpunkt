@@ -415,8 +415,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   /**
-   * Compares this ApplicationSpec with another for sorting by group, location, and name.
-   * Group and name comparisons are case-insensitive.
+   * Compares this ApplicationSpec with another for sorting by group, location, and name. Group and
+   * name comparisons are case-insensitive.
    *
    * @param other the other ApplicationSpec
    * @return negative, zero, or positive integer
