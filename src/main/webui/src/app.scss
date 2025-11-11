@@ -4,6 +4,20 @@
   padding: 1rem;
 }
 
+/* Stretched links should inherit parent colors and not show default link styling */
+.stretched-link {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.stretched-link:hover,
+.stretched-link:focus,
+.stretched-link:visited,
+.stretched-link:active {
+  color: inherit !important;
+  outline: none;
+}
+
 html,
 body {
   background-color: var(--color-background);
@@ -313,6 +327,14 @@ body {
     z-index: 1;
   }
 
+  /* Stretched links should not show default link colors */
+  .stretched-link:focus,
+  .stretched-link:visited,
+  .stretched-link:active {
+    color: inherit;
+    outline: none;
+  }
+
   /* Ensure adequate spacing for touch targets */
   .form-check-input {
     width: 1.5em;
@@ -415,7 +437,7 @@ body {
   &.position-absolute {
     z-index: 10;
   }
-  
+
   .nav-link {
     transition: all 0.2s ease;
   }
@@ -471,7 +493,7 @@ body {
     margin-bottom: 0 !important;
     padding: 0.25rem 0 !important;
   }
-  
+
   header.mb-auto {
     margin-bottom: 0 !important;
   }
@@ -520,7 +542,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  
+
   // Desktop needs padding to avoid overlap with absolute nav
   @media (min-width: 1321px) {
     padding-top: 0.5rem;
