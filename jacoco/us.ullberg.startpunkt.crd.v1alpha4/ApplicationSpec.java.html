@@ -415,24 +415,25 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
 <span class="fc" id="L415">  }</span>
 
   /**
-   * Compares this ApplicationSpec with another for sorting by group, location, and name.
+   * Compares this ApplicationSpec with another for sorting by group, location, and name. Group and
+   * name comparisons are case-insensitive.
    *
    * @param other the other ApplicationSpec
    * @return negative, zero, or positive integer
    */
   @Override
   public int compareTo(ApplicationSpec other) {
-<span class="nc" id="L425">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="nc bnc" id="L426" title="All 2 branches missed.">    if (groupCompare != 0) {</span>
-<span class="nc" id="L427">      return groupCompare;</span>
+<span class="fc" id="L426">    int groupCompare = this.getGroup().compareToIgnoreCase(other.getGroup());</span>
+<span class="pc bpc" id="L427" title="1 of 2 branches missed.">    if (groupCompare != 0) {</span>
+<span class="fc" id="L428">      return groupCompare;</span>
     }
 
-<span class="nc" id="L430">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="nc bnc" id="L431" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
-<span class="nc" id="L432">      return locationCompare;</span>
+<span class="nc" id="L431">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">    if (locationCompare != 0) {</span>
+<span class="nc" id="L433">      return locationCompare;</span>
     }
 
-<span class="nc" id="L435">    return this.getName().compareTo(other.getName());</span>
+<span class="nc" id="L436">    return this.getName().compareToIgnoreCase(other.getName());</span>
   }
 
   /**
@@ -443,52 +444,52 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public boolean equals(Object o) {
-<span class="pc bpc" id="L446" title="1 of 2 branches missed.">    if (this == o) {</span>
-<span class="nc" id="L447">      return true;</span>
+<span class="pc bpc" id="L447" title="1 of 2 branches missed.">    if (this == o) {</span>
+<span class="nc" id="L448">      return true;</span>
     }
-<span class="pc bpc" id="L449" title="2 of 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
-<span class="nc" id="L450">      return false;</span>
+<span class="pc bpc" id="L450" title="2 of 4 branches missed.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="nc" id="L451">      return false;</span>
     }
 
-<span class="fc" id="L453">    ApplicationSpec that = (ApplicationSpec) o;</span>
+<span class="fc" id="L454">    ApplicationSpec that = (ApplicationSpec) o;</span>
 
-<span class="pc bpc" id="L455" title="1 of 2 branches missed.">    if (location != that.location) {</span>
-<span class="nc" id="L456">      return false;</span>
+<span class="pc bpc" id="L456" title="1 of 2 branches missed.">    if (location != that.location) {</span>
+<span class="nc" id="L457">      return false;</span>
     }
-<span class="pc bpc" id="L458" title="4 of 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
-<span class="fc" id="L459">      return false;</span>
+<span class="pc bpc" id="L459" title="4 of 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
+<span class="fc" id="L460">      return false;</span>
     }
-<span class="nc bnc" id="L461" title="All 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
-<span class="nc" id="L462">      return false;</span>
+<span class="nc bnc" id="L462" title="All 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
+<span class="nc" id="L463">      return false;</span>
     }
-<span class="nc bnc" id="L464" title="All 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
-<span class="nc" id="L465">      return false;</span>
+<span class="nc bnc" id="L465" title="All 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
+<span class="nc" id="L466">      return false;</span>
     }
-<span class="nc bnc" id="L467" title="All 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
-<span class="nc" id="L468">      return false;</span>
+<span class="nc bnc" id="L468" title="All 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
+<span class="nc" id="L469">      return false;</span>
     }
-<span class="nc bnc" id="L470" title="All 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
-<span class="nc" id="L471">      return false;</span>
+<span class="nc bnc" id="L471" title="All 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
+<span class="nc" id="L472">      return false;</span>
     }
-<span class="nc bnc" id="L473" title="All 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
-<span class="nc" id="L474">      return false;</span>
+<span class="nc bnc" id="L474" title="All 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
+<span class="nc" id="L475">      return false;</span>
     }
-<span class="nc bnc" id="L476" title="All 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
-<span class="nc" id="L477">      return false;</span>
+<span class="nc bnc" id="L477" title="All 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
+<span class="nc" id="L478">      return false;</span>
     }
-<span class="nc bnc" id="L479" title="All 6 branches missed.">    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {</span>
-<span class="nc" id="L480">      return false;</span>
+<span class="nc bnc" id="L480" title="All 6 branches missed.">    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {</span>
+<span class="nc" id="L481">      return false;</span>
     }
-<span class="nc bnc" id="L482" title="All 6 branches missed.">    if (rootPath != null ? !rootPath.equals(that.rootPath) : that.rootPath != null) {</span>
-<span class="nc" id="L483">      return false;</span>
+<span class="nc bnc" id="L483" title="All 6 branches missed.">    if (rootPath != null ? !rootPath.equals(that.rootPath) : that.rootPath != null) {</span>
+<span class="nc" id="L484">      return false;</span>
     }
-<span class="nc bnc" id="L485" title="All 6 branches missed.">    if (urlFrom != null ? !urlFrom.equals(that.urlFrom) : that.urlFrom != null) {</span>
-<span class="nc" id="L486">      return false;</span>
+<span class="nc bnc" id="L486" title="All 6 branches missed.">    if (urlFrom != null ? !urlFrom.equals(that.urlFrom) : that.urlFrom != null) {</span>
+<span class="nc" id="L487">      return false;</span>
     }
-<span class="nc bnc" id="L488" title="All 6 branches missed.">    if (tags != null ? !tags.equals(that.tags) : that.tags != null) {</span>
-<span class="nc" id="L489">      return false;</span>
+<span class="nc bnc" id="L489" title="All 6 branches missed.">    if (tags != null ? !tags.equals(that.tags) : that.tags != null) {</span>
+<span class="nc" id="L490">      return false;</span>
     }
-<span class="nc" id="L491">    return true;</span>
+<span class="nc" id="L492">    return true;</span>
   }
 
   /**
@@ -498,18 +499,18 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public int hashCode() {
-<span class="nc bnc" id="L501" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
-<span class="nc bnc" id="L502" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
-<span class="nc bnc" id="L503" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
-<span class="nc bnc" id="L504" title="All 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
-<span class="nc bnc" id="L505" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
-<span class="nc bnc" id="L506" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
-<span class="nc bnc" id="L507" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
-<span class="nc" id="L508">    result = 31 * result + location;</span>
-<span class="nc bnc" id="L509" title="All 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
-<span class="nc bnc" id="L510" title="All 2 branches missed.">    result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);</span>
-<span class="nc bnc" id="L511" title="All 2 branches missed.">    result = 31 * result + (urlFrom != null ? urlFrom.hashCode() : 0);</span>
-<span class="nc" id="L512">    return result;</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="nc" id="L509">    result = 31 * result + location;</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">    result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">    result = 31 * result + (urlFrom != null ? urlFrom.hashCode() : 0);</span>
+<span class="nc" id="L513">    return result;</span>
   }
 
   /**
@@ -519,7 +520,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public String toString() {
-<span class="nc" id="L522">    return &quot;ApplicationSpec{&quot;</span>
+<span class="nc" id="L523">    return &quot;ApplicationSpec{&quot;</span>
         + &quot;name='&quot;
         + name
         + '\''

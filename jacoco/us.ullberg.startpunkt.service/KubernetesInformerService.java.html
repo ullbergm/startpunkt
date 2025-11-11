@@ -198,7 +198,7 @@ public class KubernetesInformerService {
                 }
 
 <span class="pc bpc" id="L200" title="1 of 2 branches missed.">                if (ingressEnabled</span>
-<span class="fc bfc" id="L201" title="All 2 branches covered.">                    &amp;&amp; resourceTypeExists(&quot;networking.k8s.io&quot;, &quot;v1&quot;, &quot;ingresses&quot;, &quot;Ingress&quot;)) {</span>
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">                    &amp;&amp; resourceTypeExists(&quot;networking.k8s.io&quot;, &quot;v1&quot;, &quot;ingresses&quot;, &quot;Ingress&quot;)) {</span>
 <span class="fc" id="L202">                  ingressResourcesAvailable = true;</span>
 <span class="fc" id="L203">                  startIngressInformer();</span>
                 }
@@ -362,8 +362,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L363">      informers.add(informer);</span>
 <span class="fc" id="L364">      Log.info(&quot;Started Hajimari Bookmark informer&quot;);</span>
-<span class="fc" id="L365">    } catch (Exception e) {</span>
-<span class="fc" id="L366">      Log.error(&quot;Failed to start Hajimari Bookmark informer&quot;, e);</span>
+<span class="nc" id="L365">    } catch (Exception e) {</span>
+<span class="nc" id="L366">      Log.error(&quot;Failed to start Hajimari Bookmark informer&quot;, e);</span>
 <span class="fc" id="L367">    }</span>
 <span class="fc" id="L368">  }</span>
 
@@ -462,8 +462,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L463">      informers.add(informer);</span>
 <span class="fc" id="L464">      Log.info(&quot;Started Route informer&quot;);</span>
-<span class="nc" id="L465">    } catch (Exception e) {</span>
-<span class="nc" id="L466">      Log.error(&quot;Failed to start Route informer&quot;, e);</span>
+<span class="fc" id="L465">    } catch (Exception e) {</span>
+<span class="fc" id="L466">      Log.error(&quot;Failed to start Route informer&quot;, e);</span>
 <span class="fc" id="L467">    }</span>
 <span class="fc" id="L468">  }</span>
 
@@ -562,8 +562,8 @@ public class KubernetesInformerService {
 
 <span class="fc" id="L563">      informers.add(informer);</span>
 <span class="fc" id="L564">      Log.info(&quot;Started HTTPRoute informer&quot;);</span>
-<span class="fc" id="L565">    } catch (Exception e) {</span>
-<span class="fc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
+<span class="nc" id="L565">    } catch (Exception e) {</span>
+<span class="nc" id="L566">      Log.error(&quot;Failed to start HTTPRoute informer&quot;, e);</span>
 <span class="fc" id="L567">    }</span>
 <span class="fc" id="L568">  }</span>
 
@@ -992,7 +992,7 @@ public class KubernetesInformerService {
 <span class="pc bpc" id="L992" title="1 of 2 branches missed.">        if (&quot;local&quot;.equalsIgnoreCase(clusterName)) {</span>
 <span class="pc bpc" id="L993" title="2 of 4 branches missed.">          useHajimari = hajimariEnabled &amp;&amp; hajimariResourcesAvailable;</span>
 <span class="pc bpc" id="L994" title="1 of 4 branches missed.">          useOpenshift = openshiftEnabled &amp;&amp; openshiftResourcesAvailable;</span>
-<span class="pc bpc" id="L995" title="1 of 4 branches missed.">          useIngress = ingressEnabled &amp;&amp; ingressResourcesAvailable;</span>
+<span class="pc bpc" id="L995" title="2 of 4 branches missed.">          useIngress = ingressEnabled &amp;&amp; ingressResourcesAvailable;</span>
 <span class="pc bpc" id="L996" title="1 of 4 branches missed.">          useIstio = istioVirtualServiceEnabled &amp;&amp; istioResourcesAvailable;</span>
 <span class="pc bpc" id="L997" title="1 of 4 branches missed.">          useGatewayApi = gatewayApiEnabled &amp;&amp; gatewayApiResourcesAvailable;</span>
         }
@@ -1003,7 +1003,7 @@ public class KubernetesInformerService {
 <span class="fc bfc" id="L1003" title="All 2 branches covered.">        if (useOpenshift) {</span>
 <span class="fc" id="L1004">          applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));</span>
         }
-<span class="fc bfc" id="L1006" title="All 2 branches covered.">        if (useIngress) {</span>
+<span class="pc bpc" id="L1006" title="1 of 2 branches missed.">        if (useIngress) {</span>
 <span class="fc" id="L1007">          applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));</span>
         }
 <span class="fc bfc" id="L1009" title="All 2 branches covered.">        if (useIstio) {</span>
@@ -1058,8 +1058,8 @@ public class KubernetesInformerService {
       // The AvailabilityCheckService will broadcast STATUS_CHANGED when availability changes.
 
 <span class="fc" id="L1060">      Log.debugf(&quot;Reloaded %d applications into cache from all clusters&quot;, apps.size());</span>
-<span class="fc" id="L1061">    } catch (Exception e) {</span>
-<span class="fc" id="L1062">      Log.error(&quot;Error reloading application cache&quot;, e);</span>
+<span class="nc" id="L1061">    } catch (Exception e) {</span>
+<span class="nc" id="L1062">      Log.error(&quot;Error reloading application cache&quot;, e);</span>
 <span class="fc" id="L1063">    }</span>
 <span class="fc" id="L1064">  }</span>
 

@@ -84,14 +84,14 @@ public final class ApplicationGroup implements Comparable&lt;ApplicationGroup&gt
 <span class="nc" id="L84">  }</span>
 
   /**
-   * Compares this ApplicationGroup to another by their name.
+   * Compares this ApplicationGroup to another by their name (case-insensitive).
    *
    * @param other the other ApplicationGroup to compare to
    * @return comparison result based on group name
    */
   @Override
   public int compareTo(ApplicationGroup other) {
-<span class="nc" id="L94">    return this.getName().compareTo(other.getName());</span>
+<span class="nc" id="L94">    return this.getName().compareToIgnoreCase(other.getName());</span>
   }
 
   @Override
@@ -103,7 +103,7 @@ public final class ApplicationGroup implements Comparable&lt;ApplicationGroup&gt
 <span class="nc" id="L103">      return false;</span>
     }
 <span class="nc" id="L105">    ApplicationGroup otherGroup = (ApplicationGroup) other;</span>
-<span class="nc bnc" id="L106" title="All 8 branches missed.">    return (name != null ? name.equals(otherGroup.name) : otherGroup.name == null)</span>
+<span class="nc bnc" id="L106" title="All 8 branches missed.">    return (name != null ? name.equalsIgnoreCase(otherGroup.name) : otherGroup.name == null)</span>
         &amp;&amp; (applications != null
 <span class="nc bnc" id="L108" title="All 4 branches missed.">            ? applications.equals(otherGroup.applications)</span>
             : otherGroup.applications == null);
@@ -111,9 +111,10 @@ public final class ApplicationGroup implements Comparable&lt;ApplicationGroup&gt
 
   @Override
   public int hashCode() {
-<span class="nc bnc" id="L114" title="All 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
-<span class="nc bnc" id="L115" title="All 2 branches missed.">    result = 31 * result + (applications != null ? applications.hashCode() : 0);</span>
-<span class="nc" id="L116">    return result;</span>
+    // Use lowercase for case-insensitive hash consistency
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    int result = name != null ? name.toLowerCase().hashCode() : 0;</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    result = 31 * result + (applications != null ? applications.hashCode() : 0);</span>
+<span class="nc" id="L117">    return result;</span>
   }
 
   /**
@@ -123,15 +124,15 @@ public final class ApplicationGroup implements Comparable&lt;ApplicationGroup&gt
    * @throws IllegalArgumentException if app is null
    */
   public void addApplication(ApplicationResponse app) {
-<span class="nc bnc" id="L126" title="All 2 branches missed.">    if (app == null) {</span>
-<span class="nc" id="L127">      throw new IllegalArgumentException(&quot;Application cannot be null&quot;);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    if (app == null) {</span>
+<span class="nc" id="L128">      throw new IllegalArgumentException(&quot;Application cannot be null&quot;);</span>
     }
-<span class="nc" id="L129">    applications.add(app);</span>
-<span class="nc" id="L130">  }</span>
+<span class="nc" id="L130">    applications.add(app);</span>
+<span class="nc" id="L131">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L134">    return &quot;ApplicationGroup{name='&quot; + name + &quot;', applications=&quot; + applications + '}';</span>
+<span class="nc" id="L135">    return &quot;ApplicationGroup{name='&quot; + name + &quot;', applications=&quot; + applications + '}';</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

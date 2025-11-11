@@ -211,14 +211,14 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
 
   /**
    * Compares two BookmarkSpec objects for sorting order. Sorting priority: group, then location,
-   * then name.
+   * then name. Group and name comparisons are case-insensitive.
    *
    * @param other another BookmarkSpec to compare against
    * @return negative if this precedes other, positive if after, zero if equal
    */
   @Override
   public int compareTo(BookmarkSpec other) {
-<span class="fc" id="L221">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
+<span class="fc" id="L221">    int groupCompare = this.getGroup().compareToIgnoreCase(other.getGroup());</span>
 <span class="fc bfc" id="L222" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
 <span class="fc" id="L223">      return groupCompare;</span>
     }
@@ -228,7 +228,7 @@ public class BookmarkSpec implements Comparable&lt;BookmarkSpec&gt; {
 <span class="fc" id="L228">      return locationCompare;</span>
     }
 
-<span class="fc" id="L231">    return this.getName().compareTo(other.getName());</span>
+<span class="fc" id="L231">    return this.getName().compareToIgnoreCase(other.getName());</span>
   }
 
   @Override

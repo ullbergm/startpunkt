@@ -140,12 +140,12 @@ public class ApplicationGraphQLResource {
 <span class="nc" id="L140">      applist = filterApplicationsWithoutTags(applist);</span>
     }
 
-    // Group applications
+    // Group applications (case-insensitive grouping)
 <span class="nc" id="L144">    ArrayList&lt;ApplicationGroup&gt; groups = new ArrayList&lt;&gt;();</span>
 <span class="nc bnc" id="L145" title="All 2 branches missed.">    for (ApplicationResponse a : applist) {</span>
 <span class="nc" id="L146">      ApplicationGroup group = null;</span>
 <span class="nc bnc" id="L147" title="All 2 branches missed.">      for (ApplicationGroup g : groups) {</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (g.getName().equals(a.getGroup())) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (g.getName().equalsIgnoreCase(a.getGroup())) {</span>
 <span class="nc" id="L149">          group = g;</span>
 <span class="nc" id="L150">          break;</span>
         }
@@ -181,7 +181,7 @@ public class ApplicationGraphQLResource {
 <span class="nc" id="L181">    Log.debugf(&quot;GraphQL query: application with groupName=%s, appName=%s&quot;, groupName, appName);</span>
 
 <span class="nc bnc" id="L183" title="All 2 branches missed.">    for (ApplicationResponse a : retrieveAppsWithAvailability()) {</span>
-<span class="nc bnc" id="L184" title="All 4 branches missed.">      if (a.getGroup().equals(groupName) &amp;&amp; a.getName().equals(appName)) {</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">      if (a.getGroup().equalsIgnoreCase(groupName) &amp;&amp; a.getName().equalsIgnoreCase(appName)) {</span>
 <span class="nc" id="L185">        return ApplicationType.fromResponse(a);</span>
       }
 <span class="nc" id="L187">    }</span>

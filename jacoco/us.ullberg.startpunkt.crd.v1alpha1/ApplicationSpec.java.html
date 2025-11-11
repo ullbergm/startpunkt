@@ -267,24 +267,25 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
 <span class="fc" id="L267">  }</span>
 
   /**
-   * Compares this ApplicationSpec with another for sorting by group, location, and name.
+   * Compares this ApplicationSpec with another for sorting by group, location, and name. Group and
+   * name comparisons are case-insensitive.
    *
    * @param other the other ApplicationSpec
    * @return negative, zero, or positive integer
    */
   @Override
   public int compareTo(ApplicationSpec other) {
-<span class="fc" id="L277">    int groupCompare = this.getGroup().compareTo(other.getGroup());</span>
-<span class="fc bfc" id="L278" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
-<span class="fc" id="L279">      return groupCompare;</span>
+<span class="fc" id="L278">    int groupCompare = this.getGroup().compareToIgnoreCase(other.getGroup());</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (groupCompare != 0) {</span>
+<span class="fc" id="L280">      return groupCompare;</span>
     }
 
-<span class="fc" id="L282">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
-<span class="fc bfc" id="L283" title="All 2 branches covered.">    if (locationCompare != 0) {</span>
-<span class="fc" id="L284">      return locationCompare;</span>
+<span class="fc" id="L283">    int locationCompare = Integer.compare(this.getLocation(), other.getLocation());</span>
+<span class="fc bfc" id="L284" title="All 2 branches covered.">    if (locationCompare != 0) {</span>
+<span class="fc" id="L285">      return locationCompare;</span>
     }
 
-<span class="fc" id="L287">    return this.getName().compareTo(other.getName());</span>
+<span class="fc" id="L288">    return this.getName().compareToIgnoreCase(other.getName());</span>
   }
 
   /**
@@ -295,44 +296,44 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public boolean equals(Object o) {
-<span class="fc bfc" id="L298" title="All 2 branches covered.">    if (this == o) {</span>
-<span class="fc" id="L299">      return true;</span>
+<span class="fc bfc" id="L299" title="All 2 branches covered.">    if (this == o) {</span>
+<span class="fc" id="L300">      return true;</span>
     }
-<span class="fc bfc" id="L301" title="All 4 branches covered.">    if (o == null || getClass() != o.getClass()) {</span>
-<span class="fc" id="L302">      return false;</span>
-    }
-
-<span class="fc" id="L305">    ApplicationSpec that = (ApplicationSpec) o;</span>
-
-<span class="fc bfc" id="L307" title="All 2 branches covered.">    if (location != that.location) {</span>
-<span class="fc" id="L308">      return false;</span>
-    }
-<span class="pc bpc" id="L310" title="3 of 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
-<span class="fc" id="L311">      return false;</span>
-    }
-<span class="pc bpc" id="L313" title="3 of 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
-<span class="fc" id="L314">      return false;</span>
-    }
-<span class="pc bpc" id="L316" title="4 of 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
-<span class="nc" id="L317">      return false;</span>
-    }
-<span class="pc bpc" id="L319" title="4 of 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
-<span class="nc" id="L320">      return false;</span>
-    }
-<span class="pc bpc" id="L322" title="4 of 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
-<span class="nc" id="L323">      return false;</span>
-    }
-<span class="pc bpc" id="L325" title="4 of 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
-<span class="nc" id="L326">      return false;</span>
-    }
-<span class="pc bpc" id="L328" title="4 of 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
-<span class="nc" id="L329">      return false;</span>
-    }
-<span class="pc bpc" id="L331" title="4 of 6 branches missed.">    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {</span>
-<span class="nc" id="L332">      return false;</span>
+<span class="fc bfc" id="L302" title="All 4 branches covered.">    if (o == null || getClass() != o.getClass()) {</span>
+<span class="fc" id="L303">      return false;</span>
     }
 
-<span class="fc" id="L335">    return true;</span>
+<span class="fc" id="L306">    ApplicationSpec that = (ApplicationSpec) o;</span>
+
+<span class="fc bfc" id="L308" title="All 2 branches covered.">    if (location != that.location) {</span>
+<span class="fc" id="L309">      return false;</span>
+    }
+<span class="pc bpc" id="L311" title="3 of 6 branches missed.">    if (name != null ? !name.equals(that.name) : that.name != null) {</span>
+<span class="fc" id="L312">      return false;</span>
+    }
+<span class="pc bpc" id="L314" title="3 of 6 branches missed.">    if (group != null ? !group.equals(that.group) : that.group != null) {</span>
+<span class="fc" id="L315">      return false;</span>
+    }
+<span class="pc bpc" id="L317" title="4 of 6 branches missed.">    if (icon != null ? !icon.equals(that.icon) : that.icon != null) {</span>
+<span class="nc" id="L318">      return false;</span>
+    }
+<span class="pc bpc" id="L320" title="4 of 6 branches missed.">    if (iconColor != null ? !iconColor.equals(that.iconColor) : that.iconColor != null) {</span>
+<span class="nc" id="L321">      return false;</span>
+    }
+<span class="pc bpc" id="L323" title="4 of 6 branches missed.">    if (url != null ? !url.equals(that.url) : that.url != null) {</span>
+<span class="nc" id="L324">      return false;</span>
+    }
+<span class="pc bpc" id="L326" title="4 of 6 branches missed.">    if (info != null ? !info.equals(that.info) : that.info != null) {</span>
+<span class="nc" id="L327">      return false;</span>
+    }
+<span class="pc bpc" id="L329" title="4 of 6 branches missed.">    if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {</span>
+<span class="nc" id="L330">      return false;</span>
+    }
+<span class="pc bpc" id="L332" title="4 of 6 branches missed.">    if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {</span>
+<span class="nc" id="L333">      return false;</span>
+    }
+
+<span class="fc" id="L336">    return true;</span>
   }
 
   /**
@@ -342,16 +343,16 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public int hashCode() {
-<span class="pc bpc" id="L345" title="1 of 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
-<span class="pc bpc" id="L346" title="1 of 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
-<span class="pc bpc" id="L347" title="1 of 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
-<span class="pc bpc" id="L348" title="1 of 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
-<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
-<span class="pc bpc" id="L350" title="1 of 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
-<span class="pc bpc" id="L351" title="1 of 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
-<span class="fc" id="L352">    result = 31 * result + location;</span>
-<span class="pc bpc" id="L353" title="1 of 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
-<span class="fc" id="L354">    return result;</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">    int result = name != null ? name.hashCode() : 0;</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">    result = 31 * result + (group != null ? group.hashCode() : 0);</span>
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">    result = 31 * result + (icon != null ? icon.hashCode() : 0);</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    result = 31 * result + (iconColor != null ? iconColor.hashCode() : 0);</span>
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">    result = 31 * result + (url != null ? url.hashCode() : 0);</span>
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">    result = 31 * result + (info != null ? info.hashCode() : 0);</span>
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">    result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);</span>
+<span class="fc" id="L353">    result = 31 * result + location;</span>
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">    result = 31 * result + (enabled != null ? enabled.hashCode() : 0);</span>
+<span class="fc" id="L355">    return result;</span>
   }
 
   /**
@@ -361,7 +362,7 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
    */
   @Override
   public String toString() {
-<span class="fc" id="L364">    return &quot;ApplicationSpec{&quot;</span>
+<span class="fc" id="L365">    return &quot;ApplicationSpec{&quot;</span>
         + &quot;name='&quot;
         + name
         + '\''

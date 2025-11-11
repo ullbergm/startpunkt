@@ -57,9 +57,9 @@ public class BookmarkService {
 <span class="fc" id="L57">      List&lt;BookmarkResponse&gt; bookmarks = mapResourcesToBookmarks(list);</span>
 <span class="fc" id="L58">      Log.debugf(&quot;Retrieved %d Startpunkt bookmarks&quot;, bookmarks.size());</span>
 <span class="fc" id="L59">      return bookmarks;</span>
-<span class="nc" id="L60">    } catch (Exception e) {</span>
-<span class="nc" id="L61">      Log.error(&quot;Error retrieving bookmarks&quot;, e);</span>
-<span class="nc" id="L62">      return List.of();</span>
+<span class="fc" id="L60">    } catch (Exception e) {</span>
+<span class="fc" id="L61">      Log.error(&quot;Error retrieving bookmarks&quot;, e);</span>
+<span class="fc" id="L62">      return List.of();</span>
     }
   }
 
@@ -169,9 +169,9 @@ public class BookmarkService {
 <span class="fc" id="L169">      Log.debugf(&quot;Retrieved %d Hajimari bookmarks&quot;, bookmarks.size());</span>
 
 <span class="fc" id="L171">      return bookmarks;</span>
-<span class="nc" id="L172">    } catch (Exception e) {</span>
-<span class="nc" id="L173">      Log.error(&quot;Error retrieving hajimari bookmarks&quot;, e);</span>
-<span class="nc" id="L174">      return List.of();</span>
+<span class="fc" id="L172">    } catch (Exception e) {</span>
+<span class="fc" id="L173">      Log.error(&quot;Error retrieving hajimari bookmarks&quot;, e);</span>
+<span class="fc" id="L174">      return List.of();</span>
     }
   }
 
@@ -185,12 +185,12 @@ public class BookmarkService {
 <span class="fc" id="L185">    Log.debugf(&quot;Generating bookmark groups from %d bookmarks&quot;, bookmarklist.size());</span>
 <span class="fc" id="L186">    var groups = new LinkedList&lt;BookmarkGroup&gt;();</span>
 
-    // Group the bookmarks by their group property
+    // Group the bookmarks by their group property (case-insensitive grouping)
 <span class="pc bpc" id="L189" title="1 of 2 branches missed.">    for (BookmarkResponse bookmark : bookmarklist) {</span>
       // Find the existing group
 <span class="nc" id="L191">      BookmarkGroup group = null;</span>
 <span class="nc bnc" id="L192" title="All 2 branches missed.">      for (BookmarkGroup g : groups) {</span>
-<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (g.getName().equals(bookmark.getGroup())) {</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (g.getName().equalsIgnoreCase(bookmark.getGroup())) {</span>
 <span class="nc" id="L194">          group = g;</span>
 <span class="nc" id="L195">          break;</span>
         }
