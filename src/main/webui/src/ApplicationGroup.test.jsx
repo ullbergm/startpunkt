@@ -62,50 +62,50 @@ describe('ApplicationGroup component', () => {
   test('calls onToggle when heading is clicked', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
-    
+
     const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.click(heading);
-    
+
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
   test('calls onToggle when Enter key is pressed on heading', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
-    
+
     const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: 'Enter' });
-    
+
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
   test('calls onToggle when Space key is pressed on heading', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
-    
+
     const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: ' ' });
-    
+
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
   test('does not call onToggle when other keys are pressed', () => {
     const onToggle = jest.fn();
     render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} onToggle={onToggle} />);
-    
+
     const heading = screen.getByRole('button', { name: /collapse test group/i });
     fireEvent.keyDown(heading, { key: 'a' });
-    
+
     expect(onToggle).not.toHaveBeenCalled();
   });
 
   test('collapse indicator rotates based on collapsed state', () => {
     const { rerender } = render(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={false} />);
-    
+
     // Find the collapse indicator by searching for the specific span
     let indicator = document.querySelector('span[style*="transform"]');
     expect(indicator.style.transform).toContain('rotate(0deg)');
-    
+
     rerender(<ApplicationGroup group="Test Group" applications={apps} isCollapsed={true} />);
     indicator = document.querySelector('span[style*="transform"]');
     expect(indicator.style.transform).toContain('rotate(-90deg)');
@@ -113,24 +113,25 @@ describe('ApplicationGroup component', () => {
 
   describe('Drag and Drop for Favorites', () => {
     const layoutPrefs = {
-      preferences: { editMode: true, compactMode: false },
+      preferences: { editMode: true, compactMode: false, columnCount: 5 },
       getCSSVariables: () => ({ '--card-gap': '1rem', '--group-spacing': '3rem' }),
-      getGridTemplateColumns: () => 'repeat(5, 1fr)'
+      getGridTemplateColumns: () => 'repeat(5, 1fr)',
+      getOptimalColumnCount: (itemCount) => Math.min(itemCount, 5)
     };
 
     test('makes favorites draggable when in edit mode', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
       expect(listItems[0]).toHaveAttribute('draggable', 'true');
       expect(listItems[1]).toHaveAttribute('draggable', 'true');
@@ -138,15 +139,15 @@ describe('ApplicationGroup component', () => {
 
     test('does not make regular groups draggable', () => {
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Regular Group"
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={false}
           layoutPrefs={layoutPrefs}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
       expect(listItems[0]).toHaveAttribute('draggable', 'false');
       expect(listItems[1]).toHaveAttribute('draggable', 'false');
@@ -158,15 +159,15 @@ describe('ApplicationGroup component', () => {
         preferences: { ...layoutPrefs.preferences, editMode: false }
       };
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefsNoEdit}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
       expect(listItems[0]).toHaveAttribute('draggable', 'false');
     });
@@ -174,146 +175,146 @@ describe('ApplicationGroup component', () => {
     test('calls onReorderFavorites when item is dropped', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Simulate drag start on first item
       fireEvent.dragStart(listItems[0], { dataTransfer: { effectAllowed: '', setData: jest.fn() } });
-      
+
       // Simulate drop on second item
       fireEvent.dragOver(listItems[1], { dataTransfer: { dropEffect: '' } });
       fireEvent.drop(listItems[1]);
-      
+
       expect(onReorderFavorites).toHaveBeenCalledWith(0, 1);
     });
 
     test('handles keyboard reordering with Alt+ArrowUp', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Press Alt+ArrowUp on second item to move it up
       fireEvent.keyDown(listItems[1], { key: 'ArrowUp', altKey: true });
-      
+
       expect(onReorderFavorites).toHaveBeenCalledWith(1, 0);
     });
 
     test('handles keyboard reordering with Alt+ArrowDown', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Press Alt+ArrowDown on first item to move it down
       fireEvent.keyDown(listItems[0], { key: 'ArrowDown', altKey: true });
-      
+
       expect(onReorderFavorites).toHaveBeenCalledWith(0, 1);
     });
 
     test('does not move first item up with Alt+ArrowUp', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Try to move first item up (should do nothing)
       fireEvent.keyDown(listItems[0], { key: 'ArrowUp', altKey: true });
-      
+
       expect(onReorderFavorites).not.toHaveBeenCalled();
     });
 
     test('does not move last item down with Alt+ArrowDown', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Try to move last item down (should do nothing)
       fireEvent.keyDown(listItems[apps.length - 1], { key: 'ArrowDown', altKey: true });
-      
+
       expect(onReorderFavorites).not.toHaveBeenCalled();
     });
 
     test('includes reorder instructions in aria-label when draggable', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
       const ariaLabel = listItems[0].getAttribute('aria-label');
-      
+
       expect(ariaLabel).toContain('Press Alt+Up or Alt+Down to reorder');
     });
 
     test('applies visual feedback styles when dragging', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const listItems = container.querySelectorAll('[role="listitem"]');
-      
+
       // Check that cursor is set to move
       expect(listItems[0].style.cursor).toBe('move');
     });
@@ -322,16 +323,16 @@ describe('ApplicationGroup component', () => {
       const onReorderFavorites = jest.fn();
       const threeApps = [apps[0], apps[1], { ...apps[0], name: 'App Three' }];
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={threeApps} 
+          applications={threeApps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const grid = container.querySelector('.application-grid');
       // With 3 favorites and columnCount 5, should use 3 columns
       expect(grid.style.gridTemplateColumns).toBe('repeat(3, 1fr)');
@@ -347,16 +348,16 @@ describe('ApplicationGroup component', () => {
         { ...apps[0], name: 'App Six' }
       ];
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={sixApps} 
+          applications={sixApps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const grid = container.querySelector('.application-grid');
       // With 6 favorites but columnCount 5, should cap at 5 columns
       expect(grid.style.gridTemplateColumns).toBe('repeat(5, 1fr)');
@@ -365,16 +366,16 @@ describe('ApplicationGroup component', () => {
     test('centers favorites grid with justify-content', () => {
       const onReorderFavorites = jest.fn();
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group={null}
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={true}
           layoutPrefs={layoutPrefs}
           onReorderFavorites={onReorderFavorites}
         />
       );
-      
+
       const grid = container.querySelector('.application-grid');
       // Favorites should have centered justification
       expect(grid.style.justifyContent).toBe('center');
@@ -384,20 +385,21 @@ describe('ApplicationGroup component', () => {
   describe('regular groups use configured column count', () => {
     const layoutPrefs = {
       preferences: { compactMode: false, columnCount: 5 },
-      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' })
+      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' }),
+      getOptimalColumnCount: (itemCount) => Math.min(itemCount, 5)
     };
 
     test('regular groups use full configured column count', () => {
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Regular Group"
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={false}
           layoutPrefs={layoutPrefs}
         />
       );
-      
+
       const grid = container.querySelector('.application-grid');
       // Regular groups should always use the configured columnCount
       expect(grid.style.gridTemplateColumns).toBe('repeat(5, 1fr)');
@@ -405,15 +407,15 @@ describe('ApplicationGroup component', () => {
 
     test('regular groups have start justification', () => {
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Regular Group"
-          applications={apps} 
+          applications={apps}
           isCollapsed={false}
           isFavorites={false}
           layoutPrefs={layoutPrefs}
         />
       );
-      
+
       const grid = container.querySelector('.application-grid');
       // Regular groups should have start justification (not centered)
       expect(grid.style.justifyContent).toBe('start');
@@ -423,7 +425,8 @@ describe('ApplicationGroup component', () => {
   describe('hideUnreachable filtering', () => {
     const layoutPrefs = {
       preferences: { compactMode: false, columnCount: 5, hideUnreachable: true },
-      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' })
+      getCSSVariables: () => ({ '--card-padding': '1rem', '--card-gap': '1rem' }),
+      getOptimalColumnCount: (itemCount) => Math.min(itemCount, 5)
     };
 
     test('filters out unavailable applications when hideUnreachable is enabled', () => {
@@ -431,16 +434,16 @@ describe('ApplicationGroup component', () => {
         { ...apps[0], available: true },
         { ...apps[1], available: false },
       ];
-      
+
       render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Test Group"
-          applications={appsWithUnavailable} 
+          applications={appsWithUnavailable}
           isCollapsed={false}
           layoutPrefs={layoutPrefs}
         />
       );
-      
+
       const renderedApps = screen.getAllByTestId('application');
       // Should only render the available app
       expect(renderedApps).toHaveLength(1);
@@ -452,16 +455,16 @@ describe('ApplicationGroup component', () => {
         { ...apps[0], available: false },
         { ...apps[1], available: false },
       ];
-      
+
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Test Group"
-          applications={appsAllUnavailable} 
+          applications={appsAllUnavailable}
           isCollapsed={false}
           layoutPrefs={layoutPrefs}
         />
       );
-      
+
       // Should not render anything - no heading, no grid
       expect(container.firstChild).toBeNull();
     });
@@ -471,21 +474,21 @@ describe('ApplicationGroup component', () => {
         ...layoutPrefs,
         preferences: { ...layoutPrefs.preferences, hideUnreachable: false }
       };
-      
+
       const appsWithUnavailable = [
         { ...apps[0], available: true },
         { ...apps[1], available: false },
       ];
-      
+
       render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Test Group"
-          applications={appsWithUnavailable} 
+          applications={appsWithUnavailable}
           isCollapsed={false}
           layoutPrefs={layoutPrefsNoHide}
         />
       );
-      
+
       const renderedApps = screen.getAllByTestId('application');
       // Should render all apps regardless of availability
       expect(renderedApps).toHaveLength(2);
@@ -496,17 +499,17 @@ describe('ApplicationGroup component', () => {
         { ...apps[0], available: false },
         { ...apps[1], available: false },
       ];
-      
+
       const { container } = render(
-        <ApplicationGroup 
+        <ApplicationGroup
           group="Test Group"
-          applications={appsAllUnavailable} 
+          applications={appsAllUnavailable}
           isCollapsed={false}
           layoutPrefs={layoutPrefs}
           skeleton={true}
         />
       );
-      
+
       // Should still render skeleton even with filtered apps
       expect(container.firstChild).not.toBeNull();
       const heading = container.querySelector('h3');

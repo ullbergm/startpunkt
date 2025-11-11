@@ -34,9 +34,9 @@ export function LayoutSettings({ layoutPrefs }) {
       </svg>
 
       <div class="dropdown bd-layout-toggle">
-        <button 
-          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
-          id="bd-layout" 
+        <button
+          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+          id="bd-layout"
           type="button"
           aria-expanded="false"
           data-bs-toggle="dropdown"
@@ -47,8 +47,8 @@ export function LayoutSettings({ layoutPrefs }) {
           </svg>
           <span class="visually-hidden" id="bd-layout-text"><Text id="layout.title">Layout</Text></span>
         </button>
-        
-        <div 
+
+        <div
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-layout-text"
           style="width: 275px; max-height: 80vh; overflow-y: auto;"
@@ -56,52 +56,74 @@ export function LayoutSettings({ layoutPrefs }) {
         >
           <div class="px-3 py-2">
             <h6 class="mb-2"><Text id="layout.settings">Layout Settings</Text></h6>
-            
+
             {/* Column Count */}
             <div class="mb-3">
-              <label for="columnCountSlider" class="form-label small mb-1">
-                <Text id="layout.columns">Columns</Text>: {preferences.columnCount}
+              <label class="form-label small mb-1">
+                <Text id="layout.columns">Columns</Text>: {preferences.columnCount === 'auto' ? <Text id="layout.autoColumns">Auto</Text> : preferences.columnCount}
               </label>
-              <input 
-                type="range"
-                class="form-range"
-                id="columnCountSlider"
-                min="1"
-                max="6"
-                value={preferences.columnCount}
-                onChange={(e) => updatePreference('columnCount', parseInt(e.target.value))}
-              />
+
+              {/* Auto mode toggle */}
+              <div class="form-check form-switch mb-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="autoColumns"
+                  checked={preferences.columnCount === 'auto'}
+                  onChange={(e) => updatePreference('columnCount', e.target.checked ? 'auto' : 5)}
+                />
+                <label class="form-check-label small" for="autoColumns">
+                  <Text id="layout.autoColumns">Auto</Text>
+                  <span class="text-muted ms-1">
+                    (<Text id="layout.autoColumnsHelp">Fewest rows</Text>)
+                  </span>
+                </label>
+              </div>
+
+              {/* Manual column slider (only shown when not auto) */}
+              {preferences.columnCount !== 'auto' && (
+                <input
+                  type="range"
+                  class="form-range"
+                  id="columnCountSlider"
+                  min="1"
+                  max="5"
+                  value={preferences.columnCount}
+                  onChange={(e) => updatePreference('columnCount', parseInt(e.target.value))}
+                  aria-label={`Columns: ${preferences.columnCount}`}
+                />
+              )}
             </div>
 
             {/* Spacing */}
             <div class="mb-3">
               <label class="form-label small mb-1"><Text id="layout.spacing">Spacing</Text></label>
               <div class="btn-group w-100" role="group">
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="spacing" 
-                  id="spacingTight" 
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="spacing"
+                  id="spacingTight"
                   checked={preferences.spacing === 'tight'}
                   onChange={() => updatePreference('spacing', 'tight')}
                 />
                 <label class="btn btn-outline-primary btn-sm" for="spacingTight"><Text id="layout.spacingTypes.tight">Tight</Text></label>
-                
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="spacing" 
-                  id="spacingNormal" 
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="spacing"
+                  id="spacingNormal"
                   checked={preferences.spacing === 'normal'}
                   onChange={() => updatePreference('spacing', 'normal')}
                 />
                 <label class="btn btn-outline-primary btn-sm" for="spacingNormal"><Text id="layout.spacingTypes.normal">Normal</Text></label>
-                
-                <input 
-                  type="radio" 
-                  class="btn-check" 
-                  name="spacing" 
-                  id="spacingRelaxed" 
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="spacing"
+                  id="spacingRelaxed"
                   checked={preferences.spacing === 'relaxed'}
                   onChange={() => updatePreference('spacing', 'relaxed')}
                 />
@@ -112,9 +134,9 @@ export function LayoutSettings({ layoutPrefs }) {
             {/* Compact Mode */}
             <div class="mb-3">
               <div class="form-check form-switch">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="compactMode"
                   checked={preferences.compactMode}
                   onChange={(e) => updatePreference('compactMode', e.target.checked)}
@@ -128,9 +150,9 @@ export function LayoutSettings({ layoutPrefs }) {
             {/* Edit Mode */}
             <div class="mb-3">
               <div class="form-check form-switch">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="editMode"
                   checked={preferences.editMode}
                   onChange={(e) => updatePreference('editMode', e.target.checked)}
@@ -148,9 +170,9 @@ export function LayoutSettings({ layoutPrefs }) {
             <div class="mb-3">
               <label class="form-label small mb-1"><Text id="layout.showHide">Show/Hide</Text></label>
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="showDescription"
                   checked={preferences.showDescription}
                   onChange={(e) => updatePreference('showDescription', e.target.checked)}
@@ -160,9 +182,9 @@ export function LayoutSettings({ layoutPrefs }) {
                 </label>
               </div>
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="showTags"
                   checked={preferences.showTags}
                   onChange={(e) => updatePreference('showTags', e.target.checked)}
@@ -172,9 +194,9 @@ export function LayoutSettings({ layoutPrefs }) {
                 </label>
               </div>
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="showStatus"
                   checked={preferences.showStatus}
                   onChange={(e) => updatePreference('showStatus', e.target.checked)}
@@ -184,9 +206,9 @@ export function LayoutSettings({ layoutPrefs }) {
                 </label>
               </div>
               <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="hideUnreachable"
                   checked={preferences.hideUnreachable}
                   onChange={(e) => updatePreference('hideUnreachable', e.target.checked)}
@@ -202,18 +224,18 @@ export function LayoutSettings({ layoutPrefs }) {
             {/* Presets */}
             <div class="mb-2">
               <label class="form-label small mb-1"><Text id="layout.presets">Layout Presets</Text></label>
-              
+
               {presetList.length > 0 && (
                 <div class="mb-2">
                   {presetList.map(name => (
                     <div key={name} class="d-flex align-items-center mb-1">
-                      <button 
+                      <button
                         class={`btn btn-sm flex-grow-1 text-start ${preferences.currentPreset === name ? 'btn-primary' : 'btn-outline-secondary'}`}
                         onClick={() => loadPreset(name)}
                       >
                         {name}
                       </button>
-                      <button 
+                      <button
                         class="btn btn-sm btn-outline-danger ms-1"
                         onClick={() => deletePreset(name)}
                         aria-label={`Delete ${name}`}
@@ -227,10 +249,10 @@ export function LayoutSettings({ layoutPrefs }) {
 
               {showPresetInput ? (
                 <div class="input-group input-group-sm">
-                  <input 
+                  <input
                     ref={presetInputRef}
-                    type="text" 
-                    class="form-control" 
+                    type="text"
+                    class="form-control"
                     placeholder="Preset name"
                     value={presetName}
                     onInput={(e) => setPresetName(e.target.value)}
@@ -240,14 +262,14 @@ export function LayoutSettings({ layoutPrefs }) {
                       }
                     }}
                   />
-                  <button 
-                    class="btn btn-primary" 
+                  <button
+                    class="btn btn-primary"
                     onClick={handleSavePreset}
                   >
                     <Text id="layout.save">Save</Text>
                   </button>
-                  <button 
-                    class="btn btn-secondary" 
+                  <button
+                    class="btn btn-secondary"
                     onClick={() => {
                       setShowPresetInput(false);
                       setPresetName('');
@@ -257,7 +279,7 @@ export function LayoutSettings({ layoutPrefs }) {
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   class="btn btn-sm btn-outline-primary w-100"
                   onClick={() => setShowPresetInput(true)}
                 >
@@ -269,7 +291,7 @@ export function LayoutSettings({ layoutPrefs }) {
             <hr class="my-2" />
 
             {/* Reset Button */}
-            <button 
+            <button
               class="btn btn-sm btn-outline-secondary w-100"
               onClick={resetToDefaults}
             >

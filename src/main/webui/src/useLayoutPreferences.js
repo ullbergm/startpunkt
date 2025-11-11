@@ -2,10 +2,10 @@ import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
 
 /**
  * Custom hook for managing layout preferences with localStorage persistence
- * 
+ *
  * Layout preferences include:
  * - compactMode: boolean
- * - columnCount: number (1-6)
+ * - columnCount: number (1-6) or 'auto' (automatically picks fewest rows)
  * - showDescription: boolean
  * - showTags: boolean
  * - showStatus: boolean
@@ -18,7 +18,7 @@ import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
 
 const DEFAULT_PREFERENCES = {
   compactMode: true,
-  columnCount: 5,
+  columnCount: 'auto',
   showDescription: true,
   showTags: false,
   showStatus: true,
@@ -67,7 +67,7 @@ export function useLayoutPreferences() {
   const savePreset = (name, presetData = null) => {
     // Get current background preferences to include in the preset
     const backgroundPrefs = getBackgroundPreferences();
-    
+
     const dataToSave = presetData || {
       // Layout settings
       compactMode: preferences.compactMode,
@@ -97,7 +97,7 @@ export function useLayoutPreferences() {
     if (preset) {
       // Extract background settings if they exist in the preset
       const { background, ...layoutSettings } = preset;
-      
+
       // Apply layout settings
       setPreferences({
         ...preferences,
@@ -105,7 +105,7 @@ export function useLayoutPreferences() {
         currentPreset: name,
         savedPresets: preferences.savedPresets
       });
-      
+
       // Apply background settings if they exist
       if (background) {
         // Use writeStorage to ensure all hooks using this key are notified
@@ -117,7 +117,7 @@ export function useLayoutPreferences() {
   const deletePreset = (name) => {
     const newPresets = { ...preferences.savedPresets };
     delete newPresets[name];
-    
+
     setPreferences({
       ...preferences,
       savedPresets: newPresets,
@@ -163,10 +163,49 @@ export function useLayoutPreferences() {
     return vars;
   };
 
+  /**
+   * Calculate optimal column count that results in the fewest rows
+   * Caps at 5 columns maximum and prefers fewer columns when tied
+   * @param {number} itemCount - Number of items to display
+   * @returns {number} - Optimal column count (1-5)
+   */
+  const getOptimalColumnCount = (itemCount) => {
+    if (itemCount <= 0) return 5; // Default when no items
+    if (itemCount === 1) return 1;
+    if (itemCount <= 5) return itemCount; // Use exactly itemCount columns if <= 5
+
+    let minRows = Infinity;
+    let optimalColumns = 5;
+
+    // Try each possible column count from 5 down to 1 (prefer fewer columns)
+    for (let cols = 5; cols >= 1; cols--) {
+      const rows = Math.ceil(itemCount / cols);
+
+      // Prefer layouts with fewer rows
+      // By iterating backwards and using <=, we prefer fewer columns when rows are equal
+      if (rows <= minRows) {
+        minRows = rows;
+        optimalColumns = cols;
+      }
+    }
+
+    return optimalColumns;
+  };
+
   // Get grid template columns based on column count
   // Mobile responsiveness is handled via CSS media queries in components
-  const getGridTemplateColumns = () => {
-    return `repeat(${preferences.columnCount}, 1fr)`;
+  const getGridTemplateColumns = (itemCount = null) => {
+    let columnCount = preferences.columnCount;
+
+    // If auto mode and itemCount provided, calculate optimal column count
+    if (columnCount === 'auto' && itemCount !== null) {
+      columnCount = getOptimalColumnCount(itemCount);
+    } else if (columnCount === 'auto') {
+      // Fallback to 5 columns if no item count provided
+      columnCount = 5;
+    }
+
+    return `repeat(${columnCount}, 1fr)`;
   };
 
   return {
@@ -177,7 +216,8 @@ export function useLayoutPreferences() {
     deletePreset,
     resetToDefaults,
     getCSSVariables,
-    getGridTemplateColumns
+    getGridTemplateColumns,
+    getOptimalColumnCount
   };
 }
 

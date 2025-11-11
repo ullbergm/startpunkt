@@ -89,6 +89,8 @@
         "title" : "Layout",
         "settings" : "Layout Settings",
         "columns" : "Columns",
+        "autoColumns" : "Auto",
+        "autoColumnsHelp" : "Fewest rows",
         "spacing" : "Spacing",
         "spacingTypes" : {
             "tight" : "Tight",

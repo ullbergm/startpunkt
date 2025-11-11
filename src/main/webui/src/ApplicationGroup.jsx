@@ -5,33 +5,47 @@ export function ApplicationGroup(props) {
   const { layoutPrefs, isCollapsed, onToggle, onEditApp, isFavorite, onToggleFavorite, isFavorites, onReorderFavorites, skeleton, showClusterName } = props;
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
-  
+
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
   const configuredColumnCount = layoutPrefs?.preferences.columnCount || 5;
-  
+
   // Filter out unreachable applications if hideUnreachable is enabled
   const hideUnreachable = layoutPrefs?.preferences.hideUnreachable || false;
   const filteredApplications = hideUnreachable
     ? (props.applications || []).filter(app => app.available !== false)
     : (props.applications || []);
-  
+
   // If filtering results in an empty group, don't render anything
   if (filteredApplications.length === 0 && !skeleton) {
     return null;
   }
-  
+
   // For favorites, use the number of favorites as column count (capped at configured max)
   const favoriteCount = isFavorites ? (filteredApplications.length || 0) : 0;
-  const effectiveColumnCount = isFavorites 
-    ? Math.min(favoriteCount, configuredColumnCount)
-    : configuredColumnCount;
-  
+  const itemCount = filteredApplications.length;
+
+  // Calculate effective column count
+  let effectiveColumnCount;
+  if (configuredColumnCount === 'auto') {
+    // Auto mode: calculate optimal columns for this group
+    effectiveColumnCount = layoutPrefs.getOptimalColumnCount(itemCount);
+    // For favorites in auto mode, still cap at the calculated optimal
+    if (isFavorites) {
+      effectiveColumnCount = Math.min(favoriteCount, effectiveColumnCount);
+    }
+  } else {
+    // Manual mode: use configured count, favorites capped at their count
+    effectiveColumnCount = isFavorites
+      ? Math.min(favoriteCount, configuredColumnCount)
+      : configuredColumnCount;
+  }
+
   const gridTemplate = `repeat(${effectiveColumnCount}, 1fr)`;
-  
+
   // Determine padding class based on compact mode
   const paddingClass = layoutPrefs?.preferences.compactMode ? 'py-3' : 'py-5';
-  
+
   // Use CSS Grid with responsive columns
   // The gridTemplateColumns will be overridden by CSS media queries for mobile
   // For favorites, center the grid and ensure items look normal
@@ -46,23 +60,23 @@ export function ApplicationGroup(props) {
   // Skeleton mode rendering
   if (skeleton) {
     const showHeading = props.group !== null && !isFavorites;
-    
+
     return (
       <div style={{ marginBottom: cssVars['--group-spacing'] || '3rem' }}>
         {showHeading && (
-          <h3 
-            class="pb-2 border-bottom text-uppercase" 
+          <h3
+            class="pb-2 border-bottom text-uppercase"
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            <span 
+            <span
               style={{ fontSize: '0.8em' }}
               aria-hidden="true"
             >
               ▼
             </span>
-            <span 
-              style={{ 
-                width: '150px', 
+            <span
+              style={{
+                width: '150px',
                 height: '1.75rem',
                 backgroundColor: 'rgba(128, 128, 128, 0.3)',
                 borderRadius: '4px',
@@ -73,7 +87,7 @@ export function ApplicationGroup(props) {
           </h3>
         )}
 
-        <div 
+        <div
           class={`${paddingClass} application-grid`}
           style={gridStyle}
           role="list"
@@ -81,8 +95,8 @@ export function ApplicationGroup(props) {
         >
           {Array.isArray(props.applications) && props.applications.map((app, index) => (
             <div role="listitem" key={`skeleton-${index}`}>
-              <Application 
-                app={app} 
+              <Application
+                app={app}
                 layoutPrefs={layoutPrefs}
                 skeleton={true}
                 showClusterName={showClusterName}
@@ -134,7 +148,7 @@ export function ApplicationGroup(props) {
     if (!isDragEnabled) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
+
     if (draggedIndex !== null && draggedIndex !== index) {
       setDragOverIndex(index);
     }
@@ -152,11 +166,11 @@ export function ApplicationGroup(props) {
     if (!isDragEnabled) return;
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
       onReorderFavorites(draggedIndex, dropIndex);
     }
-    
+
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
@@ -164,10 +178,10 @@ export function ApplicationGroup(props) {
   // Keyboard support for reordering (Alt+Arrow keys)
   const handleKeyDown = (e, index) => {
     if (!isDragEnabled) return;
-    
+
     const totalItems = props.applications?.length || 0;
     if (totalItems <= 1) return;
-    
+
     // Alt + Arrow Up: Move item up (swap with previous)
     if (e.altKey && e.key === 'ArrowUp' && index > 0) {
       e.preventDefault();
@@ -181,7 +195,7 @@ export function ApplicationGroup(props) {
         }
       }, 50);
     }
-    
+
     // Alt + Arrow Down: Move item down (swap with next)
     if (e.altKey && e.key === 'ArrowDown' && index < totalItems - 1) {
       e.preventDefault();
@@ -200,8 +214,8 @@ export function ApplicationGroup(props) {
   return (
     <div style={{ marginBottom: cssVars['--group-spacing'] || '3rem' }}>
       {showHeading && (
-        <h3 
-          class="pb-2 border-bottom text-uppercase" 
+        <h3
+          class="pb-2 border-bottom text-uppercase"
           style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           onClick={handleToggle}
           tabIndex={0}
@@ -211,7 +225,7 @@ export function ApplicationGroup(props) {
           aria-controls={`group-${props.group.replace(/\s+/g, '-')}`}
           aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${props.group} group`}
         >
-          <span 
+          <span
             style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
             aria-hidden="true"
           >
@@ -222,7 +236,7 @@ export function ApplicationGroup(props) {
       )}
 
       {!isCollapsed && (
-        <div 
+        <div
           class={`${paddingClass} application-grid`}
           style={gridStyle}
           id={isFavorites ? 'favorites' : `group-${props.group?.replace(/\s+/g, '-') || 'default'}`}
@@ -232,10 +246,10 @@ export function ApplicationGroup(props) {
           {Array.isArray(filteredApplications) && filteredApplications.map((app, index) => {
             const isDragging = draggedIndex === index;
             const isDropTarget = dragOverIndex === index;
-            
+
             return (
-              <div 
-                role="listitem" 
+              <div
+                role="listitem"
                 key={app.name}
                 draggable={isDragEnabled}
                 tabIndex={isDragEnabled ? 0 : -1}
@@ -257,9 +271,9 @@ export function ApplicationGroup(props) {
                 aria-grabbed={isDragEnabled && isDragging}
                 aria-label={isDragEnabled ? `${app.name} (${index + 1} of ${filteredApplications.length}). Press Alt+Up or Alt+Down to reorder` : app.name}
               >
-                <Application 
-                  app={app} 
-                  layoutPrefs={layoutPrefs} 
+                <Application
+                  app={app}
+                  layoutPrefs={layoutPrefs}
                   onEdit={onEditApp}
                   isFavorite={isFavorite ? isFavorite(app) : false}
                   onToggleFavorite={onToggleFavorite}
