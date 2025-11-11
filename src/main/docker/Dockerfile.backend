@@ -17,7 +17,7 @@
 ###
 
 # Stage 1: Compress the native executable with UPX
-FROM alpine:3.20 AS compressor
+FROM alpine:3.22 AS compressor
 RUN apk add --no-cache upx
 
 WORKDIR /work
