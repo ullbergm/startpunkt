@@ -69,7 +69,7 @@
     <!-- Quarkus Platform -->
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>3.29.2</quarkus.platform.version>
+    <quarkus.platform.version>3.29.3</quarkus.platform.version>
 
     <!-- Dependency Versions -->
     <commons.lang3.version>3.19.0</commons.lang3.version>
@@ -290,7 +290,7 @@
     <dependency>
       <groupId>io.quarkus.resteasy.reactive</groupId>
       <artifactId>resteasy-reactive-common</artifactId>
-      <version>3.29.2</version>
+      <version>3.29.3</version>
     </dependency>
 
     <!-- Test Dependencies -->
