@@ -81,7 +81,6 @@
   - Adjustable font sizes (75%-200%)
   - Visible focus indicators
   - Skip-to-content link
-  - See [docs/accessibility.md](docs/accessibility.md) for details
 - 🔌 **GraphQL API**. Modern GraphQL API for flexible data querying (REST API still available during migration)
   - Query applications, bookmarks, config, themes, and translations
   - Explore interactively with GraphiQL UI (dev mode)
