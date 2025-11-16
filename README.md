@@ -2,7 +2,7 @@
 <p align="center">
   <i>Startpunkt is a clean start page designed to display links to all your self-hosted resources in your kubernetes cluster.</i>
   <br/><br/>
-  <img width="130" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/main/docs/images/logo.png"/>
+  <img width="175" alt="Startpunkt" src="https://raw.githubusercontent.com/ullbergm/startpunkt/refs/heads/main/src/main/webui/src/assets/logo.svg"/>
   <br/><br/>
   <a target="_blank" href="https://github.com/ullbergm/startpunkt/releases"><img src="https://img.shields.io/github/v/release/ullbergm/startpunkt?logo=hackthebox&color=609966&logoColor=fff" alt="Current Version"/></a>
   <a target="_blank" href="https://github.com/ullbergm/startpunkt"><img src="https://img.shields.io/github/last-commit/ullbergm/startpunkt?logo=github&color=609966&logoColor=fff" alt="Last commit"/></a>
