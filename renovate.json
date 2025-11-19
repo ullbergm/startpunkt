@@ -293,40 +293,13 @@
       },
       {
          "matchUpdateTypes": [
-            "major"
-         ],
-         "groupName": "all major version Quarkus dependencies",
-         "groupSlug": "all-quarkus-major",
-         "commitMessagePrefix": "feat(quarkus)!: ",
-         "addLabels": [
-            "renovate/quarkus"
-         ],
-         "matchPackageNames": [
-            "/^io\\.quarkus/"
-         ]
-      },
-      {
-         "matchUpdateTypes": [
-            "minor"
-         ],
-         "groupName": "all minor version Quarkus dependencies",
-         "groupSlug": "all-quarkus-minor",
-         "semanticCommitType": "feat",
-         "semanticCommitScope": "quarkus",
-         "addLabels": [
-            "renovate/quarkus"
-         ],
-         "matchPackageNames": [
-            "/^io\\.quarkus/"
-         ]
-      },
-      {
-         "matchUpdateTypes": [
+            "major",
+            "minor",
             "patch"
          ],
-         "groupName": "all patch version Quarkus dependencies",
-         "groupSlug": "all-quarkus-patch",
-         "semanticCommitType": "fix",
+         "groupName": "all Quarkus dependencies",
+         "groupSlug": "all-quarkus",
+         "semanticCommitType": "chore",
          "semanticCommitScope": "quarkus",
          "addLabels": [
             "renovate/quarkus"
