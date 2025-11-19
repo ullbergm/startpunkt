@@ -348,6 +348,7 @@
         <version>4.0.0</version>
         <configuration>
           <createBackupFile>false</createBackupFile>
+          <expandEmptyElements>false</expandEmptyElements>
         </configuration>
         <executions>
           <execution>
@@ -640,7 +641,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence/>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -653,8 +654,8 @@
         <version>3.1.0</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat/>
+            <removeUnusedImports/>
           </java>
         </configuration>
         <executions>

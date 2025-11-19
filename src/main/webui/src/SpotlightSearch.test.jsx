@@ -31,6 +31,23 @@ const mockBookmarkGroups = [
     },
 ];
 
+// Mock cluster preferences
+const mockClusterPrefs = {
+    preferences: {
+        enabledClusters: {}
+    },
+    filterApplications: (apps) => apps, // Return all apps by default
+    filterBookmarks: (bookmarks) => bookmarks, // Return all bookmarks by default
+};
+
+// Mock layout preferences
+const mockLayoutPrefs = {
+    preferences: {
+        showTags: true,
+        showClusterName: true,
+    }
+};
+
 // Setup and teardown
 beforeAll(() => {
     window._navigate = jest.fn();
@@ -48,7 +65,7 @@ afterAll(() => {
 
 describe('SpotlightSearch component', () => {
     test('shows badge "App" for an app', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         const strong = await screen.findByText('Alpha App', { selector: 'strong' });
@@ -57,7 +74,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('shows badge "Bookmark" for a bookmark', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Reddit' } });
         const strong = await screen.findByText('Reddit', { selector: 'strong' });
@@ -66,7 +83,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('opens link in new tab when openInNewTab is true', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Beta' } });
         const betaItem = await screen.findByText('Beta App', { selector: 'strong' });
@@ -76,7 +93,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('navigates in same tab when openInNewTab is false', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         await screen.findByText('Alpha App', { selector: 'strong' });
@@ -86,7 +103,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Alpha navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Alpha' } });
         await screen.findByText('Alpha App', { selector: 'strong' });
@@ -96,7 +113,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Beta navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Beta' } });
         await screen.findByText('Beta App', { selector: 'strong' });
@@ -106,7 +123,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('clicking Reddit navigates to correct url', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'Reddit' } });
         await screen.findByText('Reddit', { selector: 'strong' });
@@ -116,7 +133,7 @@ describe('SpotlightSearch component', () => {
     });
 
     test('search is case-insensitive', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'alpha' } });
         await screen.findByText('Alpha App', { selector: 'strong' });
@@ -124,16 +141,16 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles empty search term gracefully', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: '' } });
-        
+
         // With empty search, all items should be shown
         expect(input).toBeInTheDocument();
     });
 
     test('search for "reddit" finds bookmark', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'reddit' } });
         expect(await screen.findByText('Reddit', { selector: 'strong' })).toBeInTheDocument();
@@ -142,19 +159,19 @@ describe('SpotlightSearch component', () => {
     test('closes when clicking outside the search box', async () => {
         render(
             <div>
-                <SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />
+                <SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />
                 <div data-testid="outside-element">Outside content</div>
             </div>
         );
-        
+
         // Verify search is visible
         const input = await screen.findByRole('textbox');
         expect(input).toBeInTheDocument();
-        
+
         // Click outside the search box
         const outsideElement = screen.getByTestId('outside-element');
         fireEvent.mouseDown(outsideElement);
-        
+
         // Search should be closed (input should not be in the document)
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
@@ -163,7 +180,7 @@ describe('SpotlightSearch component', () => {
         render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={[]} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'nonexistent' } });
-        
+
         // Should show no results message or empty state
         expect(input).toBeInTheDocument();
     });
@@ -172,18 +189,18 @@ describe('SpotlightSearch component', () => {
         render(<SpotlightSearch testVisible={true} applicationGroups={null} bookmarkGroups={null} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'test' } });
-        
+
         // Should not crash and input should still be available
         expect(input).toBeInTheDocument();
     });
 
     test('handles special characters in search', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
-        
+
         // Test various special characters
         const specialQueries = ['@#$%', '()', '<script>', '&amp;', '/', '\\'];
-        
+
         for (const query of specialQueries) {
             fireEvent.input(input, { target: { value: query } });
             expect(input.value).toBe(query);
@@ -191,26 +208,26 @@ describe('SpotlightSearch component', () => {
     });
 
     test('handles very long search queries', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
-        
+
         const longQuery = 'a'.repeat(1000);
         fireEvent.input(input, { target: { value: longQuery } });
-        
+
         expect(input.value).toBe(longQuery);
     });
 
     test('handles rapid consecutive searches', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
-        
+
         // Rapid fire search inputs
         const queries = ['a', 'al', 'alp', 'alph', 'alpha'];
-        
+
         for (const query of queries) {
             fireEvent.input(input, { target: { value: query } });
         }
-        
+
         expect(input.value).toBe('alpha');
     });
 
@@ -218,21 +235,21 @@ describe('SpotlightSearch component', () => {
         render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={[]} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'nothing' } });
-        
+
         // Arrow keys should not crash when no results
         fireEvent.keyDown(input, { key: 'ArrowDown' });
         fireEvent.keyDown(input, { key: 'ArrowUp' });
         fireEvent.keyDown(input, { key: 'Enter' });
-        
+
         expect(input).toBeInTheDocument();
     });
 
     test('maintains focus after search operations', async () => {
-        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} />);
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
         const input = await screen.findByRole('textbox');
-        
+
         fireEvent.input(input, { target: { value: 'Alpha' } });
-        
+
         // Check that input is still accessible (focus state is complex in JSDOM)
         expect(input).toBeInTheDocument();
         expect(input.value).toBe('Alpha');
@@ -253,7 +270,7 @@ describe('SpotlightSearch component', () => {
         render(<SpotlightSearch testVisible={true} applicationGroups={[]} bookmarkGroups={malformedBookmarks} />);
         const input = await screen.findByRole('textbox');
         fireEvent.input(input, { target: { value: 'test' } });
-        
+
         // Should handle malformed data gracefully
         expect(input).toBeInTheDocument();
     });
