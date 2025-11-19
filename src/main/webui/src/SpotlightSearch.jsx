@@ -5,10 +5,14 @@ import { Document } from 'flexsearch';
 
 import { Icon } from '@iconify/react';
 
-function normalizeBookmarks(bmData) {
+function normalizeBookmarks(bmData, clusterPrefs) {
     if (!bmData || !bmData.bookmarkGroups || !Array.isArray(bmData.bookmarkGroups)) return [];
-    return bmData.bookmarkGroups.flatMap(group =>
-        (group.bookmarks || []).map(b => ({
+    return bmData.bookmarkGroups.flatMap(group => {
+        const bookmarks = group.bookmarks || [];
+        // Apply cluster filtering if provided
+        const filteredBookmarks = clusterPrefs ? clusterPrefs.filterBookmarks(bookmarks) : bookmarks;
+
+        return filteredBookmarks.map(b => ({
             id: `bookmark:${group.name}:${b.name}:${b.url}`,
             name: b.name,
             group: group.name,
@@ -18,14 +22,19 @@ function normalizeBookmarks(bmData) {
             openInNewTab: b.targetBlank || false,
             info: b.info || '',
             type: 'bookmark',
-        }))
-    );
+            cluster: b.cluster || 'local',
+        }));
+    });
 }
 
 
-function normalizeApps(groups) {
-    return groups.flatMap(group =>
-        (group.apps || group.applications).map(app => ({
+function normalizeApps(groups, clusterPrefs) {
+    return groups.flatMap(group => {
+        const apps = group.apps || group.applications || [];
+        // Apply cluster filtering if provided
+        const filteredApps = clusterPrefs ? clusterPrefs.filterApplications(apps) : apps;
+
+        return filteredApps.map(app => ({
             id: `app:${group.name}:${app.name}:${app.url}`,
             name: app.name,
             group: group.name,
@@ -35,8 +44,10 @@ function normalizeApps(groups) {
             openInNewTab: app.openInNewTab || app.targetBlank || false,
             info: app.info || '',
             type: 'app',
-        }))
-    );
+            cluster: app.cluster || 'local',
+            tags: app.tags || '',
+        }));
+    });
 }
 
 function TypeBadge({ type }) {
@@ -120,7 +131,7 @@ if (!window._navigate) {
     };
 }
 
-export default function SpotlightSearch({ testVisible = false, applicationGroups, bookmarkGroups }) {
+export default function SpotlightSearch({ testVisible = false, applicationGroups, bookmarkGroups, clusterPrefs, layoutPrefs }) {
     const [visible, setVisible] = useState(testVisible);
     const [query, setQuery] = useState('');
     const [apps, setApps] = useState([]);
@@ -135,16 +146,16 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
         if (typeof testVisible === 'boolean') setVisible(testVisible);
     }, [testVisible]);
 
-    // Update search index when applicationGroups or bookmarkGroups change
+    // Update search index when applicationGroups, bookmarkGroups, or cluster preferences change
     useEffect(() => {
         // Wait for data to be loaded
         if (!applicationGroups || !bookmarkGroups) {
             return;
         }
 
-        // Normalize the data into searchable items
-        const allApps = normalizeApps(applicationGroups);
-        const allBookmarks = normalizeBookmarks({ bookmarkGroups });
+        // Normalize the data into searchable items (with cluster filtering applied)
+        const allApps = normalizeApps(applicationGroups, clusterPrefs);
+        const allBookmarks = normalizeBookmarks({ bookmarkGroups }, clusterPrefs);
         const allItems = [...allApps, ...allBookmarks];
 
         setApps(allItems);
@@ -155,7 +166,7 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
             document: {
                 id: 'id',
                 index: ['name'],
-                store: ['name', 'group', 'url', 'icon', 'iconColor', 'openInNewTab', 'info', 'type'],
+                store: ['name', 'group', 'url', 'icon', 'iconColor', 'openInNewTab', 'info', 'type', 'cluster', 'tags'],
             },
             tokenize: 'forward',
             normalize: 'full',
@@ -163,7 +174,7 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
 
         allItems.forEach(item => index.add(item));
         indexRef.current = index;
-    }, [applicationGroups, bookmarkGroups]);
+    }, [applicationGroups, bookmarkGroups, clusterPrefs?.preferences]);
 
     useEffect(() => {
         if (query.trim() && indexRef.current) {
@@ -190,7 +201,7 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
         const handleKeyDown = (e) => {
             // Don't capture keystrokes if user is typing in an input or textarea
             if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-            
+
             // Open search with / key
             if (!visible && e.key === '/') {
                 e.preventDefault();
@@ -198,7 +209,7 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
                 setTimeout(() => inputRef.current?.focus(), 0);
                 return;
             }
-            
+
             const isTypingChar = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
             if (!visible && isTypingChar) {
                 setVisible(true);
@@ -239,8 +250,8 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
     }
 
     return (
-        <div 
-            ref={containerRef} 
+        <div
+            ref={containerRef}
             style={overlayStyle}
             role="dialog"
             aria-modal="true"
@@ -283,7 +294,7 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
                 aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
             />
 
-            <ul 
+            <ul
                 style={resultsStyle}
                 id="search-results"
                 role="listbox"
@@ -293,37 +304,68 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
                     <li role="status" aria-live="polite" style={{ padding: '0.5rem', color: '#888' }}><Text id="search.noResults">No results</Text></li>
                 )}
 
-                {filtered.map((app, index) => (
-                    <li
-                        key={app.id}
-                        id={`search-result-${index}`}
-                        ref={(el) => itemRefs.current[index] = el}
-                        role="option"
-                        aria-selected={index === selectedIndex}
-                        style={{
-                            ...itemStyle,
-                            backgroundColor: index === selectedIndex ? '#eee' : 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                        }}
-                        onClick={() => {
-                            window._navigate(app.url, app.openInNewTab);
-                            setVisible(false);
-                        }}
-                    >
-                        {renderIcon(app.icon, app.iconColor, app.name)}
-                        <div>
-                            <strong>
-                                {app.name}
-                            <TypeBadge type={app.type} />
-                            </strong>
-                            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                {app.group} {app.info ? `– ${app.info}` : ''}
+                {filtered.map((app, index) => {
+                    const showTags = layoutPrefs?.preferences?.showTags !== false;
+                    const showClusterName = layoutPrefs?.preferences?.showClusterName !== false;
+                    const tags = app.tags ? app.tags.split(',').map(t => t.trim()).filter(t => t) : [];
+
+                    return (
+                        <li
+                            key={app.id}
+                            id={`search-result-${index}`}
+                            ref={(el) => itemRefs.current[index] = el}
+                            role="option"
+                            aria-selected={index === selectedIndex}
+                            style={{
+                                ...itemStyle,
+                                backgroundColor: index === selectedIndex ? '#eee' : 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                            }}
+                            onClick={() => {
+                                window._navigate(app.url, app.openInNewTab);
+                                setVisible(false);
+                            }}
+                        >
+                            {renderIcon(app.icon, app.iconColor, app.name)}
+                            <div style={{ flexGrow: 1 }}>
+                                <strong>
+                                    {app.name}
+                                <TypeBadge type={app.type} />
+                                </strong>
+                                <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                                    {app.group} {app.info ? `– ${app.info}` : ''}
+                                </div>
+                                {/* Show cluster badge for non-local clusters */}
+                                {showClusterName && app.cluster && app.cluster !== 'local' && (
+                                    <div style={{ marginTop: '0.25rem' }}>
+                                        <span
+                                            class="badge bg-info text-dark"
+                                            style={{ fontSize: '0.65rem' }}
+                                            role="status"
+                                            aria-label={`Cluster: ${app.cluster}`}
+                                            title={`This ${app.type} is from the ${app.cluster} cluster`}
+                                        >
+                                            <Icon icon="mdi:server-network" width="12" height="12" style={{ marginRight: '0.2rem', verticalAlign: 'middle' }} />
+                                            {app.cluster}
+                                        </span>
+                                    </div>
+                                )}
+                                {/* Show tags for applications */}
+                                {showTags && tags.length > 0 && (
+                                    <div style={{ marginTop: '0.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }} role="list" aria-label="Tags">
+                                        {tags.map((tag) => (
+                                            <span key={tag} class="badge bg-secondary" style={{ fontSize: '0.65rem' }} role="listitem">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </li>
-                ))}
+                        </li>
+                    );
+                })}
             </ul>
 
         </div>

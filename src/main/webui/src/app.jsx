@@ -70,7 +70,7 @@ export function ThemeApplier({ themes: themesProp }) {
 
   // Read the theme preference from local storage
   const [theme] = useLocalStorage('theme', 'auto');
-  
+
   // Read the background type to determine if we should override the theme
   const { preferences: backgroundPrefs } = useBackgroundPreferences();
 
@@ -81,7 +81,7 @@ export function ThemeApplier({ themes: themesProp }) {
     const handleOverlayThemeHint = (e) => {
       setOverlayThemeHint(e.detail.theme);
     };
-    
+
     window.addEventListener('overlay-theme-hint', handleOverlayThemeHint);
     return () => window.removeEventListener('overlay-theme-hint', handleOverlayThemeHint);
   }, []);
@@ -98,10 +98,10 @@ export function ThemeApplier({ themes: themesProp }) {
     } else {
       // For non-theme backgrounds, always use light theme for UI visibility
       // This doesn't change the user's theme preference, just the applied theme
-      shouldUseDark = backgroundPrefs.type === 'theme' && 
+      shouldUseDark = backgroundPrefs.type === 'theme' &&
                             (theme === 'dark' || (theme === 'auto' && systemPrefersDark));
     }
-    
+
     if (shouldUseDark) {
       document.body.style.setProperty('--bs-body-bg', themes.dark.bodyBgColor);
       document.body.style.setProperty('--bs-body-color', themes.dark.bodyColor);
@@ -134,7 +134,7 @@ export function App() {
 
   // Initialize layout preferences hook
   const layoutPrefs = useLayoutPreferences();
-  
+
   // Initialize background preferences hook for skeleton loader
   const { preferences: backgroundPrefs } = useBackgroundPreferences();
 
@@ -157,7 +157,7 @@ export function App() {
   const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew(version);
   const [manualShowWhatsNew, setManualShowWhatsNew] = useState(false);
   const [manualReleases, setManualReleases] = useState(null);
-  
+
   const openChangelog = async () => {
     // Fetch the current version (latest release) to show in the modal
     try {
@@ -170,7 +170,7 @@ export function App() {
       setManualShowWhatsNew(true);
     }
   };
-  
+
   const closeChangelog = () => {
     setManualShowWhatsNew(false);
     setManualReleases(null);
@@ -198,10 +198,10 @@ export function App() {
     const isConnected = appSub.isSubscribed || bookmarkSub.isSubscribed;
     const isLoading = appSub.loading || bookmarkSub.loading;
     const hasError = !!(appSub.error || bookmarkSub.error);
-    
+
     return {
-      status: isConnected ? 'connected' : 
-              isLoading ? 'connecting' : 
+      status: isConnected ? 'connected' :
+              isLoading ? 'connecting' :
               hasError ? 'error' : 'disconnected',
       isConnected,
       isConnecting: isLoading,
@@ -223,9 +223,9 @@ export function App() {
     const lang = navigator.language;
     const tags = getTagsFromUrl();
     const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
-    
+
     console.log('[INIT] Fetching all data with language:', lang, 'tags:', tagsArray);
-    
+
     // Single query to fetch config, theme, translations, applications, and bookmarks
     client.query({
       query: INIT_QUERY,
@@ -233,12 +233,12 @@ export function App() {
     }).then((result) => {
         if (result.data) {
           console.log('[INIT] Received data:', result.data);
-          
+
           // Set translations (parse JSON string)
           if (result.data.translations) {
             try {
-              const translations = typeof result.data.translations === 'string' 
-                ? JSON.parse(result.data.translations) 
+              const translations = typeof result.data.translations === 'string'
+                ? JSON.parse(result.data.translations)
                 : result.data.translations;
               setDefinition(translations);
             } catch (e) {
@@ -246,7 +246,7 @@ export function App() {
               setDefinition({});
             }
           }
-          
+
           // Set config
           if (result.data.config) {
             const config = result.data.config;
@@ -258,7 +258,7 @@ export function App() {
             const subEnabled = config.graphql?.subscription?.enabled !== false;
             console.log('[INIT] GraphQL Subscriptions enabled:', subEnabled);
             setSubscriptionsEnabled(subEnabled);
-            
+
             // Set cluster default behavior
             if (config.web) {
               const defaultShowAll = config.web.defaultShowAllClusters ?? false;
@@ -266,12 +266,12 @@ export function App() {
               setClustersDefaultShowAll(defaultShowAll);
             }
           }
-          
+
           // Set theme
           if (result.data.theme) {
             setThemes(result.data.theme);
           }
-          
+
           // Set applications
           if (result.data.applicationGroups) {
             const groups = result.data.applicationGroups.map(group => ({
@@ -280,7 +280,7 @@ export function App() {
             }));
             setApplicationGroups(groups);
           }
-          
+
           // Set bookmarks
           if (result.data.bookmarkGroups) {
             const groups = result.data.bookmarkGroups.map(group => ({
@@ -297,7 +297,7 @@ export function App() {
         setApplicationGroups([]);
         setBookmarkGroups([]);
       });
-    
+
     // Fetch available clusters
     console.log('[INIT] Fetching available clusters');
     client.query({
@@ -322,9 +322,9 @@ export function App() {
   const fetchApplications = () => {
     const tags = getTagsFromUrl();
     const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
-    
+
     console.log('[App] Fetching applications with tags:', tagsArray);
-    
+
     // Fetch applications with 'network-only' to bypass cache on refresh
     client.query({
       query: APPLICATION_GROUPS_QUERY,
@@ -349,7 +349,7 @@ export function App() {
   // Function to fetch bookmarks using GraphQL (for refreshes)
   const fetchBookmarks = () => {
     console.log('[App] Fetching bookmarks');
-    
+
     // Fetch bookmarks with 'network-only' to bypass cache on refresh
     client.query({
       query: BOOKMARK_GROUPS_QUERY,
@@ -380,7 +380,7 @@ export function App() {
   // GraphQL Subscriptions for real-time updates
   const tags = getTagsFromUrl();
   const tagsArray = tags ? tags.split(',').map(t => t.trim()) : null;
-  
+
   // Subscribe to application updates
   const appSubscription = useSubscription(
     APPLICATION_UPDATES_SUBSCRIPTION,
@@ -394,16 +394,16 @@ export function App() {
     {},
     subscriptionsEnabled
   );
-  
+
   // Handle application subscription updates
   useEffect(() => {
     if (appSubscription.data && appSubscription.data.applicationUpdates) {
       const { type, application } = appSubscription.data.applicationUpdates;
       console.log('[App] GraphQL subscription - application update:', type, application);
-      
+
       // Update last data received timestamp (for heartbeat indicator)
       setLastDataReceived(Date.now());
-      
+
       // Refresh applications on any change
       // Add a small delay to ensure backend cache is fully updated
       setTimeout(() => {
@@ -417,10 +417,10 @@ export function App() {
     if (bookmarkSubscription.data && bookmarkSubscription.data.bookmarkUpdates) {
       const { type, bookmark } = bookmarkSubscription.data.bookmarkUpdates;
       console.log('[App] GraphQL subscription - bookmark update:', type, bookmark);
-      
+
       // Update last data received timestamp (for heartbeat indicator)
       setLastDataReceived(Date.now());
-      
+
       // Refresh bookmarks on any change
       // Add a small delay to ensure backend cache is fully updated
       setTimeout(() => {
@@ -442,7 +442,7 @@ export function App() {
       setOnPingCallback(() => {
         setLastDataReceived(Date.now());
       });
-      
+
       // Cleanup callback on unmount or when subscriptions disabled
       return () => {
         setOnPingCallback(null);
@@ -470,7 +470,7 @@ export function App() {
   // Filter bookmark groups by enabled clusters
   const getFilteredBookmarkGroups = () => {
     if (!bookmarkGroups) return null;
-    
+
     // Apply cluster filtering to each group's bookmarks
     return bookmarkGroups.map(group => ({
       ...group,
@@ -487,7 +487,7 @@ export function App() {
   // Filter application groups by enabled clusters
   const getFilteredApplicationGroups = () => {
     if (!applicationGroups) return null;
-    
+
     // Apply cluster filtering to each group's applications
     return applicationGroups.map(group => ({
       ...group,
@@ -781,8 +781,8 @@ export function App() {
   return (
     <IntlProvider definition={definition}>
       {/* Skip to content link for screen readers */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         class="visually-hidden-focusable position-absolute top-0 start-0 p-3 m-3 bg-primary text-white"
         style="z-index: 9999;"
       >
@@ -795,7 +795,7 @@ export function App() {
       <Background />
       <ContentOverlay />
       <PreferenceButtonsStyler />
-      
+
       {/* Preference buttons container - horizontal layout */}
       <div class="position-fixed bottom-0 end-0 mb-3 me-3 d-flex gap-2 align-items-center" style="z-index: 1000;">
         <ClusterSettings clusters={availableClusters} localClusterDisplayName={localClusterDisplayName} />
@@ -805,15 +805,20 @@ export function App() {
         {/* Show subscription status indicator */}
         {subscriptionsEnabled && (
           <div class="bd-websocket-heart">
-            <WebSocketHeartIndicator 
-              websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)} 
+            <WebSocketHeartIndicator
+              websocket={getSubscriptionStatus(appSubscription, bookmarkSubscription)}
               onClick={openChangelog}
             />
           </div>
         )}
       </div>
-      
-      <SpotlightSearch applicationGroups={applicationGroups} bookmarkGroups={bookmarkGroups} />
+
+      <SpotlightSearch
+        applicationGroups={applicationGroups}
+        bookmarkGroups={bookmarkGroups}
+        clusterPrefs={clusterPrefs}
+        layoutPrefs={layoutPrefs}
+      />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
         <header class="mb-auto" role="banner">
@@ -829,9 +834,9 @@ export function App() {
           {/* Show skeleton navigation while loading */}
           {(applicationGroups === null || bookmarkGroups === null) && (
             <nav class="nav nav-masthead app-navigation" role="navigation" aria-label="Main navigation">
-              <span 
-                style={{ 
-                  width: '100px', 
+              <span
+                style={{
+                  width: '100px',
                   height: '1.5rem',
                   backgroundColor: 'rgba(128, 128, 128, 0.2)',
                   borderRadius: '4px',
@@ -841,9 +846,9 @@ export function App() {
                 class="skeleton-pulse"
                 aria-hidden="true"
               />
-              <span 
-                style={{ 
-                  width: '100px', 
+              <span
+                style={{
+                  width: '100px',
                   height: '1.5rem',
                   backgroundColor: 'rgba(128, 128, 128, 0.2)',
                   borderRadius: '4px',
@@ -870,7 +875,7 @@ export function App() {
             {(applicationGroups === null || bookmarkGroups === null) && (
               <SkeletonLoader layoutPrefs={layoutPrefs} backgroundPrefs={backgroundPrefs} />
             )}
-            
+
             {/* Show actual content once loaded */}
             {applicationGroups !== null && bookmarkGroups !== null && (
               <>
@@ -914,7 +919,7 @@ export function App() {
           <Icon icon="mdi:plus" width="24" height="24" />
         </button>
       )}
-      
+
       {layoutPrefs?.preferences.editMode && currentPage === 'bookmarks' && (
         <button
           class="btn btn-primary rounded-circle"
