@@ -50,7 +50,7 @@ jobs:
           - image: backend
             dockerfile: Dockerfile.backend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: 📝 Extract Docker metadata
         id: meta
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Build and Push Frontend"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: 📝 Extract Docker metadata for frontend
         id: meta
