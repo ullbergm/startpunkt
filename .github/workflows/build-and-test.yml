@@ -57,7 +57,7 @@ jobs:
     if: github.repository == 'ullbergm/startpunkt'
     name: build-and-test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
 
@@ -105,7 +105,7 @@ jobs:
     if: github.repository == 'ullbergm/startpunkt'
     name: build-backend-native
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Java
         uses: actions/setup-java@v5
