@@ -6,7 +6,6 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesServer;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
@@ -124,14 +123,6 @@ class RouteApplicationWrapperTest {
   }
 
   private void setupMockRouteResources() {
-    ResourceDefinitionContext context =
-        new ResourceDefinitionContext.Builder()
-            .withGroup("route.openshift.io")
-            .withVersion("v1")
-            .withPlural("routes")
-            .withNamespaced(true)
-            .build();
-
     GenericKubernetesResource enabledRoute = createMockRoute("app1", "default", true, false, null);
     GenericKubernetesResource disabledRoute =
         createMockRoute("app2", "default", false, false, null);

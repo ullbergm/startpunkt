@@ -176,6 +176,7 @@ class IstioVirtualServiceApplicationWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockVirtualServiceResourcesWithMultipleHosts() {
     GenericKubernetesResource vs = createMockVirtualService("app-multi", "default", true, null);
     Map<String, Object> spec = (Map<String, Object>) vs.getAdditionalProperties().get("spec");
@@ -197,6 +198,7 @@ class IstioVirtualServiceApplicationWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockVirtualServiceResourcesWithNoHosts() {
     GenericKubernetesResource vs = createMockVirtualService("app-nohost", "default", true, null);
     Map<String, Object> spec = (Map<String, Object>) vs.getAdditionalProperties().get("spec");

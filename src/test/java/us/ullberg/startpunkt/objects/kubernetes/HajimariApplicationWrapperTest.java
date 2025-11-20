@@ -175,6 +175,7 @@ class HajimariApplicationWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockHajimariResourcesWithLocationZero() {
     GenericKubernetesResource app =
         createMockHajimariApp("app-zero", "default", "Zero", "test", "https://zero.example.com");
@@ -194,6 +195,7 @@ class HajimariApplicationWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockHajimariResourcesWithDisabled() {
     GenericKubernetesResource app =
         createMockHajimariApp(
