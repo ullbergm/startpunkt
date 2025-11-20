@@ -47,7 +47,7 @@
   <scm>
     <connection>scm:git:https://github.com/ullbergm/startpunkt.git</connection>
     <developerConnection>scm:git:git@github.com:ullbergm/startpunkt.git</developerConnection>
-    <tag>v2.1.2</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/ullbergm/startpunkt</url>
   </scm>
   <issueManagement>
@@ -65,6 +65,21 @@
     <!-- Plugin Versions -->
     <compiler-plugin.version>3.14.1</compiler-plugin.version>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
+    <sonar-plugin.version>5.3.0.6276</sonar-plugin.version>
+    <depgraph-plugin.version>4.0.3</depgraph-plugin.version>
+    <sortpom-plugin.version>4.0.0</sortpom-plugin.version>
+    <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
+    <frontend-plugin.version>1.15.4</frontend-plugin.version>
+    <javadoc-plugin.version>3.12.0</javadoc-plugin.version>
+    <site-plugin.version>4.0.0-M16</site-plugin.version>
+    <jandex-plugin.version>1.2.3</jandex-plugin.version>
+    <release-plugin.version>3.2.0</release-plugin.version>
+    <crd-generator-plugin.version>7.4.0</crd-generator-plugin.version>
+    <deploy-plugin.version>3.1.4</deploy-plugin.version>
+    <dependency-plugin.version>3.9.0</dependency-plugin.version>
+    <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
+    <spotless-plugin.version>3.1.0</spotless-plugin.version>
+    <project-info-reports-plugin.version>3.9.0</project-info-reports-plugin.version>
 
     <!-- Quarkus Platform -->
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
@@ -75,6 +90,8 @@
     <commons.lang3.version>3.20.0</commons.lang3.version>
     <junit.jupiter.version>6.0.1</junit.jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
+    <quinoa.version>2.7.0</quinoa.version>
+    <helm.version>1.2.7</helm.version>
   </properties>
 
   <dependencyManagement>
@@ -99,6 +116,11 @@
         <artifactId>commons-lang3</artifactId>
         <version>${commons.lang3.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${hamcrest.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -107,7 +129,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-core</artifactId>
-      <version>${quarkus.platform.version}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -159,14 +180,6 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-scheduler-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-cache-runtime-spi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-graphql</artifactId>
     </dependency>
 
@@ -174,12 +187,12 @@
     <dependency>
       <groupId>io.quarkiverse.quinoa</groupId>
       <artifactId>quarkus-quinoa</artifactId>
-      <version>2.7.0</version>
+      <version>${quinoa.version}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkiverse.helm</groupId>
       <artifactId>quarkus-helm</artifactId>
-      <version>1.2.7</version>
+      <version>${helm.version}</version>
     </dependency>
 
     <!-- Fabric8 Kubernetes -->
@@ -242,17 +255,16 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>${commons.lang3.version}</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
-      <version>${hamcrest.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.inject</groupId>
@@ -263,25 +275,67 @@
       <groupId>io.smallrye.common</groupId>
       <artifactId>smallrye-common-annotation</artifactId>
     </dependency>
+    <!-- These are API-only dependencies that the Quarkus platform provides at runtime; mark them 'provided' to avoid version conflicts. -->
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.health</groupId>
       <artifactId>microprofile-health-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.config</groupId>
       <artifactId>microprofile-config-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.openapi</groupId>
       <artifactId>microprofile-openapi-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Some APIs used directly in the code are transitive via Quarkus extensions; declare them explicitly as provided to avoid dependency plugin warnings. -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus.arc</groupId>
+      <artifactId>arc</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-cache-runtime-spi</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
+      <artifactId>microprofile-fault-tolerance-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye</groupId>
+      <artifactId>smallrye-graphql-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye</groupId>
+      <artifactId>smallrye-fault-tolerance-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye.config</groupId>
+      <artifactId>smallrye-config-core</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Test Dependencies -->
@@ -323,12 +377,12 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
-        <version>5.3.0.6276</version>
+        <version>${sonar-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>com.github.ferstl</groupId>
         <artifactId>depgraph-maven-plugin</artifactId>
-        <version>4.0.3</version>
+        <version>${depgraph-plugin.version}</version>
         <configuration>
           <graphFormat>json</graphFormat>
         </configuration>
@@ -336,7 +390,7 @@
       <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
         <artifactId>sortpom-maven-plugin</artifactId>
-        <version>4.0.0</version>
+        <version>${sortpom-plugin.version}</version>
         <configuration>
           <createBackupFile>false</createBackupFile>
           <expandEmptyElements>false</expandEmptyElements>
@@ -352,7 +406,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>${checkstyle-plugin.version}</version>
         <configuration>
           <configLocation>google_checks.xml</configLocation>
           <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
@@ -394,6 +448,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
         <configuration>
+          <release>${maven.compiler.release}</release>
           <compilerArgs>
             <arg>-parameters</arg>
           </compilerArgs>
@@ -437,7 +492,7 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.15.4</version>
+        <version>${frontend-plugin.version}</version>
         <executions>
           <execution>
             <id>install node and npm</id>
@@ -447,7 +502,8 @@
             <configuration>
               <nodeVersion>v24.2.0</nodeVersion>
               <npmVersion>11.3.0</npmVersion>
-              <installDirectory>src/main/webui</installDirectory>
+              <!-- Install node into the build directory rather than under src to avoid adding build artifacts into source tree. -->
+              <installDirectory>${project.build.directory}/frontend-node</installDirectory>
               <workingDirectory>src/main/webui</workingDirectory>
             </configuration>
           </execution>
@@ -458,6 +514,7 @@
             </goals>
             <configuration>
               <arguments>install</arguments>
+              <installDirectory>${project.build.directory}/frontend-node</installDirectory>
               <workingDirectory>src/main/webui</workingDirectory>
             </configuration>
           </execution>
@@ -468,6 +525,7 @@
             </goals>
             <configuration>
               <arguments>test</arguments>
+              <installDirectory>${project.build.directory}/frontend-node</installDirectory>
               <workingDirectory>src/main/webui</workingDirectory>
             </configuration>
           </execution>
@@ -477,7 +535,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.12.0</version>
+        <version>${javadoc-plugin.version}</version>
         <configuration>
           <encoding>${project.build.sourceEncoding}</encoding>
           <outputDirectory>${project.build.directory}/site/apidocs</outputDirectory>
@@ -503,14 +561,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
-        <version>4.0.0-M16</version>
+        <version>${site-plugin.version}</version>
       </plugin>
 
       <!-- Other Plugins -->
       <plugin>
         <groupId>org.jboss.jandex</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
-        <version>1.2.3</version>
+        <version>${jandex-plugin.version}</version>
         <executions>
           <execution>
             <id>make-index</id>
@@ -523,7 +581,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>${release-plugin.version}</version>
         <configuration>
           <tagNameFormat>v@{project.version}</tagNameFormat>
           <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
@@ -533,7 +591,7 @@
       <plugin>
         <groupId>io.fabric8</groupId>
         <artifactId>crd-generator-maven-plugin</artifactId>
-        <version>7.4.0</version>
+        <version>${crd-generator-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -545,7 +603,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>3.1.4</version>
+        <version>${deploy-plugin.version}</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -553,7 +611,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.9.0</version>
+        <version>${dependency-plugin.version}</version>
         <executions>
           <execution>
             <id>analyze</id>
@@ -605,8 +663,6 @@
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
               <ignoredUsedUndeclaredDependencies>
-                <!-- Transitively provided by quarkus-scheduler -->
-                <ignoredUsedUndeclaredDependency>io.quarkus:quarkus-scheduler-api</ignoredUsedUndeclaredDependency>
                 <!-- Transitively provided by quarkus-smallrye-graphql -->
                 <ignoredUsedUndeclaredDependency>org.eclipse.microprofile.graphql:microprofile-graphql-api</ignoredUsedUndeclaredDependency>
               </ignoredUsedUndeclaredDependencies>
@@ -618,7 +674,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.6.2</version>
+        <version>${enforcer-plugin.version}</version>
         <executions>
           <execution>
             <id>enforce-rules</id>
@@ -640,7 +696,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
             <googleJavaFormat/>
@@ -649,9 +705,11 @@
         </configuration>
         <executions>
           <execution>
+            <id>spotless-check</id>
             <goals>
-              <goal>apply</goal>
+              <goal>check</goal>
             </goals>
+            <phase>verify</phase>
           </execution>
         </executions>
       </plugin>
@@ -662,7 +720,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.12.0</version>
+        <version>${javadoc-plugin.version}</version>
         <configuration>
           <additionalJOptions>
             <additionalJOption>-Xdoclint:none</additionalJOption>
@@ -678,7 +736,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.9.0</version>
+        <version>${project-info-reports-plugin.version}</version>
       </plugin>
     </plugins>
   </reporting>
