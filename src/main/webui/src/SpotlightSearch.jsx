@@ -131,7 +131,7 @@ if (!window._navigate) {
     };
 }
 
-export default function SpotlightSearch({ testVisible = false, applicationGroups, bookmarkGroups, clusterPrefs, layoutPrefs }) {
+export default function SpotlightSearch({ testVisible = false, applicationGroups, bookmarkGroups, clusterPrefs, layoutPrefs, searchEngine = "https://www.google.com/search?q=" }) {
     const [visible, setVisible] = useState(testVisible);
     const [query, setQuery] = useState('');
     const [apps, setApps] = useState([]);
@@ -177,7 +177,10 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
     }, [applicationGroups, bookmarkGroups, clusterPrefs?.preferences]);
 
     useEffect(() => {
-        if (query.trim() && indexRef.current) {
+        // If query starts with ?, show web search hint instead of normal results
+        if (query.startsWith('?')) {
+            setFiltered([]);
+        } else if (query.trim() && indexRef.current) {
             const results = [
                 ...indexRef.current.search(query, { field: 'name', enrich: true }),
             ];
@@ -280,11 +283,21 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
                         scrollItemIntoView(prev);
                     } else if (e.key === 'Enter') {
                         e.preventDefault();
-                        const index = selectedIndex >= 0 ? selectedIndex : 0;
-                        const app = filtered[index];
-                        if (app?.url) {
-                            onSelect(app);
-                            setVisible(false);
+                        // Check if query starts with ? for web search
+                        if (query.startsWith('?')) {
+                            const searchQuery = query.substring(1).trim();
+                            if (searchQuery) {
+                                const searchUrl = searchEngine + encodeURIComponent(searchQuery);
+                                window._navigate(searchUrl, true);
+                                setVisible(false);
+                            }
+                        } else {
+                            const index = selectedIndex >= 0 ? selectedIndex : 0;
+                            const app = filtered[index];
+                            if (app?.url) {
+                                onSelect(app);
+                                setVisible(false);
+                            }
                         }
                     }
                 }}
@@ -300,7 +313,25 @@ export default function SpotlightSearch({ testVisible = false, applicationGroups
                 role="listbox"
                 aria-label="Search results"
             >
-                {query.trim() && filtered.length === 0 && (
+                {query.startsWith('?') && (
+                    <li role="status" aria-live="polite" style={{ padding: '0.75rem', color: '#1976d2', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e3f2fd', borderRadius: '4px' }}>
+                        <Icon icon="mdi:magnify" width="24" height="24" />
+                        <div>
+                            {query.length > 1 ? (
+                                <>
+                                    <strong>Search the web for:</strong> {query.substring(1).trim()}
+                                    <div style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: '#666' }}>Press Enter to search</div>
+                                </>
+                            ) : (
+                                <>
+                                    <strong>Web Search Mode</strong>
+                                    <div style={{ fontSize: '0.85rem', marginTop: '0.25rem', color: '#666' }}>Type your search query and press Enter</div>
+                                </>
+                            )}
+                        </div>
+                    </li>
+                )}
+                {query.trim() && !query.startsWith('?') && filtered.length === 0 && (
                     <li role="status" aria-live="polite" style={{ padding: '0.5rem', color: '#888' }}><Text id="search.noResults">No results</Text></li>
                 )}
 
