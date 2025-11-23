@@ -41,14 +41,19 @@ public class ConfigGraphQLResource {
   @ConfigProperty(name = &quot;startpunkt.web.defaultShowAllClusters&quot;, defaultValue = &quot;false&quot;)
   boolean defaultShowAllClusters;
 
+  @ConfigProperty(
+      name = &quot;startpunkt.web.searchEngine&quot;,
+      defaultValue = &quot;https://www.google.com/search?q=&quot;)
+  String searchEngine;
+
   /**
    * Constructor with injected dependencies.
    *
    * @param multiClusterService the multi-cluster service
    */
-<span class="fc" id="L49">  public ConfigGraphQLResource(MultiClusterService multiClusterService) {</span>
-<span class="fc" id="L50">    this.multiClusterService = multiClusterService;</span>
-<span class="fc" id="L51">  }</span>
+<span class="fc" id="L54">  public ConfigGraphQLResource(MultiClusterService multiClusterService) {</span>
+<span class="fc" id="L55">    this.multiClusterService = multiClusterService;</span>
+<span class="fc" id="L56">  }</span>
 
   /**
    * Retrieve application configuration.
@@ -59,11 +64,16 @@ public class ConfigGraphQLResource {
   @Description(&quot;Retrieve application configuration&quot;)
   @Timed(value = &quot;graphql.query.config&quot;)
   public ConfigResponse getConfig() {
-<span class="fc" id="L62">    Log.debug(&quot;GraphQL query: config&quot;);</span>
-<span class="fc" id="L63">    return new ConfigResponse(</span>
+<span class="fc" id="L67">    Log.debug(&quot;GraphQL query: config&quot;);</span>
+<span class="fc" id="L68">    return new ConfigResponse(</span>
         version,
         new WebConfig(
-            showGithubLink, checkForUpdates, title, refreshInterval, defaultShowAllClusters),
+            showGithubLink,
+            checkForUpdates,
+            title,
+            refreshInterval,
+            defaultShowAllClusters,
+            searchEngine),
         new WebSocketConfig(websocketEnabled),
         new ClustersConfig(defaultShowAllClusters));
   }
@@ -77,8 +87,8 @@ public class ConfigGraphQLResource {
   @Description(&quot;Retrieve list of active cluster names&quot;)
   @Timed(value = &quot;graphql.query.activeClusters&quot;)
   public List&lt;String&gt; getActiveClusters() {
-<span class="nc" id="L80">    Log.debug(&quot;GraphQL query: activeClusters&quot;);</span>
-<span class="nc" id="L81">    return multiClusterService.getActiveClusterNames();</span>
+<span class="nc" id="L90">    Log.debug(&quot;GraphQL query: activeClusters&quot;);</span>
+<span class="nc" id="L91">    return multiClusterService.getActiveClusterNames();</span>
   }
 
   /**
@@ -90,8 +100,8 @@ public class ConfigGraphQLResource {
   @Description(&quot;Retrieve the display name for the local cluster&quot;)
   @Timed(value = &quot;graphql.query.localClusterName&quot;)
   public String getLocalClusterName() {
-<span class="nc" id="L93">    Log.debug(&quot;GraphQL query: localClusterName&quot;);</span>
-<span class="nc" id="L94">    return multiClusterService.getLocalClusterDisplayName();</span>
+<span class="nc" id="L103">    Log.debug(&quot;GraphQL query: localClusterName&quot;);</span>
+<span class="nc" id="L104">    return multiClusterService.getLocalClusterDisplayName();</span>
   }
 
   /** Configuration response type. */
@@ -102,12 +112,12 @@ public class ConfigGraphQLResource {
     public ClustersConfig clusters;
 
     public ConfigResponse(
-<span class="fc" id="L105">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
-<span class="fc" id="L106">      this.version = version;</span>
-<span class="fc" id="L107">      this.web = web;</span>
-<span class="fc" id="L108">      this.websocket = websocket;</span>
-<span class="fc" id="L109">      this.clusters = clusters;</span>
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L115">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
+<span class="fc" id="L116">      this.version = version;</span>
+<span class="fc" id="L117">      this.web = web;</span>
+<span class="fc" id="L118">      this.websocket = websocket;</span>
+<span class="fc" id="L119">      this.clusters = clusters;</span>
+<span class="fc" id="L120">    }</span>
   }
 
   /** Web configuration type. */
@@ -117,37 +127,40 @@ public class ConfigGraphQLResource {
     public String title;
     public int refreshInterval;
     public boolean defaultShowAllClusters;
+    public String searchEngine;
 
     public WebConfig(
         boolean showGithubLink,
         boolean checkForUpdates,
         String title,
         int refreshInterval,
-<span class="fc" id="L126">        boolean defaultShowAllClusters) {</span>
-<span class="fc" id="L127">      this.showGithubLink = showGithubLink;</span>
-<span class="fc" id="L128">      this.checkForUpdates = checkForUpdates;</span>
-<span class="fc" id="L129">      this.title = title;</span>
-<span class="fc" id="L130">      this.refreshInterval = refreshInterval;</span>
-<span class="fc" id="L131">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
-<span class="fc" id="L132">    }</span>
+        boolean defaultShowAllClusters,
+<span class="fc" id="L138">        String searchEngine) {</span>
+<span class="fc" id="L139">      this.showGithubLink = showGithubLink;</span>
+<span class="fc" id="L140">      this.checkForUpdates = checkForUpdates;</span>
+<span class="fc" id="L141">      this.title = title;</span>
+<span class="fc" id="L142">      this.refreshInterval = refreshInterval;</span>
+<span class="fc" id="L143">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
+<span class="fc" id="L144">      this.searchEngine = searchEngine;</span>
+<span class="fc" id="L145">    }</span>
   }
 
   /** WebSocket configuration type. */
   public static class WebSocketConfig {
     public boolean enabled;
 
-<span class="fc" id="L139">    public WebSocketConfig(boolean enabled) {</span>
-<span class="fc" id="L140">      this.enabled = enabled;</span>
-<span class="fc" id="L141">    }</span>
+<span class="fc" id="L152">    public WebSocketConfig(boolean enabled) {</span>
+<span class="fc" id="L153">      this.enabled = enabled;</span>
+<span class="fc" id="L154">    }</span>
   }
 
   /** Clusters configuration type. */
   public static class ClustersConfig {
     public boolean defaultShowAll;
 
-<span class="fc" id="L148">    public ClustersConfig(boolean defaultShowAll) {</span>
-<span class="fc" id="L149">      this.defaultShowAll = defaultShowAll;</span>
-<span class="fc" id="L150">    }</span>
+<span class="fc" id="L161">    public ClustersConfig(boolean defaultShowAll) {</span>
+<span class="fc" id="L162">      this.defaultShowAll = defaultShowAll;</span>
+<span class="fc" id="L163">    }</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

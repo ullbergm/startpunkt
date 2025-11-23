@@ -1041,7 +1041,7 @@ public class KubernetesInformerService {
 
       // Register URLs for availability checking
 <span class="fc bfc" id="L1043" title="All 2 branches covered.">      for (ApplicationResponse app : apps) {</span>
-<span class="pc bpc" id="L1044" title="1 of 4 branches missed.">        if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
+<span class="pc bpc" id="L1044" title="2 of 4 branches missed.">        if (app.getUrl() != null &amp;&amp; !app.getUrl().isEmpty()) {</span>
 <span class="fc" id="L1045">          availabilityCheckService.registerUrl(app.getUrl());</span>
         }
 <span class="fc" id="L1047">      }</span>
