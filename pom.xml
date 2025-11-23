@@ -4,7 +4,7 @@
 
   <groupId>us.ullberg</groupId>
   <artifactId>startpunkt</artifactId>
-  <version>4.6.0</version>
+  <version>4.7.0-SNAPSHOT</version>
 
   <name>Startpunkt</name>
   <description>Startpunkt is a clean start page to display links to your self-hosted resources in your Kubernetes cluster.</description>
@@ -47,7 +47,7 @@
   <scm>
     <connection>scm:git:https://github.com/ullbergm/startpunkt.git</connection>
     <developerConnection>scm:git:git@github.com:ullbergm/startpunkt.git</developerConnection>
-    <tag>v4.6.0</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/ullbergm/startpunkt</url>
   </scm>
   <issueManagement>
@@ -686,7 +686,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence/>
+                <dependencyConvergence />
               </rules>
               <fail>true</fail>
             </configuration>
@@ -699,8 +699,8 @@
         <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
-            <googleJavaFormat/>
-            <removeUnusedImports/>
+            <googleJavaFormat />
+            <removeUnusedImports />
           </java>
         </configuration>
         <executions>
