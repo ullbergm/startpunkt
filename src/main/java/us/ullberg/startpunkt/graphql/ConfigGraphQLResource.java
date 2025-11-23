@@ -41,6 +41,11 @@ public class ConfigGraphQLResource {
   @ConfigProperty(name = "startpunkt.web.defaultShowAllClusters", defaultValue = "false")
   boolean defaultShowAllClusters;
 
+  @ConfigProperty(
+      name = "startpunkt.web.searchEngine",
+      defaultValue = "https://www.google.com/search?q=")
+  String searchEngine;
+
   /**
    * Constructor with injected dependencies.
    *
@@ -63,7 +68,12 @@ public class ConfigGraphQLResource {
     return new ConfigResponse(
         version,
         new WebConfig(
-            showGithubLink, checkForUpdates, title, refreshInterval, defaultShowAllClusters),
+            showGithubLink,
+            checkForUpdates,
+            title,
+            refreshInterval,
+            defaultShowAllClusters,
+            searchEngine),
         new WebSocketConfig(websocketEnabled),
         new ClustersConfig(defaultShowAllClusters));
   }
@@ -117,18 +127,21 @@ public class ConfigGraphQLResource {
     public String title;
     public int refreshInterval;
     public boolean defaultShowAllClusters;
+    public String searchEngine;
 
     public WebConfig(
         boolean showGithubLink,
         boolean checkForUpdates,
         String title,
         int refreshInterval,
-        boolean defaultShowAllClusters) {
+        boolean defaultShowAllClusters,
+        String searchEngine) {
       this.showGithubLink = showGithubLink;
       this.checkForUpdates = checkForUpdates;
       this.title = title;
       this.refreshInterval = refreshInterval;
       this.defaultShowAllClusters = defaultShowAllClusters;
+      this.searchEngine = searchEngine;
     }
   }
 

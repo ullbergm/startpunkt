@@ -152,6 +152,7 @@ export function App() {
   const [checkForUpdates, setCheckForUpdates] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(0);
   const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
+  const [searchEngine, setSearchEngine] = useState("https://www.google.com/search?q=");
 
   // What's New modal - pass the current version so it shows the right release
   const { shouldShow: showWhatsNew, releases, loading: whatsNewLoading, hideModal: hideWhatsNew } = useWhatsNew(version);
@@ -255,6 +256,7 @@ export function App() {
             setVersion(config.version);
             setCheckForUpdates(config.web.checkForUpdates);
             setRefreshInterval(config.web.refreshInterval || 0);
+            setSearchEngine(config.web.searchEngine || "https://www.google.com/search?q=");
             const subEnabled = config.graphql?.subscription?.enabled !== false;
             console.log('[INIT] GraphQL Subscriptions enabled:', subEnabled);
             setSubscriptionsEnabled(subEnabled);
@@ -818,6 +820,7 @@ export function App() {
         bookmarkGroups={bookmarkGroups}
         clusterPrefs={clusterPrefs}
         layoutPrefs={layoutPrefs}
+        searchEngine={searchEngine}
       />
 
       <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">

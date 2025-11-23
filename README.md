@@ -63,7 +63,8 @@
 - ⚡ **Automatic**. Services are automatically added / removed as they are deployed to the cluster.
 - 🗂️ **Service Groups**. Group services by namespace or custom groups.
 - 🏷️ **Bookmarks**. Create a list of bookmarks using CRDs.
-- 👌 **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.
+- ⚡**Spotlight Search**. Quick search for applications and bookmarks with `/` key, or web search with `?` prefix.
+- 🗂️ **GitOps Ready**. Manage the services and bookmarks using CRDs and the rest of the application is configured with YAML.
 - ⚡ **Integrated**. Supports displaying services defined in
   - Startpunkt annotations/CRDs
   - Kubernetes Ingress
@@ -195,6 +196,7 @@ startpunkt:
   # Web ui configuration
   web:
     title: "Startpunkt"  # Title of the web UI
+    searchEngine: "https://www.google.com/search?q="  # Search engine URL for web search (use ? prefix in spotlight search)
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI

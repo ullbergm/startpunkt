@@ -22,6 +22,7 @@ export const CONFIG_QUERY = gql`
         checkForUpdates
         refreshInterval
         defaultShowAllClusters
+        searchEngine
       }
       websocket {
         enabled
@@ -140,6 +141,7 @@ export const INIT_QUERY = gql`
         checkForUpdates
         refreshInterval
         defaultShowAllClusters
+        searchEngine
       }
       websocket {
         enabled

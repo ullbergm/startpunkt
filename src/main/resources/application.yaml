@@ -23,16 +23,16 @@ startpunkt:
   availability:
     enabled: true  # If true, check application availability
     timeout: 5  # Timeout in seconds for availability checks
-    
+
     # Background job interval - how often to check healthy application URLs
     # Healthy URLs are checked at this interval (e.g., every 60s)
     # Failing URLs use exponential backoff instead (independent of this interval)
     interval: 60s
-    
+
     ignoreCertificates: false  # If true, ignore SSL certificate validation errors (insecure, use only in development)
     # Note: HTTP 2xx, 3xx, and 4xx responses are considered "available" since they indicate the service is responding
     # Only 5xx server errors or connection failures mark a service as unavailable
-    
+
     # Exponential backoff configuration for failing URLs
     # When an application fails, it enters exponential backoff to reduce load on unresponsive services
     # Backoff delays: 5s -> 10s -> 20s -> 40s -> 80s -> 160s -> 300s (capped at 5 minutes)
@@ -89,6 +89,7 @@ startpunkt:
     title: "Startpunkt"  # Title of the web UI
     refreshInterval: 60  # Interval in seconds to refresh applications and bookmarks (0 = disabled)
     defaultShowAllClusters: false  # If false (default), only show local cluster by default; if true, show all clusters by default
+    searchEngine: "https://www.google.com/search?q="  # Search engine URL prefix for spotlight search (when query starts with ?)
     githubLink:
       enabled: true  # If true, enable the GitHub link in the web UI
     checkForUpdates: true  # If true, check for updates and show a notification in the web UI

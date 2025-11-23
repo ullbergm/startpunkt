@@ -274,4 +274,85 @@ describe('SpotlightSearch component', () => {
         // Should handle malformed data gracefully
         expect(input).toBeInTheDocument();
     });
+
+    test('shows web search hint immediately when ? is typed', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?' } });
+
+        // Should show web search mode hint immediately
+        expect(await screen.findByText(/Web Search Mode/)).toBeInTheDocument();
+        expect(await screen.findByText(/Type your search query and press Enter/)).toBeInTheDocument();
+    });
+
+    test('shows web search hint with query when text is entered after ?', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?test query' } });
+
+        // Should show web search hint with the actual query
+        expect(await screen.findByText(/Search the web for:/)).toBeInTheDocument();
+        expect(await screen.findByText(/test query/)).toBeInTheDocument();
+        expect(await screen.findByText(/Press Enter to search/)).toBeInTheDocument();
+    });
+
+    test('navigates to search engine when Enter is pressed with ? prefix', async () => {
+        const customSearchEngine = 'https://duckduckgo.com/?q=';
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} searchEngine={customSearchEngine} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?test search' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        // Should navigate to the search engine with encoded query
+        expect(window._navigate).toHaveBeenCalledWith('https://duckduckgo.com/?q=test%20search', true);
+    });
+
+    test('uses default Google search engine when not configured', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?javascript tutorial' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        // Should use default Google search
+        expect(window._navigate).toHaveBeenCalledWith('https://www.google.com/search?q=javascript%20tutorial', true);
+    });
+
+    test('does not search when query is only ?', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        // Should not navigate when query is empty after ?
+        expect(window._navigate).not.toHaveBeenCalled();
+    });
+
+    test('does not show normal results when query starts with ?', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?Alpha' } });
+
+        // Should not show "Alpha App" in results when searching with ?
+        expect(screen.queryByText('Alpha App', { selector: 'strong' })).not.toBeInTheDocument();
+    });
+
+    test('encodes special characters in web search query', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?test & query = special' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        // Special characters should be URL encoded
+        expect(window._navigate).toHaveBeenCalledWith('https://www.google.com/search?q=test%20%26%20query%20%3D%20special', true);
+    });
+
+    test('opens web search in new tab', async () => {
+        render(<SpotlightSearch testVisible={true} applicationGroups={mockApplicationGroups} bookmarkGroups={mockBookmarkGroups} clusterPrefs={mockClusterPrefs} layoutPrefs={mockLayoutPrefs} />);
+        const input = await screen.findByRole('textbox');
+        fireEvent.input(input, { target: { value: '?test' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        // Second parameter should be true to open in new tab
+        expect(window._navigate).toHaveBeenCalledWith(expect.any(String), true);
+    });
 });
