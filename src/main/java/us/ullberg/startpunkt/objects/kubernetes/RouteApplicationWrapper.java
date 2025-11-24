@@ -26,20 +26,41 @@ public class RouteApplicationWrapper extends AnnotatedKubernetesObject {
 
   /**
    * Extracts the application URL from the Route's spec. Builds a URL using the protocol
-   * (http/https), host, and path fields.
+   * (http/https), host, port (from annotation), and path fields. If a URL annotation exists, it
+   * will be used instead (via parent implementation).
    *
    * @param item the Kubernetes resource representing the route
    * @return the constructed application URL
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
+    // Check for URL annotation first through parent implementation
+    var annotations = getAnnotations(item);
+    if (annotations != null) {
+      String[] annotationKeys = {
+        "startpunkt.ullberg.us/url", "hajimari.io/url", "forecastle.stakater.com/url"
+      };
+      for (String key : annotationKeys) {
+        if (annotations.containsKey(key)) {
+          return appendRootPath(annotations.get(key).toLowerCase(), item);
+        }
+      }
+    }
+
+    // Build URL from Route spec
     var spec = getSpec(item);
 
-    String protocol = spec.containsKey("tls") ? "https://" : "http://";
+    // Check for protocol annotation, then fall back to TLS check
+    String protocol = getAppProtocol(item);
+    if (protocol == null) {
+      protocol = spec.containsKey("tls") ? "https" : "http";
+    }
+
     String host = spec.containsKey("host") ? spec.get("host").toString() : "localhost";
     String path = spec.containsKey("path") ? spec.get("path").toString() : "";
+    Integer port = getAppPort(item);
 
-    String baseUrl = protocol + host + path;
+    String baseUrl = buildUrlWithPort(protocol, host, port, path);
     return appendRootPath(baseUrl, item);
   }
 

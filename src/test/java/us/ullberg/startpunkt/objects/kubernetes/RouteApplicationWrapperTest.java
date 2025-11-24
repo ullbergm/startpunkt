@@ -147,7 +147,7 @@ class RouteApplicationWrapperTest {
         .get()
         .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
         .andReturn(HttpURLConnection.HTTP_OK, list)
-        .always();
+        .once();
   }
 
   private void setupMockRouteResourcesWithTls() {
@@ -163,7 +163,7 @@ class RouteApplicationWrapperTest {
         .get()
         .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
         .andReturn(HttpURLConnection.HTTP_OK, list)
-        .always();
+        .once();
   }
 
   private void setupMockRouteResourcesWithPath() {
@@ -180,7 +180,7 @@ class RouteApplicationWrapperTest {
         .get()
         .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
         .andReturn(HttpURLConnection.HTTP_OK, list)
-        .always();
+        .once();
   }
 
   private void setupMockRouteResourcesMultipleNamespaces() {
@@ -198,7 +198,7 @@ class RouteApplicationWrapperTest {
         .get()
         .withPath("/apis/route.openshift.io/v1/routes")
         .andReturn(HttpURLConnection.HTTP_OK, list)
-        .always();
+        .once();
   }
 
   private GenericKubernetesResource createMockRoute(
@@ -234,5 +234,194 @@ class RouteApplicationWrapperTest {
     route.setAdditionalProperties(additionalProperties);
 
     return route;
+  }
+
+  @Test
+  void testGetApplicationSpecsWithCustomPort() {
+    // Create a route with custom port annotation
+    GenericKubernetesResource route = new GenericKubernetesResource();
+    route.setApiVersion("route.openshift.io/v1");
+    route.setKind("Route");
+
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/enabled", "true");
+    annotations.put("startpunkt.ullberg.us/name", "custom-port-app");
+    annotations.put("startpunkt.ullberg.us/port", "8443");
+
+    route.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("custom-port-app")
+            .withNamespace("default")
+            .withAnnotations(annotations)
+            .build());
+
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("host", "app.example.com");
+    Map<String, Object> tls = new HashMap<>();
+    tls.put("termination", "edge");
+    spec.put("tls", tls);
+
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    route.setAdditionalProperties(additionalProperties);
+
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    list.setItems(List.of(route));
+
+    server
+        .expect()
+        .get()
+        .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
+        .andReturn(HttpURLConnection.HTTP_OK, list)
+        .once();
+
+    RouteApplicationWrapper wrapper = new RouteApplicationWrapper(false);
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
+
+    assertNotNull(specs);
+    assertEquals(1, specs.size());
+    ApplicationSpec appSpec = specs.get(0);
+    assertEquals("https://app.example.com:8443", appSpec.getUrl());
+  }
+
+  @Test
+  void testGetApplicationSpecsWithStandardHttpsPort() {
+    // Create a route with standard HTTPS port (443) - should be omitted
+    GenericKubernetesResource route = new GenericKubernetesResource();
+    route.setApiVersion("route.openshift.io/v1");
+    route.setKind("Route");
+
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/enabled", "true");
+    annotations.put("startpunkt.ullberg.us/name", "standard-port-app");
+    annotations.put("startpunkt.ullberg.us/port", "443");
+
+    route.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("standard-port-app")
+            .withNamespace("default")
+            .withAnnotations(annotations)
+            .build());
+
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("host", "app.example.com");
+    Map<String, Object> tls = new HashMap<>();
+    tls.put("termination", "edge");
+    spec.put("tls", tls);
+
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    route.setAdditionalProperties(additionalProperties);
+
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    list.setItems(List.of(route));
+
+    server
+        .expect()
+        .get()
+        .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
+        .andReturn(HttpURLConnection.HTTP_OK, list)
+        .once();
+
+    RouteApplicationWrapper wrapper = new RouteApplicationWrapper(false);
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
+
+    assertNotNull(specs);
+    assertEquals(1, specs.size());
+    ApplicationSpec appSpec = specs.get(0);
+    assertEquals("https://app.example.com", appSpec.getUrl()); // Port 443 should be omitted
+  }
+
+  @Test
+  void testGetApplicationSpecsWithStandardHttpPort() {
+    // Create a route with standard HTTP port (80) - should be omitted
+    GenericKubernetesResource route = new GenericKubernetesResource();
+    route.setApiVersion("route.openshift.io/v1");
+    route.setKind("Route");
+
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/enabled", "true");
+    annotations.put("startpunkt.ullberg.us/name", "http-standard-port");
+    annotations.put("startpunkt.ullberg.us/port", "80");
+
+    route.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("http-standard-port")
+            .withNamespace("default")
+            .withAnnotations(annotations)
+            .build());
+
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("host", "app.example.com");
+    // No TLS = HTTP
+
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    route.setAdditionalProperties(additionalProperties);
+
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    list.setItems(List.of(route));
+
+    server
+        .expect()
+        .get()
+        .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
+        .andReturn(HttpURLConnection.HTTP_OK, list)
+        .once();
+
+    RouteApplicationWrapper wrapper = new RouteApplicationWrapper(false);
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
+
+    assertNotNull(specs);
+    assertEquals(1, specs.size());
+    ApplicationSpec appSpec = specs.get(0);
+    assertEquals("http://app.example.com", appSpec.getUrl()); // Port 80 should be omitted
+  }
+
+  @Test
+  void testGetApplicationSpecsWithPortAndPath() {
+    // Create a route with custom port and path
+    GenericKubernetesResource route = new GenericKubernetesResource();
+    route.setApiVersion("route.openshift.io/v1");
+    route.setKind("Route");
+
+    Map<String, String> annotations = new HashMap<>();
+    annotations.put("startpunkt.ullberg.us/enabled", "true");
+    annotations.put("startpunkt.ullberg.us/name", "port-and-path");
+    annotations.put("startpunkt.ullberg.us/port", "8081");
+
+    route.setMetadata(
+        new ObjectMetaBuilder()
+            .withName("port-and-path")
+            .withNamespace("default")
+            .withAnnotations(annotations)
+            .build());
+
+    Map<String, Object> spec = new HashMap<>();
+    spec.put("host", "app.example.com");
+    spec.put("path", "/api");
+    // No TLS = HTTP
+
+    Map<String, Object> additionalProperties = new HashMap<>();
+    additionalProperties.put("spec", spec);
+    route.setAdditionalProperties(additionalProperties);
+
+    GenericKubernetesResourceList list = new GenericKubernetesResourceList();
+    list.setItems(List.of(route));
+
+    server
+        .expect()
+        .get()
+        .withPath("/apis/route.openshift.io/v1/namespaces/default/routes")
+        .andReturn(HttpURLConnection.HTTP_OK, list)
+        .once();
+
+    RouteApplicationWrapper wrapper = new RouteApplicationWrapper(false);
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
+
+    assertNotNull(specs);
+    assertEquals(1, specs.size());
+    ApplicationSpec appSpec = specs.get(0);
+    assertEquals("http://app.example.com:8081/api", appSpec.getUrl()); // Custom port with path
   }
 }

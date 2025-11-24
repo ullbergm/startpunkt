@@ -419,6 +419,16 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   }
 
   /**
+   * Returns the port number for the application URL.
+   *
+   * @param item the Kubernetes generic resource
+   * @return port number or null if not specified
+   */
+  protected Integer getAppPort(GenericKubernetesResource item) {
+    return null;
+  }
+
+  /**
    * Returns the tags of the application. By default, reads from the "startpunkt.ullberg.us/tags"
    * annotation.
    *
@@ -477,6 +487,48 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
     return spec != null && spec.containsKey(key)
         ? Integer.parseInt(spec.get(key).toString())
         : fallback;
+  }
+
+  /**
+   * Builds a URL with optional port number. Omits standard ports (80 for HTTP, 443 for HTTPS).
+   *
+   * @param protocol the protocol (e.g., "http", "https")
+   * @param host the hostname
+   * @param port the port number, or null to omit port
+   * @param path the path component (including leading slash), or null/empty for no path
+   * @return constructed URL string
+   */
+  protected String buildUrlWithPort(String protocol, String host, Integer port, String path) {
+    StringBuilder url = new StringBuilder();
+
+    // Normalize protocol: accept values like "http", "https", "http://" or "https://"
+    String proto = (protocol == null) ? "http" : protocol;
+    if (proto.endsWith("://")) {
+      proto = proto.substring(0, proto.length() - 3);
+    }
+
+    // Add protocol and host
+    url.append(proto).append("://").append(host);
+
+    // Add port if specified and not a standard port (80 for http, 443 for https)
+    if (port != null) {
+      boolean isStandardPort =
+          (proto.equalsIgnoreCase("http") && port == 80)
+              || (proto.equalsIgnoreCase("https") && port == 443);
+      if (!isStandardPort) {
+        url.append(":").append(port);
+      }
+    }
+
+    // Add path if present
+    if (path != null && !path.isEmpty()) {
+      if (!path.startsWith("/")) {
+        url.append("/");
+      }
+      url.append(path);
+    }
+
+    return url.toString();
   }
 
   /**
