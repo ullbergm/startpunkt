@@ -33,6 +33,20 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   // Override method to get the application URL from the VirtualService's spec
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
+    // Check for URL annotation first
+    var annotations = getAnnotations(item);
+    if (annotations != null) {
+      String[] annotationKeys = {
+        "startpunkt.ullberg.us/url", "hajimari.io/url", "forecastle.stakater.com/url"
+      };
+      for (String key : annotationKeys) {
+        if (annotations.containsKey(key)) {
+          return appendRootPath(annotations.get(key).toLowerCase(), item);
+        }
+      }
+    }
+
+    // Build URL from VirtualService spec
     var spec = getSpec(item);
 
     // Determine the protocol based on the spec
@@ -49,8 +63,11 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
       hosts.add("localhost");
     }
 
-    // Construct the base URL and append rootPath if present
-    String baseUrl = protocol + "://" + hosts.get(0);
+    // Get port from annotation
+    Integer port = getAppPort(item);
+
+    // Construct the base URL with port and append rootPath if present
+    String baseUrl = buildUrlWithPort(protocol, hosts.get(0), port, null);
     return appendRootPath(baseUrl, item);
   }
 

@@ -461,6 +461,7 @@ The annotations can go on Ingresses or OpenShift Routes.
 | `startpunkt.ullberg.us/name`        | A custom name for your application. Use if you don’t want to use the name of the ingress/route | No       |
 | `startpunkt.ullberg.us/url`         | A URL for the application. This will override the ingress URL.                                 | No       |
 | `startpunkt.ullberg.us/rootPath`    | A path to append to the auto-detected or annotation-specified URL.                             | No       |
+| `startpunkt.ullberg.us/port`        | Custom port number (1-65535) for the URL. Standard ports (80/443) are omitted from URLs.      | No       |
 | `startpunkt.ullberg.us/targetBlank` | Determines if links should open in new tabs/windows.                                           | No       |
 | `startpunkt.ullberg.us/info`        | A short description of the application.                                                        | No       |
 | `startpunkt.ullberg.us/protocol`    | Protocol to use for links if not known.                                                        | No       |
@@ -493,6 +494,34 @@ spec:
 ```
 
 This will transform the URL from `https://myapp.example.com` to `https://myapp.example.com/web/index.html`.
+
+#### port Example
+
+The `port` annotation allows you to specify a custom port number for applications that use non-standard ports. Standard ports (80 for HTTP, 443 for HTTPS) are automatically omitted from generated URLs for cleaner display.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app
+  annotations:
+    startpunkt.ullberg.us/port: "8443"
+    startpunkt.ullberg.us/protocol: "https"
+spec:
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-app
+            port:
+              number: 8443
+```
+
+This will generate the URL `https://myapp.example.com:8443`. If you specify port `443` with HTTPS or port `80` with HTTP, the port will be omitted from the URL (e.g., `https://myapp.example.com`). Valid port range is 1-65535.
 
 ## 👌 Built With
 

@@ -33,13 +33,28 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   /**
    * Extracts the application URL from the given HTTPRoute resource. Uses the protocol from the
    * resource spec if available; otherwise falls back to the default protocol. Uses the first
-   * hostname in the "hostnames" spec field or "localhost" if none are defined.
+   * hostname in the "hostnames" spec field or "localhost" if none are defined. Includes custom port
+   * if specified via annotation. If a URL annotation exists, it will be used instead.
    *
    * @param item the Kubernetes HTTPRoute resource
    * @return the constructed application URL as a String
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
+    // Check for URL annotation first
+    var annotations = getAnnotations(item);
+    if (annotations != null) {
+      String[] annotationKeys = {
+        "startpunkt.ullberg.us/url", "hajimari.io/url", "forecastle.stakater.com/url"
+      };
+      for (String key : annotationKeys) {
+        if (annotations.containsKey(key)) {
+          return appendRootPath(annotations.get(key).toLowerCase(), item);
+        }
+      }
+    }
+
+    // Build URL from HTTPRoute spec
     var spec = getSpec(item);
 
     String protocol = getAppProtocol(item);
@@ -56,7 +71,9 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
       hosts.add("localhost");
     }
 
-    String baseUrl = protocol + "://" + hosts.get(0);
+    Integer port = getAppPort(item);
+
+    String baseUrl = buildUrlWithPort(protocol, hosts.get(0), port, null);
     return appendRootPath(baseUrl, item);
   }
 

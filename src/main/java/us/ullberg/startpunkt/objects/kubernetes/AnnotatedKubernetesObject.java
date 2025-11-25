@@ -1,6 +1,7 @@
 package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.quarkus.logging.Log;
 import java.util.List;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
@@ -233,6 +234,40 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
       }
     }
     return super.getAppProtocol(item);
+  }
+
+  /**
+   * Retrieves the application port number from annotations. Validates that the port is within the
+   * valid range (1-65535). Invalid ports are logged and ignored.
+   *
+   * @param item Kubernetes resource
+   * @return port number or null if not set or invalid
+   */
+  @Override
+  protected Integer getAppPort(GenericKubernetesResource item) {
+    var annotations = getAnnotations(item);
+
+    if (annotations != null && annotations.containsKey("startpunkt.ullberg.us/port")) {
+      try {
+        String portStr = annotations.get("startpunkt.ullberg.us/port");
+        int port = Integer.parseInt(portStr);
+        if (port < 1 || port > 65535) {
+          Log.warnf(
+              "Invalid port number %d in annotation for %s/%s - must be between 1 and 65535",
+              port, item.getMetadata().getNamespace(), item.getMetadata().getName());
+          return null;
+        }
+        return port;
+      } catch (NumberFormatException e) {
+        Log.warnf(
+            "Invalid port annotation value '%s' for %s/%s - must be a valid integer",
+            annotations.get("startpunkt.ullberg.us/port"),
+            item.getMetadata().getNamespace(),
+            item.getMetadata().getName());
+        return null;
+      }
+    }
+    return super.getAppPort(item);
   }
 
   /**

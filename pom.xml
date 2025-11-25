@@ -686,7 +686,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence/>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -699,8 +699,8 @@
         <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat/>
+            <removeUnusedImports/>
           </java>
         </configuration>
         <executions>

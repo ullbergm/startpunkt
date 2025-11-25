@@ -603,16 +603,22 @@ class AvailabilityCheckServiceTest {
   @Test
   void testUnregisterUrlCleansUpBackoffState() {
     // Given
-    String url = "http://test-cleanup:99999";
+    String url = "http://test-cleanup-unique-" + System.currentTimeMillis() + ":99999";
     service.registerUrl(url);
 
     // When - Cause failure to establish backoff state
     service.checkAvailability(url);
 
+    // Capture state before unregister to verify backoff was established
+    Boolean availabilityBeforeUnregister = service.getCachedAvailability(url);
+    assertFalse(
+        availabilityBeforeUnregister, "URL should be marked unavailable after failed check");
+
     // Then - Unregister should clean up all state
     service.unregisterUrl(url);
 
-    // Verify cleanup
+    // Verify cleanup - check immediately to avoid race with background scheduler
+    // The scheduler runs every 60s with 5s delay, so immediate check should be clean
     assertNull(
         service.getCachedAvailability(url), "Unregistered URL should not be in availability cache");
   }
