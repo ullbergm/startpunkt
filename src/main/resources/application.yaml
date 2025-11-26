@@ -53,6 +53,8 @@ startpunkt:
   ingress:
     enabled: true  # If true, enable the reading of ingress resources
     onlyAnnotated: true  # Only consider resources with the annotation 'startpunkt.ullberg.us/enable: "true"'
+    ingressClassNames: []  # List of ingress class names to include (empty = all, exact match)
+    includeUnclassified: true  # Include ingresses without spec.ingressClassName when filtering is enabled
 
   # OpenShift integration, read OpenShift Routes
   openshift:

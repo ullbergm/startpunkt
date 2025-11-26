@@ -84,6 +84,12 @@ public class KubernetesInformerService {
   @ConfigProperty(name = "startpunkt.ingress.onlyAnnotated", defaultValue = "true")
   boolean ingressOnlyAnnotated;
 
+  @ConfigProperty(name = "startpunkt.ingress.ingressClassNames")
+  Optional<List<String>> ingressClassNames;
+
+  @ConfigProperty(name = "startpunkt.ingress.includeUnclassified", defaultValue = "true")
+  boolean ingressIncludeUnclassified;
+
   @ConfigProperty(name = "startpunkt.openshift.enabled", defaultValue = "false")
   boolean openshiftEnabled;
 
@@ -1004,7 +1010,11 @@ public class KubernetesInformerService {
           applicationWrappers.add(new RouteApplicationWrapper(openshiftOnlyAnnotated));
         }
         if (useIngress) {
-          applicationWrappers.add(new IngressApplicationWrapper(ingressOnlyAnnotated));
+          applicationWrappers.add(
+              new IngressApplicationWrapper(
+                  ingressOnlyAnnotated,
+                  ingressClassNames.orElse(List.of()),
+                  ingressIncludeUnclassified));
         }
         if (useIstio) {
           applicationWrappers.add(
