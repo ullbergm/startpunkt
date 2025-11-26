@@ -68,8 +68,7 @@ class IngressApplicationWrapperIngressClassTest {
 
     assertNotNull(specs, "Specs should not be null");
     // Should get nginx-internal ingress + unclassified (since includeUnclassified=true)
-    assertEquals(
-        2, specs.size(), "Should get nginx-internal ingress and unclassified ingress");
+    assertEquals(2, specs.size(), "Should get nginx-internal ingress and unclassified ingress");
   }
 
   @Test
@@ -78,16 +77,13 @@ class IngressApplicationWrapperIngressClassTest {
 
     // Filter for nginx-internal and nginx-external
     IngressApplicationWrapper wrapper =
-        new IngressApplicationWrapper(
-            false, List.of("nginx-internal", "nginx-external"), true);
+        new IngressApplicationWrapper(false, List.of("nginx-internal", "nginx-external"), true);
     List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
 
     assertNotNull(specs, "Specs should not be null");
     // Should get nginx-internal, nginx-external, and unclassified (includeUnclassified=true)
     assertEquals(
-        3,
-        specs.size(),
-        "Should get nginx-internal, nginx-external, and unclassified ingresses");
+        3, specs.size(), "Should get nginx-internal, nginx-external, and unclassified ingresses");
   }
 
   @Test
@@ -101,8 +97,7 @@ class IngressApplicationWrapperIngressClassTest {
 
     assertNotNull(specs, "Specs should not be null");
     // Should get traefik ingress + unclassified ingress
-    assertEquals(
-        2, specs.size(), "Should get traefik ingress and unclassified ingress");
+    assertEquals(2, specs.size(), "Should get traefik ingress and unclassified ingress");
   }
 
   @Test
@@ -125,14 +120,12 @@ class IngressApplicationWrapperIngressClassTest {
 
     // Filter for nginx-internal and nginx-external with includeUnclassified=false
     IngressApplicationWrapper wrapper =
-        new IngressApplicationWrapper(
-            false, List.of("nginx-internal", "nginx-external"), false);
+        new IngressApplicationWrapper(false, List.of("nginx-internal", "nginx-external"), false);
     List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of("default"));
 
     assertNotNull(specs, "Specs should not be null");
     // Should get nginx-internal and nginx-external only
-    assertEquals(
-        2, specs.size(), "Should get only nginx-internal and nginx-external ingresses");
+    assertEquals(2, specs.size(), "Should get only nginx-internal and nginx-external ingresses");
   }
 
   @Test
@@ -178,10 +171,7 @@ class IngressApplicationWrapperIngressClassTest {
     // - app2: nginx-external class ✗ (wrong class)
     // - app3: traefik class ✗ (wrong class)
     // - app4: no class ✗ (includeUnclassified=false)
-    assertEquals(
-        1,
-        specs.size(),
-        "Should get only the nginx-internal ingress");
+    assertEquals(1, specs.size(), "Should get only the nginx-internal ingress");
   }
 
   @Test
@@ -218,10 +208,7 @@ class IngressApplicationWrapperIngressClassTest {
     // - nginx-enabled: nginx-internal class ✓, enabled=true ✓
     // - nginx-disabled: nginx-internal class ✓, enabled=false ✗
     // - external-enabled: nginx-external class ✗
-    assertEquals(
-        1,
-        specs.size(),
-        "Should get only the enabled nginx-internal ingress");
+    assertEquals(1, specs.size(), "Should get only the enabled nginx-internal ingress");
     assertTrue(
         Boolean.TRUE.equals(specs.get(0).getEnabled()),
         "Returned ingress should be explicitly enabled");
@@ -287,12 +274,10 @@ class IngressApplicationWrapperIngressClassTest {
         createMockIngressWithClass("app2", "default", "nginx-external");
 
     // Create ingress with traefik class
-    GenericKubernetesResource traefik =
-        createMockIngressWithClass("app3", "default", "traefik");
+    GenericKubernetesResource traefik = createMockIngressWithClass("app3", "default", "traefik");
 
     // Create ingress without class (unclassified)
-    GenericKubernetesResource unclassified =
-        createMockIngressWithoutClass("app4", "default");
+    GenericKubernetesResource unclassified = createMockIngressWithoutClass("app4", "default");
 
     GenericKubernetesResourceList list = new GenericKubernetesResourceList();
     List<GenericKubernetesResource> items = new ArrayList<>();
@@ -316,8 +301,7 @@ class IngressApplicationWrapperIngressClassTest {
     ingress.setApiVersion("networking.k8s.io/v1");
     ingress.setKind("Ingress");
 
-    ingress.setMetadata(
-        new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+    ingress.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
 
     // Add spec with ingressClassName and rules
     Map<String, Object> spec = new HashMap<>();
@@ -340,8 +324,7 @@ class IngressApplicationWrapperIngressClassTest {
     ingress.setApiVersion("networking.k8s.io/v1");
     ingress.setKind("Ingress");
 
-    ingress.setMetadata(
-        new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
+    ingress.setMetadata(new ObjectMetaBuilder().withName(name).withNamespace(namespace).build());
 
     // Add spec without ingressClassName
     Map<String, Object> spec = new HashMap<>();
