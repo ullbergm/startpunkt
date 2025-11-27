@@ -313,11 +313,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-cache-runtime-spi</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
       <artifactId>microprofile-fault-tolerance-api</artifactId>
       <scope>provided</scope>
