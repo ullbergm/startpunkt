@@ -65,7 +65,7 @@
     <!-- Plugin Versions -->
     <compiler-plugin.version>3.14.1</compiler-plugin.version>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
-    <sonar-plugin.version>5.4.0.6343</sonar-plugin.version>
+    <sonar-plugin.version>5.5.0.6356</sonar-plugin.version>
     <depgraph-plugin.version>4.0.3</depgraph-plugin.version>
     <sortpom-plugin.version>4.0.0</sortpom-plugin.version>
     <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
