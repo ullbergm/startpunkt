@@ -87,7 +87,7 @@ class BookmarkSpecTest {
     assertNull(spec.getUrl());
     assertNull(spec.getInfo());
     assertNull(spec.getTargetBlank());
-    assertEquals(0, spec.getLocation());
+    assertEquals(1000, spec.getLocation());
   }
 
   @Test

@@ -47,10 +47,13 @@ public class BookmarkSpec implements Comparable<BookmarkSpec> {
   @JsonPropertyDescription("Open the URL in a new tab")
   private Boolean targetBlank;
 
-  /** Sorting order for bookmarks (optional). Lower numbers sort first. */
+  /**
+   * Sorting order for bookmarks (optional). Lower numbers sort first. Default is 1000 for lowest
+   * priority.
+   */
   @JsonProperty("location")
   @JsonPropertyDescription("Sorting order of the bookmark")
-  private int location;
+  private int location = 1000;
 
   /** Default no-argument constructor. */
   public BookmarkSpec() {}
