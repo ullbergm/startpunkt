@@ -164,7 +164,7 @@ class ApplicationSpecV1Alpha2Test {
     assertNull(spec.getUrl());
     assertNull(spec.getInfo());
     assertNull(spec.getTargetBlank());
-    assertEquals(0, spec.getLocation());
+    assertEquals(1000, spec.getLocation());
     assertNull(spec.getEnabled());
     assertNull(spec.getRootPath());
   }

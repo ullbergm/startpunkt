@@ -13,7 +13,7 @@ class ApplicationSpecTest {
   void testDefaultConstructor() {
     ApplicationSpec spec = new ApplicationSpec();
     assertNull(spec.getName());
-    assertEquals(0, spec.getLocation());
+    assertEquals(1000, spec.getLocation());
   }
 
   @Test
@@ -607,6 +607,8 @@ class ApplicationSpecTest {
 
   @Test
   void testZeroLocation() {
+    // When explicitly set to 0, the spec should preserve that value
+    // (normalization to 1000 happens at wrapper/service level)
     ApplicationSpec spec =
         new ApplicationSpec("App", "Group", null, null, "url", null, true, 0, true);
 
