@@ -45,3 +45,7 @@ nb-configuration.xml
 
 # Plugin directory
 /.quarkus/cli/plugins/
+
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
