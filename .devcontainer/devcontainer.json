@@ -1,0 +1,30 @@
+{
+  "name": "Startpunkt (Java 21 & Node.js)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24.12.0"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "dockerDashComposeVersion": "none"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "redhat.vscode-quarkus",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
+      ]
+    }
+  },
+  "postCreateCommand": "./mvnw install -DskipTests && pre-commit install",
+  "remoteUser": "vscode"
+}

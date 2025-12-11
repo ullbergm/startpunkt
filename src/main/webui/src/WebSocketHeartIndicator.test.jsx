@@ -25,7 +25,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
     expect(icon).toHaveAttribute('data-icon', 'mdi:heart-broken');
@@ -41,7 +41,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
     expect(icon).toHaveAttribute('data-icon', 'mdi:heart');
@@ -57,7 +57,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
     expect(icon).toHaveAttribute('data-icon', 'mdi:heart-broken');
@@ -73,7 +73,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const icon = screen.getByTestId('icon');
     expect(icon).toBeInTheDocument();
     expect(icon).toHaveAttribute('data-icon', 'mdi:heart-broken');
@@ -89,7 +89,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', expect.stringContaining('Real-time updates active'));
   });
@@ -103,7 +103,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', 'GraphQL subscription error');
   });
@@ -117,7 +117,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('title', 'Connecting to real-time updates...');
   });
@@ -131,7 +131,7 @@ describe('WebSocketHeartIndicator', () => {
     };
 
     render(<WebSocketHeartIndicator websocket={websocket} />);
-    
+
     const indicator = screen.getByRole('status');
     expect(indicator).toHaveAttribute('aria-label');
     expect(indicator).toHaveAttribute('title');

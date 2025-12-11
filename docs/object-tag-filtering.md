@@ -86,10 +86,10 @@ This approach ensures that untagged applications are always accessible, either b
 
 1. **Admin View**: `/admin`
    - Shows applications tagged with "admin" and all untagged applications
-   
+
 2. **Developer View**: `/dev`
    - Shows applications tagged with "dev" and all untagged applications
-   
+
 3. **Multi-tag View**: `/admin,dev`
    - Shows applications tagged with "admin" OR "dev" and all untagged applications
 

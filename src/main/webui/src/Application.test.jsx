@@ -307,14 +307,14 @@ describe('Application component', () => {
     };
     const mockToggle = jest.fn();
     const { container } = render(<Application app={defaultApp} layoutPrefs={layoutPrefs} isFavorite={false} onToggleFavorite={mockToggle} />);
-    
+
     const starButton = screen.getByRole('button', { name: /Add.*to favorites/i });
     const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
     const stopPropagationSpy = jest.spyOn(clickEvent, 'stopPropagation');
     const preventDefaultSpy = jest.spyOn(clickEvent, 'preventDefault');
-    
+
     starButton.dispatchEvent(clickEvent);
-    
+
     expect(stopPropagationSpy).toHaveBeenCalled();
     expect(preventDefaultSpy).toHaveBeenCalled();
   });

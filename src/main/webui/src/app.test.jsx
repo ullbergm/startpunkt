@@ -101,12 +101,12 @@ jest.mock('./ForkMe', () => ({
 // ---- TEST SETUP ----
 beforeEach(() => {
   jest.clearAllMocks();
-  
+
   // Setup default GraphQL mock responses using the manual mock
   client.query.mockImplementation(({ query, variables }) => {
     // Apollo Client queries are DocumentNode objects with loc.source.body containing the query string
     const queryString = query.loc?.source.body || query.toString();
-    
+
     // Check for the combined INIT_QUERY first (used on app initialization)
     if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
       return Promise.resolve({
@@ -132,7 +132,7 @@ beforeEach(() => {
               textAccentColor: '#E95678'
             }
           },
-          translations: { 
+          translations: {
             "home.theme.toggle": "Toggle theme",
             "home.applications": "Applications",
             "home.bookmarks": "Bookmarks",
@@ -157,7 +157,7 @@ beforeEach(() => {
         },
       });
     }
-    
+
     // Individual queries (used for refreshes)
     if (queryString.includes('config {') && !queryString.includes('theme {')) {
       return Promise.resolve({
@@ -170,11 +170,11 @@ beforeEach(() => {
         },
       });
     }
-    
+
     if (queryString.includes('translations(language:') && !queryString.includes('config {')) {
       return Promise.resolve({
         data: {
-          translations: { 
+          translations: {
             "home.theme.toggle": "Toggle theme",
             "home.applications": "Applications",
             "home.bookmarks": "Bookmarks",
@@ -189,7 +189,7 @@ beforeEach(() => {
         },
       });
     }
-    
+
     if (queryString.includes('theme {') && !queryString.includes('config {')) {
       return Promise.resolve({
         data: {
@@ -212,7 +212,7 @@ beforeEach(() => {
         },
       });
     }
-    
+
     if (queryString.includes('applicationGroups(tags:') || queryString.includes('GetApplicationGroups(')) {
       return Promise.resolve({
         data: {
@@ -223,7 +223,7 @@ beforeEach(() => {
         },
       });
     }
-    
+
     if (queryString.includes('bookmarkGroups {') || queryString.includes('GetBookmarkGroups')) {
       return Promise.resolve({
         data: {
@@ -233,7 +233,7 @@ beforeEach(() => {
         },
       });
     }
-    
+
     return Promise.resolve({ data: {} });
   });
 });
@@ -284,7 +284,7 @@ describe('App', () => {
     // Override GraphQL mock for this test
     client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
-      
+
       if (queryString.includes('config {')) {
         return Promise.resolve({
           data: {
@@ -296,7 +296,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       if (queryString.includes('translations(language:')) {
         return Promise.resolve({
           data: {
@@ -304,7 +304,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       if (queryString.includes('theme {')) {
         return Promise.resolve({
           data: {
@@ -327,7 +327,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       if (queryString.includes('applicationGroups(tags:')) {
         return Promise.resolve({
           data: {
@@ -337,7 +337,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       if (queryString.includes('bookmarkGroups {')) {
         return Promise.resolve({
           data: {
@@ -347,7 +347,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       return Promise.resolve({ data: {} });
     });
 
@@ -372,7 +372,7 @@ describe('App', () => {
     // Mock empty applications but with bookmarks - must return INIT_QUERY format
     client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
-      
+
       //Handle INIT_QUERY
       if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
         return Promise.resolve({
@@ -398,7 +398,7 @@ describe('App', () => {
                 textAccentColor: '#E95678'
               }
             },
-            translations: { 
+            translations: {
               "home.theme.toggle": "Toggle theme",
               "home.applications": "Applications",
               "home.bookmarks": "Bookmarks",
@@ -417,7 +417,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       return Promise.resolve({ data: {} });
     });
 
@@ -436,7 +436,7 @@ describe('App', () => {
     // Mock empty bookmarks but with applications - must return INIT_QUERY format
     client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
-      
+
       // Handle INIT_QUERY
       if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
         return Promise.resolve({
@@ -462,7 +462,7 @@ describe('App', () => {
                 textAccentColor: '#E95678'
               }
             },
-            translations: { 
+            translations: {
               "home.theme.toggle": "Toggle theme",
               "home.applications": "Applications",
               "home.bookmarks": "Bookmarks",
@@ -481,7 +481,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       return Promise.resolve({ data: {} });
     });
 
@@ -500,7 +500,7 @@ describe('App', () => {
     // Mock empty responses to test empty state - must return INIT_QUERY format
     client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
-      
+
       // Handle INIT_QUERY with empty data
       if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
         return Promise.resolve({
@@ -526,7 +526,7 @@ describe('App', () => {
                 textAccentColor: '#E95678'
               }
             },
-            translations: { 
+            translations: {
               "home.theme.toggle": "Toggle theme",
               "home.loading": "Loading...",
               "home.checkingForItems": "Checking for configured applications and bookmarks...",
@@ -541,12 +541,12 @@ describe('App', () => {
           },
         });
       }
-      
+
       return Promise.resolve({ data: {} });
     });
 
     render(<App />);
-    
+
     // Wait for data to load and show empty state (no loading state shown since INIT_QUERY resolves immediately)
     await waitFor(() => {
       expect(screen.getByText(/No Items Available/i)).toBeInTheDocument();
@@ -557,7 +557,7 @@ describe('App', () => {
     // Mock empty applications and bookmarks - must return INIT_QUERY format
     client.query.mockImplementation(({ query, variables }) => {
       const queryString = typeof query === 'string' ? query : (query.loc?.source.body || query.toString());
-      
+
       // Handle INIT_QUERY with empty data
       if (queryString.includes('InitApp(') || (queryString.includes('config {') && queryString.includes('theme {') && queryString.includes('translations(language:'))) {
         return Promise.resolve({
@@ -583,7 +583,7 @@ describe('App', () => {
                 textAccentColor: '#E95678'
               }
             },
-            translations: { 
+            translations: {
               "home.theme.toggle": "Toggle theme",
               "home.noItemsAvailable": "No Items Available",
               "home.noItemsConfigured": "There are currently no applications or bookmarks configured.",
@@ -595,7 +595,7 @@ describe('App', () => {
           },
         });
       }
-      
+
       return Promise.resolve({ data: {} });
     });
 

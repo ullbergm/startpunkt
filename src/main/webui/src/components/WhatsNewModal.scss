@@ -342,19 +342,19 @@
   .whats-new-backdrop {
     background-color: rgba(0, 0, 0, 0.7);
   }
-  
+
   .whats-new-modal {
     background: var(--bs-body-bg, #212529);
   }
-  
+
   .whats-new-highlight {
     background-color: rgba(255, 255, 255, 0.05);
   }
-  
+
   .whats-new-details-toggle {
     background-color: rgba(255, 255, 255, 0.05);
   }
-  
+
   .whats-new-details-toggle:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
@@ -365,11 +365,11 @@ body.high-contrast {
   .whats-new-modal {
     border: 2px solid white;
   }
-  
+
   .whats-new-highlight {
     border: 1px solid white;
   }
-  
+
   .whats-new-button-primary {
     border: 2px solid white;
   }
@@ -382,7 +382,7 @@ body.high-contrast {
   .whats-new-changes-list {
     animation: none;
   }
-  
+
   .whats-new-button-primary:hover {
     transform: none;
   }
@@ -394,17 +394,17 @@ body.high-contrast {
     margin: 0.5rem;
     max-height: 95vh;
   }
-  
+
   .whats-new-header,
   .whats-new-content,
   .whats-new-footer {
     padding: 1rem;
   }
-  
+
   .whats-new-title {
     font-size: 1.25rem;
   }
-  
+
   .whats-new-highlight {
     flex-direction: column;
     gap: 0.5rem;

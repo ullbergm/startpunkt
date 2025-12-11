@@ -53,7 +53,7 @@ export function IconPicker({ value = '', onChange, disabled = false, id, label }
         query: ICONIFY_SEARCH_QUERY,
         variables: { query, limit: 20 }
       });
-      
+
       if (result.data?.searchIcons?.icons) {
         setSearchResults(result.data.searchIcons.icons);
       } else {
@@ -116,13 +116,13 @@ export function IconPicker({ value = '', onChange, disabled = false, id, label }
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex((prev) => 
+        setSelectedIndex((prev) =>
           prev < searchResults.length - 1 ? prev + 1 : 0
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex((prev) => 
+        setSelectedIndex((prev) =>
           prev > 0 ? prev - 1 : searchResults.length - 1
         );
         break;
@@ -181,7 +181,7 @@ export function IconPicker({ value = '', onChange, disabled = false, id, label }
         />
         {loading && <span class="icon-picker-spinner" aria-label="Loading icons">⟳</span>}
       </div>
-      
+
       {showDropdown && searchResults.length > 0 && (
         <div
           id={`${id}-suggestions`}
@@ -207,7 +207,7 @@ export function IconPicker({ value = '', onChange, disabled = false, id, label }
           ))}
         </div>
       )}
-      
+
       <small class="form-text text-muted">Icon name (e.g., mdi:home) or URL</small>
     </div>
   );

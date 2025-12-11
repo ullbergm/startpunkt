@@ -7,14 +7,14 @@ function readFromStorage(key) {
   try {
     const item = window.localStorage.getItem(key);
     if (!item) return [];
-    
+
     const parsed = JSON.parse(item);
-    
+
     // Migrate old object format {group1: true} to new array format ["group1"]
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       return Object.keys(parsed).filter(k => parsed[k] === true);
     }
-    
+
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error('Error reading from localStorage:', error);
@@ -37,7 +37,7 @@ function writeToStorage(key, value) {
  * Custom hook to manage collapsed state of groups.
  * Only collapsed groups are stored in localStorage (expanded is the default state).
  * Uses a Set internally for O(1) lookup performance.
- * 
+ *
  * @param {string} storageKey - Key to use for localStorage
  * @returns {Object} - Object with toggleGroup and isCollapsed functions
  */
@@ -58,7 +58,7 @@ export function useCollapsibleGroups(storageKey = 'collapsedGroups') {
     setCollapsedGroups(prev => {
       // For typical group counts, includes() is simpler and performs well
       const isCurrentlyCollapsed = prev.includes(groupName);
-      
+
       // Toggle: add if not collapsed, remove if collapsed
       return isCurrentlyCollapsed
         ? prev.filter(name => name !== groupName)

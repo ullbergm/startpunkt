@@ -25,7 +25,7 @@ describe('Background', () => {
     // Reset DOM
     document.body.innerHTML = '';
     document.body.style.cssText = '';
-    
+
     // Default mocks
     mockGetBackgroundStyle = jest.fn();
     // Create a dynamic mock that reads from the current mockPreferences
@@ -33,17 +33,17 @@ describe('Background', () => {
       // Get the latest return value from the mock to support tests that update preferences
       const currentMock = useBackgroundPreferences.mock.results[useBackgroundPreferences.mock.results.length - 1];
       const currentPrefs = currentMock?.value?.preferences || mockPreferences;
-      
+
       // Try typePreferences first (new structure)
       const typePrefs = currentPrefs.typePreferences?.[currentPrefs.type];
       if (typePrefs && typePrefs[key] !== undefined) {
         return typePrefs[key];
       }
-      
+
       // Fall back to direct property access (old structure or test mock)
       return currentPrefs[key];
     });
-    
+
     mockPreferences = {
       type: 'theme',
       color: '#F8F6F1',
@@ -154,7 +154,7 @@ describe('Background', () => {
       });
 
       const { rerender } = render(<Background />);
-      
+
       await waitFor(() => {
         expect(document.getElementById('background-overlay')).not.toBeNull();
       });
@@ -329,7 +329,7 @@ describe('Background', () => {
         expect(overlay.style.backgroundImage).toContain('picsum.photos');
         expect(overlay.style.backgroundImage).toContain('1920');
         expect(overlay.style.backgroundImage).toContain('1080');
-        
+
         // Verify date-based seed
         const today = new Date().toISOString().split('T')[0];
         expect(overlay.style.backgroundImage).toContain(today);
@@ -412,7 +412,7 @@ describe('Background', () => {
       mockPreferences.type = 'pictureOfDay';
       mockPreferences.pictureProvider = 'bing';
       mockPreferences.blur = 10;
-      
+
       const mockBingData = {
         imageUrl: 'https://www.bing.com/th?id=OHR.TestImage_1920x1080.jpg',
         copyright: 'Test',
@@ -548,7 +548,7 @@ describe('Background', () => {
   describe('Body Style Management', () => {
     it('should clear body backgroundImage for image types', async () => {
       document.body.style.backgroundImage = 'url(old-image.jpg)';
-      
+
       const imagePrefs = {
         type: 'image',
         imageUrl: 'https://example.com/image.jpg',

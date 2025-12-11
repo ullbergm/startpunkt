@@ -14,13 +14,13 @@ setup:
   - run: ./mvnw --version
     description: Verify Maven wrapper is working
 
-  # Verify Node.js is available for frontend builds (requires v24.2.0 as per pom.xml)
+  # Verify Node.js is available for frontend builds (requires v24.12.0 as per pom.xml)
   - run: |
       if command -v node &> /dev/null; then
         NODE_VERSION=$(node --version)
         echo "Node.js $NODE_VERSION is installed"
       else
-        echo "Warning: Node.js v24.2.0 or later is recommended for frontend development"
+        echo "Warning: Node.js v24.12.0 or later is recommended for frontend development"
       fi
     description: Verify Node.js is available
 

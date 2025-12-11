@@ -36,14 +36,14 @@ describe('useCollapsibleGroups', () => {
   test('migrates old object format to new array format', () => {
     // Set up old format in localStorage
     localStorageMock.setItem('test-key', JSON.stringify({ group1: true, group2: true, group3: false }));
-    
+
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     // Should only include groups that were set to true
     expect(result.current.isCollapsed('group1')).toBe(true);
     expect(result.current.isCollapsed('group2')).toBe(true);
     expect(result.current.isCollapsed('group3')).toBe(false);
-    
+
     // Check that localStorage was migrated to array format
     const stored = JSON.parse(localStorageMock.getItem('test-key'));
     expect(Array.isArray(stored)).toBe(true);
@@ -54,9 +54,9 @@ describe('useCollapsibleGroups', () => {
 
   test('toggleGroup collapses a group when it is expanded', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     expect(result.current.isCollapsed('group1')).toBe(false);
-    
+
     act(() => {
       result.current.toggleGroup('group1');
     });
@@ -66,7 +66,7 @@ describe('useCollapsibleGroups', () => {
 
   test('toggleGroup expands a group when it is collapsed', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     // Collapse the group first
     act(() => {
       result.current.toggleGroup('group1');
@@ -82,7 +82,7 @@ describe('useCollapsibleGroups', () => {
 
   test('isCollapsed returns correct state for a group', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     expect(result.current.isCollapsed('group1')).toBe(false);
 
     act(() => {
@@ -94,13 +94,13 @@ describe('useCollapsibleGroups', () => {
 
   test('isCollapsed returns false for undefined groups', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     expect(result.current.isCollapsed('unknownGroup')).toBe(false);
   });
 
   test('persists state to localStorage', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     act(() => {
       result.current.toggleGroup('group1');
     });
@@ -112,12 +112,12 @@ describe('useCollapsibleGroups', () => {
 
   test('removes expanded groups from localStorage', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     // Collapse group1
     act(() => {
       result.current.toggleGroup('group1');
     });
-    
+
     let stored = JSON.parse(localStorageMock.getItem('test-key'));
     expect(stored).toEqual(['group1']);
 
@@ -132,12 +132,12 @@ describe('useCollapsibleGroups', () => {
 
   test('handles multiple groups independently', () => {
     const { result } = renderHook(() => useCollapsibleGroups('test-key'));
-    
+
     // Collapse group1
     act(() => {
       result.current.toggleGroup('group1');
     });
-    
+
     expect(result.current.isCollapsed('group1')).toBe(true);
     expect(result.current.isCollapsed('group2')).toBe(false);
 

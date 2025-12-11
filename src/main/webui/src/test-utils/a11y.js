@@ -99,13 +99,13 @@ export const expectKeyboardFocusable = (element) => {
 export const expectVisibleFocus = (element) => {
   element.focus();
   expect(document.activeElement).toBe(element);
-  
+
   // Check for focus styles (outline or custom focus styles)
   const styles = window.getComputedStyle(element);
   const hasOutline = styles.outline !== 'none' && styles.outline !== '0px';
   const hasBoxShadow = styles.boxShadow !== 'none';
   const hasBorder = styles.borderWidth !== '0px';
-  
+
   expect(hasOutline || hasBoxShadow || hasBorder).toBe(true);
 };
 
@@ -127,7 +127,7 @@ export const findLiveRegions = (container) => {
 export const expectProperHeadingOrder = (container) => {
   const headings = Array.from(container.querySelectorAll('h1, h2, h3, h4, h5, h6'));
   const levels = headings.map((h) => parseInt(h.tagName.charAt(1), 10));
-  
+
   for (let i = 1; i < levels.length; i++) {
     const diff = levels[i] - levels[i - 1];
     // Allow same level, one level down, or jump to h1
@@ -145,7 +145,7 @@ export const expectAccessibleName = (element) => {
   const textContent = element.textContent.trim();
   const alt = element.getAttribute('alt');
   const title = element.getAttribute('title');
-  
+
   expect(
     ariaLabel || ariaLabelledBy || textContent || alt || title
   ).toBeTruthy();

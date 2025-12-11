@@ -175,7 +175,7 @@ describe('ContentOverlay', () => {
 
   it('updates styling when preferences change', async () => {
     const { rerender } = render(<ContentOverlay />);
-    
+
     // Start with no overlay (opacity 0)
     useBackgroundPreferences.mockReturnValue({
       preferences: {
@@ -191,7 +191,7 @@ describe('ContentOverlay', () => {
         return undefined;
       }
     });
-    
+
     rerender(<ContentOverlay />);
 
     await waitFor(() => {
@@ -213,7 +213,7 @@ describe('ContentOverlay', () => {
         return undefined;
       }
     });
-    
+
     rerender(<ContentOverlay />);
 
     await waitFor(() => {

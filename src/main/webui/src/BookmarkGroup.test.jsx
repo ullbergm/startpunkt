@@ -66,40 +66,40 @@ describe('BookmarkGroup component', () => {
     test('calls onToggle when heading is clicked', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
-        
+
         const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.click(heading);
-        
+
         expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
     test('calls onToggle when Enter key is pressed on heading', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
-        
+
         const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.keyDown(heading, { key: 'Enter' });
-        
+
         expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
     test('calls onToggle when Space key is pressed on heading', () => {
         const onToggle = jest.fn();
         render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} onToggle={onToggle} />);
-        
+
         const heading = screen.getByRole('button', { name: /collapse test group/i });
         fireEvent.keyDown(heading, { key: ' ' });
-        
+
         expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
     test('collapse indicator rotates based on collapsed state', () => {
         const { rerender } = render(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={false} />);
-        
+
         // Find the collapse indicator by searching for the specific span
         let indicator = document.querySelector('span[style*="transform"]');
         expect(indicator.style.transform).toContain('rotate(0deg)');
-        
+
         rerender(<BookmarkGroup group="Test Group" bookmarks={bookmarks} isCollapsed={true} />);
         indicator = document.querySelector('span[style*="transform"]');
         expect(indicator.style.transform).toContain('rotate(-90deg)');

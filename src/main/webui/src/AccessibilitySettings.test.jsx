@@ -39,7 +39,7 @@ describe('AccessibilitySettings component', () => {
     const decreaseBtn = screen.getByLabelText(/decrease font size/i);
     const increaseBtn = screen.getByLabelText(/increase font size/i);
     const resetBtn = screen.getByLabelText(/reset font size to default/i);
-    
+
     expect(decreaseBtn).toBeInTheDocument();
     expect(increaseBtn).toBeInTheDocument();
     expect(resetBtn).toBeInTheDocument();

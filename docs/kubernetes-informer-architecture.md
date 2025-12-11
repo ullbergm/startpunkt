@@ -206,7 +206,7 @@ SharedIndexInformer<Application> informer = kubernetesClient
         @Override
         public void onDelete(Application app, boolean deletedFinalStateUnknown) {
             // Resource deleted
-            applicationCacheService.remove(app.getMetadata().getNamespace(), 
+            applicationCacheService.remove(app.getMetadata().getNamespace(),
                                           app.getMetadata().getName());
             availabilityCheckService.unregisterUrl(app.getSpec().getUrl());
             eventBroadcaster.broadcastApplicationRemoved(app);
@@ -225,13 +225,13 @@ public void onAdd(GenericKubernetesResource resource) {
 }
 
 @Override
-public void onUpdate(GenericKubernetesResource oldResource, 
+public void onUpdate(GenericKubernetesResource oldResource,
                      GenericKubernetesResource newResource) {
     reloadApplicationCache();
 }
 
 @Override
-public void onDelete(GenericKubernetesResource resource, 
+public void onDelete(GenericKubernetesResource resource,
                      boolean deletedFinalStateUnknown) {
     reloadApplicationCache();
 }

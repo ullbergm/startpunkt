@@ -41,7 +41,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
   // Validate individual field
   const validateField = (field, value) => {
     let error = null;
-    
+
     switch (field) {
       case 'namespace':
         if (!value.trim()) {
@@ -75,34 +75,34 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
         }
         break;
     }
-    
+
     return error;
   };
 
   // Validate all required fields
   const validate = () => {
     const newErrors = {};
-    
+
     ['namespace', 'resourceName', 'name', 'url', 'group'].forEach(field => {
       const error = validateField(field, formData[field]);
       if (error) {
         newErrors[field] = error;
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const spec = {
         name: formData.name,
@@ -132,7 +132,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
     }
 
     setLoading(true);
-    
+
     try {
       await onDelete(formData.namespace, formData.resourceName);
     } catch (error) {
@@ -144,10 +144,10 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
 
   const updateField = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    
+
     // Mark field as touched
     setTouched({ ...touched, [field]: true });
-    
+
     // Validate field in real-time
     const error = validateField(field, value);
     setErrors({ ...errors, [field]: error });
@@ -170,7 +170,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
             </h5>
             <button type="button" class="btn-close" onClick={onCancel} aria-label="Close"></button>
           </div>
-          
+
           <form onSubmit={handleSubmit}>
             <div class="modal-body">
               {isReadOnly && (
@@ -202,7 +202,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                     <small id="namespace-help" class="form-text text-muted">Kubernetes namespace (lowercase, alphanumeric, hyphens)</small>
                     {touched.namespace && errors.namespace && <div id="namespace-error" class="invalid-feedback">{errors.namespace}</div>}
                   </div>
-                  
+
                   <div class="col-md-6">
                     <label htmlFor="resourceName" class="form-label">Resource Name *</label>
                     <input
@@ -295,7 +295,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                     disabled={isReadOnly}
                   />
                 </div>
-                
+
                 <div class="col-md-6">
                   <ColorPicker
                     id="iconColor"
@@ -360,7 +360,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                   />
                   <small id="location-help" class="form-text text-muted">Lower numbers appear first</small>
                 </div>
-                
+
                 <div class="col-md-4">
                   <label class="form-label d-block">&nbsp;</label>
                   <div style={{ marginBottom: '1rem' }}>
@@ -374,7 +374,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                     />
                   </div>
                 </div>
-                
+
                 <div class="col-md-4">
                   <label class="form-label d-block">&nbsp;</label>
                   <div style={{ marginBottom: '1rem' }}>
@@ -390,7 +390,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                 </div>
               </div>
             </div>
-            
+
             <div class="modal-footer">
               {mode === 'edit' && !isReadOnly && (
                 <button

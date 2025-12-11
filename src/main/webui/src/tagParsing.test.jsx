@@ -3,11 +3,11 @@ function testGetTagsFromUrl(pathname) {
   if (!pathname || pathname === '/') {
     return null;
   }
-  
+
   // Remove leading slash and trailing slash if present
   const path = pathname.startsWith('/') ? pathname.slice(1) : pathname;
   const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
-  
+
   return cleanPath || null;
 }
 

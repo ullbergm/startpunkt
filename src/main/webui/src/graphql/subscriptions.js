@@ -2,13 +2,13 @@ import { gql } from '@apollo/client';
 
 /**
  * GraphQL Subscription Definitions
- * 
+ *
  * These subscriptions provide real-time updates for applications and bookmarks.
  */
 
 /**
  * Subscribe to all application updates with optional filtering.
- * 
+ *
  * @param {string|null} namespace - Optional namespace filter
  * @param {string[]|null} tags - Optional tags to filter applications
  */

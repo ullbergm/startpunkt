@@ -15,7 +15,7 @@ function separateFavoritesFromGroups(groups, isFavorite, getFavoriteIndex) {
   const favoriteApps = [];
   const newRegularGroups = groups.map(group => {
     const regularApps = [];
-    
+
     if (Array.isArray(group.applications)) {
       group.applications.forEach(app => {
         if (isFavorite(app)) {
@@ -68,7 +68,7 @@ export function ApplicationGroupList(props) {
   // Memoize toggle handlers to prevent unnecessary re-renders
   const groupHandlers = useMemo(() => {
     if (!Array.isArray(props.groups)) return {};
-    
+
     return props.groups.reduce((acc, group) => {
       acc[group.name] = () => toggleGroup(group.name);
       return acc;
@@ -80,10 +80,10 @@ export function ApplicationGroupList(props) {
       <div class="container px-4" id="icon-grid">
         {/* Favorites section - no heading, appears at top */}
         {favoritesGroup && (
-          <ApplicationGroup 
-            key="favorites" 
+          <ApplicationGroup
+            key="favorites"
             group={null}
-            applications={favoritesGroup.applications} 
+            applications={favoritesGroup.applications}
             layoutPrefs={props.layoutPrefs}
             isCollapsed={false}
             isFavorites={true}
@@ -98,10 +98,10 @@ export function ApplicationGroupList(props) {
 
         {/* Regular groups */}
         {regularGroups.map(group => (
-          <ApplicationGroup 
-            key={group.name} 
-            group={group.name} 
-            applications={group.applications} 
+          <ApplicationGroup
+            key={group.name}
+            group={group.name}
+            applications={group.applications}
             layoutPrefs={props.layoutPrefs}
             isCollapsed={isCollapsed(group.name)}
             isFavorites={false}
