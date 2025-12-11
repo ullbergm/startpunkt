@@ -7,4 +7,6 @@
   <!-- Suppress AbbreviationAsWordInName for GraphQL resource classes -->
   <suppress checks="AbbreviationAsWordInName"
             files=".*[\\/]graphql[\\/].*GraphQLResource\.java$"/>
+  <suppress checks="AbbreviationAsWordInName"
+            files=".*[\\/]service[\\/]RemoteStartpunktClient\.java$"/>
 </suppressions>
