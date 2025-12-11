@@ -14,6 +14,6 @@ RUN curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/op
     && mv oc /usr/local/bin/ \
     && rm openshift-client-linux.tar.gz
 
-# Install pre-commit
+# Install pre-commit and bash-completion
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends pre-commit
+    && apt-get -y install --no-install-recommends pre-commit bash-completion
