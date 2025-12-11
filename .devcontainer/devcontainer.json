@@ -40,6 +40,6 @@
       }
     }
   },
-  "postCreateCommand": "./mvnw install -DskipTests && pre-commit install && bash .devcontainer/setup-oc-completion.sh",
+  "postCreateCommand": "./mvnw dependency:go-offline && pre-commit install && bash .devcontainer/setup-oc-completion.sh",
   "remoteUser": "vscode"
 }
