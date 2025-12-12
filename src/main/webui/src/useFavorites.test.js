@@ -198,7 +198,7 @@ describe('useFavorites', () => {
     act(() => {
       result.current.addFavorite(app1);
     });
-    
+
     act(() => {
       result.current.addFavorite(app2);
     });
@@ -220,7 +220,7 @@ describe('useFavorites', () => {
 
     const exported = result.current.exportFavorites();
     expect(typeof exported).toBe('string');
-    
+
     const parsed = JSON.parse(exported);
     expect(parsed.version).toBe(1);
     expect(parsed.favorites).toContain('default/app1');
@@ -321,7 +321,7 @@ describe('useFavorites', () => {
     act(() => {
       result.current.addFavorite(app1);
     });
-    
+
     act(() => {
       result.current.addFavorite(app2);
     });

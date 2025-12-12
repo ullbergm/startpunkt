@@ -16,7 +16,7 @@ describe('PreferenceButtonsStyler', () => {
       document.createElement('button'),
       document.createElement('button')
     ];
-    
+
     mockButtons[0].classList.add('btn');
     mockButtons[1].classList.add('btn');
     mockButtons[2].classList.add('btn');
@@ -247,7 +247,7 @@ describe('PreferenceButtonsStyler', () => {
     });
 
     const { container } = render(<PreferenceButtonsStyler />);
-    
+
     expect(container.firstChild).toBeNull();
   });
 });

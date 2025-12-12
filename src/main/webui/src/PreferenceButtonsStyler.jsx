@@ -5,13 +5,13 @@ import { useBackgroundPreferences } from './useBackgroundPreferences';
  * PreferenceButtonsStyler component applies the content overlay opacity
  * to the preference buttons (Background, Layout, Accessibility, Cluster, WebSocket heart)
  * so they follow the same overlay styling as the main content.
- * 
+ *
  * Opacity behavior:
  * - Theme backgrounds: Default white button styling
  * - 0 (center): Fully transparent with icon only, subtle hover effect
  * - Negative values: White background with opacity (light theme)
  * - Positive values: Black background with opacity (dark theme)
- * 
+ *
  * This component doesn't render anything - it just applies dynamic styles.
  */
 export function PreferenceButtonsStyler() {
@@ -31,7 +31,7 @@ export function PreferenceButtonsStyler() {
       const buttons = document.querySelectorAll(
         '.bd-layout-toggle .btn, .bd-background-toggle .btn, .bd-accessibility-toggle .btn, .bd-cluster-toggle .btn, .bd-websocket-heart .btn'
       );
-      
+
       // Don't apply overlay styling for theme backgrounds
       if (preferences.type === 'theme') {
         // Reset to default white background styling
@@ -46,7 +46,7 @@ export function PreferenceButtonsStyler() {
       }
 
     const opacity = getTypePreference('contentOverlayOpacity') ?? 0.7;
-    
+
     // Middle position (0) = transparent, truly transparent with only icons visible
     if (opacity === 0) {
       buttons.forEach(btn => {
@@ -57,7 +57,7 @@ export function PreferenceButtonsStyler() {
         btn.style.backdropFilter = 'none';
         btn.style.transition = 'background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease';
       });
-      
+
       // Add subtle hover effect for transparent buttons
       const handleMouseEnter = (e) => {
         e.currentTarget.style.backgroundColor = 'rgba(113, 44, 249, 0.1)';
@@ -82,11 +82,11 @@ export function PreferenceButtonsStyler() {
       });
       return;
     }
-    
+
     // Determine background color and text color based on slider value
     let backgroundColor;
     let textColor;
-    
+
     if (opacity < 0) {
       // White side - white background with opacity
       const whiteOpacity = Math.abs(opacity);
@@ -97,14 +97,14 @@ export function PreferenceButtonsStyler() {
       backgroundColor = `rgba(0, 0, 0, ${opacity})`;
       textColor = '#ffffff'; // Use white text for contrast on dark background
     }
-    
+
     // Apply styling to all preference buttons
     buttons.forEach(btn => {
       btn.style.backgroundColor = backgroundColor;
       btn.style.color = textColor;
       btn.style.borderColor = opacity < 0 ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.2)';
-      btn.style.boxShadow = opacity < 0 
-        ? '0 2px 8px rgba(0, 0, 0, 0.15)' 
+      btn.style.boxShadow = opacity < 0
+        ? '0 2px 8px rgba(0, 0, 0, 0.15)'
         : '0 2px 8px rgba(0, 0, 0, 0.4)';
       btn.style.backdropFilter = 'blur(4px)';
       btn.style.transition = 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease';
@@ -123,8 +123,8 @@ export function PreferenceButtonsStyler() {
 
     const handleMouseLeave = (e) => {
       e.currentTarget.style.backgroundColor = backgroundColor;
-      e.currentTarget.style.boxShadow = opacity < 0 
-        ? '0 2px 8px rgba(0, 0, 0, 0.15)' 
+      e.currentTarget.style.boxShadow = opacity < 0
+        ? '0 2px 8px rgba(0, 0, 0, 0.15)'
         : '0 2px 8px rgba(0, 0, 0, 0.4)';
     };
 
@@ -151,8 +151,8 @@ export function PreferenceButtonsStyler() {
     // Set up a MutationObserver to watch for new buttons being added to the DOM
     const observer = new MutationObserver((mutations) => {
       // Check if any of the mutations added our preference buttons
-      const hasRelevantChanges = mutations.some(mutation => 
-        Array.from(mutation.addedNodes).some(node => 
+      const hasRelevantChanges = mutations.some(mutation =>
+        Array.from(mutation.addedNodes).some(node =>
           node.nodeType === 1 && (
             node.classList?.contains('bd-cluster-toggle') ||
             node.classList?.contains('bd-background-toggle') ||

@@ -111,6 +111,14 @@ public class ConfigGraphQLResource {
     public WebSocketConfig websocket;
     public ClustersConfig clusters;
 
+    /**
+     * Constructor for ConfigResponse.
+     *
+     * @param version the application version
+     * @param web the web configuration
+     * @param websocket the websocket configuration
+     * @param clusters the clusters configuration
+     */
     public ConfigResponse(
         String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {
       this.version = version;
@@ -129,6 +137,16 @@ public class ConfigGraphQLResource {
     public boolean defaultShowAllClusters;
     public String searchEngine;
 
+    /**
+     * Constructor for WebConfig.
+     *
+     * @param showGithubLink whether to show the GitHub link
+     * @param checkForUpdates whether to check for updates
+     * @param title the application title
+     * @param refreshInterval the refresh interval
+     * @param defaultShowAllClusters whether to show all clusters by default
+     * @param searchEngine the search engine URL
+     */
     public WebConfig(
         boolean showGithubLink,
         boolean checkForUpdates,

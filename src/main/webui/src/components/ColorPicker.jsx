@@ -108,7 +108,7 @@ export function ColorPicker({ value = '', onChange, disabled = false, id, label 
           aria-label="Color value"
         />
       </div>
-      
+
       {showPicker && (
         <div
           id={`${id}-picker`}

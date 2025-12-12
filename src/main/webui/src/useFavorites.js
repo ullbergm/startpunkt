@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'preact/hooks';
 
 /**
  * Custom hook for managing favorite applications with localStorage persistence
- * 
+ *
  * Storage format:
  * {
  *   "version": 1,
  *   "favorites": ["app-id-1", "app-id-2", ...]
  * }
- * 
+ *
  * Features:
  * - Persistent storage across sessions
  * - Cross-tab synchronization via storage events
@@ -43,13 +43,13 @@ function loadFavorites() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return DEFAULT_FAVORITES;
-    
+
     const data = JSON.parse(stored);
     // Validate structure
     if (!data || !Array.isArray(data.favorites)) {
       return DEFAULT_FAVORITES;
     }
-    
+
     return data;
   } catch (error) {
     console.error('Failed to load favorites from localStorage:', error);
@@ -105,7 +105,7 @@ export function useFavorites() {
    */
   const toggleFavorite = useCallback((app) => {
     if (!app) return;
-    
+
     const appId = getApplicationId(app);
     if (!appId) return;
 
@@ -127,7 +127,7 @@ export function useFavorites() {
    */
   const addFavorite = useCallback((app) => {
     if (!app) return;
-    
+
     const appId = getApplicationId(app);
     if (!appId) return;
 
@@ -147,7 +147,7 @@ export function useFavorites() {
    */
   const removeFavorite = useCallback((app) => {
     if (!app) return;
-    
+
     const appId = getApplicationId(app);
     if (!appId) return;
 
@@ -205,13 +205,13 @@ export function useFavorites() {
   const importFavorites = useCallback((jsonString) => {
     try {
       const data = JSON.parse(jsonString);
-      
+
       // Validate structure
       if (!data || typeof data !== 'object') {
         console.error('Invalid favorites data: not an object');
         return false;
       }
-      
+
       if (!Array.isArray(data.favorites)) {
         console.error('Invalid favorites data: favorites is not an array');
         return false;

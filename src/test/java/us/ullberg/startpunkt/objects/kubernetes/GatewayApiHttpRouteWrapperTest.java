@@ -167,6 +167,7 @@ class GatewayApiHttpRouteWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockHttpRouteResourcesWithMultipleHostnames() {
     GenericKubernetesResource route = createMockHttpRoute("app-multi", "default", true, null);
     Map<String, Object> spec = (Map<String, Object>) route.getAdditionalProperties().get("spec");
@@ -188,6 +189,7 @@ class GatewayApiHttpRouteWrapperTest {
         .always();
   }
 
+  @SuppressWarnings("unchecked")
   private void setupMockHttpRouteResourcesWithNoHostnames() {
     GenericKubernetesResource route = createMockHttpRoute("app-nohost", "default", true, null);
     Map<String, Object> spec = (Map<String, Object>) route.getAdditionalProperties().get("spec");

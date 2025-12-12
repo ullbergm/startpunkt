@@ -11,7 +11,7 @@ import './WebSocketHeartIndicator.scss';
  * - Shows green heart when successfully connected
  * - Shows broken red heart when connecting, disconnected, or has errors
  * - Clicking opens the changelog/What's New modal
- * 
+ *
  * Note: GraphQL subscriptions use websocket ping/pong for keepalive (30s interval),
  * and the heart beats on every ping to show the connection is alive.
  */
@@ -25,12 +25,12 @@ export function WebSocketHeartIndicator({ websocket, onClick }) {
     if (websocket.lastHeartbeat && websocket.lastHeartbeat !== lastHeartbeatTime) {
       setLastHeartbeatTime(websocket.lastHeartbeat);
       setIsBeating(true);
-      
+
       // Stop the beat animation after 500ms
       const timer = setTimeout(() => {
         setIsBeating(false);
       }, 500);
-      
+
       return () => clearTimeout(timer);
     }
   }, [websocket.lastHeartbeat]);
@@ -45,15 +45,15 @@ export function WebSocketHeartIndicator({ websocket, onClick }) {
         title: 'Real-time updates active (GraphQL subscriptions connected)'
       };
     }
-    
+
     // Show broken heart for all other states (connecting, disconnected, or error)
     return {
       icon: 'mdi:heart-broken',
       color: '#dc3545', // Bootstrap danger color
-      title: websocket.hasError 
+      title: websocket.hasError
         ? 'GraphQL subscription error'
-        : (websocket.isConnecting 
-            ? 'Connecting to real-time updates...' 
+        : (websocket.isConnecting
+            ? 'Connecting to real-time updates...'
             : 'Real-time updates not connected')
     };
   };
@@ -61,13 +61,13 @@ export function WebSocketHeartIndicator({ websocket, onClick }) {
   const heartState = getHeartState();
 
   return (
-    <button 
+    <button
       className={`btn btn-bd-primary py-2 d-flex align-items-center ${isBeating ? 'beating' : ''}`}
       title={heartState.title}
       role="status"
       aria-label={heartState.title}
       onClick={onClick}
-      style={{ 
+      style={{
         cursor: onClick ? 'pointer' : 'help',
         minWidth: '35px',  // Match the width of dropdown-toggle buttons
         paddingLeft: '0.65rem',
@@ -75,8 +75,8 @@ export function WebSocketHeartIndicator({ websocket, onClick }) {
       }}
       type="button"
     >
-      <Icon 
-        icon={heartState.icon} 
+      <Icon
+        icon={heartState.icon}
         style={{ color: heartState.color }}
         width="1em"
         height="1em"

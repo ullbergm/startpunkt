@@ -14,7 +14,7 @@ export function Background() {
   const [theme] = useLocalStorage('theme', 'auto');
   const systemPrefersDark = useMediaQuery({ query: "(prefers-color-scheme: dark)" }, undefined, undefined);
   const [bingImageUrl, setBingImageUrl] = useState(null);
-  
+
   // Determine if dark mode is active
   const isDarkMode = theme === 'dark' || (theme === 'auto' && systemPrefersDark);
 
@@ -31,7 +31,7 @@ export function Background() {
   // Fetch Bing Image of the Day when type is pictureOfDay and provider is bing
   useEffect(() => {
     const pictureProvider = backgroundPrefs.getTypePreference('pictureProvider');
-    if (backgroundPrefs.preferences.type === 'pictureOfDay' && 
+    if (backgroundPrefs.preferences.type === 'pictureOfDay' &&
         pictureProvider === 'bing') {
       // Fetch image via GraphQL - server-side caching and browser HTTP cache will handle performance
       const fetchBingImage = async () => {
@@ -60,13 +60,13 @@ export function Background() {
 
   useEffect(() => {
     const style = backgroundPrefs.getBackgroundStyle(isDarkMode);
-    const isImageType = backgroundPrefs.preferences.type === 'image' || 
+    const isImageType = backgroundPrefs.preferences.type === 'image' ||
                         backgroundPrefs.preferences.type === 'pictureOfDay' ||
                         backgroundPrefs.preferences.type === 'geopattern';
-    
+
     // Get or create background overlay for images (to handle opacity and blur)
     let overlay = document.getElementById('background-overlay');
-    
+
     if (isImageType) {
       // For images, use an overlay to properly handle opacity without affecting content
       if (!overlay) {
@@ -81,7 +81,7 @@ export function Background() {
         overlay.style.pointerEvents = 'none';
         document.body.insertBefore(overlay, document.body.firstChild);
       }
-      
+
       // Handle different background types
       if (backgroundPrefs.preferences.type === 'geopattern') {
         // Geopattern - apply the generated pattern
@@ -92,7 +92,7 @@ export function Background() {
         overlay.style.opacity = style.opacity || 1.0;
         overlay.style.filter = 'none';
         overlay.style.transform = 'none';
-        
+
         // Clear body background
         document.body.style.backgroundImage = 'none';
         document.body.style.background = 'none';
@@ -101,7 +101,7 @@ export function Background() {
         // Picture of Day or Custom Image
         const todaySeed = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
         let imageUrl;
-        
+
         if (backgroundPrefs.preferences.type === 'pictureOfDay') {
           // Check which provider to use
           const provider = backgroundPrefs.getTypePreference('pictureProvider') || 'picsum';
@@ -114,17 +114,17 @@ export function Background() {
         } else {
           imageUrl = backgroundPrefs.getTypePreference('imageUrl');
         }
-        
+
         // Validate URL before using
         if (imageUrl && isValidUrl(imageUrl)) {
           overlay.style.backgroundImage = `url(${encodeURI(imageUrl)})`;
           overlay.style.backgroundSize = 'cover';
           overlay.style.backgroundPosition = 'center';
           overlay.style.backgroundRepeat = 'no-repeat';
-          
+
           // Apply opacity from style (for images)
           overlay.style.opacity = style.opacity || 1.0;
-          
+
           // Apply blur if enabled
           const blur = backgroundPrefs.getTypePreference('blur') || 0;
           if (blur > 0) {
@@ -132,10 +132,10 @@ export function Background() {
           } else {
             overlay.style.filter = 'none';
           }
-          
+
           // Always apply a slight scale to prevent blur edges from showing at the viewport boundaries
           overlay.style.transform = 'scale(1.05)';
-          
+
           // Clear body background to prevent doubling
           document.body.style.backgroundImage = 'none';
           document.body.style.background = 'none';
@@ -154,11 +154,11 @@ export function Background() {
       if (overlay) {
         overlay.remove();
       }
-      
+
       // Clear any previous background settings
       document.body.style.backgroundImage = 'none';
       document.body.style.opacity = ''; // Don't apply opacity to body for non-images
-      
+
       // For 'theme' type, clear background to let theme colors show through
       if (backgroundPrefs.preferences.type === 'theme') {
         document.body.style.background = '';
@@ -171,8 +171,8 @@ export function Background() {
           if (property === 'opacity') {
             return;
           }
-          
-          if (property === 'backgroundImage' || property === 'backgroundSize' || 
+
+          if (property === 'backgroundImage' || property === 'backgroundSize' ||
               property === 'backgroundPosition' || property === 'backgroundRepeat') {
             document.body.style[property] = style[property];
           } else if (property === 'background') {
@@ -184,7 +184,7 @@ export function Background() {
             document.body.style.animation = style[property];
           }
         });
-        
+
         // Add keyframes for mesh gradient animation if needed
         const meshAnimated = backgroundPrefs.getTypePreference('meshAnimated');
         if (backgroundPrefs.preferences.type === 'meshGradient' && meshAnimated) {

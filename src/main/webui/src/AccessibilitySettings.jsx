@@ -53,9 +53,9 @@ export function AccessibilitySettings() {
       </svg>
 
       <div class="dropdown bd-accessibility-toggle">
-        <button 
-          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
-          id="bd-accessibility" 
+        <button
+          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+          id="bd-accessibility"
           type="button"
           aria-expanded="false"
           data-bs-toggle="dropdown"
@@ -66,8 +66,8 @@ export function AccessibilitySettings() {
           </svg>
           <span class="visually-hidden" id="bd-accessibility-text"><Text id="accessibility.title">Accessibility</Text></span>
         </button>
-        
-        <div 
+
+        <div
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-accessibility-text"
           style="width: 275px; max-height: 80vh; overflow-y: auto;"
@@ -75,14 +75,14 @@ export function AccessibilitySettings() {
         >
           <div class="px-3 py-2">
             <h6 class="mb-3"><Text id="accessibility.settings">Accessibility Settings</Text></h6>
-            
+
             {/* Font Size Controls */}
             <div class="mb-3">
               <label class="form-label small mb-2">
                 <Text id="accessibility.fontSize">Font Size</Text>: {fontSize}%
               </label>
               <div class="d-flex gap-2 mb-2">
-                <button 
+                <button
                   class="btn btn-sm btn-outline-primary flex-grow-1"
                   onClick={decreaseFontSize}
                   disabled={fontSize <= 75}
@@ -91,7 +91,7 @@ export function AccessibilitySettings() {
                 >
                   A−
                 </button>
-                <button 
+                <button
                   class="btn btn-sm btn-outline-secondary"
                   onClick={resetFontSize}
                   aria-label="Reset font size to default"
@@ -99,7 +99,7 @@ export function AccessibilitySettings() {
                 >
                   <Text id="accessibility.resetFontSize">Reset</Text>
                 </button>
-                <button 
+                <button
                   class="btn btn-sm btn-outline-primary flex-grow-1"
                   onClick={increaseFontSize}
                   disabled={fontSize >= 200}
@@ -109,7 +109,7 @@ export function AccessibilitySettings() {
                   A+
                 </button>
               </div>
-              <input 
+              <input
                 type="range"
                 class="form-range"
                 id="fontSizeSlider"
@@ -127,9 +127,9 @@ export function AccessibilitySettings() {
             {/* High Contrast Mode */}
             <div class="mb-3">
               <div class="form-check form-switch">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
+                <input
+                  class="form-check-input"
+                  type="checkbox"
                   id="highContrastMode"
                   checked={highContrast}
                   onChange={toggleHighContrast}

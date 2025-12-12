@@ -8,7 +8,7 @@ export function BookmarkGroupList(props) {
   // Memoize toggle handlers to prevent unnecessary re-renders
   const groupHandlers = useMemo(() => {
     if (!Array.isArray(props.groups)) return {};
-    
+
     return props.groups.reduce((acc, group) => {
       acc[group.name] = () => toggleGroup(group.name);
       return acc;
@@ -19,10 +19,10 @@ export function BookmarkGroupList(props) {
     <div>
       <div class="container px-4" id="icon-grid">
         {Array.isArray(props.groups) && props.groups.map(group => (
-          <BookmarkGroup 
-            key={group.name} 
-            group={group.name} 
-            bookmarks={group.bookmarks} 
+          <BookmarkGroup
+            key={group.name}
+            group={group.name}
+            bookmarks={group.bookmarks}
             layoutPrefs={props.layoutPrefs}
             isCollapsed={isCollapsed(group.name)}
             onToggle={groupHandlers[group.name]}

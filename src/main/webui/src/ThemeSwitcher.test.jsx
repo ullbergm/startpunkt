@@ -54,7 +54,7 @@ beforeEach(() => {
   global._mockTheme = 'auto';
   global._mockSystemPrefersDark = false;
   global._mockBackgroundType = 'theme';
-  
+
   jest.spyOn(document.body.style, 'setProperty');
 });
 afterEach(() => {

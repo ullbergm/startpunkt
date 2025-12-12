@@ -54,10 +54,10 @@ describe('IconPicker', () => {
     });
 
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={() => {}} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'home' } });
-    
+
     await waitFor(() => {
       expect(client.query).toHaveBeenCalled();
     });
@@ -65,10 +65,10 @@ describe('IconPicker', () => {
 
   it('should not search for queries less than 2 characters', () => {
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={() => {}} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'a' } });
-    
+
     expect(client.query).not.toHaveBeenCalled();
   });
 
@@ -84,15 +84,15 @@ describe('IconPicker', () => {
 
     const handleChange = jest.fn();
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={handleChange} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'home' } });
-    
+
     await waitFor(() => {
       const option = screen.getByRole('option', { name: /mdi:home/ });
       fireEvent.click(option);
     });
-    
+
     expect(handleChange).toHaveBeenCalledWith('mdi:home');
   });
 
@@ -107,14 +107,14 @@ describe('IconPicker', () => {
     });
 
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={() => {}} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'home' } });
-    
+
     await waitFor(() => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
-    
+
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     const firstOption = screen.getByRole('option', { name: /mdi:home/ });
     expect(firstOption).toHaveClass('selected');
@@ -132,17 +132,17 @@ describe('IconPicker', () => {
 
     const handleChange = jest.fn();
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={handleChange} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'home' } });
-    
+
     await waitFor(() => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
-    
+
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
-    
+
     expect(handleChange).toHaveBeenCalledWith('mdi:home');
   });
 
@@ -157,16 +157,16 @@ describe('IconPicker', () => {
     });
 
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={() => {}} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     fireEvent.input(input, { target: { value: 'home' } });
-    
+
     await waitFor(() => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
-    
+
     fireEvent.keyDown(input, { key: 'Escape' });
-    
+
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
@@ -178,7 +178,7 @@ describe('IconPicker', () => {
 
   it('should have proper ARIA attributes', () => {
     render(<IconPicker id="test-icon" label="Icon" value="" onChange={() => {}} />);
-    
+
     const input = screen.getByRole('textbox', { name: 'Icon name or URL' });
     expect(input).toHaveAttribute('aria-autocomplete', 'list');
     expect(input).toHaveAttribute('aria-expanded', 'false');

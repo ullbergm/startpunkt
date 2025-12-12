@@ -495,7 +495,7 @@
               <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
-              <nodeVersion>v24.2.0</nodeVersion>
+              <nodeVersion>v24.12.0</nodeVersion>
               <npmVersion>11.3.0</npmVersion>
               <!-- Install node into the build directory rather than under src to avoid adding build artifacts into source tree. -->
               <installDirectory>${project.build.directory}/frontend-node</installDirectory>

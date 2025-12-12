@@ -115,8 +115,10 @@ public class AvailabilityCheckService {
 
     if (ignoreCertificates) {
       Log.warn(
-          "SSL certificate validation and hostname verification are disabled for availability checks. "
-              + "This is insecure and should only be used in development environments.");
+          "SSL certificate validation and hostname verification "
+              + "are disabled for availability checks. "
+              + "This is insecure and should only be used in "
+              + "development environments.");
       try {
         // Create a trust manager that accepts all certificates
         TrustManager[] trustAllCerts =
@@ -272,7 +274,8 @@ public class AvailabilityCheckService {
           url, failures, maxRetries, delay);
     } else {
       Log.warnf(
-          "Availability check failed for %s (attempt %d, exceeded max retries %d), backing off for %d ms",
+          "Availability check failed for %s (attempt %d, exceeded max retries %d), "
+              + "backing off for %d ms",
           url, failures, maxRetries, delay);
     }
   }
@@ -434,7 +437,7 @@ public class AvailabilityCheckService {
    */
   public void unregisterUrl(String url) {
     if (url != null && !url.isEmpty()) {
-      boolean wasPresent = availabilityCache.remove(url) != null;
+      final boolean wasPresent = availabilityCache.remove(url) != null;
       previousAvailabilityCache.remove(url);
       consecutiveFailures.remove(url);
       nextCheckTime.remove(url);

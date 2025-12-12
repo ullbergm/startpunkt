@@ -21,7 +21,7 @@ permissions:
 jobs:
   capture-screenshots:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -144,9 +144,9 @@ jobs:
             info: Secrets management
             tags: security,secrets
           EOF
-          
+
           kubectl apply -f /tmp/k8s-resources/sample-applications.yaml
-          
+
           cat > /tmp/k8s-resources/sample-bookmarks.yaml << 'EOF'
           ---
           apiVersion: startpunkt.ullberg.us/v1alpha4
@@ -185,9 +185,9 @@ jobs:
                 icon: mdi:stack-overflow
                 info: Developer Q&A
           EOF
-          
+
           kubectl apply -f /tmp/k8s-resources/sample-bookmarks.yaml
-          
+
           # Verify resources were created
           echo "Applications created:"
           kubectl get applications.startpunkt.ullberg.us -A
@@ -204,14 +204,14 @@ jobs:
         run: |
           # Find the uber jar (it will be named something like startpunkt-*-runner.jar)
           UBER_JAR=$(ls target/*-runner.jar 2>/dev/null | head -1)
-          
+
           if [ -z "$UBER_JAR" ]; then
             echo "Uber jar not found, trying regular quarkus jar..."
             UBER_JAR="target/quarkus-app/quarkus-run.jar"
           fi
-          
+
           echo "Starting application with jar: $UBER_JAR"
-          
+
           # Start the application in background
           java -jar "$UBER_JAR" \
             -Dquarkus.http.port=8080 \
@@ -221,10 +221,10 @@ jobs:
             -Dstartpunkt.availability.enabled=false \
             -Dstartpunkt.websocket.enabled=false \
             > /tmp/app.log 2>&1 &
-          
+
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-          
+
           # Wait for application to start
           echo "Waiting for application to start..."
           for i in {1..60}; do
@@ -235,7 +235,7 @@ jobs:
             echo "Waiting... ($i/60)"
             sleep 2
           done
-          
+
           # Check if app is running
           if ! curl -s http://localhost:8080/q/health/ready > /dev/null 2>&1; then
             echo "Application failed to start!"
@@ -270,11 +270,11 @@ jobs:
           # Copy screenshots to docs/images/features/
           mkdir -p docs/images/features
           cp -r .github/workflows/screenshot-scripts/screenshots/* docs/images/features/
-          
+
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Commit and push if there are changes
           git add docs/images/features/
           if git diff --staged --quiet; then

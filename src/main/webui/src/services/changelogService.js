@@ -28,12 +28,12 @@ function linkifyUsernames(text) {
   return text.replace(/@(\w+(?:-\w+)*)/g, (match, username) => {
     const lowerUsername = username.toLowerCase();
     const botPatterns = ['copilot', 'renovate', 'dependabot', 'github-actions', 'imgbot'];
-    
+
     // Skip if it's a bot account
     if (botPatterns.some(bot => lowerUsername.includes(bot))) {
       return match;
     }
-    
+
     return `<a href="https://github.com/${username}" target="_blank" rel="noopener noreferrer" class="username-link">${match}</a>`;
   });
 }
@@ -88,17 +88,17 @@ function parseReleaseBody(body) {
 
   const highlights = [];
   const allChanges = [];
-  
+
   // Split by lines and process
   const lines = body.split('\n').map(line => line.trim()).filter(Boolean);
-  
+
   let currentSection = null;
   let currentType = null;
   let pendingTitle = null;
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
+
     // Check for section headers
     if (line.match(/^##\s*(Features?|New)/i)) {
       currentSection = 'features';
@@ -127,21 +127,21 @@ function parseReleaseBody(body) {
       pendingTitle = null;
       continue;
     }
-    
+
     // Check for bold text (potential title for next line)
     const boldOnlyMatch = line.match(/^\*\*(.+?)\*\*$/);
     if (boldOnlyMatch && currentSection) {
       pendingTitle = boldOnlyMatch[1];
       continue;
     }
-    
+
     // Parse bullet points
     if (line.startsWith('-') || line.startsWith('*')) {
       const text = line.substring(1).trim();
-      
+
       // Try to extract title and description from bold formatting on same line
       const boldMatch = text.match(/\*\*(.+?)\*\*:?\s*(.*)/);
-      
+
       if (boldMatch && currentType && highlights.length < 5) {
         // Add to highlights (first 5 only)
         highlights.push({
@@ -150,7 +150,7 @@ function parseReleaseBody(body) {
           description: boldMatch[2] || text
         });
       }
-      
+
       // Add to all changes
       allChanges.push(text.replace(/\*\*/g, '')); // Remove bold markers
     } else if (pendingTitle && currentType && currentSection) {
@@ -165,7 +165,7 @@ function parseReleaseBody(body) {
       pendingTitle = null;
     }
   }
-  
+
   return { highlights, allChanges };
 }
 
@@ -174,7 +174,7 @@ function parseReleaseBody(body) {
  */
 function transformGitHubRelease(release) {
   const { highlights, allChanges } = parseReleaseBody(release.body);
-  
+
   return {
     version: release.tag_name.replace(/^v/, ''), // Remove 'v' prefix
     date: release.published_at.split('T')[0], // Extract date only
@@ -195,14 +195,14 @@ function getCachedChangelog() {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
     if (!cached) return null;
-    
+
     const { data, timestamp } = JSON.parse(cached);
-    
+
     // Check if cache is still valid
     if (Date.now() - timestamp < CACHE_DURATION) {
       return data;
     }
-    
+
     // Cache expired
     return null;
   } catch (e) {
@@ -235,39 +235,39 @@ export async function fetchChangelog() {
     console.log('[Changelog] Using cached data');
     return cached;
   }
-  
+
   try {
     console.log('[Changelog] Fetching from GitHub...');
-    
+
     const response = await fetch(GITHUB_API_URL, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
         // Note: No auth token needed for public repos, but rate limited to 60 req/hour
       }
     });
-    
+
     if (!response.ok) {
       throw new Error(`GitHub API error: ${response.status}`);
     }
-    
+
     const releases = await response.json();
-    
+
     // Transform releases to our format
     const changelog = releases
       .filter(release => !release.draft && !release.prerelease) // Only published releases
       .slice(0, 10) // Keep last 10 releases
       .map(transformGitHubRelease);
-    
+
     console.log(`[Changelog] Fetched ${changelog.length} releases from GitHub`);
-    
+
     // Cache the results
     setCachedChangelog(changelog);
-    
+
     return changelog;
   } catch (error) {
     console.error('[Changelog] Failed to fetch from GitHub:', error);
     console.log('[Changelog] Using fallback data');
-    
+
     // Return fallback data
     return FALLBACK_CHANGELOG;
   }
@@ -288,14 +288,14 @@ export async function getLatestRelease() {
 function compareVersions(v1, v2) {
   const parts1 = v1.split('.').map(Number);
   const parts2 = v2.split('.').map(Number);
-  
+
   for (let i = 0; i < 3; i++) {
     const p1 = parts1[i] || 0;
     const p2 = parts2[i] || 0;
     if (p1 > p2) return 1;
     if (p1 < p2) return -1;
   }
-  
+
   return 0;
 }
 
@@ -307,40 +307,40 @@ function compareVersions(v1, v2) {
  */
 export async function getNewReleasesSince(lastSeenVersion, currentVersion) {
   const changelog = await fetchChangelog();
-  
+
   // Clean up the current version (remove -SNAPSHOT suffix if present)
   const cleanCurrentVersion = currentVersion ? currentVersion.replace('-SNAPSHOT', '') : null;
-  
+
   // If no last seen version (first time user), return only releases up to current version
   if (!lastSeenVersion) {
     if (!cleanCurrentVersion) {
       // If we don't have a current version either, return latest
       return changelog.slice(0, 1);
     }
-    
+
     // For first-time users, show only the release that matches the running version
     const matchingRelease = changelog.find(release => {
       return compareVersions(release.version, cleanCurrentVersion) === 0;
     });
-    
+
     // If exact match found, return it; otherwise return nothing
     return matchingRelease ? [matchingRelease] : [];
   }
-  
+
   // Filter releases that are newer than lastSeenVersion but not newer than current version
   const newReleases = changelog.filter(release => {
     const isNewerThanLastSeen = compareVersions(release.version, lastSeenVersion) > 0;
-    
+
     // If we have a current version, also check that the release is not newer than it
     if (cleanCurrentVersion) {
       const isNotNewerThanCurrent = compareVersions(release.version, cleanCurrentVersion) <= 0;
       return isNewerThanLastSeen && isNotNewerThanCurrent;
     }
-    
+
     // If no current version specified, just return releases newer than last seen
     return isNewerThanLastSeen;
   });
-  
+
   return newReleases;
 }
 

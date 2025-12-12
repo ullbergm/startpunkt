@@ -22,12 +22,12 @@
 
 .skeleton-loader {
   width: 100%;
-  
+
   // Pulse animation for all skeleton elements
   .skeleton-pulse {
     animation: skeleton-pulse 1.5s ease-in-out infinite;
   }
-  
+
   // Base skeleton element styles
   .skeleton-text,
   .skeleton-icon,
@@ -36,23 +36,23 @@
     border-radius: 4px;
     display: block;
   }
-  
+
   .skeleton-text {
     border-radius: 3px;
   }
-  
+
   .skeleton-badge {
     border-radius: 12px;
   }
-  
+
   .skeleton-icon {
     border-radius: 8px;
   }
-  
+
   .skeleton-heading {
     border-radius: 4px;
   }
-  
+
   // Theme-specific colors
   // Light theme (for dark backgrounds)
   .skeleton-theme-light {
@@ -61,7 +61,7 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 8px;
     }
-    
+
     &.skeleton-text,
     &.skeleton-icon,
     &.skeleton-badge,
@@ -77,7 +77,7 @@
       animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
     }
   }
-  
+
   // Dark theme (for light backgrounds)
   .skeleton-theme-dark {
     &.skeleton-card {
@@ -85,7 +85,7 @@
       border: 1px solid rgba(0, 0, 0, 0.1);
       border-radius: 8px;
     }
-    
+
     &.skeleton-text,
     &.skeleton-icon,
     &.skeleton-badge,
@@ -101,7 +101,7 @@
       animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
     }
   }
-  
+
   // Auto/neutral theme (gray - works on most backgrounds)
   .skeleton-theme-auto {
     &.skeleton-card {
@@ -109,7 +109,7 @@
       border: 1px solid rgba(128, 128, 128, 0.15);
       border-radius: 8px;
     }
-    
+
     &.skeleton-text,
     &.skeleton-icon,
     &.skeleton-badge,
@@ -125,20 +125,20 @@
       animation: skeleton-shimmer 2s ease-in-out infinite, skeleton-pulse 1.5s ease-in-out infinite;
     }
   }
-  
+
   // Ensure skeleton cards maintain structure
   .skeleton-card {
     position: relative;
     overflow: hidden;
     min-height: 80px;
   }
-  
+
   // Grid responsiveness
   .skeleton-grid {
     @media (max-width: 767px) {
       grid-template-columns: 1fr !important;
     }
-    
+
     @media (min-width: 768px) and (max-width: 991px) {
       grid-template-columns: repeat(2, 1fr) !important;
     }
@@ -151,7 +151,7 @@
     .skeleton-pulse {
       animation: none;
     }
-    
+
     .skeleton-text,
     .skeleton-icon,
     .skeleton-badge,

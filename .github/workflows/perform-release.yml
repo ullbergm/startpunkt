@@ -55,14 +55,14 @@ jobs:
         run: |
           # Get the highest version tag using git's version sort
           LATEST_TAG=$(git tag --list "v*" --sort=version:refname | tail -n 1)
-          
+
           # Fallback if no tags exist
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v0.0.0"
           fi
-          
+
           echo "Latest tag: $LATEST_TAG"
-          
+
           # Remove the 'v' prefix
           CURRENT_VERSION=${LATEST_TAG#v}
           echo "Current released version: $CURRENT_VERSION"

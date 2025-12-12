@@ -1,0 +1,45 @@
+{
+  "name": "Startpunkt (Java 21 & Node.js)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24.12.0"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "dockerDashComposeVersion": "none"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "redhat.java",
+        "redhat.vscode-quarkus",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker",
+        "humao.rest-client",
+        "redhat.vscode-microprofile",
+        "shengc.vscode-checkstyle"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "redhat.telemetry.enabled": false,
+        "xml.format.enabled": true,
+        "yaml.format.enable": true
+      }
+    }
+  },
+  "postCreateCommand": "./mvnw dependency:go-offline && pre-commit install && bash .devcontainer/setup-oc-completion.sh",
+  "remoteUser": "vscode"
+}

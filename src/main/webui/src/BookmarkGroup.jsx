@@ -2,14 +2,14 @@ import { Bookmark } from './Bookmark';
 
 export function BookmarkGroup(props) {
   const { layoutPrefs, isCollapsed, onToggle, onEditBookmark, showClusterName } = props;
-  
+
   // Get CSS variables and grid template from layout preferences
   const cssVars = layoutPrefs ? layoutPrefs.getCSSVariables() : {};
   const gridTemplate = layoutPrefs ? layoutPrefs.getGridTemplateColumns() : 'repeat(5, 1fr)';
-  
+
   // Determine padding class based on compact mode
   const paddingClass = layoutPrefs?.preferences.compactMode ? 'py-3' : 'py-5';
-  
+
   // Use CSS Grid with responsive columns
   // The gridTemplateColumns will be overridden by CSS media queries for mobile
   const gridStyle = {
@@ -34,7 +34,7 @@ export function BookmarkGroup(props) {
 
   return (
     <div style={{ marginBottom: cssVars['--group-spacing'] || '3rem' }}>
-      <h2 
+      <h2
         class="pb-2 border-bottom text-uppercase"
         style={{ cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         onClick={handleToggle}
@@ -45,7 +45,7 @@ export function BookmarkGroup(props) {
         aria-controls={`bookmark-group-${props.group.replace(/\s+/g, '-')}`}
         aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${props.group} bookmark group`}
       >
-        <span 
+        <span
           style={{ fontSize: '0.8em', transition: 'transform 0.2s', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
           aria-hidden="true"
         >
@@ -55,7 +55,7 @@ export function BookmarkGroup(props) {
       </h2>
 
       {!isCollapsed && (
-        <div 
+        <div
           class={`${paddingClass} bookmark-grid`}
           style={gridStyle}
           id={`bookmark-group-${props.group.replace(/\s+/g, '-')}`}

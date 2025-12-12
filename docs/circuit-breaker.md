@@ -108,7 +108,7 @@ export async function fetchChangelog() {
   if (cached) {
     return cached;
   }
-  
+
   try {
     const response = await fetch(GITHUB_API_URL);
     if (!response.ok) {

@@ -15,13 +15,13 @@ export function useQuery(query, variables = {}, skip = false) {
 
   const execute = async (vars = variables) => {
     if (skip) return;
-    
+
     setLoading(true);
     setError(null);
 
     try {
       const result = await client.query(query, vars).toPromise();
-      
+
       if (result.error) {
         setError(result.error);
         setData(null);
@@ -65,7 +65,7 @@ export function useMutation(mutation) {
 
     try {
       const result = await client.mutation(mutation, variables).toPromise();
-      
+
       if (result.error) {
         setError(result.error);
         setData(null);

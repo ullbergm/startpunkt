@@ -163,7 +163,7 @@ The screenshot workflow:
 
 **Running the Workflow:**
 
-1. **Manual Trigger**: 
+1. **Manual Trigger**:
    - Go to [Actions → Capture Feature Screenshots](https://github.com/ullbergm/startpunkt/actions/workflows/capture-screenshots.yml)
    - Click "Run workflow"
    - Choose whether to commit screenshots to the repository

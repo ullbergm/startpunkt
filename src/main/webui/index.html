@@ -11,19 +11,19 @@
       (function() {
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
+
         let bgColor = '#111827'; // default dark
         let themeClass = 'dark';
-        
+
         if (savedTheme === 'high-contrast') {
           bgColor = '#000000';
           themeClass = 'high-contrast';
         }
-        
+
         // Apply immediately to prevent any flash
         document.documentElement.style.backgroundColor = bgColor;
         document.documentElement.className = themeClass;
-        
+
         // Also set a data attribute for debugging
         document.documentElement.setAttribute('data-theme', themeClass);
       })();

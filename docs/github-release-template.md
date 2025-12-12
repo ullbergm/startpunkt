@@ -66,7 +66,7 @@ The "All Changes" section should contain a bulleted list:
 ```markdown
 ## All Changes
 - First change item
-- Second change item  
+- Second change item
 - Third change item
 ```
 

@@ -76,7 +76,7 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     expect(button).toBeInTheDocument();
   });
@@ -87,7 +87,7 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     expect(button).toHaveAttribute('data-bs-toggle', 'dropdown');
   });
@@ -98,13 +98,13 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     const select = screen.getByDisplayValue('Solid Color');
     expect(select).toBeInTheDocument();
-    
+
     // Check that all options are present
     expect(screen.getByText('Solid Color')).toBeInTheDocument();
     expect(screen.getByText('Gradient')).toBeInTheDocument();
@@ -118,10 +118,10 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     const colorInput = screen.getByLabelText('Color');
     expect(colorInput).toBeInTheDocument();
     expect(colorInput).toHaveAttribute('type', 'color');
@@ -133,10 +133,10 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     const opacitySlider = screen.getByRole('slider', { name: /Opacity: 100%/i });
     expect(opacitySlider).toBeInTheDocument();
   });
@@ -147,26 +147,26 @@ describe('BackgroundSettings', () => {
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     const resetButton = screen.getByText('Reset to Defaults');
     expect(resetButton).toBeInTheDocument();
   });
 
   test('displays theme mode selection when type is theme', () => {
     mockPreferences.type = 'theme';
-    
+
     render(
       <IntlProvider definition={{}}>
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Theme Mode')).toBeInTheDocument();
     expect(screen.getByTitle('Light mode')).toBeInTheDocument();
     expect(screen.getByTitle('Dark mode')).toBeInTheDocument();
@@ -175,47 +175,47 @@ describe('BackgroundSettings', () => {
 
   test('does not display theme mode selection when type is not theme', () => {
     mockPreferences.type = 'solid';
-    
+
     render(
       <IntlProvider definition={{}}>
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     expect(screen.queryByText('Theme Mode')).not.toBeInTheDocument();
   });
 
   test('does not display opacity slider when type is theme', () => {
     mockPreferences.type = 'theme';
-    
+
     render(
       <IntlProvider definition={{}}>
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     expect(screen.queryByRole('slider', { name: /Opacity/i })).not.toBeInTheDocument();
   });
 
   test('calls setTheme when theme mode button is clicked', () => {
     const { writeStorage } = require('@rehooks/local-storage');
     mockPreferences.type = 'theme';
-    
+
     render(
       <IntlProvider definition={{}}>
         <BackgroundSettings />
       </IntlProvider>
     );
-    
+
     const button = screen.getByLabelText('Background settings');
     fireEvent.click(button);
-    
+
     // Click dark theme button
     fireEvent.click(screen.getByTitle('Dark mode'));
     expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');

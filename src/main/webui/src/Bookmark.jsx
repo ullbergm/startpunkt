@@ -5,30 +5,30 @@ export function Bookmark(props) {
   const { layoutPrefs, onEdit, showClusterName } = props;
   const isEditable = !props.bookmark.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode;
-  
+
   // Get preferences with defaults
   const viewMode = layoutPrefs?.preferences.viewMode || 'grid';
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
   const iconSize = layoutPrefs?.getCSSVariables()['--card-icon-size']?.replace('px', '') || '48';
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
-  
+
   // Build container style
   const containerStyle = {
     transform: 'rotate(0)',
     padding: padding,
     position: 'relative',
-    ...(editMode && isEditable && { 
+    ...(editMode && isEditable && {
       outline: '2px solid rgba(13, 110, 253, 0.5)',
       outlineOffset: '2px',
       borderRadius: '4px',
       backgroundColor: 'rgba(13, 110, 253, 0.05)',
       cursor: 'pointer'
     }),
-    ...(editMode && !isEditable && { 
+    ...(editMode && !isEditable && {
       opacity: '0.6'
     })
   };
-  
+
   const handleClick = (e) => {
     if (editMode && isEditable && onEdit) {
       e.preventDefault();
@@ -36,7 +36,7 @@ export function Bookmark(props) {
       onEdit(props.bookmark);
     }
   };
-  
+
   const renderIcon = (icon, name, size) => {
     const iconStyle = {
       minWidth: `${size}px`,
@@ -48,7 +48,7 @@ export function Bookmark(props) {
       alignItems: 'center',
       justifyContent: 'center'
     };
-    
+
     if (!icon) return null;
     if (icon.includes('://')) {
       return (
@@ -76,15 +76,15 @@ export function Bookmark(props) {
       </div>
     );
   };
-  
+
   // List view - compact horizontal layout
   if (viewMode === 'list') {
     return (
-      <div 
-        class="d-flex align-items-start" 
+      <div
+        class="d-flex align-items-start"
         style={containerStyle}
         onClick={handleClick}
-        role="article" 
+        role="article"
         aria-label={`Bookmark: ${props.bookmark.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
       >
         {!editMode && (
@@ -107,14 +107,14 @@ export function Bookmark(props) {
       </div>
     );
   }
-  
+
   // Grid view - standard card layout
   return (
-    <div 
-      class="d-flex align-items-start" 
+    <div
+      class="d-flex align-items-start"
       style={containerStyle}
       onClick={handleClick}
-      role="article" 
+      role="article"
       aria-label={`Bookmark: ${props.bookmark.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
     >
       {!editMode && (
@@ -136,9 +136,9 @@ export function Bookmark(props) {
         )}
         {showClusterName && props.bookmark.cluster && props.bookmark.cluster !== 'local' && (
           <div class="mt-1">
-            <span 
-              class="badge bg-info text-dark" 
-              style={{ fontSize: '0.65rem' }} 
+            <span
+              class="badge bg-info text-dark"
+              style={{ fontSize: '0.65rem' }}
               role="status"
               aria-label={`Cluster: ${props.bookmark.cluster}`}
               title={`This bookmark is from the ${props.bookmark.cluster} cluster`}

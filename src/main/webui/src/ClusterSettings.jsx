@@ -5,10 +5,10 @@ import { useClusterPreferences } from './useClusterPreferences';
 
 /**
  * ClusterSettings component - provides UI for filtering applications by cluster
- * 
+ *
  * Shows a dropdown menu with toggles for each available cluster.
  * Only visible when multiple clusters are available.
- * 
+ *
  * @param {Array<string>} clusters - List of cluster names
  * @param {string} localClusterDisplayName - Display name for the local cluster (defaults to "local")
  */
@@ -29,11 +29,11 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
 
   const allEnabled = clusterPrefs.areAllClustersEnabled(clusters);
   const enabledCount = clusterPrefs.getEnabledCount();
-  
+
   // Get the single enabled cluster name if only one is selected
   const enabledClusters = clusterPrefs.getEnabledClusters(clusters);
   const singleClusterName = enabledCount === 1 ? enabledClusters[0] : null;
-  
+
   // Use display name for local cluster on the button
   const buttonDisplayName = singleClusterName === 'local' ? localClusterDisplayName : singleClusterName;
 
@@ -46,9 +46,9 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
       </svg>
 
       <div class="dropdown bd-cluster-toggle position-relative">
-        <button 
-          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" 
-          id="bd-cluster" 
+        <button
+          class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center"
+          id="bd-cluster"
           type="button"
           aria-expanded="false"
           data-bs-toggle="dropdown"
@@ -67,8 +67,8 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
             </span>
           )}
         </button>
-        
-        <div 
+
+        <div
           class="dropdown-menu dropdown-menu-end shadow"
           aria-labelledby="bd-cluster-text"
           style="width: 275px; max-height: 80vh; overflow-y: auto;"
@@ -78,10 +78,10 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
             <h6 class="mb-2">
               <Text id="cluster.settings">Cluster Filters</Text>
             </h6>
-            
+
             {/* Quick actions */}
             <div class="mb-3">
-              <button 
+              <button
                 class="btn btn-sm btn-outline-primary w-100"
                 onClick={() => clusterPrefs.enableAllClusters()}
                 disabled={allEnabled}
@@ -99,16 +99,16 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
                 const isEnabled = clusterPrefs.isClusterEnabled(clusterName);
                 const isLocal = clusterName === 'local';
                 const displayName = isLocal ? localClusterDisplayName : clusterName;
-                
+
                 return (
-                  <div 
-                    key={clusterName} 
+                  <div
+                    key={clusterName}
                     class="d-flex align-items-center justify-content-between mb-2 p-2 rounded"
-                    style={{ 
+                    style={{
                       backgroundColor: 'var(--bs-secondary-bg)'
                     }}
                   >
-                    <span 
+                    <span
                       class="d-flex align-items-center flex-grow-1"
                       style={{ cursor: 'pointer' }}
                       onClick={() => clusterPrefs.enableOnlyCluster(clusterName)}
@@ -122,10 +122,10 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
                       }}
                       aria-label={`${clusterName} cluster - click to show only this cluster`}
                     >
-                      <Icon 
-                        icon={isLocal ? "mdi:laptop" : "mdi:server-network"} 
-                        width="18" 
-                        height="18" 
+                      <Icon
+                        icon={isLocal ? "mdi:laptop" : "mdi:server-network"}
+                        width="18"
+                        height="18"
                         style={{ marginRight: '0.5rem' }}
                         aria-hidden="true"
                       />
@@ -138,7 +138,7 @@ export function ClusterSettings({ clusters, localClusterDisplayName = 'local' })
                         )}
                       </span>
                     </span>
-                    <span 
+                    <span
                       class={`badge ${isEnabled ? 'bg-success' : 'bg-secondary'}`}
                       style={{ fontSize: '0.7rem', cursor: 'pointer' }}
                       onClick={(e) => {

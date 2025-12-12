@@ -15,7 +15,7 @@ function renderIcon(icon, iconColor, name, isUnavailable, size = '48') {
     alignItems: 'center',
     justifyContent: 'center'
   };
-  
+
   if (!icon) return null;
   if (icon.includes('://')) {
     return (
@@ -39,37 +39,37 @@ export function Application(props) {
   const isUnavailable = props.app?.available === false;
   const isEditable = !props.app?.hasOwnerReferences;
   const editMode = layoutPrefs?.preferences.editMode && !skeleton;
-  
+
   // Get preferences with defaults
   const showDescription = layoutPrefs?.preferences.showDescription !== false;
   const showTags = layoutPrefs?.preferences.showTags !== false;
   const showStatus = layoutPrefs?.preferences.showStatus !== false;
   const padding = layoutPrefs?.getCSSVariables()['--card-padding'] || '1rem';
-  
+
   // Parse tags from comma-separated string
-  const tags = props.app.tags 
+  const tags = props.app.tags
     ? props.app.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
     : [];
-  
+
   // Build container classes and styles
   const containerClass = `d-flex align-items-start${isUnavailable ? ' unavailable' : ''}`;
   const containerStyle = {
     transform: 'rotate(0)',
     padding: padding,
     ...(isUnavailable && { opacity: '0.5', cursor: 'not-allowed' }),
-    ...(editMode && isEditable && { 
+    ...(editMode && isEditable && {
       outline: '2px solid rgba(13, 110, 253, 0.5)',
       outlineOffset: '2px',
       borderRadius: '4px',
       backgroundColor: 'rgba(13, 110, 253, 0.05)',
       cursor: 'pointer'
     }),
-    ...(editMode && !isEditable && { 
+    ...(editMode && !isEditable && {
       opacity: '0.6'
     }),
     position: 'relative'
   };
-  
+
   const handleClick = (e) => {
     if (editMode && isEditable && onEdit) {
       e.preventDefault();
@@ -77,7 +77,7 @@ export function Application(props) {
       onEdit(props.app);
     }
   };
-  
+
   const handleToggleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -85,7 +85,7 @@ export function Application(props) {
       onToggleFavorite(props.app);
     }
   };
-  
+
   // Skeleton mode - render placeholder UI
   if (skeleton) {
     // Use actual text lengths to determine skeleton widths for realistic sizing
@@ -93,125 +93,125 @@ export function Application(props) {
     const nameLength = props.app.name.length;
     const descriptionLength = props.app.info ? props.app.info.length : 0;
     const nameHash = props.app.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
+
     // Calculate widths based on actual text length
     const nameWidthPx = nameLength * 8; // ~8px per character for uppercase names
     const descWidthPx = descriptionLength * 6; // ~6px per character for descriptions
-    
+
     // Split description into words for skeleton rendering
     const descWords = props.app.info ? props.app.info.split(' ') : [];
 
     return (
-      <div 
-        class="d-flex align-items-start skeleton-application" 
+      <div
+        class="d-flex align-items-start skeleton-application"
         style={{
           transform: 'rotate(0)',
           padding: padding
         }}
-        role="article" 
+        role="article"
         aria-hidden="true"
       >
         {/* Icon skeleton */}
-        <div 
-          class="skeleton-icon skeleton-pulse me-1" 
-          style={{ 
-            minWidth: '48px', 
-            minHeight: '48px', 
-            maxWidth: '48px', 
-            maxHeight: '48px', 
+        <div
+          class="skeleton-icon skeleton-pulse me-1"
+          style={{
+            minWidth: '48px',
+            minHeight: '48px',
+            maxWidth: '48px',
+            maxHeight: '48px',
             flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: 'rgba(128, 128, 128, 0.3)',
             borderRadius: '8px'
-          }} 
+          }}
         />
-        
+
         <div class="px-2" style={{ fontSize: '0.875rem', flexGrow: 1 }}>
           {/* Name skeleton - using h4 to match real component, width based on actual name length */}
           <h4 class="fw-normal mb-0 text-body-emphasis text-uppercase">
             <span
-              class="skeleton-text skeleton-pulse" 
-              style={{ 
-                height: '1.5rem', 
+              class="skeleton-text skeleton-pulse"
+              style={{
+                height: '1.5rem',
                 width: `${nameWidthPx}px`,
                 minWidth: '60px',
                 backgroundColor: 'rgba(128, 128, 128, 0.3)',
                 borderRadius: '3px',
                 display: 'inline-block'
-              }} 
+              }}
             />
           </h4>
-          
+
           {/* Description skeleton - using p to match real component, render word-like blocks based on actual words */}
           {showDescription && descWords.length > 0 && (
             <p class="accent text-uppercase" style={{ marginBottom: 0, display: 'flex', flexWrap: 'wrap', gap: '0.3rem', alignItems: 'center' }}>
               {descWords.map((word, index) => (
                 <span
                   key={index}
-                  class="skeleton-text skeleton-pulse" 
-                  style={{ 
-                    height: '0.9rem', 
+                  class="skeleton-text skeleton-pulse"
+                  style={{
+                    height: '0.9rem',
                     width: `${word.length * 6}px`, // ~6px per character for description text
                     minWidth: '15px',
                     backgroundColor: 'rgba(128, 128, 128, 0.3)',
                     borderRadius: '3px',
                     display: 'inline-block'
-                  }} 
+                  }}
                 />
               ))}
             </p>
           )}
-          
+
           {/* Tags skeleton - only if showTags is true and 25% chance */}
           {showTags && (nameHash % 4 === 0) && (
             <div class="d-flex gap-1 mt-1" style={{ flexWrap: 'wrap' }}>
-              <div 
-                class="skeleton-badge skeleton-pulse" 
-                style={{ 
-                  height: '1rem', 
+              <div
+                class="skeleton-badge skeleton-pulse"
+                style={{
+                  height: '1rem',
                   width: '3rem',
                   backgroundColor: 'rgba(128, 128, 128, 0.3)',
                   borderRadius: '12px'
-                }} 
+                }}
               />
-              <div 
-                class="skeleton-badge skeleton-pulse" 
-                style={{ 
-                  height: '1rem', 
+              <div
+                class="skeleton-badge skeleton-pulse"
+                style={{
+                  height: '1rem',
                   width: '2.5rem',
                   backgroundColor: 'rgba(128, 128, 128, 0.3)',
                   borderRadius: '12px'
-                }} 
+                }}
               />
             </div>
           )}
-          
+
           {/* Status badge skeleton - only if showStatus is true and 10% chance */}
           {showStatus && (nameHash % 10 === 0) && (
-            <div 
-              class="skeleton-badge skeleton-pulse mt-1" 
-              style={{ 
-                height: '1.2rem', 
+            <div
+              class="skeleton-badge skeleton-pulse mt-1"
+              style={{
+                height: '1.2rem',
                 width: '4rem',
                 backgroundColor: 'rgba(128, 128, 128, 0.3)',
                 borderRadius: '12px'
-              }} 
+              }}
             />
           )}
         </div>
       </div>
     );
   }
-  
+
   // Standard card layout
   return (
-    <div 
-      class={containerClass} 
+    <div
+      class={containerClass}
       style={containerStyle}
       onClick={handleClick}
-      role="article" 
+      role="article"
       aria-label={`Application: ${props.app.name}${editMode && isEditable ? ' (click to edit)' : ''}${editMode && !isEditable ? ' (cannot edit - managed externally)' : ''}`}
     >
       {!isUnavailable && !editMode && (
@@ -227,11 +227,11 @@ export function Application(props) {
         <button
           onClick={handleToggleFavorite}
           class="btn btn-sm btn-link"
-          style={{ 
-            position: 'absolute', 
+          style={{
+            position: 'absolute',
             top: '0.25rem',
             right: '0.25rem',
-            zIndex: 10, 
+            zIndex: 10,
             padding: '0.25rem',
             minWidth: 'auto',
             lineHeight: 1,
@@ -254,9 +254,9 @@ export function Application(props) {
         )}
         {showClusterName && props.app.cluster && props.app.cluster !== 'local' && (
           <div class="mt-1">
-            <span 
-              class="badge bg-info text-dark" 
-              style={{ fontSize: '0.65rem' }} 
+            <span
+              class="badge bg-info text-dark"
+              style={{ fontSize: '0.65rem' }}
               role="status"
               aria-label={`Cluster: ${props.app.cluster}`}
               title={`This application is from the ${props.app.cluster} cluster`}

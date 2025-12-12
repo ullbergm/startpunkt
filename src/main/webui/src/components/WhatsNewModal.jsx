@@ -62,12 +62,12 @@ function getChangeTypeIcon(type) {
  */
 export function WhatsNewModal({ releases, onClose }) {
   const [showDetails, setShowDetails] = useState({});
-  
+
   // Show loading state if no release data
   if (!releases || releases.length === 0) {
     return null;
   }
-  
+
   useEffect(() => {
     // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
@@ -75,34 +75,34 @@ export function WhatsNewModal({ releases, onClose }) {
       document.body.style.overflow = '';
     };
   }, []);
-  
+
   const handleClose = () => {
     // Mark the latest version as seen
     setLastSeenVersion(releases[0].version);
     onClose();
   };
-  
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       handleClose();
     }
   };
-  
+
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       handleClose();
     }
   };
-  
+
   const toggleDetails = (version) => {
     setShowDetails(prev => ({
       ...prev,
       [version]: !prev[version]
     }));
   };
-  
+
   return (
-    <div 
+    <div
       class="whats-new-backdrop"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
@@ -118,7 +118,7 @@ export function WhatsNewModal({ releases, onClose }) {
               <Text id="whatsNew.title">What's New</Text>
             </h2>
             <p class="whats-new-version">
-              {releases.length === 1 
+              {releases.length === 1
                 ? `Version ${releases[0].version} • ${releases[0].date}`
                 : `${releases.length} new versions`
               }
@@ -133,7 +133,7 @@ export function WhatsNewModal({ releases, onClose }) {
             <span aria-hidden="true">×</span>
           </button>
         </div>
-        
+
         <div class="whats-new-content">
           {releases.map((release, releaseIndex) => (
             <div key={release.version} class="whats-new-release">
@@ -145,7 +145,7 @@ export function WhatsNewModal({ releases, onClose }) {
                   <span class="whats-new-release-date">{release.date}</span>
                 </div>
               )}
-              
+
               {/* Highlights Section */}
               {release.highlights.length > 0 && (
                 <div class="whats-new-highlights">
@@ -155,11 +155,11 @@ export function WhatsNewModal({ releases, onClose }) {
                         {getChangeTypeIcon(highlight.type)}
                       </div>
                       <div class="whats-new-highlight-content">
-                        <h3 
+                        <h3
                           class="whats-new-highlight-title"
                           dangerouslySetInnerHTML={{ __html: highlight.title }}
                         />
-                        <p 
+                        <p
                           class="whats-new-highlight-description"
                           dangerouslySetInnerHTML={{ __html: highlight.description }}
                         />
@@ -168,7 +168,7 @@ export function WhatsNewModal({ releases, onClose }) {
                   ))}
                 </div>
               )}
-              
+
               {/* Details Toggle */}
               {release.allChanges.length > 0 && (
                 <>
@@ -182,7 +182,7 @@ export function WhatsNewModal({ releases, onClose }) {
                     <Text id="whatsNew.allChanges">All Changes</Text>
                     <span class="whats-new-badge">{release.allChanges.length}</span>
                   </button>
-                  
+
                   {/* All Changes List */}
                   {showDetails[release.version] && (
                     <ul class="whats-new-changes-list">
@@ -196,7 +196,7 @@ export function WhatsNewModal({ releases, onClose }) {
                   )}
                 </>
               )}
-              
+
               {/* Separator between releases */}
               {releaseIndex < releases.length - 1 && (
                 <hr class="whats-new-separator" />
@@ -204,7 +204,7 @@ export function WhatsNewModal({ releases, onClose }) {
             </div>
           ))}
         </div>
-        
+
         <div class="whats-new-footer">
           <button
             class="whats-new-button whats-new-button-primary"
@@ -229,40 +229,40 @@ export function useWhatsNew(currentVersion) {
   const [newReleases, setNewReleases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     async function checkForNewVersions() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Don't check until we have a current version (avoid showing wrong version)
         if (!currentVersion || currentVersion === DEV_VERSION) {
           console.log('[WhatsNew] Skipping check - version not available or is dev');
           setLoading(false);
           return;
         }
-        
+
         const lastSeenVersion = getLastSeenVersion();
-        
+
         // Fetch new releases since last seen version, up to current version
         const releases = await getNewReleasesSince(lastSeenVersion, currentVersion);
-        
+
         if (!releases || releases.length === 0) {
           console.log('[WhatsNew] No new releases to show');
           setLoading(false);
           return;
         }
-        
+
         console.log(`[WhatsNew] Found ${releases.length} new release(s) for version ${currentVersion} (last seen: ${lastSeenVersion || 'never'})`);
         setNewReleases(releases);
-        
+
         // Show modal if there are new releases
         // Small delay to let the app load first
         setTimeout(() => {
           setShouldShow(true);
         }, 1000);
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Failed to check for new versions:', err);
@@ -270,20 +270,20 @@ export function useWhatsNew(currentVersion) {
         setLoading(false);
       }
     }
-    
+
     checkForNewVersions();
   }, [currentVersion]);
-  
+
   const hideModal = () => {
     setShouldShow(false);
   };
-  
-  return { 
-    shouldShow, 
-    releases: newReleases, 
-    loading, 
-    error, 
-    hideModal 
+
+  return {
+    shouldShow,
+    releases: newReleases,
+    loading,
+    error,
+    hideModal
   };
 }
 

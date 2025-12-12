@@ -13,6 +13,11 @@
       "outputDirectory": "test-results/jest",
       "outputName": "js-junit.xml"
    },
+   "overrides": {
+      "extend": "^3.0.2",
+      "@octokit/request": "^8.4.1",
+      "@octokit/request-error": "^5.1.1"
+   },
    "dependencies": {
       "@apollo/client": "^4.0.9",
       "@popperjs/core": "^2.11.8",

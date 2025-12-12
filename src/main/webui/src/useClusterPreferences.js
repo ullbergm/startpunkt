@@ -2,13 +2,13 @@ import { useLocalStorage } from '@rehooks/local-storage';
 
 /**
  * Custom hook for managing cluster filter preferences with localStorage persistence
- * 
+ *
  * Cluster preferences include:
  * - enabledClusters: object (key: cluster name, value: boolean)
- * 
+ *
  * When enabledClusters is empty or all are enabled, all applications are shown.
  * When specific clusters are disabled, applications from those clusters are filtered out.
- * 
+ *
  * @param {boolean} defaultShowAll - If false (default), only show local cluster by default; if true, show all clusters by default
  */
 
@@ -25,7 +25,7 @@ export function useClusterPreferences(defaultShowAll = false) {
   /**
    * Initialize cluster preferences when cluster list becomes available
    * This ensures clusters start with the configured default behavior
-   * 
+   *
    * @param {Array<string>} clusterNames - Array of cluster names
    */
   const initializeClusters = (clusterNames) => {
@@ -50,7 +50,7 @@ export function useClusterPreferences(defaultShowAll = false) {
           }
         }
       });
-      
+
       setPreferences({
         ...preferences,
         enabledClusters: newEnabled
@@ -60,7 +60,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Toggle a specific cluster on or off
-   * 
+   *
    * @param {string} clusterName - Name of the cluster to toggle
    */
   const toggleCluster = (clusterName) => {
@@ -78,7 +78,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Set a specific cluster's enabled state
-   * 
+   *
    * @param {string} clusterName - Name of the cluster
    * @param {boolean} enabled - Whether the cluster should be enabled
    */
@@ -101,7 +101,7 @@ export function useClusterPreferences(defaultShowAll = false) {
   const enableAllClusters = () => {
     const currentEnabled = preferences.enabledClusters || {};
     const newEnabled = {};
-    
+
     Object.keys(currentEnabled).forEach(name => {
       newEnabled[name] = true;
     });
@@ -114,13 +114,13 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Enable only a specific cluster (disable all others)
-   * 
+   *
    * @param {string} clusterName - Name of the cluster to enable exclusively
    */
   const enableOnlyCluster = (clusterName) => {
     const currentEnabled = preferences.enabledClusters || {};
     const newEnabled = {};
-    
+
     Object.keys(currentEnabled).forEach(name => {
       newEnabled[name] = (name === clusterName);
     });
@@ -133,7 +133,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Check if a specific cluster is enabled
-   * 
+   *
    * @param {string} clusterName - Name of the cluster
    * @returns {boolean} - True if enabled (default: true if not in preferences)
    */
@@ -144,7 +144,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Get list of enabled cluster names
-   * 
+   *
    * @param {Array<string>} allClusters - Array of all available cluster names
    * @returns {Array<string>} - Array of enabled cluster names
    */
@@ -155,7 +155,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Get count of enabled clusters
-   * 
+   *
    * @returns {number} - Number of enabled clusters
    */
   const getEnabledCount = () => {
@@ -165,7 +165,7 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Check if all clusters are enabled
-   * 
+   *
    * @param {Array<string>} allClusters - Array of all available cluster names
    * @returns {boolean} - True if all clusters are enabled
    */
@@ -176,15 +176,15 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Filter applications based on enabled clusters
-   * 
+   *
    * @param {Array} applications - Array of application objects
    * @returns {Array} - Filtered array of applications
    */
   const filterApplications = (applications) => {
     if (!applications) return [];
-    
+
     const currentEnabled = preferences.enabledClusters || {};
-    
+
     // If no preferences set or all are enabled, return all applications
     const hasDisabledClusters = Object.values(currentEnabled).some(enabled => !enabled);
     if (!hasDisabledClusters) {
@@ -200,15 +200,15 @@ export function useClusterPreferences(defaultShowAll = false) {
 
   /**
    * Filter bookmarks based on enabled clusters
-   * 
+   *
    * @param {Array} bookmarks - Array of bookmark objects
    * @returns {Array} - Filtered array of bookmarks
    */
   const filterBookmarks = (bookmarks) => {
     if (!bookmarks) return [];
-    
+
     const currentEnabled = preferences.enabledClusters || {};
-    
+
     // If no preferences set or all are enabled, return all bookmarks
     const hasDisabledClusters = Object.values(currentEnabled).some(enabled => !enabled);
     if (!hasDisabledClusters) {
