@@ -15,8 +15,8 @@
    },
    "overrides": {
       "extend": "^3.0.2",
-      "@octokit/request": "^8.4.1",
-      "@octokit/request-error": "^5.1.1"
+      "@octokit/request": "^10.0.0",
+      "@octokit/request-error": "^7.0.0"
    },
    "dependencies": {
       "@apollo/client": "^4.0.9",
