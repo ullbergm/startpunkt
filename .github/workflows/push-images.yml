@@ -68,7 +68,7 @@ jobs:
 
       - name: Download native executable artifact
         if: github.event_name == 'workflow_run' && matrix.image == 'monolithic'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: native-executable
           path: target/
@@ -77,7 +77,7 @@ jobs:
 
       - name: Download backend native executable artifact
         if: github.event_name == 'workflow_run' && matrix.image == 'backend'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: backend-native-executable
           path: target/
