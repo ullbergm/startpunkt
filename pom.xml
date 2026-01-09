@@ -74,7 +74,7 @@
     <site-plugin.version>4.0.0-M16</site-plugin.version>
     <jandex-plugin.version>1.2.3</jandex-plugin.version>
     <release-plugin.version>3.3.1</release-plugin.version>
-    <crd-generator-plugin.version>7.4.0</crd-generator-plugin.version>
+    <crd-generator-plugin.version>7.5.0</crd-generator-plugin.version>
     <deploy-plugin.version>3.1.4</deploy-plugin.version>
     <dependency-plugin.version>3.9.0</dependency-plugin.version>
     <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
