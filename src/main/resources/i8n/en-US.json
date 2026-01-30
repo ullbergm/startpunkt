@@ -71,6 +71,8 @@
         "contentOverlay" : "Content Background Overlay",
         "contentOverlayHelp" : "Improves readability on busy backgrounds",
         "overlayOpacity" : "Overlay Opacity",
+        "handwrittenFont" : "Handwritten Font",
+        "handwrittenFontHelp" : "Use a casual handwritten font style",
         "resetToDefaults" : "Reset to Defaults"
     },
     "cluster" : {

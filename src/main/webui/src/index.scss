@@ -2,8 +2,10 @@
   --color-background: #F8F6F1;
   --color-text-pri: #4C432E;
   --color-text-acc: #AA9A73;
+  --font-handwritten: 'Caveat', cursive;
+  --font-default: -apple-system, BlinkMacSystemFont, Helvetica Neue, Roboto, sans-serif;
 
-  font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Roboto, sans-serif;
+  font-family: var(--font-default);
 
   line-height: 1.5;
   font-weight: 400;
@@ -147,6 +149,35 @@ body.high-contrast .badge {
 body.high-contrast *:focus-visible {
   outline: 4px solid #ffff00;
   outline-offset: 3px;
+}
+
+/* Handwritten Font Mode */
+body.handwritten-font {
+  font-family: var(--font-handwritten);
+}
+
+body.handwritten-font h1,
+body.handwritten-font h2,
+body.handwritten-font h3,
+body.handwritten-font h4,
+body.handwritten-font h5,
+body.handwritten-font h6 {
+  font-family: var(--font-handwritten);
+  font-weight: 600;
+}
+
+body.handwritten-font .card-title,
+body.handwritten-font .group-title,
+body.handwritten-font .app-name,
+body.handwritten-font .bookmark-name {
+  font-family: var(--font-handwritten);
+  font-weight: 500;
+  font-size: 1.1em;
+}
+
+/* Slightly increase font size for better readability with handwritten font */
+body.handwritten-font {
+  font-size: 1.1rem;
 }
 
 @media (prefers-color-scheme: light) {

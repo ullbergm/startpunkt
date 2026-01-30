@@ -15,5 +15,7 @@ RUN curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/op
     && rm openshift-client-linux.tar.gz
 
 # Install pre-commit and bash-completion
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+# Remove the Yarn repository as its GPG key is expired/unavailable
+RUN rm -f /etc/apt/sources.list.d/yarn.list \
+    && apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends pre-commit bash-completion

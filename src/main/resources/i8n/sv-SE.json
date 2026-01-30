@@ -71,6 +71,8 @@
         "contentOverlay" : "Innehållsbakgrund överlägg",
         "contentOverlayHelp" : "Förbättrar läsbarheten på upptagna bakgrunder",
         "overlayOpacity" : "Överläggets opacitet",
+        "handwrittenFont" : "Handskrivet teckensnitt",
+        "handwrittenFontHelp" : "Använd en avslappnad handskriven typsnittsstil",
         "resetToDefaults" : "Återställ till standard"
     },
     "cluster" : {

@@ -220,4 +220,16 @@ describe('BackgroundSettings', () => {
     fireEvent.click(screen.getByTitle('Dark mode'));
     expect(writeStorage).toHaveBeenCalledWith('theme', 'dark');
   });
+
+  test('displays handwritten font toggle', () => {
+    render(
+      <IntlProvider definition={{}}>
+        <BackgroundSettings />
+      </IntlProvider>
+    );
+
+    const toggle = screen.getByLabelText(/handwritten font/i);
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('type', 'checkbox');
+  });
 });

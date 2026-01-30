@@ -1,10 +1,25 @@
 import { useLocalStorage, writeStorage } from '@rehooks/local-storage';
 import { Text } from 'preact-i18n';
+import { useEffect } from 'preact/hooks';
 import { useBackgroundPreferences } from './useBackgroundPreferences';
 
 export function BackgroundSettings() {
   const { preferences, updatePreference, resetToDefaults, getTypePreference } = useBackgroundPreferences();
   const [theme] = useLocalStorage('theme', 'auto');
+  const [handwrittenFont, setHandwrittenFont] = useLocalStorage('background-handwrittenFont', false);
+
+  // Apply handwritten font
+  useEffect(() => {
+    if (handwrittenFont) {
+      document.body.classList.add('handwritten-font');
+    } else {
+      document.body.classList.remove('handwritten-font');
+    }
+  }, [handwrittenFont]);
+
+  const toggleHandwrittenFont = () => {
+    writeStorage('background-handwrittenFont', !handwrittenFont);
+  };
 
   return (
     <>
@@ -440,6 +455,28 @@ export function BackgroundSettings() {
                 </div>
               </div>
             )}
+
+            <hr class="my-2" />
+
+            {/* Handwritten Font */}
+            <div class="mb-3">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="handwrittenFontMode"
+                  checked={handwrittenFont}
+                  onChange={toggleHandwrittenFont}
+                  aria-describedby="handwrittenFontHelp"
+                />
+                <label class="form-check-label small" for="handwrittenFontMode">
+                  <Text id="background.handwrittenFont">Handwritten Font</Text>
+                </label>
+              </div>
+              <small id="handwrittenFontHelp" class="form-text text-muted">
+                <Text id="background.handwrittenFontHelp">Use a casual handwritten font style</Text>
+              </small>
+            </div>
 
             <hr class="my-2" />
 
