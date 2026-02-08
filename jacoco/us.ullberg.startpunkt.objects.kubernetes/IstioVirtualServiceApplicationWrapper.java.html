@@ -33,25 +33,42 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   // Override method to get the application URL from the VirtualService's spec
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L36">    var spec = getSpec(item);</span>
+    // Check for URL annotation first
+<span class="fc" id="L37">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">    if (annotations != null) {</span>
+<span class="fc" id="L39">      String[] annotationKeys = {</span>
+        &quot;startpunkt.ullberg.us/url&quot;, &quot;hajimari.io/url&quot;, &quot;forecastle.stakater.com/url&quot;
+      };
+<span class="fc bfc" id="L42" title="All 2 branches covered.">      for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L44">          return appendRootPath(annotations.get(key).toLowerCase(), item);</span>
+        }
+      }
+    }
+
+    // Build URL from VirtualService spec
+<span class="fc" id="L50">    var spec = getSpec(item);</span>
 
     // Determine the protocol based on the spec
-<span class="fc" id="L39">    String protocol = getAppProtocol(item);</span>
-<span class="pc bpc" id="L40" title="1 of 2 branches missed.">    if (protocol == null) {</span>
-<span class="fc" id="L41">      protocol = defaultProtocol;</span>
+<span class="fc" id="L53">    String protocol = getAppProtocol(item);</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    if (protocol == null) {</span>
+<span class="fc" id="L55">      protocol = defaultProtocol;</span>
     }
 
     // Get the host from the spec, default to &quot;localhost&quot; if not present
     @SuppressWarnings(&quot;unchecked&quot;)
     ArrayList&lt;String&gt; hosts =
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        spec.containsKey(&quot;hosts&quot;) ? (ArrayList&lt;String&gt;) spec.get(&quot;hosts&quot;) : new ArrayList&lt;&gt;();</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    if (hosts.isEmpty()) {</span>
-<span class="nc" id="L49">      hosts.add(&quot;localhost&quot;);</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        spec.containsKey(&quot;hosts&quot;) ? (ArrayList&lt;String&gt;) spec.get(&quot;hosts&quot;) : new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (hosts.isEmpty()) {</span>
+<span class="nc" id="L63">      hosts.add(&quot;localhost&quot;);</span>
     }
 
-    // Construct the base URL and append rootPath if present
-<span class="fc" id="L53">    String baseUrl = protocol + &quot;://&quot; + hosts.get(0);</span>
-<span class="fc" id="L54">    return appendRootPath(baseUrl, item);</span>
+    // Get port from annotation
+<span class="fc" id="L67">    Integer port = getAppPort(item);</span>
+
+    // Construct the base URL with port and append rootPath if present
+<span class="fc" id="L70">    String baseUrl = buildUrlWithPort(protocol, hosts.get(0), port, null);</span>
+<span class="fc" id="L71">    return appendRootPath(baseUrl, item);</span>
   }
 
   // Override method to get a list of ApplicationSpec objects
@@ -59,11 +76,11 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   public List&lt;ApplicationSpec&gt; getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
     // Get the application specs from the parent class
-<span class="fc" id="L62">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+<span class="fc" id="L79">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
 
     // If onlyAnnotated is true, filter the list to include only enabled
     // applications
-<span class="fc bfc" id="L66" title="All 2 branches covered.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
   }
 
   // Override method to get a list of ApplicationResponse objects
@@ -71,10 +88,10 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
     // Get the application specs with metadata from the parent class
-<span class="nc" id="L74">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
+<span class="nc" id="L91">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
 
     // If onlyAnnotated is true, filter the list to include only enabled applications
-<span class="nc bnc" id="L77" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 
   // Override method to get a list of ApplicationResponse objects with cluster name
@@ -82,11 +99,11 @@ public class IstioVirtualServiceApplicationWrapper extends AnnotatedKubernetesOb
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames, String clusterName) {
     // Get the application specs with metadata from the parent class
-<span class="fc" id="L85">    var applicationSpecs =</span>
-<span class="fc" id="L86">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
+<span class="fc" id="L102">    var applicationSpecs =</span>
+<span class="fc" id="L103">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
 
     // If onlyAnnotated is true, filter the list to include only enabled applications
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

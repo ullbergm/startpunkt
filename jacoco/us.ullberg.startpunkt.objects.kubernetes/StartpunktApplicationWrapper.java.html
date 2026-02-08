@@ -108,8 +108,8 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   protected String getAppUrl(GenericKubernetesResource item) {
     // This method is kept for backwards compatibility but won't be used in normal flow
 <span class="fc" id="L110">    String baseUrl = getOptionalSpecString(item, &quot;url&quot;, null);</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    if (baseUrl == null) {</span>
-<span class="nc" id="L112">      return null;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    if (baseUrl == null) {</span>
+<span class="fc" id="L112">      return null;</span>
     }
 <span class="fc" id="L114">    String rootPath = getOptionalSpecString(item, &quot;rootPath&quot;, null);</span>
 

@@ -33,31 +33,48 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   /**
    * Extracts the application URL from the given HTTPRoute resource. Uses the protocol from the
    * resource spec if available; otherwise falls back to the default protocol. Uses the first
-   * hostname in the &quot;hostnames&quot; spec field or &quot;localhost&quot; if none are defined.
+   * hostname in the &quot;hostnames&quot; spec field or &quot;localhost&quot; if none are defined. Includes custom port
+   * if specified via annotation. If a URL annotation exists, it will be used instead.
    *
    * @param item the Kubernetes HTTPRoute resource
    * @return the constructed application URL as a String
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L43">    var spec = getSpec(item);</span>
+    // Check for URL annotation first
+<span class="fc" id="L45">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    if (annotations != null) {</span>
+<span class="fc" id="L47">      String[] annotationKeys = {</span>
+        &quot;startpunkt.ullberg.us/url&quot;, &quot;hajimari.io/url&quot;, &quot;forecastle.stakater.com/url&quot;
+      };
+<span class="fc bfc" id="L50" title="All 2 branches covered.">      for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">        if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L52">          return appendRootPath(annotations.get(key).toLowerCase(), item);</span>
+        }
+      }
+    }
 
-<span class="fc" id="L45">    String protocol = getAppProtocol(item);</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    if (protocol == null) {</span>
-<span class="fc" id="L47">      protocol = defaultProtocol;</span>
+    // Build URL from HTTPRoute spec
+<span class="fc" id="L58">    var spec = getSpec(item);</span>
+
+<span class="fc" id="L60">    String protocol = getAppProtocol(item);</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    if (protocol == null) {</span>
+<span class="fc" id="L62">      protocol = defaultProtocol;</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     ArrayList&lt;String&gt; hosts =
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        spec.containsKey(&quot;hostnames&quot;)</span>
-<span class="fc" id="L53">            ? (ArrayList&lt;String&gt;) spec.get(&quot;hostnames&quot;)</span>
-<span class="pc" id="L54">            : new ArrayList&lt;&gt;();</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    if (hosts.isEmpty()) {</span>
-<span class="nc" id="L56">      hosts.add(&quot;localhost&quot;);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        spec.containsKey(&quot;hostnames&quot;)</span>
+<span class="fc" id="L68">            ? (ArrayList&lt;String&gt;) spec.get(&quot;hostnames&quot;)</span>
+<span class="pc" id="L69">            : new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    if (hosts.isEmpty()) {</span>
+<span class="nc" id="L71">      hosts.add(&quot;localhost&quot;);</span>
     }
 
-<span class="fc" id="L59">    String baseUrl = protocol + &quot;://&quot; + hosts.get(0);</span>
-<span class="fc" id="L60">    return appendRootPath(baseUrl, item);</span>
+<span class="fc" id="L74">    Integer port = getAppPort(item);</span>
+
+<span class="fc" id="L76">    String baseUrl = buildUrlWithPort(protocol, hosts.get(0), port, null);</span>
+<span class="fc" id="L77">    return appendRootPath(baseUrl, item);</span>
   }
 
   /**
@@ -72,9 +89,9 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;ApplicationSpec&gt; getApplicationSpecs(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="fc" id="L75">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
+<span class="fc" id="L92">    var applicationSpecs = super.getApplicationSpecs(client, anyNamespace, matchNames);</span>
 
-<span class="fc bfc" id="L77" title="All 2 branches covered.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    return onlyAnnotated ? filterEnabled(applicationSpecs) : applicationSpecs;</span>
   }
 
   /**
@@ -89,9 +106,9 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames) {
-<span class="nc" id="L92">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
+<span class="nc" id="L109">    var applicationSpecs = super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames);</span>
 
-<span class="nc bnc" id="L94" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 
   /**
@@ -108,10 +125,10 @@ public class GatewayApiHttpRouteWrapper extends AnnotatedKubernetesObject {
   @Override
   public List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; getApplicationSpecsWithMetadata(
       KubernetesClient client, boolean anyNamespace, List&lt;String&gt; matchNames, String clusterName) {
-<span class="fc" id="L111">    var applicationSpecs =</span>
-<span class="fc" id="L112">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
+<span class="fc" id="L128">    var applicationSpecs =</span>
+<span class="fc" id="L129">        super.getApplicationSpecsWithMetadata(client, anyNamespace, matchNames, clusterName);</span>
 
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    return onlyAnnotated ? filterEnabledWithMetadata(applicationSpecs) : applicationSpecs;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

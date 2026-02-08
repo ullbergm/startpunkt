@@ -57,10 +57,10 @@ public class ApplicationSpec implements Comparable&lt;ApplicationSpec&gt; {
   @JsonPropertyDescription(&quot;Open the URL in a new tab&quot;)
   private Boolean targetBlank;
 
-  /** Sorting order for the bookmark in the UI. */
-  @JsonProperty(&quot;location&quot;)
+  /** Sorting order for the bookmark in the UI. Default is 1000 for lowest priority. */
+<span class="nc" id="L61">  @JsonProperty(&quot;location&quot;)</span>
   @JsonPropertyDescription(&quot;Sorting order of the bookmark&quot;)
-  private int location;
+  private int location = 1000;
 
   /** Whether the bookmark is enabled and should be shown. */
   @JsonProperty(&quot;enabled&quot;)

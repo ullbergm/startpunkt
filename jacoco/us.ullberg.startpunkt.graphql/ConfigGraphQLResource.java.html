@@ -111,13 +111,21 @@ public class ConfigGraphQLResource {
     public WebSocketConfig websocket;
     public ClustersConfig clusters;
 
+    /**
+     * Constructor for ConfigResponse.
+     *
+     * @param version the application version
+     * @param web the web configuration
+     * @param websocket the websocket configuration
+     * @param clusters the clusters configuration
+     */
     public ConfigResponse(
-<span class="fc" id="L115">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
-<span class="fc" id="L116">      this.version = version;</span>
-<span class="fc" id="L117">      this.web = web;</span>
-<span class="fc" id="L118">      this.websocket = websocket;</span>
-<span class="fc" id="L119">      this.clusters = clusters;</span>
-<span class="fc" id="L120">    }</span>
+<span class="fc" id="L123">        String version, WebConfig web, WebSocketConfig websocket, ClustersConfig clusters) {</span>
+<span class="fc" id="L124">      this.version = version;</span>
+<span class="fc" id="L125">      this.web = web;</span>
+<span class="fc" id="L126">      this.websocket = websocket;</span>
+<span class="fc" id="L127">      this.clusters = clusters;</span>
+<span class="fc" id="L128">    }</span>
   }
 
   /** Web configuration type. */
@@ -129,38 +137,48 @@ public class ConfigGraphQLResource {
     public boolean defaultShowAllClusters;
     public String searchEngine;
 
+    /**
+     * Constructor for WebConfig.
+     *
+     * @param showGithubLink whether to show the GitHub link
+     * @param checkForUpdates whether to check for updates
+     * @param title the application title
+     * @param refreshInterval the refresh interval
+     * @param defaultShowAllClusters whether to show all clusters by default
+     * @param searchEngine the search engine URL
+     */
     public WebConfig(
         boolean showGithubLink,
         boolean checkForUpdates,
         String title,
         int refreshInterval,
         boolean defaultShowAllClusters,
-<span class="fc" id="L138">        String searchEngine) {</span>
-<span class="fc" id="L139">      this.showGithubLink = showGithubLink;</span>
-<span class="fc" id="L140">      this.checkForUpdates = checkForUpdates;</span>
-<span class="fc" id="L141">      this.title = title;</span>
-<span class="fc" id="L142">      this.refreshInterval = refreshInterval;</span>
-<span class="fc" id="L143">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
-<span class="fc" id="L144">      this.searchEngine = searchEngine;</span>
-<span class="fc" id="L145">    }</span>
+<span class="fc" id="L156">        String searchEngine) {</span>
+<span class="fc" id="L157">      this.showGithubLink = showGithubLink;</span>
+<span class="fc" id="L158">      this.checkForUpdates = checkForUpdates;</span>
+<span class="fc" id="L159">      this.title = title;</span>
+<span class="fc" id="L160">      this.refreshInterval = refreshInterval;</span>
+<span class="fc" id="L161">      this.defaultShowAllClusters = defaultShowAllClusters;</span>
+<span class="fc" id="L162">      this.searchEngine = searchEngine;</span>
+<span class="fc" id="L163">    }</span>
   }
 
   /** WebSocket configuration type. */
   public static class WebSocketConfig {
     public boolean enabled;
 
-<span class="fc" id="L152">    public WebSocketConfig(boolean enabled) {</span>
-<span class="fc" id="L153">      this.enabled = enabled;</span>
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L170">    public WebSocketConfig(boolean enabled) {</span>
+<span class="fc" id="L171">      this.enabled = enabled;</span>
+<span class="fc" id="L172">    }</span>
   }
 
   /** Clusters configuration type. */
   public static class ClustersConfig {
     public boolean defaultShowAll;
 
-<span class="fc" id="L161">    public ClustersConfig(boolean defaultShowAll) {</span>
-<span class="fc" id="L162">      this.defaultShowAll = defaultShowAll;</span>
-<span class="fc" id="L163">    }</span>
+<span class="fc" id="L179">    public ClustersConfig(boolean defaultShowAll) {</span>
+<span class="fc" id="L180">      this.defaultShowAll = defaultShowAll;</span>
+<span class="fc" id="L181">    }</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

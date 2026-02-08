@@ -419,6 +419,16 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   }
 
   /**
+   * Returns the port number for the application URL.
+   *
+   * @param item the Kubernetes generic resource
+   * @return port number or null if not specified
+   */
+  protected Integer getAppPort(GenericKubernetesResource item) {
+<span class="fc" id="L428">    return null;</span>
+  }
+
+  /**
    * Returns the tags of the application. By default, reads from the &quot;startpunkt.ullberg.us/tags&quot;
    * annotation.
    *
@@ -426,11 +436,11 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return comma-separated tags string or null if not set
    */
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L429">    var annotations = getAnnotations(item);</span>
-<span class="pc bpc" id="L430" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
-<span class="nc" id="L431">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+<span class="fc" id="L439">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L440" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="nc" id="L441">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
     }
-<span class="fc" id="L433">    return null;</span>
+<span class="fc" id="L443">    return null;</span>
   }
 
   /**
@@ -443,8 +453,8 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected String getOptionalSpecString(
       GenericKubernetesResource item, String key, String fallback) {
-<span class="fc" id="L446">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L447" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key) ? spec.get(key).toString() : fallback;</span>
+<span class="fc" id="L456">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L457" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key) ? spec.get(key).toString() : fallback;</span>
   }
 
   /**
@@ -457,10 +467,10 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected Boolean getOptionalSpecBoolean(
       GenericKubernetesResource item, String key, Boolean fallback) {
-<span class="fc" id="L460">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L461" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
-<span class="fc" id="L462">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
-<span class="fc" id="L463">        : fallback;</span>
+<span class="fc" id="L470">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L471" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L472">        ? Boolean.parseBoolean(spec.get(key).toString())</span>
+<span class="fc" id="L473">        : fallback;</span>
   }
 
   /**
@@ -473,10 +483,52 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    */
   protected Integer getOptionalSpecInteger(
       GenericKubernetesResource item, String key, Integer fallback) {
-<span class="fc" id="L476">    var spec = getSpec(item);</span>
-<span class="pc bpc" id="L477" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
-<span class="fc" id="L478">        ? Integer.parseInt(spec.get(key).toString())</span>
-<span class="fc" id="L479">        : fallback;</span>
+<span class="fc" id="L486">    var spec = getSpec(item);</span>
+<span class="pc bpc" id="L487" title="1 of 4 branches missed.">    return spec != null &amp;&amp; spec.containsKey(key)</span>
+<span class="fc" id="L488">        ? Integer.parseInt(spec.get(key).toString())</span>
+<span class="fc" id="L489">        : fallback;</span>
+  }
+
+  /**
+   * Builds a URL with optional port number. Omits standard ports (80 for HTTP, 443 for HTTPS).
+   *
+   * @param protocol the protocol (e.g., &quot;http&quot;, &quot;https&quot;)
+   * @param host the hostname
+   * @param port the port number, or null to omit port
+   * @param path the path component (including leading slash), or null/empty for no path
+   * @return constructed URL string
+   */
+  protected String buildUrlWithPort(String protocol, String host, Integer port, String path) {
+<span class="fc" id="L502">    StringBuilder url = new StringBuilder();</span>
+
+    // Normalize protocol: accept values like &quot;http&quot;, &quot;https&quot;, &quot;http://&quot; or &quot;https://&quot;
+<span class="pc bpc" id="L505" title="1 of 2 branches missed.">    String proto = (protocol == null) ? &quot;http&quot; : protocol;</span>
+<span class="pc bpc" id="L506" title="1 of 2 branches missed.">    if (proto.endsWith(&quot;://&quot;)) {</span>
+<span class="nc" id="L507">      proto = proto.substring(0, proto.length() - 3);</span>
+    }
+
+    // Add protocol and host
+<span class="fc" id="L511">    url.append(proto).append(&quot;://&quot;).append(host);</span>
+
+    // Add port if specified and not a standard port (80 for http, 443 for https)
+<span class="fc bfc" id="L514" title="All 2 branches covered.">    if (port != null) {</span>
+<span class="fc" id="L515">      boolean isStandardPort =</span>
+<span class="fc bfc" id="L516" title="All 4 branches covered.">          (proto.equalsIgnoreCase(&quot;http&quot;) &amp;&amp; port == 80)</span>
+<span class="fc bfc" id="L517" title="All 4 branches covered.">              || (proto.equalsIgnoreCase(&quot;https&quot;) &amp;&amp; port == 443);</span>
+<span class="fc bfc" id="L518" title="All 2 branches covered.">      if (!isStandardPort) {</span>
+<span class="fc" id="L519">        url.append(&quot;:&quot;).append(port);</span>
+      }
+    }
+
+    // Add path if present
+<span class="fc bfc" id="L524" title="All 4 branches covered.">    if (path != null &amp;&amp; !path.isEmpty()) {</span>
+<span class="pc bpc" id="L525" title="1 of 2 branches missed.">      if (!path.startsWith(&quot;/&quot;)) {</span>
+<span class="nc" id="L526">        url.append(&quot;/&quot;);</span>
+      }
+<span class="fc" id="L528">      url.append(path);</span>
+    }
+
+<span class="fc" id="L531">    return url.toString();</span>
   }
 
   /**
@@ -486,11 +538,11 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return root path string or null if not found
    */
   protected String getAppRootPath(GenericKubernetesResource item) {
-<span class="fc" id="L489">    var annotations = getAnnotations(item);</span>
-<span class="pc bpc" id="L490" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/rootPath&quot;)) {</span>
-<span class="nc" id="L491">      return annotations.get(&quot;startpunkt.ullberg.us/rootPath&quot;);</span>
+<span class="fc" id="L541">    var annotations = getAnnotations(item);</span>
+<span class="pc bpc" id="L542" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/rootPath&quot;)) {</span>
+<span class="nc" id="L543">      return annotations.get(&quot;startpunkt.ullberg.us/rootPath&quot;);</span>
     }
-<span class="fc" id="L493">    return null;</span>
+<span class="fc" id="L545">    return null;</span>
   }
 
   /**
@@ -501,15 +553,15 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL with rootPath appended or original URL if no rootPath
    */
   protected String appendRootPath(String url, GenericKubernetesResource item) {
-<span class="fc bfc" id="L504" title="All 2 branches covered.">    if (url == null) {</span>
-<span class="fc" id="L505">      return null;</span>
+<span class="fc bfc" id="L556" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L557">      return null;</span>
     }
 
-<span class="fc" id="L508">    String rootPath = getAppRootPath(item);</span>
-<span class="pc bpc" id="L509" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
-<span class="nc" id="L510">      return appendRootPath(url, rootPath);</span>
+<span class="fc" id="L560">    String rootPath = getAppRootPath(item);</span>
+<span class="pc bpc" id="L561" title="3 of 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
+<span class="nc" id="L562">      return appendRootPath(url, rootPath);</span>
     }
-<span class="fc" id="L512">    return url;</span>
+<span class="fc" id="L564">    return url;</span>
   }
 
   /**
@@ -520,17 +572,17 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
    * @return URL with rootPath appended
    */
   protected String appendRootPath(String url, String rootPath) {
-<span class="nc bnc" id="L523" title="All 2 branches missed.">    if (url == null) {</span>
-<span class="nc" id="L524">      return null;</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">    if (url == null) {</span>
+<span class="nc" id="L576">      return null;</span>
     }
 
-<span class="nc bnc" id="L527" title="All 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
+<span class="nc bnc" id="L579" title="All 4 branches missed.">    if (rootPath != null &amp;&amp; !rootPath.isEmpty()) {</span>
       // Ensure the URL doesn't end with a slash and rootPath starts with a slash
-<span class="nc bnc" id="L529" title="All 2 branches missed.">      String normalizedUrl = url.endsWith(&quot;/&quot;) ? url.substring(0, url.length() - 1) : url;</span>
-<span class="nc bnc" id="L530" title="All 2 branches missed.">      String normalizedRootPath = rootPath.startsWith(&quot;/&quot;) ? rootPath : &quot;/&quot; + rootPath;</span>
-<span class="nc" id="L531">      return normalizedUrl + normalizedRootPath;</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">      String normalizedUrl = url.endsWith(&quot;/&quot;) ? url.substring(0, url.length() - 1) : url;</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">      String normalizedRootPath = rootPath.startsWith(&quot;/&quot;) ? rootPath : &quot;/&quot; + rootPath;</span>
+<span class="nc" id="L583">      return normalizedUrl + normalizedRootPath;</span>
     }
-<span class="nc" id="L533">    return url;</span>
+<span class="nc" id="L585">    return url;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

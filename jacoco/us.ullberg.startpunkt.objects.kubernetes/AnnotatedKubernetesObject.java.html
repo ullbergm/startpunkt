@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnnotatedKubernetesObject.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">startpunkt</a> &gt; <a href="index.source.html" class="el_package">us.ullberg.startpunkt.objects.kubernetes</a> &gt; <span class="el_source">AnnotatedKubernetesObject.java</span></div><h1>AnnotatedKubernetesObject.java</h1><pre class="source lang-java linenums">package us.ullberg.startpunkt.objects.kubernetes;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.quarkus.logging.Log;
 import java.util.List;
 import us.ullberg.startpunkt.crd.v1alpha4.ApplicationSpec;
 
@@ -19,8 +20,8 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * @param pluralKind plural kind name of the Kubernetes resource
    */
   protected AnnotatedKubernetesObject(String group, String version, String pluralKind) {
-<span class="fc" id="L22">    super(group, version, pluralKind);</span>
-<span class="fc" id="L23">  }</span>
+<span class="fc" id="L23">    super(group, version, pluralKind);</span>
+<span class="fc" id="L24">  }</span>
 
   /**
    * Retrieves the application name from resource annotations or falls back to metadata name.
@@ -30,17 +31,17 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppName(GenericKubernetesResource item) {
-<span class="fc" id="L33">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L34">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L35">    String[] annotationKeys = {</span>
+<span class="fc" id="L36">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/appName&quot;, &quot;hajimari.io/appName&quot;, &quot;forecastle.stakater.com/appName&quot;
     };
-<span class="fc bfc" id="L38" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
-<span class="fc" id="L40">        return annotations.get(key).toLowerCase();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
+<span class="fc" id="L41">        return annotations.get(key).toLowerCase();</span>
       }
     }
-<span class="fc" id="L43">    return super.getAppName(item);</span>
+<span class="fc" id="L44">    return super.getAppName(item);</span>
   }
 
   /**
@@ -51,17 +52,17 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppGroup(GenericKubernetesResource item) {
-<span class="fc" id="L54">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L55">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L56">    String[] annotationKeys = {</span>
+<span class="fc" id="L57">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/group&quot;, &quot;hajimari.io/group&quot;, &quot;forecastle.stakater.com/group&quot;
     };
-<span class="fc bfc" id="L59" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L61">        return annotations.get(key).toLowerCase();</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L62">        return annotations.get(key).toLowerCase();</span>
       }
     }
-<span class="fc" id="L64">    return super.getAppGroup(item);</span>
+<span class="fc" id="L65">    return super.getAppGroup(item);</span>
   }
 
   /**
@@ -72,17 +73,17 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppUrl(GenericKubernetesResource item) {
-<span class="fc" id="L75">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L76">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L77">    String[] annotationKeys = {</span>
+<span class="fc" id="L78">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/url&quot;, &quot;hajimari.io/url&quot;, &quot;forecastle.stakater.com/url&quot;
     };
-<span class="fc bfc" id="L80" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L82">        return appendRootPath(annotations.get(key).toLowerCase(), item);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L83">        return appendRootPath(annotations.get(key).toLowerCase(), item);</span>
       }
     }
-<span class="fc" id="L85">    return appendRootPath(super.getAppUrl(item), item);</span>
+<span class="fc" id="L86">    return appendRootPath(super.getAppUrl(item), item);</span>
   }
 
   /**
@@ -93,17 +94,17 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppIcon(GenericKubernetesResource item) {
-<span class="fc" id="L96">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L97">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L98">    String[] annotationKeys = {</span>
+<span class="fc" id="L99">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/icon&quot;, &quot;hajimari.io/icon&quot;, &quot;forecastle.stakater.com/icon&quot;
     };
-<span class="fc bfc" id="L101" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L103">        return annotations.get(key).toLowerCase();</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L104">        return annotations.get(key).toLowerCase();</span>
       }
     }
-<span class="fc" id="L106">    return super.getAppIcon(item);</span>
+<span class="fc" id="L107">    return super.getAppIcon(item);</span>
   }
 
   /**
@@ -114,15 +115,15 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppIconColor(GenericKubernetesResource item) {
-<span class="fc" id="L117">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L118">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L119">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/iconColor&quot;, &quot;hajimari.io/iconColor&quot;};</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L122">        return annotations.get(key).toLowerCase();</span>
+<span class="fc" id="L120">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/iconColor&quot;, &quot;hajimari.io/iconColor&quot;};</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L123">        return annotations.get(key).toLowerCase();</span>
       }
     }
-<span class="fc" id="L125">    return super.getAppIconColor(item);</span>
+<span class="fc" id="L126">    return super.getAppIconColor(item);</span>
   }
 
   /**
@@ -133,15 +134,15 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppInfo(GenericKubernetesResource item) {
-<span class="fc" id="L136">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L137">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L138">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/info&quot;, &quot;hajimari.io/info&quot;};</span>
-<span class="fc bfc" id="L139" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L140" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L141">        return annotations.get(key).toLowerCase();</span>
+<span class="fc" id="L139">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/info&quot;, &quot;hajimari.io/info&quot;};</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L142">        return annotations.get(key).toLowerCase();</span>
       }
     }
-<span class="fc" id="L144">    return super.getAppInfo(item);</span>
+<span class="fc" id="L145">    return super.getAppInfo(item);</span>
   }
 
   /**
@@ -152,15 +153,15 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
-<span class="fc" id="L155">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L156">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L157">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/targetBlank&quot;, &quot;hajimari.io/targetBlank&quot;};</span>
-<span class="fc bfc" id="L158" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L160">        return Boolean.parseBoolean(annotations.get(key));</span>
+<span class="fc" id="L158">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/targetBlank&quot;, &quot;hajimari.io/targetBlank&quot;};</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L161">        return Boolean.parseBoolean(annotations.get(key));</span>
       }
     }
-<span class="fc" id="L163">    return super.getAppTargetBlank(item);</span>
+<span class="fc" id="L164">    return super.getAppTargetBlank(item);</span>
   }
 
   /**
@@ -172,21 +173,21 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected int getAppLocation(GenericKubernetesResource item) {
-<span class="fc" id="L175">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L176">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L177">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/location&quot;, &quot;hajimari.io/location&quot;};</span>
-<span class="fc" id="L178">    int location = super.getAppLocation(item);</span>
+<span class="fc" id="L178">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/location&quot;, &quot;hajimari.io/location&quot;};</span>
+<span class="fc" id="L179">    int location = super.getAppLocation(item);</span>
 
-<span class="fc bfc" id="L180" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L181" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L182">        location = Integer.parseInt(annotations.get(key));</span>
-<span class="nc" id="L183">        break;</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L183">        location = Integer.parseInt(annotations.get(key));</span>
+<span class="nc" id="L184">        break;</span>
       }
     }
-<span class="pc bpc" id="L186" title="1 of 2 branches missed.">    if (location == 0) {</span>
-<span class="nc" id="L187">      return 1000;</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">    if (location == 0) {</span>
+<span class="nc" id="L188">      return 1000;</span>
     }
-<span class="fc" id="L189">    return location;</span>
+<span class="fc" id="L190">    return location;</span>
   }
 
   /**
@@ -197,23 +198,23 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected Boolean getAppEnabled(GenericKubernetesResource item) {
-<span class="fc" id="L200">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L201">    var annotations = getAnnotations(item);</span>
 
     // Return null if no annotations exist
-<span class="pc bpc" id="L203" title="1 of 2 branches missed.">    if (annotations == null) {</span>
-<span class="nc" id="L204">      return null;</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    if (annotations == null) {</span>
+<span class="nc" id="L205">      return null;</span>
     }
 
-<span class="fc" id="L207">    String[] annotationKeys = {</span>
+<span class="fc" id="L208">    String[] annotationKeys = {</span>
       &quot;startpunkt.ullberg.us/enable&quot;, &quot;hajimari.io/enable&quot;, &quot;forecastle.stakater.com/expose&quot;
     };
-<span class="fc bfc" id="L210" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="fc bfc" id="L211" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
-<span class="fc" id="L212">        return Boolean.parseBoolean(annotations.get(key));</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">      if (annotations.containsKey(key)) {</span>
+<span class="fc" id="L213">        return Boolean.parseBoolean(annotations.get(key));</span>
       }
     }
     // Return null when no annotation is present to distinguish from explicitly disabled
-<span class="fc" id="L216">    return null;</span>
+<span class="fc" id="L217">    return null;</span>
   }
 
   /**
@@ -224,15 +225,49 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   @Override
   protected String getAppProtocol(GenericKubernetesResource item) {
-<span class="fc" id="L227">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L228">    var annotations = getAnnotations(item);</span>
 
-<span class="fc" id="L229">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/protocol&quot;};</span>
-<span class="fc bfc" id="L230" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
-<span class="pc bpc" id="L231" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
-<span class="nc" id="L232">        return annotations.get(key);</span>
+<span class="fc" id="L230">    String[] annotationKeys = {&quot;startpunkt.ullberg.us/protocol&quot;};</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">    for (String key : annotationKeys) {</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">      if (annotations.containsKey(key)) {</span>
+<span class="nc" id="L233">        return annotations.get(key);</span>
       }
     }
-<span class="fc" id="L235">    return super.getAppProtocol(item);</span>
+<span class="fc" id="L236">    return super.getAppProtocol(item);</span>
+  }
+
+  /**
+   * Retrieves the application port number from annotations. Validates that the port is within the
+   * valid range (1-65535). Invalid ports are logged and ignored.
+   *
+   * @param item Kubernetes resource
+   * @return port number or null if not set or invalid
+   */
+  @Override
+  protected Integer getAppPort(GenericKubernetesResource item) {
+<span class="fc" id="L248">    var annotations = getAnnotations(item);</span>
+
+<span class="pc bpc" id="L250" title="1 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/port&quot;)) {</span>
+      try {
+<span class="fc" id="L252">        String portStr = annotations.get(&quot;startpunkt.ullberg.us/port&quot;);</span>
+<span class="fc" id="L253">        int port = Integer.parseInt(portStr);</span>
+<span class="pc bpc" id="L254" title="2 of 4 branches missed.">        if (port &lt; 1 || port &gt; 65535) {</span>
+<span class="nc" id="L255">          Log.warnf(</span>
+              &quot;Invalid port number %d in annotation for %s/%s - must be between 1 and 65535&quot;,
+<span class="nc" id="L257">              port, item.getMetadata().getNamespace(), item.getMetadata().getName());</span>
+<span class="nc" id="L258">          return null;</span>
+        }
+<span class="fc" id="L260">        return port;</span>
+<span class="nc" id="L261">      } catch (NumberFormatException e) {</span>
+<span class="nc" id="L262">        Log.warnf(</span>
+            &quot;Invalid port annotation value '%s' for %s/%s - must be a valid integer&quot;,
+<span class="nc" id="L264">            annotations.get(&quot;startpunkt.ullberg.us/port&quot;),</span>
+<span class="nc" id="L265">            item.getMetadata().getNamespace(),</span>
+<span class="nc" id="L266">            item.getMetadata().getName());</span>
+<span class="nc" id="L267">        return null;</span>
+      }
+    }
+<span class="fc" id="L270">    return super.getAppPort(item);</span>
   }
 
   /**
@@ -242,12 +277,12 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * @return comma-separated tags string or null if not set
    */
   protected String getAppTags(GenericKubernetesResource item) {
-<span class="fc" id="L245">    var annotations = getAnnotations(item);</span>
+<span class="fc" id="L280">    var annotations = getAnnotations(item);</span>
 
-<span class="pc bpc" id="L247" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
-<span class="nc" id="L248">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
+<span class="pc bpc" id="L282" title="2 of 4 branches missed.">    if (annotations != null &amp;&amp; annotations.containsKey(&quot;startpunkt.ullberg.us/tags&quot;)) {</span>
+<span class="nc" id="L283">      return annotations.get(&quot;startpunkt.ullberg.us/tags&quot;);</span>
     }
-<span class="fc" id="L250">    return null;</span>
+<span class="fc" id="L285">    return null;</span>
   }
 
   /**
@@ -259,7 +294,7 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    * @return filtered list containing only enabled applications
    */
   protected List&lt;ApplicationSpec&gt; filterEnabled(List&lt;ApplicationSpec&gt; specs) {
-<span class="fc" id="L262">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="fc" id="L297">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 
   /**
@@ -272,7 +307,7 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
    */
   protected List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; filterEnabledWithMetadata(
       List&lt;us.ullberg.startpunkt.objects.ApplicationResponse&gt; specs) {
-<span class="pc" id="L275">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
+<span class="pc" id="L310">    return specs.stream().filter(app -&gt; Boolean.TRUE.equals(app.getEnabled())).toList();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
