@@ -76,7 +76,7 @@
     <release-plugin.version>3.3.1</release-plugin.version>
     <crd-generator-plugin.version>7.5.2</crd-generator-plugin.version>
     <deploy-plugin.version>3.1.4</deploy-plugin.version>
-    <dependency-plugin.version>3.9.0</dependency-plugin.version>
+    <dependency-plugin.version>3.10.0</dependency-plugin.version>
     <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
     <spotless-plugin.version>3.2.1</spotless-plugin.version>
     <project-info-reports-plugin.version>3.9.0</project-info-reports-plugin.version>
