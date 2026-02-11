@@ -84,7 +84,7 @@
     <!-- Quarkus Platform -->
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>3.31.1</quarkus.platform.version>
+    <quarkus.platform.version>3.31.2</quarkus.platform.version>
 
     <!-- Dependency Versions -->
     <commons.lang3.version>3.20.0</commons.lang3.version>
@@ -336,7 +336,7 @@
     <!-- Test Dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5</artifactId>
+      <artifactId>quarkus-junit</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -681,7 +681,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence/>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -694,8 +694,8 @@
         <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat/>
+            <removeUnusedImports/>
           </java>
         </configuration>
         <executions>
