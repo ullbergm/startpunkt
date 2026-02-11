@@ -336,7 +336,7 @@
     <!-- Test Dependencies -->
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5</artifactId>
+      <artifactId>quarkus-junit</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -681,7 +681,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence />
+                <dependencyConvergence/>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -694,8 +694,8 @@
         <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
-            <googleJavaFormat />
-            <removeUnusedImports />
+            <googleJavaFormat/>
+            <removeUnusedImports/>
           </java>
         </configuration>
         <executions>
