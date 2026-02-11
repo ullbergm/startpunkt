@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>us.ullberg</groupId>
@@ -275,7 +277,8 @@
       <groupId>io.smallrye.common</groupId>
       <artifactId>smallrye-common-annotation</artifactId>
     </dependency>
-    <!-- These are API-only dependencies that the Quarkus platform provides at runtime; mark them 'provided' to avoid version conflicts. -->
+    <!-- These are API-only dependencies that the Quarkus platform provides at runtime; mark them
+    'provided' to avoid version conflicts. -->
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
@@ -301,7 +304,8 @@
       <artifactId>microprofile-openapi-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <!-- Some APIs used directly in the code are transitive via Quarkus extensions; declare them explicitly as provided to avoid dependency plugin warnings. -->
+    <!-- Some APIs used directly in the code are transitive via Quarkus extensions; declare them
+    explicitly as provided to avoid dependency plugin warnings. -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-scheduler-api</artifactId>
@@ -497,7 +501,8 @@
             <configuration>
               <nodeVersion>v24.12.0</nodeVersion>
               <npmVersion>11.3.0</npmVersion>
-              <!-- Install node into the build directory rather than under src to avoid adding build artifacts into source tree. -->
+              <!-- Install node into the build directory rather than under src to avoid adding build
+              artifacts into source tree. -->
               <installDirectory>${project.build.directory}/frontend-node</installDirectory>
               <workingDirectory>src/main/webui</workingDirectory>
             </configuration>
@@ -652,14 +657,16 @@
                 <!-- API dependencies used indirectly -->
                 <ignoredUnusedDeclaredDependency>jakarta.ws.rs:jakarta.ws.rs-api</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>io.smallrye.common:smallrye-common-annotation</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.eclipse.microprofile.openapi:microprofile-openapi-api</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>
+                  org.eclipse.microprofile.openapi:microprofile-openapi-api</ignoredUnusedDeclaredDependency>
 
                 <!-- Explicitly used but Maven misses it -->
                 <ignoredUnusedDeclaredDependency>jakarta.inject:jakarta.inject-api</ignoredUnusedDeclaredDependency>
               </ignoredUnusedDeclaredDependencies>
               <ignoredUsedUndeclaredDependencies>
                 <!-- Transitively provided by quarkus-smallrye-graphql -->
-                <ignoredUsedUndeclaredDependency>org.eclipse.microprofile.graphql:microprofile-graphql-api</ignoredUsedUndeclaredDependency>
+                <ignoredUsedUndeclaredDependency>
+                  org.eclipse.microprofile.graphql:microprofile-graphql-api</ignoredUsedUndeclaredDependency>
               </ignoredUsedUndeclaredDependencies>
 
             </configuration>
@@ -681,7 +688,7 @@
                 <requireJavaVersion>
                   <version>[21,22)</version>
                 </requireJavaVersion>
-                <dependencyConvergence/>
+                <dependencyConvergence />
               </rules>
               <fail>true</fail>
             </configuration>
@@ -694,8 +701,8 @@
         <version>${spotless-plugin.version}</version>
         <configuration>
           <java>
-            <googleJavaFormat/>
-            <removeUnusedImports/>
+            <googleJavaFormat />
+            <removeUnusedImports />
           </java>
         </configuration>
         <executions>
