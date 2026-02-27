@@ -258,7 +258,7 @@ jobs:
           fi
 
       - name: Upload screenshots as artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: feature-screenshots
           path: .github/workflows/screenshot-scripts/screenshots/

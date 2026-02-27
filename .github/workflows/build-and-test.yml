@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload native executable artifact
         if: success() && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: native-executable
           path: target/*-runner
@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload backend native executable artifact
         if: success() && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: backend-native-executable
           path: target/*-runner
