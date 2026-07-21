@@ -19,7 +19,7 @@ jobs:
       - name: ⤵️ Check out code from GitHub
         uses: actions/checkout@v7
       - name: 🏷️ Apply labels
-        uses: actions/labeler@v6
+        uses: actions/labeler@v7
         with:
           configuration-path: .github/labeler.yaml
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
