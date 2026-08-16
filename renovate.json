@@ -70,6 +70,17 @@
          "commitMessagePrefix": "feat(js)!: "
       },
       {
+         "description": "Hold the Babel presets on 7.x. Babel 8 requires @babel/core ^8, but @preact/preset-vite (through 2.10.6) declares a hard \"@babel/core\": \"7.x\" peer, so Babel 8 cannot be installed here at all - npm install fails with ERESOLVE. Drop this rule once @preact/preset-vite supports Babel 8.",
+         "matchDatasources": [
+            "npm"
+         ],
+         "matchPackageNames": [
+            "@babel/preset-env",
+            "@babel/preset-react"
+         ],
+         "allowedVersions": "<8"
+      },
+      {
          "matchDatasources": [
             "npm"
          ],
