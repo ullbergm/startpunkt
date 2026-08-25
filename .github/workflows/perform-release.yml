@@ -38,7 +38,7 @@ jobs:
           ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Setup Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '${{ env.JAVA_VERSION }}'
           distribution: temurin
