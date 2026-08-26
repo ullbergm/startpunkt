@@ -5,7 +5,7 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/node:2": {
-      "version": "24.19.0"
+      "version": "24.20.0"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:4": {
       "dockerDashComposeVersion": "none"
