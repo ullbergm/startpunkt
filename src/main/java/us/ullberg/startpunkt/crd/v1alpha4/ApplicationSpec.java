@@ -346,8 +346,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   /**
    * Sets whether the application URL should be checked for availability.
    *
-   * @param checkAvailability false to skip the availability check and always report the
-   *     application as available
+   * @param checkAvailability false to skip the availability check and always report the application
+   *     as available
    */
   public void setCheckAvailability(Boolean checkAvailability) {
     this.checkAvailability = checkAvailability;
