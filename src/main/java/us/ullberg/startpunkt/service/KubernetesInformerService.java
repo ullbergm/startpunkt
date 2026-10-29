@@ -601,8 +601,8 @@ public class KubernetesInformerService {
         appResponse = enriched.get(0);
       }
 
-      // Register URL for availability checking
-      if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
+      // Register URL for availability checking (skipped when checkAvailability is false)
+      if (availabilityCheckService.shouldCheck(appResponse)) {
         availabilityCheckService.registerUrl(appResponse.getUrl());
       }
 
@@ -652,8 +652,8 @@ public class KubernetesInformerService {
         appResponse = enriched.get(0);
       }
 
-      // Register URL for availability checking
-      if (appResponse.getUrl() != null && !appResponse.getUrl().isEmpty()) {
+      // Register URL for availability checking (skipped when checkAvailability is false)
+      if (availabilityCheckService.shouldCheck(appResponse)) {
         availabilityCheckService.registerUrl(appResponse.getUrl());
       }
 
@@ -1049,9 +1049,9 @@ public class KubernetesInformerService {
         Log.debugf("Loaded %d applications from cluster '%s'", apps.size(), clusterName);
       }
 
-      // Register URLs for availability checking
+      // Register URLs for availability checking (skipped when checkAvailability is false)
       for (ApplicationResponse app : apps) {
-        if (app.getUrl() != null && !app.getUrl().isEmpty()) {
+        if (availabilityCheckService.shouldCheck(app)) {
           availabilityCheckService.registerUrl(app.getUrl());
         }
       }

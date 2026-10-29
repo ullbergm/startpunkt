@@ -28,6 +28,7 @@ export const APPLICATION_UPDATES_SUBSCRIPTION = gql`
         tags
         info
         targetBlank
+        checkAvailability
         location
         enabled
         rootPath
@@ -55,6 +56,7 @@ export const APPLICATION_ADDED_SUBSCRIPTION = gql`
       tags
       info
       targetBlank
+      checkAvailability
       location
       enabled
       rootPath
@@ -81,6 +83,7 @@ export const APPLICATION_UPDATED_SUBSCRIPTION = gql`
       tags
       info
       targetBlank
+      checkAvailability
       location
       enabled
       rootPath
@@ -107,6 +110,7 @@ export const APPLICATION_REMOVED_SUBSCRIPTION = gql`
       tags
       info
       targetBlank
+      checkAvailability
       location
       enabled
       rootPath

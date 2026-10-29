@@ -85,6 +85,7 @@ export const APPLICATION_GROUPS_QUERY = gql`
         iconColor
         info
         targetBlank
+        checkAvailability
         location
         enabled
         rootPath
@@ -169,6 +170,7 @@ export const INIT_QUERY = gql`
         iconColor
         info
         targetBlank
+        checkAvailability
         location
         enabled
         rootPath

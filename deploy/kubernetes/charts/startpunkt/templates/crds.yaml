@@ -17,6 +17,10 @@ spec:
         properties:
           spec:
             properties:
+              checkAvailability:
+                description: "Check the URL for availability; set to false to always\
+                  \ treat the application as available"
+                type: "boolean"
               enabled:
                 description: "Enable the bookmark"
                 type: "boolean"

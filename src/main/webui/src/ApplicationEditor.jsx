@@ -20,6 +20,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
     url: application?.spec?.url || '',
     info: application?.spec?.info || '',
     targetBlank: application?.spec?.targetBlank ?? false, // Changed default to false
+    checkAvailability: application?.spec?.checkAvailability !== false,
     location: application?.spec?.location || 1000,
     enabled: application?.spec?.enabled !== false,
     rootPath: application?.spec?.rootPath || '',
@@ -112,6 +113,7 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
         url: formData.url,
         info: formData.info || undefined,
         targetBlank: formData.targetBlank,
+        checkAvailability: formData.checkAvailability,
         location: parseInt(formData.location) || 1000,
         enabled: formData.enabled,
         rootPath: formData.rootPath || undefined,
@@ -385,6 +387,20 @@ export function ApplicationEditor({ application, onSave, onCancel, onDelete, mod
                       onChange={(checked) => updateField('enabled', checked)}
                       disabled={isReadOnly}
                       ariaLabel="Toggle whether application is visible in the UI"
+                    />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label d-block">&nbsp;</label>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <Toggle
+                      id="checkAvailability"
+                      label="Check availability"
+                      checked={formData.checkAvailability}
+                      onChange={(checked) => updateField('checkAvailability', checked)}
+                      disabled={isReadOnly}
+                      ariaLabel="Toggle whether the application URL is checked for availability; when off the application is always shown as available"
                     />
                   </div>
                 </div>

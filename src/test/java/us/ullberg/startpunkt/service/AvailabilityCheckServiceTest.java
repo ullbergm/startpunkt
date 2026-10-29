@@ -728,6 +728,80 @@ class AvailabilityCheckServiceTest {
   }
 
   @Test
+  void testShouldCheckRespectsCheckAvailabilityFlag() {
+    ApplicationSpec checked = new ApplicationSpec();
+    checked.setName("checked");
+    checked.setUrl("https://checked.example.com");
+    assertTrue(service.shouldCheck(checked), "Apps without the flag should be checked");
+
+    checked.setCheckAvailability(true);
+    assertTrue(service.shouldCheck(checked), "Apps with checkAvailability=true should be checked");
+
+    ApplicationSpec skipped = new ApplicationSpec();
+    skipped.setName("skipped");
+    skipped.setUrl("https://skipped.example.com");
+    skipped.setCheckAvailability(false);
+    assertFalse(
+        service.shouldCheck(skipped), "Apps with checkAvailability=false should be skipped");
+
+    ApplicationSpec noUrl = new ApplicationSpec();
+    noUrl.setName("no-url");
+    assertFalse(service.shouldCheck(noUrl), "Apps without a URL should not be checked");
+
+    assertFalse(service.shouldCheck(null), "Null app should not be checked");
+  }
+
+  @Test
+  void testEnrichWithAvailabilityAlwaysAvailableWhenCheckDisabled() {
+    // Given - a URL that is known to be unavailable in the cache
+    String failingUrl = "http://localhost:1/check-disabled";
+    assertFalse(service.checkAvailability(failingUrl), "Unreachable URL should be unavailable");
+    assertFalse(service.getCachedAvailability(failingUrl), "Cache should record the failure");
+
+    ApplicationResponse skipped = new ApplicationResponse();
+    skipped.setName("skipped");
+    skipped.setUrl(failingUrl);
+    skipped.setCheckAvailability(false);
+
+    ApplicationResponse checked = new ApplicationResponse();
+    checked.setName("checked");
+    checked.setUrl(failingUrl);
+
+    // When
+    List<ApplicationResponse> result =
+        service.enrichWithAvailability(new ArrayList<>(List.of(skipped, checked)));
+
+    // Then
+    assertTrue(
+        result.get(0).getAvailable(),
+        "App with checkAvailability=false should be available despite the cached failure");
+    assertFalse(
+        result.get(1).getAvailable(),
+        "App with the same URL but checks enabled should reflect the cached failure");
+  }
+
+  @Test
+  void testWrapWithAvailabilityAlwaysAvailableWhenCheckDisabled() {
+    // Given - a URL that is known to be unavailable in the cache
+    String failingUrl = "http://localhost:1/wrap-check-disabled";
+    assertFalse(service.checkAvailability(failingUrl), "Unreachable URL should be unavailable");
+
+    ApplicationSpec skipped = new ApplicationSpec();
+    skipped.setName("skipped");
+    skipped.setUrl(failingUrl);
+    skipped.setCheckAvailability(false);
+
+    // When
+    List<ApplicationResponse> result = service.wrapWithAvailability(List.of(skipped));
+
+    // Then
+    assertTrue(
+        result.get(0).getAvailable(),
+        "App with checkAvailability=false should be available despite the cached failure");
+    assertFalse(result.get(0).getCheckAvailability(), "checkAvailability should be preserved");
+  }
+
+  @Test
   void testCheckAvailabilityMalformedUrlEntersBackoff() {
     // Given
     String malformedUrl = "definitely-not-a-url-with-backoff";

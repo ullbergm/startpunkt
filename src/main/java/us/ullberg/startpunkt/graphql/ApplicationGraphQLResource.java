@@ -286,6 +286,7 @@ public class ApplicationGraphQLResource {
     spec.setUrl(input.url);
     spec.setInfo(input.info);
     spec.setTargetBlank(input.targetBlank);
+    spec.setCheckAvailability(input.checkAvailability);
     spec.setLocation(input.location != null ? input.location : 1000);
     spec.setEnabled(input.enabled != null ? input.enabled : true);
     spec.setRootPath(input.rootPath);
@@ -346,6 +347,7 @@ public class ApplicationGraphQLResource {
     spec.setUrl(input.url);
     spec.setInfo(input.info);
     spec.setTargetBlank(input.targetBlank);
+    spec.setCheckAvailability(input.checkAvailability);
     spec.setLocation(input.location != null ? input.location : 1000);
     spec.setEnabled(input.enabled != null ? input.enabled : true);
     spec.setRootPath(input.rootPath);

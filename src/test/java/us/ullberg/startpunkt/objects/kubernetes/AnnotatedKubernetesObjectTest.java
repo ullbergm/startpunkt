@@ -28,6 +28,50 @@ class AnnotatedKubernetesObjectTest {
     public String testBuildUrlWithPort(String protocol, String host, Integer port, String path) {
       return buildUrlWithPort(protocol, host, port, path);
     }
+
+    public Boolean testGetAppCheckAvailability(GenericKubernetesResource item) {
+      return getAppCheckAvailability(item);
+    }
+  }
+
+  private static GenericKubernetesResource resourceWithAnnotations(
+      Map<String, String> annotations) {
+    GenericKubernetesResource resource = new GenericKubernetesResource();
+    ObjectMeta metadata = new ObjectMeta();
+    metadata.setAnnotations(annotations);
+    resource.setMetadata(metadata);
+    return resource;
+  }
+
+  @Test
+  void testGetAppCheckAvailabilityAnnotationFalse() {
+    GenericKubernetesResource resource =
+        resourceWithAnnotations(Map.of("startpunkt.ullberg.us/checkAvailability", "false"));
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+
+    assertEquals(Boolean.FALSE, testObj.testGetAppCheckAvailability(resource));
+  }
+
+  @Test
+  void testGetAppCheckAvailabilityAnnotationTrue() {
+    GenericKubernetesResource resource =
+        resourceWithAnnotations(Map.of("startpunkt.ullberg.us/checkAvailability", "true"));
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+
+    assertEquals(Boolean.TRUE, testObj.testGetAppCheckAvailability(resource));
+  }
+
+  @Test
+  void testGetAppCheckAvailabilityWithoutAnnotation() {
+    GenericKubernetesResource resource = resourceWithAnnotations(new HashMap<>());
+
+    TestAnnotatedKubernetesObject testObj = new TestAnnotatedKubernetesObject();
+
+    assertNull(
+        testObj.testGetAppCheckAvailability(resource),
+        "Missing annotation should leave checkAvailability unset");
   }
 
   @Test

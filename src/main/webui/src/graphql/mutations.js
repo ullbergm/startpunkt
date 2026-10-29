@@ -12,6 +12,7 @@ export const CREATE_APPLICATION_MUTATION = gql`
       iconColor
       info
       targetBlank
+      checkAvailability
       location
       enabled
       rootPath
@@ -34,6 +35,7 @@ export const UPDATE_APPLICATION_MUTATION = gql`
       iconColor
       info
       targetBlank
+      checkAvailability
       location
       enabled
       rootPath

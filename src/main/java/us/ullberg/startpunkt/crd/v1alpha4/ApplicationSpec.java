@@ -61,6 +61,15 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   @JsonPropertyDescription("Open the URL in a new tab")
   private Boolean targetBlank;
 
+  /**
+   * Whether the application URL should be probed for availability. When {@code false}, the
+   * availability check is skipped and the application is always reported as available.
+   */
+  @JsonProperty("checkAvailability")
+  @JsonPropertyDescription(
+      "Check the URL for availability; set to false to always treat the application as available")
+  private Boolean checkAvailability;
+
   /** Sorting order for the bookmark in the UI. Default is 1000 for lowest priority. */
   @JsonProperty("location")
   @JsonPropertyDescription("Sorting order of the bookmark")
@@ -325,6 +334,26 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
   }
 
   /**
+   * Gets whether the application URL should be checked for availability.
+   *
+   * @return false if the availability check is disabled, true if enabled, null if not set (which
+   *     means the check is enabled)
+   */
+  public Boolean getCheckAvailability() {
+    return checkAvailability;
+  }
+
+  /**
+   * Sets whether the application URL should be checked for availability.
+   *
+   * @param checkAvailability false to skip the availability check and always report the
+   *     application as available
+   */
+  public void setCheckAvailability(Boolean checkAvailability) {
+    this.checkAvailability = checkAvailability;
+  }
+
+  /**
    * Gets the sorting order of the bookmark.
    *
    * @return sorting order
@@ -477,6 +506,11 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     if (targetBlank != null ? !targetBlank.equals(that.targetBlank) : that.targetBlank != null) {
       return false;
     }
+    if (checkAvailability != null
+        ? !checkAvailability.equals(that.checkAvailability)
+        : that.checkAvailability != null) {
+      return false;
+    }
     if (enabled != null ? !enabled.equals(that.enabled) : that.enabled != null) {
       return false;
     }
@@ -506,6 +540,7 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
     result = 31 * result + (url != null ? url.hashCode() : 0);
     result = 31 * result + (info != null ? info.hashCode() : 0);
     result = 31 * result + (targetBlank != null ? targetBlank.hashCode() : 0);
+    result = 31 * result + (checkAvailability != null ? checkAvailability.hashCode() : 0);
     result = 31 * result + location;
     result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
     result = 31 * result + (rootPath != null ? rootPath.hashCode() : 0);
@@ -541,6 +576,8 @@ public class ApplicationSpec implements Comparable<ApplicationSpec> {
         + '\''
         + ", targetBlank="
         + targetBlank
+        + ", checkAvailability="
+        + checkAvailability
         + ", location="
         + location
         + ", enabled="

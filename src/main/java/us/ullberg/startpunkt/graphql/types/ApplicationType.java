@@ -29,6 +29,9 @@ public class ApplicationType {
   @Description("Open the URL in a new tab")
   public Boolean targetBlank;
 
+  @Description("Check the URL for availability; false always reports the application as available")
+  public Boolean checkAvailability;
+
   @Description("Sorting order of the application")
   public Integer location;
 
@@ -75,6 +78,7 @@ public class ApplicationType {
     type.url = response.getUrl();
     type.info = response.getInfo();
     type.targetBlank = response.getTargetBlank();
+    type.checkAvailability = response.getCheckAvailability();
     type.location = response.getLocation();
     type.enabled = response.getEnabled();
     type.rootPath = response.getRootPath();

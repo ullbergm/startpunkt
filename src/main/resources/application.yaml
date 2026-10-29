@@ -21,7 +21,7 @@ startpunkt:
 
   # Application availability checking
   availability:
-    enabled: true  # If true, check application availability
+    enabled: true  # If true, check application availability (individual applications can opt out with checkAvailability: false or the startpunkt.ullberg.us/checkAvailability annotation)
     timeout: 5  # Timeout in seconds for availability checks
 
     # Background job interval - how often to check healthy application URLs
