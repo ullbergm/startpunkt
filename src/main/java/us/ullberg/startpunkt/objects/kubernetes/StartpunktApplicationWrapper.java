@@ -49,18 +49,21 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
    */
   protected ApplicationSpec mapToApplicationSpec(
       GenericKubernetesResource item, KubernetesClient client) {
-    return new ApplicationSpec(
-        getAppName(item),
-        getAppGroup(item),
-        getAppIcon(item),
-        getAppIconColor(item),
-        getAppUrl(item, client),
-        getAppInfo(item),
-        getAppTargetBlank(item),
-        getAppLocation(item),
-        getAppEnabled(item),
-        getAppRootPath(item),
-        getAppTags(item));
+    ApplicationSpec spec =
+        new ApplicationSpec(
+            getAppName(item),
+            getAppGroup(item),
+            getAppIcon(item),
+            getAppIconColor(item),
+            getAppUrl(item, client),
+            getAppInfo(item),
+            getAppTargetBlank(item),
+            getAppLocation(item),
+            getAppEnabled(item),
+            getAppRootPath(item),
+            getAppTags(item));
+    spec.setCheckAvailability(getAppCheckAvailability(item));
+    return spec;
   }
 
   /**
@@ -338,6 +341,23 @@ public class StartpunktApplicationWrapper extends BaseKubernetesObject {
   @Override
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
     return getOptionalSpecBoolean(item, "targetBlank", super.getAppTargetBlank(item));
+  }
+
+  /**
+   * Retrieves the checkAvailability flag from the resource spec. Returns base class value if not
+   * present.
+   *
+   * @param item Kubernetes resource
+   * @return Boolean indicating if the URL should be checked for availability, or null if not set
+   */
+  @Override
+  protected Boolean getAppCheckAvailability(GenericKubernetesResource item) {
+    // Read the spec directly: getOptionalSpecBoolean unboxes the fallback, which may be null here
+    var spec = getSpec(item);
+    if (spec != null && spec.containsKey("checkAvailability")) {
+      return Boolean.parseBoolean(spec.get("checkAvailability").toString());
+    }
+    return super.getAppCheckAvailability(item);
   }
 
   /**

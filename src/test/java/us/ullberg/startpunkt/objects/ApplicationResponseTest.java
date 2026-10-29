@@ -254,4 +254,22 @@ class ApplicationResponseTest {
     wrapper.setAvailable(null);
     assertNull(wrapper.getAvailable(), "Should remain null");
   }
+
+  @Test
+  void testWrapperCopiesCheckAvailability() {
+    ApplicationSpec spec = new ApplicationSpec();
+    spec.setName("no-check");
+    spec.setUrl("https://no-check.example.com");
+    spec.setCheckAvailability(false);
+
+    ApplicationResponse wrapper = new ApplicationResponse(spec);
+
+    assertFalse(wrapper.getCheckAvailability(), "checkAvailability should be copied");
+
+    ApplicationSpec unset = new ApplicationSpec();
+    unset.setName("unset");
+    assertNull(
+        new ApplicationResponse(unset).getCheckAvailability(),
+        "Null checkAvailability should be copied as null");
+  }
 }

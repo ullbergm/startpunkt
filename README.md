@@ -316,6 +316,26 @@ This will create a link to `https://app.example.com/admin/dashboard`.
 
 > **_NOTE:_** For Startpunkt CRDs, the `rootPath` property in the spec takes precedence over the `startpunkt.ullberg.us/rootPath` annotation if both are present.
 
+#### Skipping the availability check with checkAvailability
+
+Startpunkt periodically probes each application URL and greys out links that do not respond. Some links cannot be probed from inside the cluster (for example a device on a VPN, a site that blocks `HEAD` requests, or a URL that is only reachable from the browser). Set `checkAvailability: false` on such an application to skip the probe and always show it as available:
+
+```yaml
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: printer
+  namespace: default
+spec:
+  name: Printer
+  group: Infrastructure
+  icon: mdi:printer
+  url: http://192.168.1.50/
+  checkAvailability: false
+```
+
+The same can be done for Ingresses, Routes and other annotated resources with the `startpunkt.ullberg.us/checkAvailability: "false"` annotation. To turn off availability checking for every application, set `startpunkt.availability.enabled: false` in the configuration instead.
+
 #### Dynamic URL Resolution with urlFrom
 
 The `urlFrom` field allows you to dynamically read URLs from other Kubernetes objects like Services, ConfigMaps, or any other resource. This is useful when you need to reference dynamically assigned values such as LoadBalancer IPs, cluster IPs, or configuration stored in ConfigMaps.
@@ -463,6 +483,7 @@ The annotations can go on Ingresses or OpenShift Routes.
 | `startpunkt.ullberg.us/rootPath`    | A path to append to the auto-detected or annotation-specified URL.                             | No       |
 | `startpunkt.ullberg.us/port`        | Custom port number (1-65535) for the URL. Standard ports (80/443) are omitted from URLs.      | No       |
 | `startpunkt.ullberg.us/targetBlank` | Determines if links should open in new tabs/windows.                                           | No       |
+| `startpunkt.ullberg.us/checkAvailability` | Set to `false` to skip the availability check and always show the application as available. | No       |
 | `startpunkt.ullberg.us/info`        | A short description of the application.                                                        | No       |
 | `startpunkt.ullberg.us/protocol`    | Protocol to use for links if not known.                                                        | No       |
 

@@ -54,6 +54,7 @@ public class ApplicationResponse extends ApplicationSpec {
     this.setUrlFrom(spec.getUrlFrom());
     this.setInfo(spec.getInfo());
     this.setTargetBlank(spec.getTargetBlank());
+    this.setCheckAvailability(spec.getCheckAvailability());
     this.setLocation(spec.getLocation());
     this.setEnabled(spec.getEnabled());
     this.setRootPath(spec.getRootPath());

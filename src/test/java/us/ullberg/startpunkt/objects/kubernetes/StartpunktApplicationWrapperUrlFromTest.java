@@ -131,6 +131,46 @@ class StartpunktApplicationWrapperUrlFromTest {
   }
 
   @Test
+  void testCheckAvailabilityFromSpec() {
+    String namespace = "test-check-availability";
+
+    ApplicationSpec skippedSpec = new ApplicationSpec();
+    skippedSpec.setName("Skipped App");
+    skippedSpec.setUrl("https://skipped.example.com");
+    skippedSpec.setCheckAvailability(false);
+
+    Application skipped = new Application();
+    skipped.setMetadata(
+        new ObjectMetaBuilder().withName("skipped-app").withNamespace(namespace).build());
+    skipped.setSpec(skippedSpec);
+
+    ApplicationSpec defaultSpec = new ApplicationSpec();
+    defaultSpec.setName("Default App");
+    defaultSpec.setUrl("https://default.example.com");
+
+    Application defaultApp = new Application();
+    defaultApp.setMetadata(
+        new ObjectMetaBuilder().withName("default-app").withNamespace(namespace).build());
+    defaultApp.setSpec(defaultSpec);
+
+    client.resources(Application.class).inNamespace(namespace).resource(skipped).create();
+    client.resources(Application.class).inNamespace(namespace).resource(defaultApp).create();
+
+    StartpunktApplicationWrapper wrapper = new StartpunktApplicationWrapper();
+    List<ApplicationSpec> specs = wrapper.getApplicationSpecs(client, false, List.of(namespace));
+
+    assertEquals(2, specs.size());
+    for (ApplicationSpec spec : specs) {
+      if ("skipped app".equals(spec.getName())) {
+        assertEquals(Boolean.FALSE, spec.getCheckAvailability());
+      } else {
+        assertEquals("default app", spec.getName());
+        assertNull(spec.getCheckAvailability(), "Unset checkAvailability should stay null");
+      }
+    }
+  }
+
+  @Test
   void testUrlFromWithNestedProperty() {
     String namespace = "test3";
 

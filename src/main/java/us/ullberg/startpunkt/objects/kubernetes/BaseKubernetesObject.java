@@ -215,6 +215,7 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
             getAppEnabled(item),
             getAppRootPath(item),
             getAppTags(item));
+    spec.setCheckAvailability(getAppCheckAvailability(item));
 
     // Note: Metadata fields (namespace, resourceName, hasOwnerReferences) are set
     // by ApplicationResource when wrapping in ApplicationResponse
@@ -385,6 +386,18 @@ public abstract class BaseKubernetesObject implements KubernetesObject {
   @Nullable
   protected Boolean getAppTargetBlank(GenericKubernetesResource item) {
     return false;
+  }
+
+  /**
+   * Returns whether the application URL should be checked for availability. A {@code false} value
+   * skips the availability check and always reports the application as available.
+   *
+   * @param item the Kubernetes generic resource
+   * @return Boolean flag or null if not specified (check enabled)
+   */
+  @Nullable
+  protected Boolean getAppCheckAvailability(GenericKubernetesResource item) {
+    return null;
   }
 
   /**

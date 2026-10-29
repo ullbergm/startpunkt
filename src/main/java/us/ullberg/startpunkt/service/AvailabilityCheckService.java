@@ -161,6 +161,27 @@ public class AvailabilityCheckService {
   }
 
   /**
+   * Determines whether the URL of the given application should be probed for availability. The
+   * check is skipped when availability checking is globally disabled, when the application has no
+   * URL, or when the application opts out via {@code checkAvailability: false} (or the
+   * {@code startpunkt.ullberg.us/checkAvailability} annotation). Applications that skip the check
+   * are always reported as available.
+   *
+   * @param app the application to inspect
+   * @return true if the application's URL should be checked
+   */
+  public boolean shouldCheck(ApplicationSpec app) {
+    if (!availabilityCheckEnabled || app == null) {
+      return false;
+    }
+    if (Boolean.FALSE.equals(app.getCheckAvailability())) {
+      return false;
+    }
+    String url = app.getUrl();
+    return url != null && !url.isEmpty();
+  }
+
+  /**
    * Checks the availability of a single application URL. By default, this method always performs
    * the check regardless of backoff state, which is suitable for on-demand checks.
    *
@@ -291,26 +312,7 @@ public class AvailabilityCheckService {
 
     for (ApplicationSpec app : applications) {
       ApplicationResponse wrapped = new ApplicationResponse(app);
-
-      if (!availabilityCheckEnabled) {
-        // Set all applications as available if checking is disabled
-        wrapped.setAvailable(true);
-      } else {
-        String url = app.getUrl();
-        if (url != null && !url.isEmpty()) {
-          // Check if we have a cached result
-          Boolean cached = availabilityCache.get(url);
-          if (cached != null) {
-            wrapped.setAvailable(cached);
-          } else {
-            // If not cached, default to true to avoid blocking
-            wrapped.setAvailable(true);
-          }
-        } else {
-          wrapped.setAvailable(true); // No URL to check, consider available
-        }
-      }
-
+      wrapped.setAvailable(resolveAvailability(app));
       wrappedApps.add(wrapped);
     }
 
@@ -327,27 +329,27 @@ public class AvailabilityCheckService {
    */
   public List<ApplicationResponse> enrichWithAvailability(List<ApplicationResponse> applications) {
     for (ApplicationResponse app : applications) {
-      if (!availabilityCheckEnabled) {
-        // Set all applications as available if checking is disabled
-        app.setAvailable(true);
-      } else {
-        String url = app.getUrl();
-        if (url != null && !url.isEmpty()) {
-          // Check if we have a cached result
-          Boolean cached = availabilityCache.get(url);
-          if (cached != null) {
-            app.setAvailable(cached);
-          } else {
-            // If not cached, default to true to avoid blocking
-            app.setAvailable(true);
-          }
-        } else {
-          app.setAvailable(true); // No URL to check, consider available
-        }
-      }
+      app.setAvailable(resolveAvailability(app));
     }
 
     return applications;
+  }
+
+  /**
+   * Resolves the availability status for an application from the cache. Applications that are not
+   * subject to availability checking (global check disabled, no URL, or {@code checkAvailability:
+   * false}) are always reported as available. URLs that have not been checked yet default to
+   * available to avoid blocking.
+   *
+   * @param app the application to resolve availability for
+   * @return true if the application should be shown as available
+   */
+  private boolean resolveAvailability(ApplicationSpec app) {
+    if (!shouldCheck(app)) {
+      return true;
+    }
+    Boolean cached = availabilityCache.get(app.getUrl());
+    return cached == null || cached;
   }
 
   /**

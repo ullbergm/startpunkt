@@ -606,6 +606,29 @@ class ApplicationSpecTest {
   }
 
   @Test
+  void testCheckAvailabilitySetterGetter() {
+    ApplicationSpec spec = new ApplicationSpec();
+    assertNull(spec.getCheckAvailability(), "checkAvailability should default to null (enabled)");
+
+    spec.setCheckAvailability(false);
+    assertFalse(spec.getCheckAvailability());
+
+    spec.setCheckAvailability(true);
+    assertTrue(spec.getCheckAvailability());
+  }
+
+  @Test
+  void testCheckAvailabilityAffectsEquality() {
+    ApplicationSpec a = new ApplicationSpec("App", "Group", null, null, "url", null, true, 1, true);
+    ApplicationSpec b = new ApplicationSpec("App", "Group", null, null, "url", null, true, 1, true);
+    assertEquals(a, b);
+    assertEquals(a.hashCode(), b.hashCode());
+
+    b.setCheckAvailability(false);
+    assertNotEquals(a, b, "Changing checkAvailability should make specs unequal");
+  }
+
+  @Test
   void testZeroLocation() {
     // When explicitly set to 0, the spec should preserve that value
     // (normalization to 1000 happens at wrapper/service level)
