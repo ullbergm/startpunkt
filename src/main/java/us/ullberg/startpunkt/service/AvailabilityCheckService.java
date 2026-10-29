@@ -163,9 +163,9 @@ public class AvailabilityCheckService {
   /**
    * Determines whether the URL of the given application should be probed for availability. The
    * check is skipped when availability checking is globally disabled, when the application has no
-   * URL, or when the application opts out via {@code checkAvailability: false} (or the
-   * {@code startpunkt.ullberg.us/checkAvailability} annotation). Applications that skip the check
-   * are always reported as available.
+   * URL, or when the application opts out via {@code checkAvailability: false} (or the {@code
+   * startpunkt.ullberg.us/checkAvailability} annotation). Applications that skip the check are
+   * always reported as available.
    *
    * @param app the application to inspect
    * @return true if the application's URL should be checked

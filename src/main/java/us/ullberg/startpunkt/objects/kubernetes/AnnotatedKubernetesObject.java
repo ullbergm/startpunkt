@@ -165,9 +165,9 @@ public abstract class AnnotatedKubernetesObject extends BaseKubernetesObject {
   }
 
   /**
-   * Determines if the application URL should be checked for availability based on annotations.
-   * The {@code startpunkt.ullberg.us/checkAvailability} annotation set to {@code false} disables
-   * the check so the application is always treated as available.
+   * Determines if the application URL should be checked for availability based on annotations. The
+   * {@code startpunkt.ullberg.us/checkAvailability} annotation set to {@code false} disables the
+   * check so the application is always treated as available.
    *
    * @param item Kubernetes resource
    * @return Boolean indicating checkAvailability or the base class value if not set
