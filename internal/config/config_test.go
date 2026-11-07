@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func env(values map[string]string) func(string) string {
@@ -139,6 +140,37 @@ func TestRejectsSourceSettings(t *testing.T) {
 		"defaultProtocol":   {"STARTPUNKT_SOURCES_HTTPROUTE_DEFAULTPROTOCOL": "gopher"},
 	}
 	for want, values := range cases {
+		if _, err := Load("", false, env(values)); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got error %v", want, err)
+		}
+	}
+}
+
+func TestAvailability(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	data := "availability:\n  interval: 30s\n  insecureSkipVerify: true\nstatus:\n  enabled: false\n"
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path, true, env(map[string]string{
+		"STARTPUNKT_AVAILABILITY_TIMEOUT":     "2s",
+		"STARTPUNKT_AVAILABILITY_CONCURRENCY": "4",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := cfg.Availability
+	if !a.Enabled || time.Duration(a.Interval) != 30*time.Second || time.Duration(a.Timeout) != 2*time.Second ||
+		time.Duration(a.MaxBackoff) != 5*time.Minute || a.Concurrency != 4 || !a.InsecureSkipVerify ||
+		cfg.Status.Enabled {
+		t.Errorf("got %+v, status %+v", a, cfg.Status)
+	}
+	for want, values := range map[string]map[string]string{
+		"not a duration":   {"STARTPUNKT_AVAILABILITY_INTERVAL": "60"},
+		"must be positive": {"STARTPUNKT_AVAILABILITY_TIMEOUT": "0s"},
+		"maxBackoff":       {"STARTPUNKT_AVAILABILITY_MAXBACKOFF": "1s"},
+		"concurrency":      {"STARTPUNKT_AVAILABILITY_CONCURRENCY": "0"},
+	} {
 		if _, err := Load("", false, env(values)); err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: got error %v", want, err)
 		}

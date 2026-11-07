@@ -155,6 +155,27 @@ describe('App', () => {
     await waitFor(() => expect(screen.queryByText(/Still reading the cluster/)).toBeNull());
   });
 
+  it('marks a tile whose probe failed, and only that', async () => {
+    renderWith(
+      serverState({
+        tiles: [
+          tile({ name: 'Down', available: false }),
+          tile({ name: 'Up', available: true }),
+          tile({ name: 'Unknown' }),
+        ],
+      }),
+    );
+    const down = await screen.findByRole('link', { name: /Down/ });
+    expect(down.textContent).toContain('Offline');
+    expect(screen.getByRole('link', { name: /Up/ }).textContent).not.toContain('Offline');
+    expect(screen.getByRole('link', { name: /Unknown/ }).textContent).not.toContain('Offline');
+
+    act(() => FakeStream.last.emit('tile.upsert', tile({ name: 'Down', available: true })));
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /Down/ }).textContent).not.toContain('Offline'),
+    );
+  });
+
   it('falls back to an initial when the icon fails to load', async () => {
     const { container } = renderWith(
       serverState({ tiles: [tile({ name: 'plex', icon: 'mdi:plex' })] }),

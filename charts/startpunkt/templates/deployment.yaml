@@ -55,6 +55,12 @@ spec:
             - name: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES
               value: {{ join "," . | quote }}
             {{- end }}
+            {{- range $setting, $value := $.Values.availability }}
+            - name: STARTPUNKT_AVAILABILITY_{{ upper $setting }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: STARTPUNKT_STATUS_ENABLED
+              value: {{ $.Values.status.enabled | quote }}
             {{- range $name, $source := $.Values.sources }}
             {{- range $setting, $value := $source }}
             {{- if kindIs "slice" $value }}

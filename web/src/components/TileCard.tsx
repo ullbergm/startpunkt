@@ -4,6 +4,8 @@ import { TileIcon } from './TileIcon';
 
 export function TileCard({ tile }: { tile: Tile }) {
   const href = safeHref(tile.url);
+  // Only a probe that failed marks a tile. Without a result nothing is shown.
+  const unavailable = tile.available === false;
   const body = (
     <>
       <TileIcon tile={tile} />
@@ -11,6 +13,8 @@ export function TileCard({ tile }: { tile: Tile }) {
         <span class="tile-name">{tile.name}</span>
         {tile.info && <span class="tile-info">{tile.info}</span>}
       </span>
+      {/* Said in words, not only by dimming, and part of the link's name. */}
+      {unavailable && <span class="tile-badge">Offline</span>}
     </>
   );
   if (!href) {
@@ -22,7 +26,7 @@ export function TileCard({ tile }: { tile: Tile }) {
   }
   return (
     <a
-      class="tile"
+      class={unavailable ? 'tile tile-unavailable' : 'tile'}
       href={href}
       target={tile.targetBlank ? '_blank' : undefined}
       rel={tile.targetBlank ? 'noopener noreferrer' : undefined}

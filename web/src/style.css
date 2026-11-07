@@ -112,6 +112,22 @@ button:focus-visible {
   opacity: 0.6;
 }
 
+.tile-unavailable .tile-icon,
+.tile-unavailable .tile-text {
+  opacity: 0.55;
+}
+
+.tile-badge {
+  flex: none;
+  margin-left: auto;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--error);
+  border-radius: 999px;
+  color: var(--error);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .tile-icon {
   flex: none;
   width: 40px;

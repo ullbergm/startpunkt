@@ -2,6 +2,7 @@ package store
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ullbergm/startpunkt/internal/tile"
 )
@@ -152,5 +153,53 @@ func TestSlowSubscriberIsDisconnected(t *testing.T) {
 	}
 	if n == 0 || n >= 200 {
 		t.Fatalf("expected the channel to be closed after its buffer filled, read %d", n)
+	}
+}
+
+func TestProbeResults(t *testing.T) {
+	s := New()
+	owner := Owner{Cluster: "c", Type: "apps", Name: "a"}
+	withURL := func(url string) tile.Tile {
+		tl := mk("a", "A", 1)
+		tl.URL = url
+		return tl
+	}
+	s.Set(owner, []tile.Tile{withURL("https://one")})
+	_, events, cancel := s.Subscribe()
+	defer cancel()
+	at := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	s.SetProbe([]string{"a", "unknown"}, true, at)
+	got := drain(events)
+	if len(got) != 1 || got[0].Tile.Available == nil || !*got[0].Tile.Available || !got[0].Tile.LastProbe.Equal(at) {
+		t.Fatalf("first result: %+v", got)
+	}
+
+	s.SetProbe([]string{"a"}, true, at.Add(time.Minute))
+	if got := drain(events); len(got) != 0 {
+		t.Fatalf("a confirming probe must be silent, got %+v", got)
+	}
+	if tl := s.Owned(owner)[0]; !tl.LastProbe.Equal(at) {
+		t.Errorf("lastProbe moved without a change: %v", tl.LastProbe)
+	}
+
+	// The source object is converted again: the result survives while the
+	// URL is the same.
+	renamed := withURL("https://one")
+	renamed.Name = "renamed"
+	s.Set(owner, []tile.Tile{renamed})
+	if tl := s.Owned(owner)[0]; tl.Name != "renamed" || tl.Available == nil || !*tl.Available {
+		t.Errorf("result lost on update: %+v", tl)
+	}
+
+	s.SetProbe([]string{"a"}, false, at.Add(2*time.Minute))
+	if tl := s.Owned(owner)[0]; *tl.Available || !tl.LastProbe.Equal(at.Add(2*time.Minute)) {
+		t.Errorf("change not recorded: %+v", tl)
+	}
+
+	// A new URL has not been probed.
+	s.Set(owner, []tile.Tile{withURL("https://two")})
+	if tl := s.Owned(owner)[0]; tl.Available != nil || tl.LastProbe != nil {
+		t.Errorf("result kept for another URL: %+v", tl)
 	}
 }

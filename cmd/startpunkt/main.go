@@ -24,6 +24,7 @@ import (
 	"github.com/ullbergm/startpunkt/internal/config"
 	"github.com/ullbergm/startpunkt/internal/follow"
 	"github.com/ullbergm/startpunkt/internal/kube"
+	"github.com/ullbergm/startpunkt/internal/probe"
 	"github.com/ullbergm/startpunkt/internal/source"
 	"github.com/ullbergm/startpunkt/internal/store"
 	"github.com/ullbergm/startpunkt/web"
@@ -113,6 +114,22 @@ func run() error {
 			return err
 		}
 		go controller.Run(ctx)
+		if a := cfg.Availability; a.Enabled {
+			go (&probe.Prober{
+				Store:   handler.Store,
+				Cluster: cfg.Cluster.Name,
+				Log:     log,
+				Options: probe.Options{
+					Interval:           time.Duration(a.Interval),
+					Timeout:            time.Duration(a.Timeout),
+					InitialBackoff:     time.Duration(a.InitialBackoff),
+					MaxBackoff:         time.Duration(a.MaxBackoff),
+					Concurrency:        a.Concurrency,
+					InsecureSkipVerify: a.InsecureSkipVerify,
+					UserAgent:          "startpunkt/" + version,
+				},
+			}).Run(ctx)
+		}
 	case roleAPI:
 		if cfg.Upstream.URL == "" {
 			return errors.New("the api role needs upstream.url (STARTPUNKT_UPSTREAM_URL)")
@@ -169,13 +186,14 @@ func newController(cfg config.Config, tiles *store.Store, log *slog.Logger) (*ku
 		return nil, err
 	}
 	return &kube.Controller{
-		Cluster:    cfg.Cluster.Name,
-		Store:      tiles,
-		Sources:    source.Builtin(sourceOptions(cfg.Sources)),
-		Namespaces: cfg.NamespaceSelector.Namespaces(),
-		Discovery:  discoveryClient,
-		Dynamic:    dynamicClient,
-		Log:        log,
+		Cluster:     cfg.Cluster.Name,
+		Store:       tiles,
+		Sources:     source.Builtin(sourceOptions(cfg.Sources)),
+		Namespaces:  cfg.NamespaceSelector.Namespaces(),
+		WriteStatus: cfg.Status.Enabled,
+		Discovery:   discoveryClient,
+		Dynamic:     dynamicClient,
+		Log:         log,
 	}, nil
 }
 

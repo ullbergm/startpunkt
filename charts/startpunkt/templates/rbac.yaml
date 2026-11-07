@@ -15,6 +15,11 @@ rules:
     resources: {{ toJson . }}
     verbs: {{ toJson $read }}
   {{- end }}
+  {{- if and .Values.status.enabled .Values.sources.application.enabled }}
+  - apiGroups: [startpunkt.ullberg.us]
+    resources: [applications/status]
+    verbs: [patch]
+  {{- end }}
   {{- if .Values.sources.route.enabled }}
   - apiGroups: [route.openshift.io]
     resources: [routes]

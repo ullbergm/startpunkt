@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"sigs.k8s.io/yaml"
 )
@@ -23,6 +25,8 @@ type Config struct {
 	Cluster           Cluster           `json:"cluster"`
 	NamespaceSelector NamespaceSelector `json:"namespaceSelector"`
 	Sources           Sources           `json:"sources"`
+	Availability      Availability      `json:"availability"`
+	Status            Status            `json:"status"`
 	Server            Server            `json:"server"`
 	Upstream          Upstream          `json:"upstream"`
 	Web               Web               `json:"web"`
@@ -92,6 +96,59 @@ type RoutedSource struct {
 	DefaultProtocol string `json:"defaultProtocol"`
 }
 
+// Duration is a time.Duration written as a string such as "60s" or "5m".
+type Duration time.Duration
+
+// UnmarshalJSON implements json.Unmarshaler. The YAML file is decoded as
+// JSON, so this covers it too.
+func (d *Duration) UnmarshalJSON(data []byte) error {
+	var text string
+	if err := json.Unmarshal(data, &text); err != nil {
+		return fmt.Errorf("a duration must be a string such as \"60s\": %w", err)
+	}
+	parsed, err := time.ParseDuration(text)
+	if err != nil {
+		return err
+	}
+	*d = Duration(parsed)
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler.
+func (d Duration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Duration(d).String())
+}
+
+// Availability configures the probing of the local cluster's tiles. The
+// environment variable of a setting is STARTPUNKT_AVAILABILITY_<SETTING> in
+// upper case.
+type Availability struct {
+	// Enabled turns probing on. When it is off, tiles carry no
+	// availability at all.
+	Enabled bool `json:"enabled"`
+	// Interval is the time between probes of a URL that answers.
+	Interval Duration `json:"interval"`
+	// Timeout bounds a single probe.
+	Timeout Duration `json:"timeout"`
+	// InitialBackoff is the wait after a first failure. It doubles with
+	// each further failure up to MaxBackoff.
+	InitialBackoff Duration `json:"initialBackoff"`
+	MaxBackoff     Duration `json:"maxBackoff"`
+	// Concurrency is the number of probes that may run at once.
+	Concurrency int `json:"concurrency"`
+	// InsecureSkipVerify accepts any TLS certificate. Use it when the
+	// applications use certificates the controller cannot verify.
+	InsecureSkipVerify bool `json:"insecureSkipVerify"`
+}
+
+// Status configures what is written back to the cluster.
+type Status struct {
+	// Enabled writes the resolved URL, the availability and conditions to
+	// the status of Application resources.
+	// Environment: STARTPUNKT_STATUS_ENABLED.
+	Enabled bool `json:"enabled"`
+}
+
 // Upstream is where the api role reads its state from when the controller
 // runs as a separate process.
 type Upstream struct {
@@ -140,6 +197,15 @@ func Default() Config {
 			HTTPRoute:      RoutedSource{Annotated: Annotated{Enabled: true, OnlyAnnotated: true}, DefaultProtocol: "http"},
 			VirtualService: RoutedSource{Annotated: Annotated{Enabled: true, OnlyAnnotated: true}, DefaultProtocol: "http"},
 		},
+		Availability: Availability{
+			Enabled:        true,
+			Interval:       Duration(60 * time.Second),
+			Timeout:        Duration(5 * time.Second),
+			InitialBackoff: Duration(5 * time.Second),
+			MaxBackoff:     Duration(5 * time.Minute),
+			Concurrency:    8,
+		},
+		Status: Status{Enabled: true},
 		Server: Server{Address: ":8080"},
 		Web:    Web{Title: "Startpunkt"},
 		Log:    Log{Level: "info", Format: "json"},
@@ -184,6 +250,9 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 	}
 	flags := map[string]*bool{
 		"NAMESPACESELECTOR_ANY":                &c.NamespaceSelector.Any,
+		"AVAILABILITY_ENABLED":                 &c.Availability.Enabled,
+		"AVAILABILITY_INSECURESKIPVERIFY":      &c.Availability.InsecureSkipVerify,
+		"STATUS_ENABLED":                       &c.Status.Enabled,
 		"SOURCES_APPLICATION_ENABLED":          &c.Sources.Application.Enabled,
 		"SOURCES_BOOKMARK_ENABLED":             &c.Sources.Bookmark.Enabled,
 		"SOURCES_ROUTE_ENABLED":                &c.Sources.Route.Enabled,
@@ -195,6 +264,30 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"SOURCES_HTTPROUTE_ONLYANNOTATED":      &c.Sources.HTTPRoute.OnlyAnnotated,
 		"SOURCES_VIRTUALSERVICE_ENABLED":       &c.Sources.VirtualService.Enabled,
 		"SOURCES_VIRTUALSERVICE_ONLYANNOTATED": &c.Sources.VirtualService.OnlyAnnotated,
+	}
+	durations := map[string]*Duration{
+		"AVAILABILITY_INTERVAL":       &c.Availability.Interval,
+		"AVAILABILITY_TIMEOUT":        &c.Availability.Timeout,
+		"AVAILABILITY_INITIALBACKOFF": &c.Availability.InitialBackoff,
+		"AVAILABILITY_MAXBACKOFF":     &c.Availability.MaxBackoff,
+	}
+	for name, target := range durations {
+		v := getenv(EnvPrefix + name)
+		if v == "" {
+			continue
+		}
+		parsed, err := time.ParseDuration(v)
+		if err != nil {
+			return fmt.Errorf("%s%s: %q is not a duration such as 60s", EnvPrefix, name, v)
+		}
+		*target = Duration(parsed)
+	}
+	if v := getenv(EnvPrefix + "AVAILABILITY_CONCURRENCY"); v != "" {
+		parsed, err := strconv.Atoi(v)
+		if err != nil {
+			return fmt.Errorf("%sAVAILABILITY_CONCURRENCY: %q is not a number", EnvPrefix, v)
+		}
+		c.Availability.Concurrency = parsed
 	}
 	lists := map[string]*[]string{
 		"NAMESPACESELECTOR_MATCHNAMES": &c.NamespaceSelector.MatchNames,
@@ -250,6 +343,14 @@ func (c Config) validate() error {
 		if protocol != "http" && protocol != "https" {
 			return fmt.Errorf("%s %q is not http or https", name, protocol)
 		}
+	}
+	a := c.Availability
+	if a.Interval <= 0 || a.Timeout <= 0 || a.InitialBackoff <= 0 || a.MaxBackoff < a.InitialBackoff {
+		return errors.New("availability: interval, timeout and initialBackoff must be positive, " +
+			"and maxBackoff at least initialBackoff")
+	}
+	if a.Concurrency < 1 {
+		return errors.New("availability.concurrency must be at least 1")
 	}
 	if c.Upstream.URL != "" {
 		u, err := url.Parse(c.Upstream.URL)

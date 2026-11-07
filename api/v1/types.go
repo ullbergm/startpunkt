@@ -106,3 +106,38 @@ type BookmarkSpec struct {
 	// +optional
 	Location int `json:"location,omitempty"`
 }
+
+// Condition types reported in ApplicationStatus.
+const (
+	// ConditionResolved says whether the spec could be turned into a tile.
+	ConditionResolved = "Resolved"
+	// ConditionAvailable says whether the URL answered the last probe.
+	ConditionAvailable = "Available"
+)
+
+// ApplicationStatus is written by the controller. It changes only when one
+// of its values changes; the time of the last probe is deliberately not part
+// of it, because every write produces a watch event.
+type ApplicationStatus struct {
+	// URL the tile links to, after urlFrom and rootPath were applied.
+	// +optional
+	URL string `json:"url,omitempty"`
+	// Whether the URL answered the last probe. Absent until it was probed.
+	// +optional
+	Available *bool `json:"available,omitempty"`
+	// Resolved and Available conditions.
+	// +optional
+	// +listType=map
+	// +listMapKey=type
+	Conditions []Condition `json:"conditions,omitempty"`
+}
+
+// Condition has the fields of the standard Kubernetes condition.
+type Condition struct {
+	Type               string `json:"type"`
+	Status             string `json:"status"`
+	Reason             string `json:"reason"`
+	Message            string `json:"message"`
+	LastTransitionTime string `json:"lastTransitionTime"`
+	ObservedGeneration int64  `json:"observedGeneration,omitempty"`
+}

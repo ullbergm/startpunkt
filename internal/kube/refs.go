@@ -138,22 +138,8 @@ func (c *Controller) reapply(owner store.Owner) {
 	c.mu.Lock()
 	w := c.watches[owner.Type]
 	c.mu.Unlock()
-	if w == nil {
-		return
-	}
-	key := owner.Name
-	if owner.Namespace != "" {
-		key = owner.Namespace + "/" + owner.Name
-	}
-	for _, informer := range w.informers {
-		obj, exists, err := informer.GetStore().GetByKey(key)
-		if err != nil || !exists {
-			continue
-		}
-		if u, ok := obj.(*unstructured.Unstructured); ok {
-			c.apply(w.src, w.version, u)
-			return
-		}
+	if obj, _ := c.current(owner); obj != nil && w != nil {
+		c.apply(w.src, w.version, obj)
 	}
 }
 

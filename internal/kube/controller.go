@@ -41,12 +41,15 @@ type Controller struct {
 	Discovery         Discovery
 	Dynamic           dynamic.Interface
 	DiscoveryInterval time.Duration
-	Log               *slog.Logger
+	// WriteStatus keeps the status of Application resources up to date.
+	WriteStatus bool
+	Log         *slog.Logger
 
 	mu      sync.Mutex
 	watches map[string]*watch
 	synced  atomic.Bool
 	ctx     context.Context
+	status  *statusWriter
 
 	// refMu guards refs and deps. It is never held together with mu.
 	refMu sync.Mutex
@@ -102,6 +105,10 @@ func (c *Controller) Run(ctx context.Context) {
 	c.mu.Lock()
 	c.watches = map[string]*watch{}
 	c.mu.Unlock()
+	if c.WriteStatus {
+		c.status = newStatusWriter(c)
+		go c.status.run(ctx)
+	}
 	c.refMu.Lock()
 	c.refs = map[source.Ref]*refWatch{}
 	c.deps = map[store.Owner][]source.Ref{}
@@ -229,6 +236,9 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 				owner := c.owner(typ, u)
 				c.Store.Delete(owner)
 				c.setDeps(owner, nil)
+				if c.status != nil && typ == statusType {
+					c.status.forget(owner)
+				}
 			}
 		},
 	}
@@ -294,6 +304,15 @@ func (c *Controller) apply(src source.Source, version string, obj *unstructured.
 		return c.lookup(owner, ref)
 	})
 	c.setDeps(owner, used)
+	if c.status != nil && typ == statusType {
+		// Reported after the store is updated below, so the status is
+		// built from the new tiles.
+		res := resolution{generation: obj.GetGeneration()}
+		if err != nil {
+			res.reason, res.message = reasonInvalid, err.Error()
+		}
+		defer c.status.resolved(owner, res)
+	}
 	if err != nil {
 		c.Log.Warn("skipping object",
 			"type", typ, "namespace", owner.Namespace, "name", owner.Name, "error", err)

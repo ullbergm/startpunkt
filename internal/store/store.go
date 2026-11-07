@@ -5,6 +5,7 @@ package store
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/ullbergm/startpunkt/internal/tile"
 )
@@ -125,7 +126,13 @@ func (s *Store) set(owner Owner, tiles []tile.Tile) []Event {
 		}
 		seen[t.ID] = true
 		ids = append(ids, t.ID)
-		if old, ok := s.tiles[t.ID]; ok && tile.Equal(old, t) {
+		old, ok := s.tiles[t.ID]
+		if ok && old.URL == t.URL {
+			// The source object does not know its availability. Keep what
+			// the prober found for as long as the URL is the same.
+			t.Available, t.LastProbe = old.Available, old.LastProbe
+		}
+		if ok && tile.Equal(old, t) {
 			continue
 		}
 		s.tiles[t.ID] = t
@@ -172,6 +179,38 @@ func (s *Store) SetCluster(c Cluster) {
 	}
 	s.clusters[c.Name] = c
 	s.publish([]Event{{Type: EventCluster, Cluster: c}})
+}
+
+// SetProbe records the availability of tiles. A tile whose availability is
+// already the given value is left alone, so a probe that confirms what is
+// known produces no event; LastProbe is therefore the time of the probe that
+// established the current value. Unknown ids are ignored.
+func (s *Store) SetProbe(ids []string, available bool, at time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var events []Event
+	for _, id := range ids {
+		t, ok := s.tiles[id]
+		if !ok || (t.Available != nil && *t.Available == available) {
+			continue
+		}
+		value, when := available, at
+		t.Available, t.LastProbe = &value, &when
+		s.tiles[id] = t
+		events = append(events, Event{Type: EventUpsert, ID: id, Tile: t})
+	}
+	s.publish(events)
+}
+
+// Owned returns the tiles derived from owner, in the order they were set.
+func (s *Store) Owned(owner Owner) []tile.Tile {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]tile.Tile, 0, len(s.owned[owner]))
+	for _, id := range s.owned[owner] {
+		out = append(out, s.tiles[id])
+	}
+	return out
 }
 
 // Upsert adds or replaces single tiles by id. It is for tiles mirrored from

@@ -182,6 +182,8 @@ The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`,
 - `v1alpha1` to `v1alpha4` stay served, marked deprecated, with `conversion: None`. This works without a webhook because the versions only ever added fields. Every served version carries the same schema as `v1`, so no field is lost when an object is read or written through an older version.
 - A `status` subresource carries the resolved URL, availability and conditions. Resolution errors, such as a `urlFrom` target that does not exist, are reported as conditions.
 - Status is written only when a value changes. The time of the last probe is not stored in status, because each write produces a watch event.
+- The status holds `url`, `available`, and two conditions. `Resolved` is false with the reason when the spec cannot be turned into a tile, for example when a `urlFrom` target does not exist. `Available` is true, false, or unknown before the first probe.
+- Status writes are best-effort and can be turned off. When the API server refuses them or drops the fields, the controller says so once and stops until the watched version changes.
 
 ### Namespace scope and tags
 
@@ -228,7 +230,12 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 ## Availability probing
 
 - Each instance probes only its own tiles. It can reach in-cluster and internal-only services, and it checks from the vantage point that matters for that cluster.
+- Only applications are probed. Bookmarks mostly point at sites outside the cluster and carry no availability, as in 4.x.
+- The prober runs in the process that watches the cluster: the `all` role, or `controller` in split mode. It reads its targets from the store and writes results back to it, so it has no interface of its own.
+- A URL shared by several tiles is probed once. Redirects are not followed: a redirect is an answer, and following it would probe some other place.
+- A probe sends a GET to a URL taken from a cluster resource, from inside the cluster. Whoever can create an Application or annotate a Route can therefore make the controller send that request. Only whether an answer came back is kept; nothing from the response is exposed.
 - Results are stored on the tile. For Application resources, a change in availability is also written to `status`.
+- `lastProbe` is the time of the probe that established the current value. A probe that confirms what is known changes nothing, so it produces no event and no status write.
 - 4.x semantics carry over: 2xx, 3xx and 4xx count as available; 5xx and connection failures count as unavailable; failing targets use exponential backoff up to a cap, and a success resets it.
 - A hub never probes remote tiles. It displays what the owning instance reports.
 
