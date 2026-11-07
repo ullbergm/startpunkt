@@ -316,12 +316,14 @@ Once `v1` is the storage version, going back to the 4.x chart's definitions is n
 
 ## Milestones
 
-1. Skeleton: binary, store, Application and Bookmark `v1` types, snapshot endpoint, minimal UI that renders tiles.
-2. Sources: built-in adapters, discovery, annotations, tags, namespace selector, `urlFrom`.
+Every milestone ends with an image that runs next to a 4.x installation on a real cluster, so each step is compared against 4.x on the same data.
+
+1. Skeleton, deployable: binary, store, `Application` and `Bookmark` types with the fallback to `v1alpha4`, snapshot endpoint, minimal UI that renders tiles, container build, and a minimal chart with `crds.install: false` and release-based names.
+2. Sources: built-in adapters in the order Route, Ingress, HTTPRoute, VirtualService; discovery, annotations, tags, namespace selector, `urlFrom`. At the end of this milestone the page lists the same applications as 4.x, apart from Hajimari resources.
 3. Live updates: SSE stream, UI driven by events.
-4. Availability: prober, status subresource.
-5. Editing: edit key, unlock flow, write endpoints and editors in the UI.
-6. Federation: remote subscription, stale handling, cluster filter in the UI.
-7. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
-8. Packaging: Helm chart with all CRD versions and the `crds.install` setting, cutover and migration notes, documentation.
-9. User-defined CEL mappings.
+4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
+5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
+6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
+7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters.
+8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
+9. User-defined CEL mappings. This can follow the first release.
