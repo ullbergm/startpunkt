@@ -189,7 +189,7 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 
 - Annotated resources need no changes.
 - `Application` and `Bookmark` resources at `v1alpha1` to `v1alpha4` keep working through the conversion webhook and are stored as `v1`. No manual step is required; manifests can be moved to `v1` at any time.
-- Hajimari compatibility is dropped. `hajimari.io` Applications and Bookmarks and `hajimari.io/*` annotations are no longer read. Resources are recreated as Startpunkt resources and annotations are renamed to `startpunkt.ullberg.us/*`. An operator who needs the old behaviour can add a mapping for the Hajimari types.
+- Hajimari is not supported. `hajimari.io` resources and annotations are ignored, and no migration is provided for them.
 - v1 remote cluster configuration (`graphql-url`, `graphql-token`) maps to `federation.remotes`. A v2 hub cannot consume a v1 instance, so remotes are upgraded before the hub.
 - The v1 GraphQL endpoint and the WebSocket endpoint are removed.
 
@@ -201,7 +201,7 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 - Federation between instances instead of cross-cluster credentials, with probing done by the owning instance.
 - The hub subscribes to remotes. Push from remotes is optional future work.
 - Remote tiles are read-only on the hub.
-- Hajimari compatibility is dropped.
+- Hajimari is not supported; its resources and annotations are ignored.
 - Existing custom resources are handled by a conversion webhook.
 
 ## Milestones
