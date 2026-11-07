@@ -245,20 +245,52 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 - Multi-stage container build producing a static binary on a distroless base.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, an optional Secret for the edit key, and a ServiceMonitor for Prometheus metrics.
 - No admission or conversion webhooks, so no certificates to manage.
+- CRD installation can be turned off with `crds.install`, for running next to a v1 installation. All resource names derive from the release name and namespace.
 - The process is stateless. More than one replica is safe: each builds its own store from the API server. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
 
 ## Testing
 
 - Unit tests for each built-in adapter against fixture objects, including the annotation and tag rules.
-- Integration tests against `envtest` (a real API server without a cluster): create resources, assert on the snapshot and the event stream. These include reading and writing through each deprecated CRD version.
+- Integration tests against `envtest` (a real API server without a cluster): create resources, assert on the snapshot and the event stream. These include reading and writing through each deprecated CRD version, and running against the v1 definitions where `v1` is not served.
 - API tests for the edit key: missing, wrong and valid keys, and editing disabled when no key is configured.
 - Federation tests with two in-process instances, covering disconnect, stale marking and resynchronisation.
 - Frontend component tests with Vitest and Testing Library.
 - Tests never point at a real cluster.
 
+## Coexistence with v1
+
+A v2 instance can run next to a v1 instance on the same cluster, for evaluation before a cutover. Both only watch the cluster, so the same annotated resources and the same `Application` and `Bookmark` resources feed both. Either can edit the custom resources, and the other sees the change through its watch.
+
+The custom resource definitions are the one shared, cluster-scoped piece. The v1 chart installs them as part of its release, serving `v1alpha1` to `v1alpha4` with an empty `status` schema. v2 is designed to run against those definitions unchanged:
+
+- The controller uses the newest served version it supports: `v1` when it is served, otherwise `v1alpha4`. The schemas are identical, so only the watched version differs. Discovery already tells the controller which versions exist, and it switches when `v1` appears.
+- The chart has a `crds.install` setting. When it is false, the release creates nothing cluster-scoped except its own RBAC, and the v1 installation is not touched.
+- Status writes are best-effort. Against the v1 definitions the API server drops the status fields, so availability is visible in the v2 UI and API but not through `kubectl`. This is logged once at startup, not per write.
+- All chart resources, including the ClusterRole and ClusterRoleBinding, are named from the release name and namespace, so they cannot collide with v1's fixed names.
+- The two instances use different release names and hostnames. Running them in separate namespaces is recommended.
+
+Limits while both are running:
+
+- Hajimari resources appear in v1 and not in v2.
+- Editing is open in v1 and needs the edit key in v2.
+- Federation does not cross versions: a v2 hub cannot subscribe to a v1 instance, and a v1 instance cannot fetch from a v2 instance.
+- Both instances probe the same applications, which doubles the probe traffic.
+
+### Cutover
+
+Uninstalling the v1 release deletes the custom resource definitions, because they are part of that release, and Kubernetes then deletes every `Application` and `Bookmark`. The cutover keeps the definitions in place:
+
+1. Annotate both definitions with `helm.sh/resource-policy: keep`.
+2. Uninstall the v1 release. The definitions and all custom resources remain.
+3. Change the Helm ownership annotations and label on the definitions to the v2 release, and upgrade the v2 release with `crds.install: true`. This adds the `v1` version as the storage version and the status schema.
+4. The controller switches to `v1` and status writes take effect.
+
+Once `v1` is the storage version, going back to the v1 chart's definitions is not supported, because they do not serve the version the objects are stored in.
+
 ## Migration from v1
 
 - Annotated resources need no changes.
+- v1 and v2 can run side by side before the switch; see Coexistence with v1.
 - `Application` and `Bookmark` resources at `v1alpha1` to `v1alpha4` keep working unchanged. Manifests can be moved to `v1` at any time by changing `apiVersion`.
 - Hajimari is not supported. `hajimari.io` resources and annotations are ignored, and no migration is provided for them.
 - v1 remote cluster configuration (`graphql-url`, `graphql-token`) maps to `federation.remotes`. A v2 hub cannot consume a v1 instance, so remotes are upgraded before the hub.
@@ -273,6 +305,7 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 - Built-in sources are plain Go adapters. CEL mappings for user-defined sources come later.
 - No conversion webhook. Older CRD versions are served with `conversion: None` and a shared schema.
 - Status is written only on change.
+- v2 can run next to v1 on one cluster: it falls back to `v1alpha4` when `v1` is not served, and the chart can skip installing the CRDs.
 - Reading is open by default. Editing requires an edit key entered through an unlock button and stored in `localStorage`.
 - Federation between instances instead of cross-cluster credentials, with probing done by the owning instance.
 - The hub subscribes to remotes. Push from remotes is optional future work.
@@ -288,5 +321,5 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 5. Editing: edit key, unlock flow, write endpoints and editors in the UI.
 6. Federation: remote subscription, stale handling, cluster filter in the UI.
 7. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
-8. Packaging: Helm chart with all CRD versions, migration notes, documentation.
+8. Packaging: Helm chart with all CRD versions and the `crds.install` setting, cutover and migration notes, documentation.
 9. User-defined CEL mappings.
