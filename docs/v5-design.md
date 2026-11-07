@@ -1,10 +1,12 @@
-# Startpunkt v2 design
+# Startpunkt v5 design
 
-Status: accepted. This document describes a ground-up rewrite developed on the `v2` branch. It does not reuse v1 code or keep v1 design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
+Status: accepted. This document describes a ground-up rewrite developed on the `v5` branch. It does not reuse 4.x code or keep 4.x design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
+
+Version names in this document: "4.x" is the current Quarkus-based Startpunkt and "v5" is the rewrite. The API path `/api/v1` and the custom resource version `v1` are versioned on their own and are unrelated to the product version.
 
 ## Summary
 
-Startpunkt v2 is a small controller that keeps one in-memory model of its own cluster and streams it to a static frontend.
+Startpunkt v5 is a small controller that keeps one in-memory model of its own cluster and streams it to a static frontend.
 
 - One Go binary with the frontend embedded.
 - One normalized store fed by Kubernetes informers, with one read path out of it.
@@ -15,7 +17,7 @@ Startpunkt v2 is a small controller that keeps one in-memory model of its own cl
 
 ## Goals
 
-- Keep the user-visible v1 capabilities: applications and bookmarks from cluster resources, grouping, tags, availability indicators, live updates, in-UI editing, multi-cluster, themes, i18n, spotlight search, favorites and layout preferences.
+- Keep the user-visible 4.x capabilities: applications and bookmarks from cluster resources, grouping, tags, availability indicators, live updates, in-UI editing, multi-cluster, themes, i18n, spotlight search, favorites and layout preferences.
 - Allow operators to add support for a resource type through configuration, without a new release.
 - Remove polling between browser and server, and between instances.
 - Hold no cross-cluster Kubernetes credentials.
@@ -23,8 +25,8 @@ Startpunkt v2 is a small controller that keeps one in-memory model of its own cl
 
 ## Non-goals
 
-- API compatibility with the v1 GraphQL endpoint.
-- Source compatibility with v1 Java or JSX code.
+- API compatibility with the 4.x GraphQL endpoint.
+- Source compatibility with 4.x Java or JSX code.
 - User accounts, or server-side storage of per-user preferences.
 - Hajimari compatibility.
 
@@ -64,7 +66,7 @@ Applications and bookmarks are one type, `Tile`, with a `kind` field.
 | `id` | Stable identity: cluster, source, namespace, name, and an index when one object yields several tiles. |
 | `kind` | `application` or `bookmark`. |
 | `cluster` | Name of the owning instance. |
-| `name`, `group`, `url`, `icon`, `iconColor`, `info`, `targetBlank`, `location`, `tags` | Display fields, matching the v1 annotation and spec fields. |
+| `name`, `group`, `url`, `icon`, `iconColor`, `info`, `targetBlank`, `location`, `tags` | Display fields, matching the 4.x annotation and spec fields. |
 | `source` | Resource type and object reference the tile was derived from. |
 | `editable` | True when the tile is backed by a Startpunkt custom resource on the local cluster. |
 | `available`, `lastProbe` | Set by the prober of the owning instance. Absent when probing is disabled. |
@@ -85,7 +87,7 @@ Built-in adapters, written in plain Go:
 
 Each adapter owns the quirks of its type: TLS detection for the URL scheme, one tile per host or rule, the `rootPath`, `port` and `protocol` overrides. Each is unit tested against fixture objects.
 
-Every built-in source can be disabled, and the non-Startpunkt ones have an `onlyAnnotated` setting as in v1.
+Every built-in source can be disabled, and the non-Startpunkt ones have an `onlyAnnotated` setting as in 4.x.
 
 ### User-defined mappings (later)
 
@@ -109,7 +111,7 @@ sources:
 
 ### urlFrom
 
-`Application.spec.urlFrom` keeps its v1 behaviour: the URL is read from a field of another object (`apiGroup`, `apiVersion`, `kind`, `name`, `namespace`, `property`), optionally formatted with `urlTemplate`. The controller watches the referenced object so the tile updates when it changes.
+`Application.spec.urlFrom` keeps its 4.x behaviour: the URL is read from a field of another object (`apiGroup`, `apiVersion`, `kind`, `name`, `namespace`, `property`), optionally formatted with `urlTemplate`. The controller watches the referenced object so the tile updates when it changes.
 
 ### Discovery
 
@@ -173,7 +175,7 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 
 - Each instance probes only its own tiles. It can reach in-cluster and internal-only services, and it checks from the vantage point that matters for that cluster.
 - Results are stored on the tile. For Application resources, a change in availability is also written to `status`.
-- v1 semantics carry over: 2xx, 3xx and 4xx count as available; 5xx and connection failures count as unavailable; failing targets use exponential backoff up to a cap, and a success resets it.
+- 4.x semantics carry over: 2xx, 3xx and 4xx count as available; 5xx and connection failures count as unavailable; failing targets use exponential backoff up to a cap, and a success resets it.
 - A hub never probes remote tiles. It displays what the owning instance reports.
 
 ## Federation
@@ -196,7 +198,7 @@ The same service is often deployed to several clusters with the same name, group
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
-- The cluster filter is a personal preference. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in v1.
+- The cluster filter is a personal preference. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
 
 Two layouts are offered as a personal preference.
 
@@ -234,7 +236,7 @@ cluster B: informers ─> store ─> prober ─┤                              
 - Themes are CSS custom properties, with a light and a dark palette supplied by configuration.
 - Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences.
 - Translations are static JSON files served with the bundle. Icons are fetched from the Iconify API as image data.
-- Accessibility requirements from v1 carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
+- Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 
 ## Configuration
 
@@ -245,57 +247,57 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 - Multi-stage container build producing a static binary on a distroless base.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, an optional Secret for the edit key, and a ServiceMonitor for Prometheus metrics.
 - No admission or conversion webhooks, so no certificates to manage.
-- CRD installation can be turned off with `crds.install`, for running next to a v1 installation. All resource names derive from the release name and namespace.
+- CRD installation can be turned off with `crds.install`, for running next to a 4.x installation. All resource names derive from the release name and namespace.
 - The process is stateless. More than one replica is safe: each builds its own store from the API server. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
 
 ## Testing
 
 - Unit tests for each built-in adapter against fixture objects, including the annotation and tag rules.
-- Integration tests against `envtest` (a real API server without a cluster): create resources, assert on the snapshot and the event stream. These include reading and writing through each deprecated CRD version, and running against the v1 definitions where `v1` is not served.
+- Integration tests against `envtest` (a real API server without a cluster): create resources, assert on the snapshot and the event stream. These include reading and writing through each deprecated CRD version, and running against the 4.x definitions where `v1` is not served.
 - API tests for the edit key: missing, wrong and valid keys, and editing disabled when no key is configured.
 - Federation tests with two in-process instances, covering disconnect, stale marking and resynchronisation.
 - Frontend component tests with Vitest and Testing Library.
 - Tests never point at a real cluster.
 
-## Coexistence with v1
+## Coexistence with 4.x
 
-A v2 instance can run next to a v1 instance on the same cluster, for evaluation before a cutover. Both only watch the cluster, so the same annotated resources and the same `Application` and `Bookmark` resources feed both. Either can edit the custom resources, and the other sees the change through its watch.
+A v5 instance can run next to a 4.x instance on the same cluster, for evaluation before a cutover. Both only watch the cluster, so the same annotated resources and the same `Application` and `Bookmark` resources feed both. Either can edit the custom resources, and the other sees the change through its watch.
 
-The custom resource definitions are the one shared, cluster-scoped piece. The v1 chart installs them as part of its release, serving `v1alpha1` to `v1alpha4` with an empty `status` schema. v2 is designed to run against those definitions unchanged:
+The custom resource definitions are the one shared, cluster-scoped piece. The 4.x chart installs them as part of its release, serving `v1alpha1` to `v1alpha4` with an empty `status` schema. v5 is designed to run against those definitions unchanged:
 
 - The controller uses the newest served version it supports: `v1` when it is served, otherwise `v1alpha4`. The schemas are identical, so only the watched version differs. Discovery already tells the controller which versions exist, and it switches when `v1` appears.
-- The chart has a `crds.install` setting. When it is false, the release creates nothing cluster-scoped except its own RBAC, and the v1 installation is not touched.
-- Status writes are best-effort. Against the v1 definitions the API server drops the status fields, so availability is visible in the v2 UI and API but not through `kubectl`. This is logged once at startup, not per write.
-- All chart resources, including the ClusterRole and ClusterRoleBinding, are named from the release name and namespace, so they cannot collide with v1's fixed names.
+- The chart has a `crds.install` setting. When it is false, the release creates nothing cluster-scoped except its own RBAC, and the 4.x installation is not touched.
+- Status writes are best-effort. Against the 4.x definitions the API server drops the status fields, so availability is visible in the v5 UI and API but not through `kubectl`. This is logged once at startup, not per write.
+- All chart resources, including the ClusterRole and ClusterRoleBinding, are named from the release name and namespace, so they cannot collide with 4.x's fixed names.
 - The two instances use different release names and hostnames. Running them in separate namespaces is recommended.
 
 Limits while both are running:
 
-- Hajimari resources appear in v1 and not in v2.
-- Editing is open in v1 and needs the edit key in v2.
-- Federation does not cross versions: a v2 hub cannot subscribe to a v1 instance, and a v1 instance cannot fetch from a v2 instance.
+- Hajimari resources appear in 4.x and not in v5.
+- Editing is open in 4.x and needs the edit key in v5.
+- Federation does not cross versions: a v5 hub cannot subscribe to a 4.x instance, and a 4.x instance cannot fetch from a v5 instance.
 - Both instances probe the same applications, which doubles the probe traffic.
 
 ### Cutover
 
-Uninstalling the v1 release deletes the custom resource definitions, because they are part of that release, and Kubernetes then deletes every `Application` and `Bookmark`. The cutover keeps the definitions in place:
+Uninstalling the 4.x release deletes the custom resource definitions, because they are part of that release, and Kubernetes then deletes every `Application` and `Bookmark`. The cutover keeps the definitions in place:
 
 1. Annotate both definitions with `helm.sh/resource-policy: keep`.
-2. Uninstall the v1 release. The definitions and all custom resources remain.
-3. Change the Helm ownership annotations and label on the definitions to the v2 release, and upgrade the v2 release with `crds.install: true`. This adds the `v1` version as the storage version and the status schema.
+2. Uninstall the 4.x release. The definitions and all custom resources remain.
+3. Change the Helm ownership annotations and label on the definitions to the v5 release, and upgrade the v5 release with `crds.install: true`. This adds the `v1` version as the storage version and the status schema.
 4. The controller switches to `v1` and status writes take effect.
 
-Once `v1` is the storage version, going back to the v1 chart's definitions is not supported, because they do not serve the version the objects are stored in.
+Once `v1` is the storage version, going back to the 4.x chart's definitions is not supported, because they do not serve the version the objects are stored in.
 
-## Migration from v1
+## Migration from 4.x
 
 - Annotated resources need no changes.
-- v1 and v2 can run side by side before the switch; see Coexistence with v1.
+- 4.x and v5 can run side by side before the switch; see Coexistence with 4.x.
 - `Application` and `Bookmark` resources at `v1alpha1` to `v1alpha4` keep working unchanged. Manifests can be moved to `v1` at any time by changing `apiVersion`.
 - Hajimari is not supported. `hajimari.io` resources and annotations are ignored, and no migration is provided for them.
-- v1 remote cluster configuration (`graphql-url`, `graphql-token`) maps to `federation.remotes`. A v2 hub cannot consume a v1 instance, so remotes are upgraded before the hub.
-- Editing was open in v1. In v2 it requires an edit key to be configured.
-- The v1 GraphQL endpoint and the WebSocket endpoint are removed.
+- 4.x remote cluster configuration (`graphql-url`, `graphql-token`) maps to `federation.remotes`. A v5 hub cannot consume a 4.x instance, so remotes are upgraded before the hub.
+- Editing was open in 4.x. In v5 it requires an edit key to be configured.
+- The 4.x GraphQL endpoint and the WebSocket endpoint are removed.
 
 ## Decisions
 
@@ -305,7 +307,7 @@ Once `v1` is the storage version, going back to the v1 chart's definitions is no
 - Built-in sources are plain Go adapters. CEL mappings for user-defined sources come later.
 - No conversion webhook. Older CRD versions are served with `conversion: None` and a shared schema.
 - Status is written only on change.
-- v2 can run next to v1 on one cluster: it falls back to `v1alpha4` when `v1` is not served, and the chart can skip installing the CRDs.
+- v5 can run next to 4.x on one cluster: it falls back to `v1alpha4` when `v1` is not served, and the chart can skip installing the CRDs.
 - Reading is open by default. Editing requires an edit key entered through an unlock button and stored in `localStorage`.
 - Federation between instances instead of cross-cluster credentials, with probing done by the owning instance.
 - The hub subscribes to remotes. Push from remotes is optional future work.
