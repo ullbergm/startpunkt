@@ -194,12 +194,31 @@ Each instance is fully authoritative for its own cluster. A hub is another clien
 The same service is often deployed to several clusters with the same name, group, icon and description. The design treats this as the normal case.
 
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
-- Everything that refers to a tile uses the id: favorites, ordering, collapsed state, and edit and delete requests. A favorite for Grafana on one cluster does not mark Grafana on another.
-- When tiles from more than one cluster are visible, every tile shows a pill with its cluster name. With a single cluster visible, the pill is hidden.
+- Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
-- The cluster name is part of each tile's accessible name, so identical tiles are distinguishable to screen readers.
 - The cluster filter is a personal preference. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in v1.
-- Both layouts are offered as a personal preference: grouped by cluster first and then by group, or by group only with tiles from all clusters side by side. The pill is shown in both.
+
+Two layouts are offered as a personal preference.
+
+Cluster first: one section per cluster, with groups inside it. Each tile is its own card. No cluster pill is shown, because the section heading names the cluster.
+
+Group only: groups contain tiles from all visible clusters. Each card shows a pill with its cluster name when more than one cluster is visible. In this layout, cards for the same service can be combined, which is a personal preference that is on by default:
+
+```text
+┌──────────────────────────────┐
+│ ◉ Grafana                    │
+│ Dashboards and metrics       │
+│ [● prod] [● staging] [○ dev] │
+└──────────────────────────────┘
+```
+
+- Tiles are combined when their name, group and kind match.
+- The card shows one pill per cluster. Each pill is a link to that cluster's URL and carries that cluster's availability indicator, so every instance is one click away and its state is visible without expanding anything.
+- Activating the card body opens the local cluster's tile when there is one, otherwise the tile of the first cluster in the hub's configured order. The icon and description are taken from the same tile.
+- Combining is display only. The store, the API and the stored preferences still hold separate tiles.
+- The favorite control on a combined card applies to the whole card: it adds or removes every member tile, and the card counts as a favorite when any member is one. With combining off, favorites are per tile.
+- Edit and delete controls on a combined card act on the local cluster's tile only, since remote tiles are read-only.
+- Each pill has an accessible name containing the service and the cluster, for example "Grafana on prod, available", so the links are distinguishable to screen readers and reachable by keyboard.
 
 ```text
 cluster A: informers ─> store ─> prober ─┐
