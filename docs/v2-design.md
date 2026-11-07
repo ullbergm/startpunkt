@@ -195,11 +195,11 @@ The same service is often deployed to several clusters with the same name, group
 
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, collapsed state, and edit and delete requests. A favorite for Grafana on one cluster does not mark Grafana on another.
-- When tiles from more than one cluster are visible, every tile shows its cluster name. With a single cluster visible, the label is hidden.
+- When tiles from more than one cluster are visible, every tile shows a pill with its cluster name. With a single cluster visible, the pill is hidden.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
 - The cluster name is part of each tile's accessible name, so identical tiles are distinguishable to screen readers.
 - The cluster filter is a personal preference. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in v1.
-- A layout preference chooses between grouping by cluster first and then by group, or by group only with tiles from all clusters side by side.
+- Both layouts are offered as a personal preference: grouped by cluster first and then by group, or by group only with tiles from all clusters side by side. The pill is shown in both.
 
 ```text
 cluster A: informers ─> store ─> prober ─┐
