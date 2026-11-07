@@ -1,6 +1,6 @@
 # Startpunkt v2 design
 
-Status: draft. This document describes a ground-up rewrite developed on the `v2` branch. It does not reuse v1 code or keep v1 design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
+Status: accepted. This document describes a ground-up rewrite developed on the `v2` branch. It does not reuse v1 code or keep v1 design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
 
 ## Summary
 
@@ -101,7 +101,8 @@ The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`,
 
 ### Custom resources
 
-- One served version, `startpunkt.ullberg.us/v1`, for `Application` and `Bookmark`. Types are defined once in Go and the CRD YAML is generated with controller-gen.
+- One storage version, `startpunkt.ullberg.us/v1`, for `Application` and `Bookmark`. Types are defined once in Go and the CRD YAML is generated with controller-gen. All controller logic works on `v1` only.
+- `v1alpha1` to `v1alpha4` stay served through a conversion webhook hosted by the same binary, so existing manifests and GitOps repositories keep applying. The older versions exist only as conversion types and are marked deprecated in the CRD.
 - A `status` subresource carries the resolved URL, availability, last probe time and conditions. `kubectl get applications` shows the same state as the UI.
 - Mapping and resolution errors are reported as status conditions on the resource.
 
@@ -147,6 +148,7 @@ Each instance is fully authoritative for its own cluster. A hub is another clien
 - If a stream drops, the hub keeps the last known tiles, marks the cluster as stale with a last-seen time, and reconnects with backoff. The UI shows the cluster as unreachable instead of dropping its tiles.
 - Remote tiles are read-only on the hub. The UI links to the owning instance for editing. Proxying writes would require a write token per remote on the hub.
 - A hub does not re-export tiles it received from remotes when it is itself consumed by another instance, which prevents loops and duplicate tiles.
+- The hub always initiates the connection. A push mode, where a remote the hub cannot reach sends its state to an ingest endpoint on the hub, is a possible later addition. The store is keyed by cluster and fed by events either way, so adding it does not change the model.
 
 ```text
 cluster A: informers ─> store ─> prober ─┐
@@ -172,6 +174,7 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 
 - Multi-stage container build producing a static binary on a distroless base.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, and a ServiceMonitor for Prometheus metrics.
+- The conversion webhook needs a serving certificate and the CA bundle injected into the CRDs. The chart supports cert-manager, and a self-signed certificate generated at install time for clusters without it.
 - The process is stateless. More than one replica is safe: each builds its own store from the API server. Probing then runs once per replica; leader election for the prober is a later optimisation.
 
 ## Testing
@@ -185,28 +188,21 @@ A single YAML file mounted from a ConfigMap, with environment variable overrides
 ## Migration from v1
 
 - Annotated resources need no changes.
-- `Application` and `Bookmark` resources at `v1alpha1` to `v1alpha4` are converted to `v1`, either by a conversion webhook or by a one-shot migration job shipped with the chart.
+- `Application` and `Bookmark` resources at `v1alpha1` to `v1alpha4` keep working through the conversion webhook and are stored as `v1`. No manual step is required; manifests can be moved to `v1` at any time.
+- Hajimari compatibility is dropped. `hajimari.io` Applications and Bookmarks and `hajimari.io/*` annotations are no longer read. Resources are recreated as Startpunkt resources and annotations are renamed to `startpunkt.ullberg.us/*`. An operator who needs the old behaviour can add a mapping for the Hajimari types.
 - v1 remote cluster configuration (`graphql-url`, `graphql-token`) maps to `federation.remotes`. A v2 hub cannot consume a v1 instance, so remotes are upgraded before the hub.
 - The v1 GraphQL endpoint and the WebSocket endpoint are removed.
 
-## Decisions and open questions
+## Decisions
 
-Decided:
-
+- Go as the implementation language.
 - Single store with snapshot plus SSE; no GraphQL.
 - Sources as declarative mappings.
 - Federation between instances instead of cross-cluster credentials, with probing done by the owning instance.
-
-Proposed, not yet confirmed:
-
-- Go as the implementation language. The same architecture is possible in Quarkus with the Java Operator SDK, keeping the design and giving up the footprint gains.
+- The hub subscribes to remotes. Push from remotes is optional future work.
 - Remote tiles are read-only on the hub.
-
-Open:
-
-- Connection direction for federation. The default here is that the hub subscribes to remotes. Remotes pushing to the hub would support clusters the hub cannot reach, at the cost of an ingest endpoint and per-remote configuration.
-- Hajimari compatibility: ship `hajimari.io` resources and annotations as built-in mappings, or drop them.
-- Conversion webhook or one-shot migration job for existing custom resources.
+- Hajimari compatibility is dropped.
+- Existing custom resources are handled by a conversion webhook.
 
 ## Milestones
 
@@ -217,4 +213,4 @@ Open:
 5. Editing: write endpoints and editors in the UI.
 6. Federation: remote subscription, stale handling, cluster filter in the UI.
 7. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
-8. Packaging: Helm chart, migration path, documentation.
+8. Packaging: Helm chart, conversion webhook for `v1alpha*` resources, migration notes, documentation.
