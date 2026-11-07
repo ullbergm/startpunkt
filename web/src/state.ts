@@ -25,6 +25,11 @@ export interface EventStream {
 const CLOSED = 2;
 const MIN_RETRY_MS = 1000;
 const MAX_RETRY_MS = 15000;
+// How long the stream may be down before the page says so. Streams drop for
+// ordinary reasons, such as a restart of the server, a proxy reload, or a
+// laptop waking up, and are back within a couple of seconds. Announcing
+// each of those would be noise.
+export const GRACE_MS = 5000;
 
 type Opener = (url: string) => EventStream;
 
@@ -36,6 +41,7 @@ type Opener = (url: string) => EventStream;
 export function connect(open: Opener = (url) => new EventSource(url)): () => void {
   let stream: EventStream | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let grace: ReturnType<typeof setTimeout> | undefined;
   let retry = MIN_RETRY_MS;
   let stopped = false;
 
@@ -51,6 +57,8 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
         return;
       }
       retry = MIN_RETRY_MS;
+      clearTimeout(grace);
+      grace = undefined;
       serverState.value = state;
       connection.value = 'live';
     });
@@ -74,7 +82,11 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
     });
     current.onerror = () => {
       if (stopped) return;
-      connection.value = serverState.value ? 'reconnecting' : 'connecting';
+      if (serverState.value && connection.value === 'live') {
+        grace ??= setTimeout(() => {
+          connection.value = 'reconnecting';
+        }, GRACE_MS);
+      }
       if (current.readyState === CLOSED) {
         current.close();
         timer = setTimeout(start, retry);
@@ -86,6 +98,7 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
   const stop = () => {
     stopped = true;
     clearTimeout(timer);
+    clearTimeout(grace);
     stream?.close();
   };
 

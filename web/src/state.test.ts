@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { connect, connection, fatalError, reset, serverState as state } from './state';
+import { connect, connection, fatalError, GRACE_MS, reset, serverState as state } from './state';
 import { FakeStream, openFake, serverState, tile } from './testing';
 
 let stop: () => void;
@@ -64,6 +64,7 @@ describe('connect', () => {
     const stream = FakeStream.last;
     stream.emit('snapshot', serverState({ tiles: [tile({ name: 'a' })] }));
     stream.fail('drop');
+    vi.advanceTimersByTime(GRACE_MS);
     expect(connection.value).toBe('reconnecting');
     expect(names()).toEqual(['a']);
     expect(FakeStream.opened).toHaveLength(1);
@@ -71,6 +72,18 @@ describe('connect', () => {
     stream.emit('snapshot', serverState({ tiles: [tile({ name: 'b' })] }));
     expect(connection.value).toBe('live');
     expect(names()).toEqual(['b']);
+  });
+
+  it('does not announce a drop that is over within the grace period', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState());
+    stream.fail('drop');
+    stream.fail('drop'); // a second failed attempt must not restart the clock
+    vi.advanceTimersByTime(GRACE_MS - 1);
+    expect(connection.value).toBe('live');
+    stream.emit('snapshot', serverState());
+    vi.advanceTimersByTime(GRACE_MS);
+    expect(connection.value).toBe('live');
   });
 
   it('opens a new stream with backoff when the browser gives up', () => {

@@ -294,7 +294,7 @@ cluster B: informers ─> store ─> prober ─┤                              
 
 - Preact with signals and TypeScript, built with Vite, output embedded in the binary.
 - One signal holds the server state. It is fed by the `/events` stream.
-- The page shows the last known tiles while the stream is down and says that it is reconnecting. The browser reconnects a dropped stream on its own; when the server answers with an error instead, which a browser treats as final, the page opens a new stream with backoff.
+- The page shows the last known tiles while the stream is down and, once it has been down for five seconds, says that it is reconnecting. Shorter drops are not announced: a server restart, a proxy reload or a laptop waking up are over before anyone needs to know. The browser reconnects a dropped stream on its own; when the server answers with an error instead, which a browser treats as final, the page opens a new stream with backoff.
 - Browsers allow about six HTTP/1.1 connections per host, and each open tab holds one for the stream. Serving the page over HTTP/2 removes that limit.
 - Themes are CSS custom properties, with a light and a dark palette supplied by configuration.
 - Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences.

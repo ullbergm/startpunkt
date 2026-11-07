@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { reset } from '../state';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GRACE_MS, reset } from '../state';
 import { FakeStream, openFake, serverState, tile } from '../testing';
 import type { ServerState } from '../types';
 import { App } from './App';
@@ -72,7 +72,14 @@ describe('App', () => {
 
   it('keeps the tiles and says so while reconnecting', async () => {
     renderWith(serverState({ tiles: [tile({ name: 'Plex' })] }));
-    act(() => FakeStream.last.fail('drop'));
+    vi.useFakeTimers();
+    try {
+      act(() => FakeStream.last.fail('drop'));
+      expect(screen.queryByText(/Reconnecting/)).toBeNull();
+      act(() => void vi.advanceTimersByTime(GRACE_MS));
+    } finally {
+      vi.useRealTimers();
+    }
     expect(await screen.findByText(/Reconnecting/)).toBeTruthy();
     expect(screen.getByRole('link', { name: /Plex/ })).toBeTruthy();
 
