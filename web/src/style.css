@@ -42,7 +42,14 @@ main {
 }
 
 .page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   padding-top: 1.5rem;
+}
+
+.logo {
+  flex: none;
 }
 
 h1 {

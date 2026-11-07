@@ -58,6 +58,8 @@ export function App() {
   return (
     <>
       <header class="page-header">
+        {/* Decorative: the heading next to it names the page. */}
+        <img class="logo" src="/logo.svg" alt="" width="40" height="40" />
         <h1>{title}</h1>
       </header>
       <main>

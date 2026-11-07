@@ -1,7 +1,7 @@
 VERSION ?= dev
 IMAGE ?= ghcr.io/ullbergm/startpunkt:$(VERSION)
 
-.PHONY: all web build test check image clean
+.PHONY: all web build test check image icons clean
 
 all: check build
 
@@ -25,6 +25,21 @@ check: test
 
 image:
 	docker build --build-arg VERSION=$(VERSION) -t $(IMAGE) .
+
+# Regenerates the icons in web/public and docs/images/logo.png from the two
+# drawings in docs/images. Needs rsvg-convert and ImageMagick. The results are
+# committed, so a normal build does not run this.
+icons:
+	cp docs/images/logo.svg web/public/logo.svg
+	rsvg-convert -w 1024 docs/images/logo.svg -o docs/images/logo.png
+	rsvg-convert -w 192 docs/images/logo.svg -o web/public/icon-192.png
+	rsvg-convert -w 512 docs/images/logo.svg -o web/public/icon-512.png
+	rsvg-convert -w 512 docs/images/logo-maskable.svg -o web/public/icon-maskable-512.png
+	rsvg-convert -w 180 docs/images/logo-maskable.svg -o web/public/apple-touch-icon.png
+	tmp=$$(mktemp -d) && \
+		for size in 16 32 48; do rsvg-convert -w $$size docs/images/logo.svg -o $$tmp/$$size.png; done && \
+		magick $$tmp/16.png $$tmp/32.png $$tmp/48.png web/public/favicon.ico && \
+		rm -r $$tmp
 
 clean:
 	rm -rf bin

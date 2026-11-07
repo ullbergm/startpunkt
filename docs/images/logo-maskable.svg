@@ -4,23 +4,23 @@
   <defs>
     <!-- One quadrant (top right), mirror-symmetric about its diagonal. -->
     <g id="q">
-      <path fill="#fff" d="M30 -244.16A246 246 0 0 1 244.16 -30H219.96A222 222 0 0 0 30 -219.96Z"/>
-      <path fill="#f9c323" d="M30 -189.64A192 192 0 0 1 189.64 -30H164.28A167 167 0 0 0 30 -164.28Z"/>
-      <path fill="#4a9bd9" d="M38 -138.9A144 144 0 0 1 138.9 -38H105.36A112 112 0 0 0 38 -105.36Z"/>
+      <path fill="#fff" d="M34 -245.66A248 248 0 0 1 245.66 -34H207.23A210 210 0 0 0 34 -207.23Z"/>
+      <path fill="#f9c323" d="M34 -184.9A188 188 0 0 1 184.9 -34H148.15A152 152 0 0 0 34 -148.15Z"/>
+      <path fill="#4a9bd9" d="M40 -127.89A134 134 0 0 1 127.89 -40H85.06A94 94 0 0 0 40 -85.06Z"/>
       <g transform="rotate(45)">
-        <rect x="-20" y="-150" width="40" height="50" fill="#214667"/>
-        <rect x="-13" y="-145" width="26" height="26" rx="6" fill="#fff"/>
-        <rect x="-12" y="-99" width="24" height="24" rx="8" fill="#fff"/>
+        <rect x="-20" y="-140" width="40" height="50" fill="#214667"/>
+        <rect x="-14" y="-129" width="28" height="28" rx="7" fill="#fff"/>
+        <rect x="-11" y="-91" width="22" height="22" rx="7" fill="#fff"/>
       </g>
-      <circle cy="-234" r="12" fill="#fff"/>
+      <circle cy="-229" r="17" fill="#fff"/>
     </g>
   </defs>
   <use xlink:href="#q"/>
   <use xlink:href="#q" transform="rotate(90)"/>
   <use xlink:href="#q" transform="rotate(180)"/>
   <use xlink:href="#q" transform="rotate(270)"/>
-  <path fill="#fff" d="M0 -200 28 -28 200 0 28 28 0 200 -28 28 -200 0 -28 -28Z"/>
-  <circle r="56" fill="#fff"/>
-  <circle r="41" fill="#214667"/>
-  <circle r="21" fill="#fff"/>
+  <path fill="#fff" d="M0 -196 36 -36 196 0 36 36 0 196 -36 36 -196 0 -36 -36Z"/>
+  <circle r="62" fill="#fff"/>
+  <circle r="42" fill="#214667"/>
+  <circle r="19" fill="#fff"/>
 </svg>

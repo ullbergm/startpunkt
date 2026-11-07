@@ -66,6 +66,8 @@ describe('App', () => {
     expect(within(bookmarks).getByRole('link', { name: /Docs/ })).toBeTruthy();
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Home lab');
+    // The logo is decorative, so it has an empty text alternative.
+    expect(document.querySelector('header img.logo')?.getAttribute('alt')).toBe('');
     await waitFor(() => expect(document.title).toBe('Home lab'));
   });
 
