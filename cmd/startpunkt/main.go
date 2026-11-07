@@ -169,13 +169,38 @@ func newController(cfg config.Config, tiles *store.Store, log *slog.Logger) (*ku
 		return nil, err
 	}
 	return &kube.Controller{
-		Cluster:   cfg.Cluster.Name,
-		Store:     tiles,
-		Sources:   source.Builtin(),
-		Discovery: discoveryClient,
-		Dynamic:   dynamicClient,
-		Log:       log,
+		Cluster:    cfg.Cluster.Name,
+		Store:      tiles,
+		Sources:    source.Builtin(sourceOptions(cfg.Sources)),
+		Namespaces: cfg.NamespaceSelector.Namespaces(),
+		Discovery:  discoveryClient,
+		Dynamic:    dynamicClient,
+		Log:        log,
 	}, nil
+}
+
+func sourceOptions(s config.Sources) source.Options {
+	annotated := func(a config.Annotated) source.Annotated {
+		return source.Annotated{Enabled: a.Enabled, OnlyAnnotated: a.OnlyAnnotated}
+	}
+	return source.Options{
+		Application: source.Toggle{Enabled: s.Application.Enabled},
+		Bookmark:    source.Toggle{Enabled: s.Bookmark.Enabled},
+		Route:       annotated(s.Route),
+		Ingress: source.IngressOptions{
+			Annotated:           annotated(s.Ingress.Annotated),
+			ClassNames:          s.Ingress.ClassNames,
+			IncludeUnclassified: s.Ingress.IncludeUnclassified,
+		},
+		HTTPRoute: source.Routed{
+			Annotated:       annotated(s.HTTPRoute.Annotated),
+			DefaultProtocol: s.HTTPRoute.DefaultProtocol,
+		},
+		VirtualService: source.Routed{
+			Annotated:       annotated(s.VirtualService.Annotated),
+			DefaultProtocol: s.VirtualService.DefaultProtocol,
+		},
+	}
 }
 
 // kubeConfig uses the service account inside a cluster and the usual

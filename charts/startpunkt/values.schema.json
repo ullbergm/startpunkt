@@ -4,12 +4,17 @@
   "properties": {
     "mode": {
       "type": "string",
-      "enum": ["single", "split"]
+      "enum": [
+        "single",
+        "split"
+      ]
     },
     "crds": {
       "type": "object",
       "properties": {
-        "install": { "type": "boolean" }
+        "install": {
+          "type": "boolean"
+        }
       }
     },
     "config": {
@@ -18,14 +23,137 @@
         "cluster": {
           "type": "object",
           "properties": {
-            "name": { "type": "string", "pattern": "^[^/\\s]+$" }
+            "name": {
+              "type": "string",
+              "pattern": "^[^/\\s]+$"
+            }
           }
         },
         "log": {
           "type": "object",
           "properties": {
-            "level": { "enum": ["debug", "info", "warn", "error"] },
-            "format": { "enum": ["json", "text"] }
+            "level": {
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ]
+            },
+            "format": {
+              "enum": [
+                "json",
+                "text"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bookmark": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "classNames": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "includeUnclassified": {
+              "type": "boolean"
+            }
+          }
+        },
+        "httpRoute": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "defaultProtocol": {
+              "enum": [
+                "http",
+                "https"
+              ]
+            }
+          }
+        },
+        "virtualService": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "defaultProtocol": {
+              "enum": [
+                "http",
+                "https"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "namespaceSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "any": {
+          "type": "boolean"
+        },
+        "matchNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }

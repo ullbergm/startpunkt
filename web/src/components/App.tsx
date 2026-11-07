@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { groupTiles, type TileGroup } from '../group';
 import { load, loadError, serverState } from '../state';
+import { filterByTags, tagsFromPath } from '../tags';
 import { TileCard } from './TileCard';
 
 function Section({ id, title, groups }: { id: string; title: string; groups: TileGroup[] }) {
@@ -46,11 +47,13 @@ export function App() {
     document.title = title;
   }, [title]);
 
-  const applications = state ? groupTiles(state.tiles, 'application') : [];
-  const bookmarks = state ? groupTiles(state.tiles, 'bookmark') : [];
+  // The tag filter is part of the URL, so a filtered page can be bookmarked.
+  const tiles = state ? filterByTags(state.tiles, tagsFromPath(window.location.pathname)) : [];
+  const applications = groupTiles(tiles, 'application');
+  const bookmarks = groupTiles(tiles, 'bookmark');
   const syncing = state?.clusters.some((cluster) => cluster.state === 'syncing') ?? false;
   const stale = state?.clusters.filter((cluster) => cluster.state === 'stale') ?? [];
-  const empty = state !== null && state.tiles.length === 0;
+  const empty = state !== null && tiles.length === 0;
 
   return (
     <>

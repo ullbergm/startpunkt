@@ -114,6 +114,30 @@ Each adapter owns the quirks of its type: TLS detection for the URL scheme, one 
 
 Every built-in source can be disabled, and the non-Startpunkt ones have an `onlyAnnotated` setting as in 4.x.
 
+How each type becomes tiles:
+
+| Type | Tiles | URL scheme |
+| --- | --- | --- |
+| Route | One, from `spec.host` and `spec.path`. | `https` when the Route has a `tls` section. |
+| Ingress | One per host in `spec.rules`. | `https` for a host that a `tls` entry covers. |
+| HTTPRoute | One per entry in `spec.hostnames`. | The `protocol` annotation, otherwise the source's `defaultProtocol`. The Gateway decides this, not the route. |
+| VirtualService | One per entry in `spec.hosts`. | As for HTTPRoute. |
+
+- Wildcard hosts yield no tile, because they name no single place to link to.
+- The `url` annotation replaces everything derived from the spec with one tile.
+- The tiles of one object share its name, group and other display fields. Their ids differ by index.
+- With `onlyAnnotated` off, every object of the type is shown unless it is annotated `enable: "false"`.
+- Ingresses can be limited to a list of ingress classes, read from `spec.ingressClassName` or the older `kubernetes.io/ingress.class` annotation.
+- Tiles from annotated objects are not editable.
+
+Differences from 4.x, which are deliberate:
+
+- 4.x derives no URL from an Ingress and shows only the first host of an HTTPRoute or VirtualService.
+- 4.x lower-cases names, URLs, icons and descriptions taken from annotations and names from custom resources. v5 keeps them as written. Group names are still lower-cased, so that `Media` and `media` are one group.
+- 4.x returns disabled Applications to the page. v5 leaves them out of the snapshot.
+- Only `startpunkt.ullberg.us/*` annotations are read. The `hajimari.io` and `forecastle.stakater.com` equivalents are ignored.
+- An annotation that cannot be parsed, such as a `port` that is not a number, removes the object's tiles and is logged, instead of being silently ignored.
+
 ### User-defined mappings (later)
 
 After the built-in adapters are complete, operators can add sources for other resource types, for example Traefik `IngressRoute`, through configuration. A mapping names a group, version and kind, and gives CEL expressions for the tile fields. It is implemented as one more adapter behind the same interface, so the store, API and UI are unaffected.
@@ -138,6 +162,11 @@ sources:
 
 `Application.spec.urlFrom` keeps its 4.x behaviour: the URL is read from a field of another object (`apiGroup`, `apiVersion`, `kind`, `name`, `namespace`, `property`), optionally formatted with `urlTemplate`. The controller watches the referenced object so the tile updates when it changes.
 
+- The kind is mapped to its resource through API discovery, not by guessing a plural.
+- Each referenced object gets a watch limited to that one object by name. The watch stops when no Application refers to it any more.
+- A reference that resolves wins over `spec.url`. When it does not resolve, `spec.url` is used if set; otherwise the Application has no tile until the reference resolves.
+- The controller needs `get`, `list` and `watch` on the referenced type. The chart grants this for the source types and takes further rules from `rbac.extraRules`.
+
 ### Discovery
 
 The controller watches API discovery and starts or stops informers as resource types appear or disappear. An absent type (Istio not installed) is a normal state, not an error.
@@ -156,7 +185,7 @@ The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`,
 
 ### Namespace scope and tags
 
-The namespace selector (`any` or `matchNames`) and the tag rules in `docs/object-tag-filtering.md` carry over unchanged: untagged tiles are always visible, and tagged tiles are visible when one of their tags is in the URL path.
+The namespace selector (`any` or `matchNames`) and the tag rules in `docs/object-tag-filtering.md` carry over unchanged: untagged tiles are always visible, and tagged tiles are visible when one of their tags is in the URL path. With `matchNames`, the controller runs one watch per listed namespace instead of a cluster-wide one.
 
 Tags are a view filter, not access control. The snapshot contains every tile and the browser applies the filter.
 

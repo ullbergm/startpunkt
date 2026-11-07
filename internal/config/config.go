@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -19,11 +20,76 @@ const EnvPrefix = "STARTPUNKT_"
 
 // Config is the full configuration.
 type Config struct {
-	Cluster  Cluster  `json:"cluster"`
-	Server   Server   `json:"server"`
-	Upstream Upstream `json:"upstream"`
-	Web      Web      `json:"web"`
-	Log      Log      `json:"log"`
+	Cluster           Cluster           `json:"cluster"`
+	NamespaceSelector NamespaceSelector `json:"namespaceSelector"`
+	Sources           Sources           `json:"sources"`
+	Server            Server            `json:"server"`
+	Upstream          Upstream          `json:"upstream"`
+	Web               Web               `json:"web"`
+	Log               Log               `json:"log"`
+}
+
+// NamespaceSelector chooses the namespaces resources are read from.
+type NamespaceSelector struct {
+	// Any reads every namespace. It must be false for MatchNames to apply.
+	// Environment: STARTPUNKT_NAMESPACESELECTOR_ANY.
+	Any bool `json:"any"`
+	// MatchNames lists the namespaces to read when Any is false.
+	// Environment: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES, comma-separated.
+	MatchNames []string `json:"matchNames"`
+}
+
+// Namespaces returns the namespaces to watch, or nil for all of them.
+func (n NamespaceSelector) Namespaces() []string {
+	if n.Any {
+		return nil
+	}
+	return n.MatchNames
+}
+
+// Sources configures the resource types tiles are built from. The
+// environment variable of a setting is STARTPUNKT_SOURCES_<SOURCE>_<SETTING>
+// in upper case, for example STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED.
+type Sources struct {
+	Application    Source        `json:"application"`
+	Bookmark       Source        `json:"bookmark"`
+	Route          Annotated     `json:"route"`
+	Ingress        IngressSource `json:"ingress"`
+	HTTPRoute      RoutedSource  `json:"httpRoute"`
+	VirtualService RoutedSource  `json:"virtualService"`
+}
+
+// Source turns a source on or off.
+type Source struct {
+	Enabled bool `json:"enabled"`
+}
+
+// Annotated is a source whose objects are published with annotations.
+type Annotated struct {
+	Enabled bool `json:"enabled"`
+	// OnlyAnnotated limits the source to objects annotated with
+	// startpunkt.ullberg.us/enable: "true".
+	OnlyAnnotated bool `json:"onlyAnnotated"`
+}
+
+// IngressSource configures the Ingress source.
+type IngressSource struct {
+	Annotated `json:",inline"`
+	// ClassNames limits the source to these ingress classes; empty means
+	// all. In the environment the list is comma-separated.
+	ClassNames []string `json:"classNames"`
+	// IncludeUnclassified keeps Ingresses without a class when ClassNames
+	// is set.
+	IncludeUnclassified bool `json:"includeUnclassified"`
+}
+
+// RoutedSource is a source whose objects do not say whether they are served
+// over TLS.
+type RoutedSource struct {
+	Annotated `json:",inline"`
+	// DefaultProtocol is http or https. It is used when an object does not
+	// set the protocol annotation.
+	DefaultProtocol string `json:"defaultProtocol"`
 }
 
 // Upstream is where the api role reads its state from when the controller
@@ -64,10 +130,19 @@ type Log struct {
 // Default returns the configuration used when nothing is set.
 func Default() Config {
 	return Config{
-		Cluster: Cluster{Name: "local"},
-		Server:  Server{Address: ":8080"},
-		Web:     Web{Title: "Startpunkt"},
-		Log:     Log{Level: "info", Format: "json"},
+		Cluster:           Cluster{Name: "local"},
+		NamespaceSelector: NamespaceSelector{Any: true},
+		Sources: Sources{
+			Application:    Source{Enabled: true},
+			Bookmark:       Source{Enabled: true},
+			Route:          Annotated{Enabled: true, OnlyAnnotated: true},
+			Ingress:        IngressSource{Annotated: Annotated{Enabled: true, OnlyAnnotated: true}, IncludeUnclassified: true},
+			HTTPRoute:      RoutedSource{Annotated: Annotated{Enabled: true, OnlyAnnotated: true}, DefaultProtocol: "http"},
+			VirtualService: RoutedSource{Annotated: Annotated{Enabled: true, OnlyAnnotated: true}, DefaultProtocol: "http"},
+		},
+		Server: Server{Address: ":8080"},
+		Web:    Web{Title: "Startpunkt"},
+		Log:    Log{Level: "info", Format: "json"},
 	}
 }
 
@@ -88,19 +163,72 @@ func Load(path string, required bool, getenv func(string) string) (Config, error
 			return cfg, fmt.Errorf("reading config: %w", err)
 		}
 	}
-	for name, target := range map[string]*string{
-		"CLUSTER_NAME":   &cfg.Cluster.Name,
-		"SERVER_ADDRESS": &cfg.Server.Address,
-		"UPSTREAM_URL":   &cfg.Upstream.URL,
-		"WEB_TITLE":      &cfg.Web.Title,
-		"LOG_LEVEL":      &cfg.Log.Level,
-		"LOG_FORMAT":     &cfg.Log.Format,
-	} {
+	if err := cfg.applyEnvironment(getenv); err != nil {
+		return cfg, err
+	}
+	return cfg, cfg.validate()
+}
+
+// applyEnvironment overrides settings with the environment variables that
+// are set.
+func (c *Config) applyEnvironment(getenv func(string) string) error {
+	text := map[string]*string{
+		"CLUSTER_NAME":                           &c.Cluster.Name,
+		"SERVER_ADDRESS":                         &c.Server.Address,
+		"UPSTREAM_URL":                           &c.Upstream.URL,
+		"WEB_TITLE":                              &c.Web.Title,
+		"LOG_LEVEL":                              &c.Log.Level,
+		"LOG_FORMAT":                             &c.Log.Format,
+		"SOURCES_HTTPROUTE_DEFAULTPROTOCOL":      &c.Sources.HTTPRoute.DefaultProtocol,
+		"SOURCES_VIRTUALSERVICE_DEFAULTPROTOCOL": &c.Sources.VirtualService.DefaultProtocol,
+	}
+	flags := map[string]*bool{
+		"NAMESPACESELECTOR_ANY":                &c.NamespaceSelector.Any,
+		"SOURCES_APPLICATION_ENABLED":          &c.Sources.Application.Enabled,
+		"SOURCES_BOOKMARK_ENABLED":             &c.Sources.Bookmark.Enabled,
+		"SOURCES_ROUTE_ENABLED":                &c.Sources.Route.Enabled,
+		"SOURCES_ROUTE_ONLYANNOTATED":          &c.Sources.Route.OnlyAnnotated,
+		"SOURCES_INGRESS_ENABLED":              &c.Sources.Ingress.Enabled,
+		"SOURCES_INGRESS_ONLYANNOTATED":        &c.Sources.Ingress.OnlyAnnotated,
+		"SOURCES_INGRESS_INCLUDEUNCLASSIFIED":  &c.Sources.Ingress.IncludeUnclassified,
+		"SOURCES_HTTPROUTE_ENABLED":            &c.Sources.HTTPRoute.Enabled,
+		"SOURCES_HTTPROUTE_ONLYANNOTATED":      &c.Sources.HTTPRoute.OnlyAnnotated,
+		"SOURCES_VIRTUALSERVICE_ENABLED":       &c.Sources.VirtualService.Enabled,
+		"SOURCES_VIRTUALSERVICE_ONLYANNOTATED": &c.Sources.VirtualService.OnlyAnnotated,
+	}
+	lists := map[string]*[]string{
+		"NAMESPACESELECTOR_MATCHNAMES": &c.NamespaceSelector.MatchNames,
+		"SOURCES_INGRESS_CLASSNAMES":   &c.Sources.Ingress.ClassNames,
+	}
+	for name, target := range text {
 		if v := getenv(EnvPrefix + name); v != "" {
 			*target = v
 		}
 	}
-	return cfg, cfg.validate()
+	for name, target := range flags {
+		v := getenv(EnvPrefix + name)
+		if v == "" {
+			continue
+		}
+		parsed, err := strconv.ParseBool(v)
+		if err != nil {
+			return fmt.Errorf("%s%s: %q is not true or false", EnvPrefix, name, v)
+		}
+		*target = parsed
+	}
+	for name, target := range lists {
+		v := getenv(EnvPrefix + name)
+		if v == "" {
+			continue
+		}
+		*target = nil
+		for _, item := range strings.Split(v, ",") {
+			if item = strings.TrimSpace(item); item != "" {
+				*target = append(*target, item)
+			}
+		}
+	}
+	return nil
 }
 
 func (c Config) validate() error {
@@ -111,6 +239,17 @@ func (c Config) validate() error {
 	if strings.ContainsAny(name, "/ \t\n") {
 		// The name is one segment of the slash-separated tile id.
 		return fmt.Errorf("cluster.name %q must not contain slashes or whitespace", name)
+	}
+	if !c.NamespaceSelector.Any && len(c.NamespaceSelector.MatchNames) == 0 {
+		return errors.New("namespaceSelector.matchNames must list a namespace when namespaceSelector.any is false")
+	}
+	for name, protocol := range map[string]string{
+		"sources.httpRoute.defaultProtocol":      c.Sources.HTTPRoute.DefaultProtocol,
+		"sources.virtualService.defaultProtocol": c.Sources.VirtualService.DefaultProtocol,
+	} {
+		if protocol != "http" && protocol != "https" {
+			return fmt.Errorf("%s %q is not http or https", name, protocol)
+		}
 	}
 	if c.Upstream.URL != "" {
 		u, err := url.Parse(c.Upstream.URL)

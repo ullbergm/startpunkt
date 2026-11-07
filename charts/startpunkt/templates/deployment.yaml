@@ -49,6 +49,25 @@ spec:
             {{- if $kube }}
             - name: STARTPUNKT_CLUSTER_NAME
               value: {{ $.Values.config.cluster.name | quote }}
+            - name: STARTPUNKT_NAMESPACESELECTOR_ANY
+              value: {{ $.Values.namespaceSelector.any | quote }}
+            {{- with $.Values.namespaceSelector.matchNames }}
+            - name: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES
+              value: {{ join "," . | quote }}
+            {{- end }}
+            {{- range $name, $source := $.Values.sources }}
+            {{- range $setting, $value := $source }}
+            {{- if kindIs "slice" $value }}
+            {{- if $value }}
+            - name: STARTPUNKT_SOURCES_{{ upper $name }}_{{ upper $setting }}
+              value: {{ join "," $value | quote }}
+            {{- end }}
+            {{- else }}
+            - name: STARTPUNKT_SOURCES_{{ upper $name }}_{{ upper $setting }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
             {{- end }}
             {{- if ne $role "web" }}
             - name: STARTPUNKT_WEB_TITLE

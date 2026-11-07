@@ -36,7 +36,7 @@ spec:
   location: 5
   enabled: true
   tags: "Admin, ops,admin, "
-`))
+`), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ apiVersion: startpunkt.ullberg.us/v1alpha1
 kind: Application
 metadata: {name: plex, namespace: Media}
 spec: {name: Plex, url: "http://plex.media.svc:32400"}
-`))
+`), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,13 +83,11 @@ func TestApplicationWithoutTile(t *testing.T) {
 		"disabled": `
 metadata: {name: a, namespace: ns}
 spec: {name: A, url: "https://a", enabled: false}`,
-		"urlFrom only": `
+		"no url": `
 metadata: {name: a, namespace: ns}
-spec:
-  name: A
-  urlFrom: {apiVersion: v1, kind: ConfigMap, name: cm, property: data.url}`,
+spec: {name: A}`,
 	} {
-		got, err := Application{}.Tiles(object(t, manifest))
+		got, err := Application{}.Tiles(object(t, manifest), nil)
 		if err != nil || len(got) != 0 {
 			t.Errorf("%s: got %v, %v; want no tiles and no error", name, got, err)
 		}
@@ -108,7 +106,7 @@ func TestInvalidObjects(t *testing.T) {
 		"bookmark without name":     {Bookmark{}, `{metadata: {name: b}, spec: {url: "https://b", group: g}}`},
 	}
 	for name, c := range cases {
-		if got, err := c.src.Tiles(object(t, c.manifest)); err == nil {
+		if got, err := c.src.Tiles(object(t, c.manifest), nil); err == nil {
 			t.Errorf("%s: expected an error, got tiles %v", name, got)
 		}
 	}
@@ -126,7 +124,7 @@ spec:
   url: https://kubernetes.io/docs/
   info: Official documentation
   targetBlank: true
-`))
+`), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

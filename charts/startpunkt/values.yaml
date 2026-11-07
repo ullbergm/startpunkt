@@ -43,6 +43,56 @@ config:
     # STARTPUNKT_LOG_FORMAT: json or text.
     format: json
 
+# Which namespaces resources are read from.
+namespaceSelector:
+  # STARTPUNKT_NAMESPACESELECTOR_ANY. Read every namespace.
+  any: true
+  # STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES. The namespaces to read when any
+  # is false.
+  matchNames: []
+
+# The resource types tiles are built from. A type that the cluster does not
+# have is skipped, and picked up when it appears.
+#
+# onlyAnnotated limits a source to objects annotated with
+# startpunkt.ullberg.us/enable: "true". With onlyAnnotated off, every object
+# of the type is shown unless it is annotated with enable: "false".
+#
+# Each setting is passed as STARTPUNKT_SOURCES_<SOURCE>_<SETTING>, for example
+# STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED. Turning a source off also removes
+# its RBAC rule.
+sources:
+  # Application custom resources (startpunkt.ullberg.us).
+  application:
+    enabled: true
+  # Bookmark custom resources (startpunkt.ullberg.us).
+  bookmark:
+    enabled: true
+  # OpenShift Routes.
+  route:
+    enabled: true
+    onlyAnnotated: true
+  # Kubernetes Ingresses. One tile per host in the rules.
+  ingress:
+    enabled: true
+    onlyAnnotated: true
+    # Limit to these ingress classes. Empty means every class.
+    classNames: []
+    # Keep Ingresses without a class when classNames is set.
+    includeUnclassified: true
+  # Gateway API HTTPRoutes. One tile per hostname.
+  httpRoute:
+    enabled: true
+    onlyAnnotated: true
+    # URL scheme when the object does not set the protocol annotation: http
+    # or https. The route itself does not say which one the Gateway serves.
+    defaultProtocol: http
+  # Istio VirtualServices. One tile per host.
+  virtualService:
+    enabled: true
+    onlyAnnotated: true
+    defaultProtocol: http
+
 # Extra environment variables for every container.
 extraEnv: []
 
@@ -68,6 +118,14 @@ rbac:
   # Create the ClusterRole and ClusterRoleBinding that let the controller
   # read the resources tiles are built from.
   create: true
+  # Additional rules for the ClusterRole. An Application's urlFrom can read
+  # its URL from any object, and the controller needs get, list and watch on
+  # that object's type. The enabled sources are covered already. Example:
+  #   extraRules:
+  #     - apiGroups: [""]
+  #       resources: [configmaps]
+  #       verbs: [get, list, watch]
+  extraRules: []
 
 service:
   type: ClusterIP

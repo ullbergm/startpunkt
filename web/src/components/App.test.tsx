@@ -89,6 +89,40 @@ describe('App', () => {
     expect(document.getElementById('injected')).toBeNull();
   });
 
+  it('applies the tag filter from the URL path', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respondWith(
+        serverState({
+          tiles: [
+            tile({ name: 'Everyone' }),
+            tile({ name: 'Admins', tags: ['admin'] }),
+            tile({ name: 'Developers', tags: ['dev'] }),
+          ],
+        }),
+      ),
+    );
+    window.history.pushState({}, '', '/admin');
+    try {
+      render(<App />);
+      expect(await screen.findByRole('link', { name: /Everyone/ })).toBeTruthy();
+      expect(screen.getByRole('link', { name: /Admins/ })).toBeTruthy();
+      expect(screen.queryByRole('link', { name: /Developers/ })).toBeNull();
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
+  });
+
+  it('hides tagged tiles when the URL has no tags', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respondWith(serverState({ tiles: [tile({ name: 'Everyone' }), tile({ name: 'Admins', tags: ['admin'] })] })),
+    );
+    render(<App />);
+    expect(await screen.findByRole('link', { name: /Everyone/ })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /Admins/ })).toBeNull();
+  });
+
   it('says so when there is nothing to show', async () => {
     vi.stubGlobal('fetch', respondWith(serverState()));
     render(<App />);
