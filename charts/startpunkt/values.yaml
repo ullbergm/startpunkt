@@ -1,0 +1,115 @@
+# Overrides the chart name used in resource names and labels.
+nameOverride: ""
+# Overrides the full name that every resource name starts with. By default it
+# is derived from the release name, so two releases never share a name.
+fullnameOverride: ""
+
+# How Startpunkt is deployed. Both modes run the same image.
+#   single: one Deployment that watches the cluster and serves the API and the
+#           page.
+#   split:  three Deployments. "controller" watches the cluster and is the
+#           only one with Kubernetes credentials. "api" serves the API from
+#           the controller's state. "web" serves the page. The Ingress or
+#           Route sends /api to "api" and everything else to "web".
+mode: single
+
+image:
+  repository: ghcr.io/ullbergm/startpunkt
+  # Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+crds:
+  # Install the Application and Bookmark custom resource definitions. Leave
+  # this off when a 4.x release on the same cluster already provides them:
+  # v5 then uses the v1alpha4 version they serve. Packaging the definitions
+  # with this chart is not available yet, so true is rejected.
+  install: false
+
+# Settings of the process. Each one is passed as the environment variable
+# named in its comment.
+config:
+  cluster:
+    # STARTPUNKT_CLUSTER_NAME. Identifies this instance's tiles. It is part
+    # of every tile id and must not contain slashes or whitespace.
+    name: local
+  web:
+    # STARTPUNKT_WEB_TITLE. Title of the page.
+    title: Startpunkt
+  log:
+    # STARTPUNKT_LOG_LEVEL: debug, info, warn or error.
+    level: info
+    # STARTPUNKT_LOG_FORMAT: json or text.
+    format: json
+
+# Extra environment variables for every container.
+extraEnv: []
+
+# Replicas per Deployment. "all" is used in single mode, the others in split
+# mode. Every process is stateless, so more than one replica of each is safe.
+replicas:
+  all: 1
+  controller: 1
+  api: 1
+  web: 1
+
+# Resources per Deployment, keyed like replicas. Example:
+#   resources:
+#     all:
+#       requests: {cpu: 10m, memory: 32Mi}
+#       limits: {memory: 128Mi}
+resources: {}
+
+serviceAccount:
+  annotations: {}
+
+rbac:
+  # Create the ClusterRole and ClusterRoleBinding that let the controller
+  # read the resources tiles are built from.
+  create: true
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: startpunkt.example.com
+  # Name of a TLS secret for the host. Empty means no TLS section.
+  tlsSecretName: ""
+
+# OpenShift Route. In split mode two Routes are created on the same host, one
+# for /api and one for everything else.
+route:
+  enabled: false
+  # Empty lets the router generate a host. In split mode a host is required,
+  # because both Routes must share it.
+  host: ""
+  annotations: {}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+podAnnotations: {}
+podLabels: {}
+
+# The image runs as a non-root user and writes nothing to disk. No user id is
+# set here, so OpenShift can assign one.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

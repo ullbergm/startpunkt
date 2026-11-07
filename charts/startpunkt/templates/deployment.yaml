@@ -1,0 +1,102 @@
+{{- range $role := splitList " " (include "startpunkt.roles" .) }}
+{{- $ctx := dict "root" $ "role" $role }}
+{{- $kube := include "startpunkt.usesKubernetes" $role }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "startpunkt.roleName" $ctx }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "startpunkt.labels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ index $.Values.replicas $role }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      {{- include "startpunkt.selectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "startpunkt.labels" $ctx | nindent 8 }}
+        {{- with $.Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "startpunkt.fullname" $ }}
+      automountServiceAccountToken: {{ if $kube }}true{{ else }}false{{ end }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: startpunkt
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - {{ $role }}
+          env:
+            - name: STARTPUNKT_LOG_LEVEL
+              value: {{ $.Values.config.log.level | quote }}
+            - name: STARTPUNKT_LOG_FORMAT
+              value: {{ $.Values.config.log.format | quote }}
+            {{- if $kube }}
+            - name: STARTPUNKT_CLUSTER_NAME
+              value: {{ $.Values.config.cluster.name | quote }}
+            {{- end }}
+            {{- if ne $role "web" }}
+            - name: STARTPUNKT_WEB_TITLE
+              value: {{ $.Values.config.web.title | quote }}
+            {{- end }}
+            {{- if eq $role "api" }}
+            - name: STARTPUNKT_UPSTREAM_URL
+              value: "http://{{ include "startpunkt.roleName" (dict "root" $ "role" "controller") }}:{{ $.Values.service.port }}"
+            {{- end }}
+            {{- with $.Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 1
+            failureThreshold: 30
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          {{- with index $.Values.resources $role }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

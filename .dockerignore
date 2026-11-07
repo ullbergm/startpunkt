@@ -1,0 +1,10 @@
+# Only the Go and frontend sources are needed to build the image.
+*
+!go.mod
+!go.sum
+!api/
+!cmd/
+!internal/
+!web/
+web/node_modules/
+web/dist/

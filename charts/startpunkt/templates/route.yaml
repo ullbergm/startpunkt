@@ -1,0 +1,37 @@
+{{- if .Values.route.enabled }}
+{{- $parts := list "web" }}
+{{- if eq .Values.mode "split" }}
+{{- $parts = list "web" "api" }}
+{{- end }}
+{{- range $part := $parts }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "startpunkt.fullname" $ }}{{ if eq $part "api" }}-api{{ end }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" $ | nindent 4 }}
+  {{- with $.Values.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $.Values.route.host }}
+  host: {{ . | quote }}
+  {{- end }}
+  {{- if eq $part "api" }}
+  path: /api
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "startpunkt.servingRole" (dict "root" $ "part" $part) }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: {{ $.Values.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ $.Values.route.tls.insecureEdgeTerminationPolicy }}
+  wildcardPolicy: None
+{{- end }}
+{{- end }}

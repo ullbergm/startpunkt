@@ -1,0 +1,25 @@
+{{- range $role := splitList " " (include "startpunkt.roles" .) }}
+{{- $ctx := dict "root" $ "role" $role }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "startpunkt.roleName" $ctx }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "startpunkt.labels" $ctx | nindent 4 }}
+  {{- with $.Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  # The controller is only reached by the api role, never from outside.
+  type: {{ if eq $role "controller" }}ClusterIP{{ else }}{{ $.Values.service.type }}{{ end }}
+  ports:
+    - name: http
+      port: {{ $.Values.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "startpunkt.selectorLabels" $ctx | nindent 4 }}
+{{- end }}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: startpunkt
+description: A start page for the resources in a Kubernetes cluster
+type: application
+version: 5.0.0-alpha.1
+appVersion: 5.0.0-alpha.1
+home: https://github.com/ullbergm/startpunkt
+sources:
+  - https://github.com/ullbergm/startpunkt

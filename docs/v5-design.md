@@ -8,7 +8,7 @@ Version names in this document: "4.x" is the current Quarkus-based Startpunkt an
 
 Startpunkt v5 is a small controller that keeps one in-memory model of its own cluster and streams it to a static frontend.
 
-- One Go binary with the frontend embedded.
+- One Go binary with the frontend embedded. It runs as a single process, or split into roles that each do one job.
 - One normalized store fed by Kubernetes informers, with one read path out of it.
 - A REST snapshot plus a Server-Sent Events (SSE) change stream instead of GraphQL.
 - Built-in source adapters for the natively supported resource types, with user-defined mappings for other types as a later addition.
@@ -54,6 +54,31 @@ remote instances ──SSE──> federation client ──> same store, keyed by
 | Prober | Checks availability of local tiles and writes the result into the store. |
 | API | Serves the snapshot, the event stream, the write endpoints and the embedded frontend. |
 | Federation client | Subscribes to remote instances and mirrors their tiles into the store. |
+
+### Process roles
+
+The binary takes a role as its argument. Every role is the same image, and each is a stateless process configured through its environment.
+
+| Role | Runs | Kubernetes credentials |
+| --- | --- | --- |
+| `all` | Everything in one process. The default. | Read access to the source types |
+| `controller` | Source adapters and the store. Serves the API to other roles inside the cluster. | Read access to the source types |
+| `api` | The API for browsers, from a store that follows a controller. | None |
+| `web` | The frontend files. | None |
+
+```text
+single:  browser ──> all (informers, store, API, page)
+
+split:   browser ──/api──> api ──SSE──> controller ──watch──> Kubernetes API
+                 └──/────> web
+```
+
+- The roles talk to each other with the public protocol: `api` subscribes to the controller's `GET /api/v1/events`, receives a snapshot and then changes, and mirrors them into its own store. There is no broker and no shared database.
+- In `all` the same components share one store in one process, so there is one code path and the split adds no logic of its own.
+- The processes that are reachable from outside hold no Kubernetes credentials in split mode.
+- When the controller is unreachable, `api` keeps serving the last known tiles, reports the cluster as stale, and reconnects with backoff. The snapshot sent on reconnect resynchronises it. This is the mechanism federation uses for a remote instance.
+- Readiness follows the store: a process is ready once its local cluster has finished the initial list, whether it read the cluster itself or learned it from the controller.
+- Later roles follow the same pattern: the prober and the write endpoints can each run as their own role, so that only the role that writes holds write access.
 
 There is no cache layer and no cache invalidation. The store is always the current informer state, and every consumer learns about a change from the same event.
 
@@ -240,15 +265,16 @@ cluster B: informers ─> store ─> prober ─┤                              
 
 ## Configuration
 
-A single YAML file mounted from a ConfigMap, with environment variable overrides. Sections: `namespaceSelector`, `sources` (built-in toggles, later `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check) and `editing` (reference to the edit key). The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
+Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart configures the processes that way. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles, later `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
 
 ## Deployment
 
 - Multi-stage container build producing a static binary on a distroless base.
+- The chart has a `mode` setting. `single` creates one Deployment running the `all` role. `split` creates one Deployment per role, mounts a service account token only in the controller, and routes `/api` to `api` and everything else to `web` on one host.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, an optional Secret for the edit key, and a ServiceMonitor for Prometheus metrics.
 - No admission or conversion webhooks, so no certificates to manage.
 - CRD installation can be turned off with `crds.install`, for running next to a 4.x installation. All resource names derive from the release name and namespace.
-- The process is stateless. More than one replica is safe: each builds its own store from the API server. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
+- Every process is stateless and logs to standard output. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
 
 ## Testing
 
@@ -302,6 +328,8 @@ Once `v1` is the storage version, going back to the 4.x chart's definitions is n
 ## Decisions
 
 - Go as the implementation language.
+- One image with roles. It runs as a single process or split into `controller`, `api` and `web`, and the roles talk to each other with the public snapshot and event stream.
+- Configuration is environment-first, with a YAML file as an alternative.
 - Single store with snapshot plus SSE; no GraphQL.
 - Every SSE connection starts with a full snapshot; no event replay.
 - Built-in sources are plain Go adapters. CEL mappings for user-defined sources come later.
@@ -318,9 +346,9 @@ Once `v1` is the storage version, going back to the 4.x chart's definitions is n
 
 Every milestone ends with an image that runs next to a 4.x installation on a real cluster, so each step is compared against 4.x on the same data.
 
-1. Skeleton, deployable: binary, store, `Application` and `Bookmark` types with the fallback to `v1alpha4`, snapshot endpoint, minimal UI that renders tiles, container build, and a minimal chart with `crds.install: false` and release-based names.
+1. Skeleton, deployable: binary with its roles, store, `Application` and `Bookmark` types with the fallback to `v1alpha4`, snapshot endpoint, the server side of the event stream and the follower that the split mode needs, minimal UI that renders tiles, container build, and a minimal chart with both modes, `crds.install: false` and release-based names.
 2. Sources: built-in adapters in the order Route, Ingress, HTTPRoute, VirtualService; discovery, annotations, tags, namespace selector, `urlFrom`. At the end of this milestone the page lists the same applications as 4.x, apart from Hajimari resources.
-3. Live updates: SSE stream, UI driven by events.
+3. Live updates: UI driven by the event stream.
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
