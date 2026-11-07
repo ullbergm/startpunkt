@@ -1,23 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { groupTiles } from './group';
-import type { Tile } from './types';
-
-export function tile(overrides: Partial<Tile>): Tile {
-  return {
-    id: overrides.id ?? `c/apps/ns/${overrides.name ?? 'x'}`,
-    kind: 'application',
-    cluster: 'c',
-    name: 'x',
-    group: 'g',
-    url: 'https://example.com',
-    targetBlank: false,
-    location: 1000,
-    tags: [],
-    source: { type: 'apps', version: 'v1', namespace: 'ns', name: 'x' },
-    editable: true,
-    ...overrides,
-  };
-}
+import { tile } from './testing';
 
 describe('groupTiles', () => {
   it('separates kinds and orders groups by name', () => {

@@ -1,55 +1,115 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { load, loadError, reset, serverState } from './state';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { connect, connection, fatalError, reset, serverState as state } from './state';
+import { FakeStream, openFake, serverState, tile } from './testing';
 
-const body = {
-  schemaVersion: 1,
-  tiles: [],
-  clusters: [],
-  config: { title: 't' },
-  editing: { available: false },
-};
+let stop: () => void;
 
-beforeEach(() => reset());
+beforeEach(() => {
+  reset();
+  FakeStream.opened = [];
+  vi.useFakeTimers();
+  stop = connect(openFake);
+});
+afterEach(() => {
+  stop();
+  vi.useRealTimers();
+});
 
-describe('load', () => {
-  it('sends the ETag back and keeps the state on 304', async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(body), { status: 200, headers: { ETag: '"abc"' } }),
-      )
-      .mockResolvedValueOnce(new Response(null, { status: 304 }));
-    await load(fetcher);
-    const first = serverState.value;
-    await load(fetcher);
-    expect(fetcher.mock.calls[1]?.[1]?.headers['If-None-Match']).toBe('"abc"');
-    expect(serverState.value).toBe(first);
-    expect(loadError.value).toBeNull();
+const names = () => state.value?.tiles.map((t) => t.name).sort();
+
+describe('connect', () => {
+  it('opens the event stream and goes live on the snapshot', () => {
+    expect(FakeStream.last.url).toBe('/api/v1/events');
+    expect(connection.value).toBe('connecting');
+    FakeStream.last.emit('snapshot', serverState({ tiles: [tile({ name: 'a' })] }));
+    expect(connection.value).toBe('live');
+    expect(names()).toEqual(['a']);
   });
 
-  it('keeps the previous state when a later load fails', async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify(body), { status: 200 }))
-      .mockRejectedValueOnce(new Error('offline'));
-    await load(fetcher);
-    await load(fetcher);
-    expect(serverState.value).not.toBeNull();
-    expect(loadError.value).toBe('offline');
+  it('applies single changes to the snapshot', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState({ tiles: [tile({ name: 'a' }), tile({ name: 'b' })] }));
+
+    stream.emit('tile.upsert', tile({ name: 'c' }));
+    expect(names()).toEqual(['a', 'b', 'c']);
+
+    stream.emit('tile.upsert', tile({ id: 'c/apps/ns/a', name: 'renamed' }));
+    expect(names()).toEqual(['b', 'c', 'renamed']);
+
+    stream.emit('tile.delete', { id: 'c/apps/ns/b' });
+    expect(names()).toEqual(['c', 'renamed']);
+
+    stream.emit('cluster.status', { name: 'local', local: true, state: 'stale' });
+    stream.emit('cluster.status', { name: 'remote', local: false, state: 'connected' });
+    expect(state.value?.clusters).toEqual([
+      { name: 'local', local: true, state: 'stale' },
+      { name: 'remote', local: false, state: 'connected' },
+    ]);
   });
 
-  it('rejects a schema version it does not know', async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValue(new Response(JSON.stringify({ ...body, schemaVersion: 2 }), { status: 200 }));
-    await load(fetcher);
-    expect(serverState.value).toBeNull();
-    expect(loadError.value).toMatch(/newer protocol/);
+  it('replaces the signal value so that views update', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState());
+    const before = state.value;
+    stream.emit('tile.upsert', tile({ name: 'a' }));
+    expect(state.value).not.toBe(before);
   });
 
-  it('shares one request between concurrent callers', async () => {
-    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
-    await Promise.all([load(fetcher), load(fetcher)]);
-    expect(fetcher).toHaveBeenCalledTimes(1);
+  it('ignores changes that arrive before a snapshot', () => {
+    FakeStream.last.emit('tile.upsert', tile({ name: 'a' }));
+    expect(state.value).toBeNull();
+  });
+
+  it('keeps the state while the browser reconnects, then takes the new snapshot', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState({ tiles: [tile({ name: 'a' })] }));
+    stream.fail('drop');
+    expect(connection.value).toBe('reconnecting');
+    expect(names()).toEqual(['a']);
+    expect(FakeStream.opened).toHaveLength(1);
+
+    stream.emit('snapshot', serverState({ tiles: [tile({ name: 'b' })] }));
+    expect(connection.value).toBe('live');
+    expect(names()).toEqual(['b']);
+  });
+
+  it('opens a new stream with backoff when the browser gives up', () => {
+    FakeStream.last.emit('snapshot', serverState());
+    FakeStream.last.fail('fail');
+    expect(FakeStream.opened).toHaveLength(1);
+    vi.advanceTimersByTime(1000);
+    expect(FakeStream.opened).toHaveLength(2);
+
+    FakeStream.last.fail('fail');
+    vi.advanceTimersByTime(1000);
+    expect(FakeStream.opened).toHaveLength(2);
+    vi.advanceTimersByTime(1000);
+    expect(FakeStream.opened).toHaveLength(3);
+
+    // A snapshot resets the backoff.
+    FakeStream.last.emit('snapshot', serverState());
+    FakeStream.last.fail('fail');
+    vi.advanceTimersByTime(1000);
+    expect(FakeStream.opened).toHaveLength(4);
+  });
+
+  it('stays in connecting when the first attempt fails', () => {
+    FakeStream.last.fail('fail');
+    expect(connection.value).toBe('connecting');
+  });
+
+  it('stops for good on a schema version it does not know', () => {
+    FakeStream.last.emit('snapshot', { ...serverState(), schemaVersion: 2 });
+    expect(state.value).toBeNull();
+    expect(fatalError.value).toMatch(/newer protocol/);
+    expect(FakeStream.last.closed).toBe(true);
+  });
+
+  it('closes the stream and cancels retries when stopped', () => {
+    FakeStream.last.fail('fail');
+    stop();
+    vi.advanceTimersByTime(60000);
+    expect(FakeStream.opened).toHaveLength(1);
+    expect(FakeStream.last.closed).toBe(true);
   });
 });

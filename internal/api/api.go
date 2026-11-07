@@ -136,6 +136,10 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	h.Set("Cache-Control", "no-cache")
 	h.Set("X-Accel-Buffering", "no")
 	w.WriteHeader(http.StatusOK)
+	// Tell browsers to reconnect quickly after a dropped stream.
+	if _, err := io.WriteString(w, "retry: 2000\n\n"); err != nil {
+		return
+	}
 	if writeEvent(w, EventSnapshot, s.state(snap)) != nil || rc.Flush() != nil {
 		return
 	}

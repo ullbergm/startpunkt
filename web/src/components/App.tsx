@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { groupTiles, type TileGroup } from '../group';
-import { load, loadError, serverState } from '../state';
+import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
 import { TileCard } from './TileCard';
 
@@ -28,20 +28,12 @@ function Section({ id, title, groups }: { id: string; title: string; groups: Til
   );
 }
 
-export function App() {
-  useEffect(() => {
-    void load();
-    // Until the page follows the event stream, refresh when it is looked at
-    // again.
-    const refresh = () => {
-      if (document.visibilityState === 'visible') void load();
-    };
-    document.addEventListener('visibilitychange', refresh);
-    return () => document.removeEventListener('visibilitychange', refresh);
-  }, []);
+export function App({ open }: { open?: (url: string) => EventStream }) {
+  useEffect(() => connect(open), [open]);
 
   const state = serverState.value;
-  const error = loadError.value;
+  const error = fatalError.value;
+  const status = connection.value;
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {
     document.title = title;
@@ -65,6 +57,9 @@ export function App() {
       <main>
         <div role="status" aria-live="polite">
           {!state && !error && <p class="notice">Loading…</p>}
+          {status === 'reconnecting' && !error && (
+            <p class="notice">Connection to the server lost. Reconnecting…</p>
+          )}
           {syncing && <p class="notice">Still reading the cluster. More tiles may appear.</p>}
           {stale.length > 0 && (
             <p class="notice">
@@ -78,9 +73,9 @@ export function App() {
         </div>
         {error && (
           <div class="notice notice-error" role="alert">
-            <p>Could not load the start page. {error}</p>
-            <button type="button" onClick={() => void load()}>
-              Try again
+            <p>{error}</p>
+            <button type="button" onClick={() => window.location.reload()}>
+              Reload
             </button>
           </div>
         )}

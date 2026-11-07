@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tile } from './group.test';
+import { tile } from './testing';
 import { filterByTags, tagsFromPath } from './tags';
 
 describe('tagsFromPath', () => {
