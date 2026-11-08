@@ -2,13 +2,10 @@ import { useState } from 'preact/hooks';
 import type { Tile } from '../types';
 import { iconSource } from '../url';
 
-// Used for Iconify icons that do not set a colour. It is readable on both
-// the light and the dark background.
-export const DEFAULT_ICON_COLOR = '#4c8dd6';
-
-// The icon is decorative: the tile's name is right next to it.
-export function TileIcon({ tile }: { tile: Tile }) {
-  const source = iconSource(tile.icon, tile.iconColor || DEFAULT_ICON_COLOR);
+// The icon is decorative: the tile's name is right next to it. An Iconify
+// icon without a colour of its own takes the theme's primary colour.
+export function TileIcon({ tile, color }: { tile: Tile; color: string }) {
+  const source = iconSource(tile.icon, tile.iconColor || color);
   const [failed, setFailed] = useState<string | null>(null);
   if (!source || failed === source) {
     return (

@@ -176,3 +176,27 @@ func TestAvailability(t *testing.T) {
 		}
 	}
 }
+
+func TestWebSettings(t *testing.T) {
+	cfg, err := Load("", false, env(map[string]string{
+		"STARTPUNKT_WEB_DEFAULTLANGUAGE":            "sv-SE",
+		"STARTPUNKT_WEB_SEARCHENGINE":               "https://duckduckgo.com/?q=",
+		"STARTPUNKT_WEB_THEME_DARK_TEXTACCENTCOLOR": "#abcdef",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Web.DefaultLanguage != "sv-SE" || cfg.Web.SearchEngine != "https://duckduckgo.com/?q=" ||
+		cfg.Web.Theme.Dark.TextAccentColor != "#abcdef" || cfg.Web.Theme.Light.BodyBgColor != "#F8F6F1" {
+		t.Errorf("got %+v", cfg.Web)
+	}
+	for want, values := range map[string]map[string]string{
+		"defaultLanguage": {"STARTPUNKT_WEB_DEFAULTLANGUAGE": "Swedish!"},
+		"searchEngine":    {"STARTPUNKT_WEB_SEARCHENGINE": "javascript:alert(1)//"},
+		"bodyBgColor":     {"STARTPUNKT_WEB_THEME_LIGHT_BODYBGCOLOR": "red; background: url(x)"},
+	} {
+		if _, err := Load("", false, env(values)); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got error %v", want, err)
+		}
+	}
+}

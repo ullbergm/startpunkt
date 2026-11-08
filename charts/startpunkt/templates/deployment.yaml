@@ -78,6 +78,16 @@ spec:
             {{- if ne $role "web" }}
             - name: STARTPUNKT_WEB_TITLE
               value: {{ $.Values.config.web.title | quote }}
+            - name: STARTPUNKT_WEB_DEFAULTLANGUAGE
+              value: {{ $.Values.config.web.defaultLanguage | quote }}
+            - name: STARTPUNKT_WEB_SEARCHENGINE
+              value: {{ $.Values.config.web.searchEngine | quote }}
+            {{- range $mode, $palette := $.Values.config.web.theme }}
+            {{- range $name, $color := $palette }}
+            - name: STARTPUNKT_WEB_THEME_{{ upper $mode }}_{{ upper $name }}
+              value: {{ $color | quote }}
+            {{- end }}
+            {{- end }}
             {{- end }}
             {{- if eq $role "api" }}
             - name: STARTPUNKT_UPSTREAM_URL

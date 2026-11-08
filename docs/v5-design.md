@@ -205,7 +205,7 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 | `GET /events` | Open | SSE stream. Sends a full snapshot on every connect, then `tile.upsert`, `tile.delete` and `cluster.status` events. |
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
 | `POST /applications`, `PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, update and delete Application resources on the local cluster. Same for `/bookmarks`. |
-| `GET /background` | Open | Proxy for the Bing image of the day, kept server-side because of CORS. |
+| `GET /background` | Open | Address, title and copyright of the Bing picture of the day. The lookup is server-side because of CORS and is kept for an hour; the browser loads the picture itself from Bing. Served by the roles a browser talks to. |
 
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
 
@@ -296,9 +296,14 @@ cluster B: informers ─> store ─> prober ─┤                              
 - One signal holds the server state. It is fed by the `/events` stream.
 - The page shows the last known tiles while the stream is down and, once it has been down for five seconds, says that it is reconnecting. Shorter drops are not announced: a server restart, a proxy reload or a laptop waking up are over before anyone needs to know. The browser reconnects a dropped stream on its own; when the server answers with an error instead, which a browser treats as final, the page opens a new stream with backoff.
 - Browsers allow about six HTTP/1.1 connections per host, and each open tab holds one for the stream. Serving the page over HTTP/2 removes that limit.
-- Themes are CSS custom properties, with a light and a dark palette supplied by configuration.
-- Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences.
-- Translations are static JSON files served with the bundle. Icons are fetched from the Iconify API as image data.
+- Themes are CSS custom properties, with a light and a dark palette supplied by configuration. A palette has the five colour names of 4.x (`bodyBgColor`, `bodyColor`, `emphasisColor`, `textPrimaryColor`, `textAccentColor`), so an existing theme carries over; surfaces and borders are derived from them in the stylesheet. The visitor chooses light, dark, or to follow the system.
+- Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences. Whatever is read from storage is checked value by value and replaced by its default when it does not fit, so data from an older version or edited by hand cannot break the page.
+- Preferences: theme mode, language, favorites, collapsed groups, layout (columns, spacing, compact tiles, descriptions, status indicators, hiding unreachable applications), background (theme, solid colour, gradient, image by URL, picture of the day; blur; a panel behind the content) and accessibility (text size, high contrast).
+- Favorites are stored by tile id and shown in their own section above the groups, in addition to their place in a group.
+- Spotlight search opens with `/` or Ctrl+K. It matches every word of the query against name, group, description, tags, cluster and host. A query that starts with `?` goes to the configured search engine.
+- Dialogs are native `dialog` elements, which keep focus inside, close on Escape and make the rest of the page inert.
+- Not carried over from 4.x: the time-of-day, mesh and geopattern backgrounds, the Lorem Picsum picture provider, the handwritten font, layout presets, the tags shown on tiles, the "what's new" dialog, the update check and the GitHub ribbon.
+- Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons are fetched from the Iconify API as image data.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 
 ## Configuration

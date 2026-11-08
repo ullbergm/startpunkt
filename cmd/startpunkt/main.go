@@ -105,7 +105,18 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	handler := &api.Server{Title: cfg.Web.Title}
+	palette := func(p config.Palette) api.Palette {
+		return api.Palette{
+			BodyBgColor: p.BodyBgColor, BodyColor: p.BodyColor, EmphasisColor: p.EmphasisColor,
+			TextPrimaryColor: p.TextPrimaryColor, TextAccentColor: p.TextAccentColor,
+		}
+	}
+	handler := &api.Server{UI: api.UIConfig{
+		Title:           cfg.Web.Title,
+		DefaultLanguage: cfg.Web.DefaultLanguage,
+		SearchEngine:    cfg.Web.SearchEngine,
+		Theme:           api.Theme{Light: palette(cfg.Web.Theme.Light), Dark: palette(cfg.Web.Theme.Dark)},
+	}}
 	switch role {
 	case roleAll, roleController:
 		handler.Store = store.New()
@@ -139,6 +150,10 @@ func run() error {
 	case roleWeb:
 	default:
 		return fmt.Errorf("unknown role %q", role)
+	}
+	if handler.Store != nil && role != roleController {
+		// Only the roles a browser talks to fetch pictures.
+		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 	}
 	if role == roleAll || role == roleWeb {
 		handler.Assets = web.Assets()

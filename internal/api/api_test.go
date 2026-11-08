@@ -19,7 +19,7 @@ func newServer() (*Server, *store.Store) {
 	s := store.New()
 	return &Server{
 		Store: s,
-		Title: "Test page",
+		UI:    UIConfig{Title: "Test page"},
 		Assets: fstest.MapFS{
 			"index.html":    {Data: []byte("<html>index</html>")},
 			"assets/app.js": {Data: []byte("console.log(1)")},

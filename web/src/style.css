@@ -1,27 +1,50 @@
+/* Colours come from the server's theme and are set on the root element as
+   --bg, --muted, --text, --primary and --accent. Everything else is derived
+   from those here, so a theme only ever has to name five colours. The values
+   below are the default light theme, used until the server has answered. */
 :root {
-  color-scheme: light dark;
-  --bg: #f4f5f7;
-  --surface: #ffffff;
-  --text: #1c2330;
-  --muted: #5b6577;
-  --border: #d9dde5;
-  --accent: #2563c9;
+  color-scheme: light;
+  --bg: #f8f6f1;
+  --muted: #696969;
+  --text: #000000;
+  --primary: #4c432e;
+  --accent: #aa9a73;
   --error: #b3261e;
+  --surface: color-mix(in srgb, var(--bg) 92%, var(--text));
+  --border: color-mix(in srgb, var(--bg) 78%, var(--text));
   --radius: 10px;
+  --gap: 0.75rem;
+  --tile-min: 240px;
+  --tile-pad: 0.75rem;
+  --columns: 0;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.4;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14171c;
-    --surface: #1e232b;
-    --text: #e8ebf0;
-    --muted: #a3acbb;
-    --border: #333a46;
-    --accent: #7fb0f5;
-    --error: #ffb4ab;
-  }
+:root[data-mode='dark'] {
+  color-scheme: dark;
+  --error: #ffb4ab;
+}
+
+:root[data-spacing='tight'] {
+  --gap: 0.4rem;
+}
+
+:root[data-spacing='relaxed'] {
+  --gap: 1.25rem;
+}
+
+:root[data-compact='true'] {
+  --tile-min: 180px;
+  --tile-pad: 0.4rem;
+}
+
+/* High contrast: secondary text and borders take the full text colour. */
+:root[data-contrast='high'] {
+  --muted: var(--text);
+  --border: var(--text);
+  --accent: var(--text);
+  --surface: var(--bg);
 }
 
 * {
@@ -32,6 +55,54 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+}
+
+.icon {
+  flex: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-position: center;
+  background-size: cover;
+}
+
+.background-blur {
+  inset: -24px;
+  filter: blur(12px);
+}
+
+.background-credit {
+  position: fixed;
+  right: 0.5rem;
+  bottom: 0.25rem;
+  margin: 0;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  color: var(--text);
+  font-size: 0.7rem;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page-header,
@@ -50,6 +121,15 @@ main {
 
 .logo {
   flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 h1 {
@@ -65,51 +145,175 @@ h2 {
 h3 {
   margin: 1.25rem 0 0.5rem;
   font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
 }
 
 main {
   padding-bottom: 3rem;
 }
 
+main:focus {
+  outline: none;
+}
+
+/* A translucent panel behind the content, for busy backgrounds. */
+:root[data-overlay='true']:not([data-background='theme']) main {
+  margin-top: 1rem;
+  padding-top: 0.25rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+:root[data-overlay='true']:not([data-background='theme']) .page-header {
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.4rem;
+}
+
+.search-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+}
+
+kbd {
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem 0.15rem 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.group-toggle[aria-expanded='false'] .icon {
+  transform: rotate(-90deg);
+}
+
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  gap: var(--gap);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A fixed number of columns, but only where there is room for them. */
+@media (min-width: 640px) {
+  :root[data-columns='fixed'] .tiles {
+    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  }
+}
+
 .tile {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
   height: 100%;
-  min-height: 4.25rem;
-  padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+}
+
+.tile:hover,
+.tile:focus-within {
+  border-color: var(--accent);
+}
+
+.tile-link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: calc(40px + 2 * var(--tile-pad));
+  padding: var(--tile-pad);
+  padding-right: 2.25rem;
+  border-radius: var(--radius);
   color: inherit;
   text-decoration: none;
 }
 
-a.tile:hover {
-  border-color: var(--accent);
-}
-
-a.tile:focus-visible,
-button:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .tile-disabled {
   opacity: 0.6;
+}
+
+.tile-favorite {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+}
+
+/* Shown when it is on, when the tile is pointed at, and whenever it has
+   focus, so that it is never an invisible stop for keyboard users. Devices
+   without hover always show it. */
+.tile-favorite[aria-pressed='true'],
+.tile:hover .tile-favorite,
+.tile-favorite:focus-visible {
+  opacity: 1;
+}
+
+.tile-favorite[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+@media (hover: none) {
+  .tile-favorite {
+    opacity: 1;
+  }
 }
 
 .tile-unavailable .tile-icon,
@@ -135,12 +339,17 @@ button:focus-visible {
   object-fit: contain;
 }
 
+:root[data-compact='true'] .tile-icon {
+  width: 28px;
+  height: 28px;
+}
+
 .tile-icon-fallback {
   display: grid;
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--border);
-  color: var(--accent);
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -151,6 +360,7 @@ button:focus-visible {
 }
 
 .tile-name {
+  color: var(--primary);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -177,18 +387,208 @@ button:focus-visible {
   margin: 0 0 0.5rem;
 }
 
-button {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid currentColor;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+dialog {
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.spotlight {
+  margin-top: 12vh;
+}
+
+.spotlight-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.spotlight-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.spotlight-results {
+  max-height: 50vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.spotlight-option {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
   cursor: pointer;
 }
 
+/* The active option is marked by a bar as well as by its background. */
+.spotlight-active {
+  background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.spotlight-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.spotlight-detail {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spotlight-badge {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.spotlight-status {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.settings-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.settings-header h2 {
+  margin: 0;
+}
+
+.settings-body {
+  padding: 0.5rem 1rem 1rem;
+}
+
+fieldset {
+  margin: 1rem 0 0;
+  padding: 0.25rem 1rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+legend {
+  padding: 0 0.4rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.field-check {
+  justify-content: flex-start;
+  gap: 0.6rem;
+}
+
+.field-wide {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+
+.field small {
+  display: block;
+  color: var(--muted);
+}
+
+.field select,
+.field input[type='url'] {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.field input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--primary);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepper output {
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+.settings-reset {
+  margin-top: 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .group-toggle .icon,
+  .tile-favorite {
+    transition:
+      transform 0.15s,
+      opacity 0.15s;
+  }
+}
+
 @media (forced-colors: active) {
-  .tile {
+  .tile,
+  dialog {
     border: 1px solid CanvasText;
+  }
+
+  .spotlight-active {
+    outline: 2px solid Highlight;
   }
 }

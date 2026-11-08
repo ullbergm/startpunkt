@@ -43,6 +43,21 @@ export interface ServerState {
   schemaVersion: number;
   tiles: Tile[];
   clusters: Cluster[];
-  config: { title: string };
+  config: UIConfig;
   editing: { available: boolean };
+}
+
+export interface Palette {
+  bodyBgColor: string;
+  bodyColor: string;
+  emphasisColor: string;
+  textPrimaryColor: string;
+  textAccentColor: string;
+}
+
+export interface UIConfig {
+  title: string;
+  defaultLanguage: string;
+  searchEngine: string;
+  theme: { light: Palette; dark: Palette };
 }

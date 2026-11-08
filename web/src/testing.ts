@@ -63,7 +63,27 @@ export function serverState(overrides: Partial<ServerState> = {}): ServerState {
     schemaVersion: 1,
     tiles: [],
     clusters: [{ name: 'local', local: true, state: 'connected' }],
-    config: { title: 'Home lab' },
+    config: {
+      title: 'Home lab',
+      defaultLanguage: 'en-US',
+      searchEngine: 'https://search.example.com/?q=',
+      theme: {
+        light: {
+          bodyBgColor: '#F8F6F1',
+          bodyColor: '#696969',
+          emphasisColor: '#000000',
+          textPrimaryColor: '#4C432E',
+          textAccentColor: '#AA9A73',
+        },
+        dark: {
+          bodyBgColor: '#232530',
+          bodyColor: '#696969',
+          emphasisColor: '#FAB795',
+          textPrimaryColor: '#FAB795',
+          textAccentColor: '#E95678',
+        },
+      },
+    },
     editing: { available: false },
     ...overrides,
   };

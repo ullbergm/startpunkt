@@ -13,13 +13,14 @@ function compareTiles(a: Tile, b: Tile): number {
   );
 }
 
-// Groups the tiles of one kind by group name. Groups are ordered by name and
+// Groups the tiles of one kind, or of every kind when kind is null, by group
+// name. Groups are ordered by name and
 // tiles by location, then name. Tiles are never merged: two tiles with the
 // same name stay two tiles.
-export function groupTiles(tiles: Tile[], kind: TileKind): TileGroup[] {
+export function groupTiles(tiles: Tile[], kind: TileKind | null): TileGroup[] {
   const groups = new Map<string, Tile[]>();
   for (const tile of tiles) {
-    if (tile.kind !== kind) continue;
+    if (kind !== null && tile.kind !== kind) continue;
     const members = groups.get(tile.group);
     if (members) {
       members.push(tile);

@@ -10,11 +10,17 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"sigs.k8s.io/yaml"
+)
+
+var (
+	languageTag = regexp.MustCompile(`^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$`)
+	hexColor    = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
 )
 
 // EnvPrefix starts the name of every environment variable read by Load.
@@ -170,10 +176,40 @@ type Server struct {
 	Address string `json:"address"`
 }
 
-// Web holds settings passed on to the frontend.
+// Web holds settings passed on to the frontend. The environment variable of
+// a setting is STARTPUNKT_WEB_<SETTING> in upper case, and
+// STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<COLOR> for the palettes.
 type Web struct {
-	// Title of the page. Environment: STARTPUNKT_WEB_TITLE.
+	// Title of the page.
 	Title string `json:"title"`
+	// DefaultLanguage is used for a visitor who has not chosen a language
+	// and whose browser asks for none that is available, for example en-US.
+	DefaultLanguage string `json:"defaultLanguage"`
+	// SearchEngine is the URL a web search from the search box is sent to,
+	// with the query appended.
+	SearchEngine string `json:"searchEngine"`
+	// Theme holds the colours of the light and the dark appearance.
+	Theme Theme `json:"theme"`
+}
+
+// Theme is the pair of palettes the page switches between.
+type Theme struct {
+	Light Palette `json:"light"`
+	Dark  Palette `json:"dark"`
+}
+
+// Palette has the colour names of 4.x, so an existing theme carries over.
+type Palette struct {
+	// BodyBgColor is the page background.
+	BodyBgColor string `json:"bodyBgColor"`
+	// BodyColor is secondary text, such as descriptions.
+	BodyColor string `json:"bodyColor"`
+	// EmphasisColor is headings and other prominent text.
+	EmphasisColor string `json:"emphasisColor"`
+	// TextPrimaryColor is tile names and icons without a colour of their own.
+	TextPrimaryColor string `json:"textPrimaryColor"`
+	// TextAccentColor is group headings, focus rings and highlights.
+	TextAccentColor string `json:"textAccentColor"`
 }
 
 // Log configures logging.
@@ -207,8 +243,22 @@ func Default() Config {
 		},
 		Status: Status{Enabled: true},
 		Server: Server{Address: ":8080"},
-		Web:    Web{Title: "Startpunkt"},
-		Log:    Log{Level: "info", Format: "json"},
+		Web: Web{
+			Title:           "Startpunkt",
+			DefaultLanguage: "en-US",
+			SearchEngine:    "https://www.google.com/search?q=",
+			Theme: Theme{
+				Light: Palette{
+					BodyBgColor: "#F8F6F1", BodyColor: "#696969", EmphasisColor: "#000000",
+					TextPrimaryColor: "#4C432E", TextAccentColor: "#AA9A73",
+				},
+				Dark: Palette{
+					BodyBgColor: "#232530", BodyColor: "#696969", EmphasisColor: "#FAB795",
+					TextPrimaryColor: "#FAB795", TextAccentColor: "#E95678",
+				},
+			},
+		},
+		Log: Log{Level: "info", Format: "json"},
 	}
 }
 
@@ -243,6 +293,8 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"SERVER_ADDRESS":                         &c.Server.Address,
 		"UPSTREAM_URL":                           &c.Upstream.URL,
 		"WEB_TITLE":                              &c.Web.Title,
+		"WEB_DEFAULTLANGUAGE":                    &c.Web.DefaultLanguage,
+		"WEB_SEARCHENGINE":                       &c.Web.SearchEngine,
 		"LOG_LEVEL":                              &c.Log.Level,
 		"LOG_FORMAT":                             &c.Log.Format,
 		"SOURCES_HTTPROUTE_DEFAULTPROTOCOL":      &c.Sources.HTTPRoute.DefaultProtocol,
@@ -293,6 +345,13 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"NAMESPACESELECTOR_MATCHNAMES": &c.NamespaceSelector.MatchNames,
 		"SOURCES_INGRESS_CLASSNAMES":   &c.Sources.Ingress.ClassNames,
 	}
+	for mode, palette := range map[string]*Palette{"LIGHT": &c.Web.Theme.Light, "DARK": &c.Web.Theme.Dark} {
+		text["WEB_THEME_"+mode+"_BODYBGCOLOR"] = &palette.BodyBgColor
+		text["WEB_THEME_"+mode+"_BODYCOLOR"] = &palette.BodyColor
+		text["WEB_THEME_"+mode+"_EMPHASISCOLOR"] = &palette.EmphasisColor
+		text["WEB_THEME_"+mode+"_TEXTPRIMARYCOLOR"] = &palette.TextPrimaryColor
+		text["WEB_THEME_"+mode+"_TEXTACCENTCOLOR"] = &palette.TextAccentColor
+	}
 	for name, target := range text {
 		if v := getenv(EnvPrefix + name); v != "" {
 			*target = v
@@ -342,6 +401,23 @@ func (c Config) validate() error {
 	} {
 		if protocol != "http" && protocol != "https" {
 			return fmt.Errorf("%s %q is not http or https", name, protocol)
+		}
+	}
+	if !languageTag.MatchString(c.Web.DefaultLanguage) {
+		return fmt.Errorf("web.defaultLanguage %q is not a language tag such as en-US", c.Web.DefaultLanguage)
+	}
+	if u, err := url.Parse(c.Web.SearchEngine); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return fmt.Errorf("web.searchEngine %q is not an http or https URL", c.Web.SearchEngine)
+	}
+	for mode, palette := range map[string]Palette{"light": c.Web.Theme.Light, "dark": c.Web.Theme.Dark} {
+		for name, value := range map[string]string{
+			"bodyBgColor": palette.BodyBgColor, "bodyColor": palette.BodyColor,
+			"emphasisColor": palette.EmphasisColor, "textPrimaryColor": palette.TextPrimaryColor,
+			"textAccentColor": palette.TextAccentColor,
+		} {
+			if !hexColor.MatchString(value) {
+				return fmt.Errorf("web.theme.%s.%s %q is not a hex colour such as #1a2b3c", mode, name, value)
+			}
 		}
 	}
 	a := c.Availability

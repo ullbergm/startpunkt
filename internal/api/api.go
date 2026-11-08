@@ -35,7 +35,25 @@ type State struct {
 
 // UIConfig is the configuration the frontend needs.
 type UIConfig struct {
-	Title string `json:"title"`
+	Title           string `json:"title"`
+	DefaultLanguage string `json:"defaultLanguage"`
+	SearchEngine    string `json:"searchEngine"`
+	Theme           Theme  `json:"theme"`
+}
+
+// Theme is the pair of palettes the page switches between.
+type Theme struct {
+	Light Palette `json:"light"`
+	Dark  Palette `json:"dark"`
+}
+
+// Palette is one set of colours, as hex values.
+type Palette struct {
+	BodyBgColor      string `json:"bodyBgColor"`
+	BodyColor        string `json:"bodyColor"`
+	EmphasisColor    string `json:"emphasisColor"`
+	TextPrimaryColor string `json:"textPrimaryColor"`
+	TextAccentColor  string `json:"textAccentColor"`
 }
 
 // Editing tells the frontend whether an edit key can unlock editing.
@@ -60,7 +78,10 @@ const DefaultHeartbeat = 15 * time.Second
 // without a store the API is not served, without assets the frontend is not.
 type Server struct {
 	Store *store.Store
-	Title string
+	// UI is passed to the frontend as it is.
+	UI UIConfig
+	// Background serves the picture of the day. Nil turns the endpoint off.
+	Background *Background
 	// Assets is the built frontend, with index.html at its root.
 	Assets fs.FS
 	// Heartbeat overrides DefaultHeartbeat.
@@ -73,6 +94,9 @@ func (s *Server) Handler() http.Handler {
 	if s.Store != nil {
 		mux.HandleFunc("GET /api/v1/state", s.handleState)
 		mux.HandleFunc("GET /api/v1/events", s.handleEvents)
+		if s.Background != nil {
+			mux.Handle("GET /api/v1/background", s.Background)
+		}
 	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
 		writeError(w, http.StatusNotFound, "not found")
@@ -98,7 +122,7 @@ func (s *Server) state(snap store.Snapshot) State {
 		SchemaVersion: SchemaVersion,
 		Tiles:         snap.Tiles,
 		Clusters:      snap.Clusters,
-		Config:        UIConfig{Title: s.Title},
+		Config:        s.UI,
 		Editing:       Editing{Available: false},
 	}
 }
