@@ -22,6 +22,9 @@ type VersionInfo struct {
 	UpdateAvailable bool `json:"updateAvailable"`
 	// URL is the page of the newer release.
 	URL string `json:"url,omitempty"`
+	// GitHubLink says whether the page shows the corner that links to the
+	// project. The corner is shown for an update either way.
+	GitHubLink bool `json:"githubLink"`
 }
 
 const (
@@ -40,6 +43,8 @@ type Updates struct {
 	Current string
 	// Check turns the lookup of newer releases on.
 	Check bool
+	// GitHubLink is passed on to the page.
+	GitHubLink bool
 	// Source overrides the address the latest release is looked up at.
 	Source string
 	Client *http.Client
@@ -52,7 +57,7 @@ type Updates struct {
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	info := VersionInfo{Version: u.Current}
+	info := VersionInfo{Version: u.Current, GitHubLink: u.GitHubLink}
 	if latest := u.newer(r.Context()); latest != "" {
 		info.Latest = latest
 		info.UpdateAvailable = true

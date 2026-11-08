@@ -270,6 +270,17 @@ function Layout({ p }: { p: Preferences }) {
         checked={p.layout.showDescription}
         onChange={(showDescription) => setLayout({ showDescription })}
       />
+      {p.layout.showDescription && (
+        <Select
+          label={t('settings.descriptionLines')}
+          value={String(p.layout.descriptionLines)}
+          options={[1, 2, 3, 0].map((n) => ({
+            value: String(n),
+            label: n === 0 ? t('settings.descriptionLines.any') : String(n),
+          }))}
+          onChange={(value) => setLayout({ descriptionLines: Number(value) })}
+        />
+      )}
       <Check label={t('settings.showTags')} checked={p.layout.showTags} onChange={(showTags) => setLayout({ showTags })} />
       <Check
         label={t('settings.showStatus')}

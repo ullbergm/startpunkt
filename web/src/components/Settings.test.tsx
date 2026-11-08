@@ -82,6 +82,8 @@ describe('Settings', () => {
     const hover = screen.getByRole('checkbox', { name: 'Highlight the tile under the pointer' }) as HTMLInputElement;
     expect(hover.checked).toBe(false);
     fireEvent.click(hover);
+    expect((screen.getByRole('combobox', { name: 'Description lines, at most' }) as HTMLSelectElement).value).toBe('2');
+    select('Description lines, at most', '1');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show tags' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Hide unreachable applications' }));
     expect(prefs.value.layout).toMatchObject({
@@ -90,6 +92,7 @@ describe('Settings', () => {
       compact: true,
       showBoxes: true,
       hoverEffect: true,
+      descriptionLines: 1,
       showTags: true,
       hideUnreachable: true,
     });

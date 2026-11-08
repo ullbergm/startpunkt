@@ -36,6 +36,9 @@ export interface Preferences {
     // Mark the tile the pointer is over.
     hoverEffect: boolean;
     showDescription: boolean;
+    // The most lines a description may take, 1 to 3, or 0 for no limit. A
+    // description that is too long is made smaller, then cut.
+    descriptionLines: number;
     showTags: boolean;
     showStatus: boolean;
     hideUnreachable: boolean;
@@ -121,6 +124,7 @@ export function defaults(): Preferences {
       showBoxes: false,
       hoverEffect: false,
       showDescription: true,
+      descriptionLines: 2,
       showTags: false,
       showStatus: true,
       hideUnreachable: false,
@@ -179,6 +183,7 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
     showBoxes: bool(layout.showBoxes, d.showBoxes),
     hoverEffect: bool(layout.hoverEffect, d.hoverEffect),
     showDescription: bool(layout.showDescription, d.showDescription),
+    descriptionLines: oneOf(layout.descriptionLines, [0, 1, 2, 3], d.descriptionLines),
     showTags: bool(layout.showTags, d.showTags),
     showStatus: bool(layout.showStatus, d.showStatus),
     hideUnreachable: bool(layout.hideUnreachable, d.hideUnreachable),

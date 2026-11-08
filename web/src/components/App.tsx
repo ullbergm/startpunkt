@@ -8,7 +8,8 @@ import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { Icon } from './Icons';
-import { Footer } from './Footer';
+import { availableUpdate, Footer, useVersion } from './Footer';
+import { GitHubCorner } from './GitHubCorner';
 import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
 import { Skeleton } from './Skeleton';
@@ -21,7 +22,13 @@ type Kind = 'applications' | 'bookmarks';
 const typing = (target: EventTarget | null) =>
   target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
-export function App({ open }: { open?: (url: string) => EventStream }) {
+export function App({
+  open,
+  fetchVersion,
+}: {
+  open?: (url: string) => EventStream;
+  fetchVersion?: typeof fetch;
+}) {
   useEffect(() => connect(open), [open]);
 
   const state = serverState.value;
@@ -29,6 +36,8 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   const status = connection.value;
   const p = prefs.value;
   const [dialog, setDialog] = useState<'search' | 'settings' | null>(null);
+  const versionInfo = useVersion(fetchVersion);
+  const update = availableUpdate(versionInfo);
   const [chosen, setChosen] = useState<Kind | null>(null);
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
@@ -112,6 +121,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
         {t('page.skipToContent')}
       </a>
       <Background background={p.background} />
+      {(versionInfo?.githubLink || update) && <GitHubCorner update={update} />}
       <header class="page-header">
         {/* Decorative: the heading next to it names the page. */}
         <img class="logo" src="/logo.svg" alt="" width="72" height="72" />
@@ -168,7 +178,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
           ))
         )}
       </main>
-      <Footer />
+      <Footer info={versionInfo} />
       {/* The page's own controls sit in the bottom right corner of the
           window, out of the way of the content. Search has no button on a
           device with a keyboard: it opens when you start typing. A touch

@@ -15,7 +15,7 @@
   --radius: 10px;
   --gap: 0.75rem;
   --tile-min: 240px;
-  --tile-pad: 0.75rem;
+  --tile-pad: 0.45rem;
   --columns: 0;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.4;
@@ -43,7 +43,7 @@
 
 :root[data-compact='true'] {
   --tile-min: 180px;
-  --tile-pad: 0.4rem;
+  --tile-pad: 0.25rem;
 }
 
 /* High contrast: secondary text and borders take the full text colour. */
@@ -69,6 +69,15 @@
    painted over the background picture, which sits behind the content. */
 html {
   background: var(--bg);
+}
+
+/* A column as tall as the window, so that the footer sits at its bottom
+   when the content is short. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 body {
@@ -174,13 +183,33 @@ main {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding-top: 1.5rem;
+  width: 100%;
+  padding-top: 1rem;
 }
 
 .logo {
   flex: none;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 4rem;
+  height: 4rem;
+}
+
+/* The corner that links to the project. It turns to the accent colour and
+   points at the releases when a newer one exists. */
+.github-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  color: #fff;
+}
+
+.github-corner svg {
+  display: block;
+  fill: #151513;
+}
+
+.github-corner.has-update {
+  color: #ff9f1a;
 }
 
 .corner-actions {
@@ -211,7 +240,7 @@ main {
 
 h1 {
   margin: 0;
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -223,14 +252,15 @@ h2 {
 
 /* A line under each group heading separates the groups. */
 h3 {
-  margin: 1.25rem 0 0.6rem;
-  padding-bottom: 0.4rem;
+  margin: 0.8rem 0 0.4rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--border);
   font-size: 0.85rem;
 }
 
 main {
-  padding-bottom: 2rem;
+  width: 100%;
+  padding-bottom: 1rem;
 }
 
 main:focus {
@@ -245,7 +275,7 @@ main:focus {
 
 /* A translucent panel behind the content, for busy backgrounds. */
 :root[data-overlay='true'] main {
-  margin-top: 1rem;
+  margin-top: 0.6rem;
   padding-top: 0.25rem;
   border-radius: var(--radius);
   background: var(--overlay);
@@ -279,9 +309,10 @@ main:focus {
 }
 
 .page-footer {
+  width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 1rem 4.5rem;
+  margin: auto auto 0;
+  padding: 0.75rem 1rem;
   color: var(--muted);
   font-size: 0.875rem;
   text-align: center;
@@ -389,7 +420,7 @@ kbd {
 }
 
 .favorites {
-  margin: 1.25rem 0 0.5rem;
+  margin: 0.8rem 0 0.4rem;
 }
 
 .skeleton {
@@ -487,10 +518,10 @@ kbd {
   opacity: 0;
 }
 
-/* Shown when it is on, when the tile is pointed at, and whenever it has
-   focus, so that it is never an invisible stop for keyboard users. Devices
-   without hover always show it. */
-.tile-favorite[aria-pressed='true'],
+/* Shown when the tile is pointed at, and whenever it has focus, so that it
+   is never an invisible stop for keyboard users. A favorite needs no mark
+   of its own: it is in the favorites row. Devices without hover always
+   show the star, since there is no other way to reach it. */
 .tile:hover .tile-favorite,
 .tile-favorite:focus-visible {
   opacity: 1;
@@ -560,6 +591,21 @@ li[draggable='true'] {
   opacity: 0.55;
 }
 
+/* The text of a description, inside .tile-info. It is sized by the page to
+   stay within its lines. */
+.fit {
+  display: block;
+}
+
+/* A description that does not fit its lines even at the smallest size. */
+.fit.fit-cut {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines);
+  line-clamp: var(--lines);
+}
+
 /* Under the text, so that it takes no width from the name and the
    description. */
 .tile-badge {
@@ -625,6 +671,7 @@ li[draggable='true'] {
 
 .tile-info {
   color: var(--accent);
+  line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-size: 0.875rem;
@@ -780,7 +827,7 @@ dialog::backdrop {
 main > .tabs,
 .skeleton-page > .tabs {
   justify-content: flex-end;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-size: 1.05rem;
 }
 

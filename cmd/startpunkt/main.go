@@ -154,7 +154,9 @@ func run() error {
 	if handler.Store != nil && role != roleController {
 		// Only the roles a browser talks to fetch pictures.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
-		handler.Updates = &api.Updates{Current: version, Check: cfg.Web.CheckForUpdates}
+		handler.Updates = &api.Updates{
+			Current: version, Check: cfg.Web.CheckForUpdates, GitHubLink: cfg.Web.GitHubLink,
+		}
 	}
 	if role == roleAll || role == roleWeb {
 		handler.Assets = web.Assets()

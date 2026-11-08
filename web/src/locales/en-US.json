@@ -118,5 +118,8 @@
   "settings.background.overlay.black": "Black {percent}",
   "settings.hoverEffect": "Highlight the tile under the pointer",
   "footer.by": "by",
-  "footer.update": "Update available: {version}"
+  "footer.update": "Update available: {version}",
+  "settings.descriptionLines": "Description lines, at most",
+  "settings.descriptionLines.any": "No limit",
+  "github.view": "View the project on GitHub"
 }

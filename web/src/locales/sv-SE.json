@@ -118,5 +118,8 @@
   "settings.background.overlay.black": "Svart {percent}",
   "settings.hoverEffect": "Markera brickan under pekaren",
   "footer.by": "av",
-  "footer.update": "Uppdatering tillgänglig: {version}"
+  "footer.update": "Uppdatering tillgänglig: {version}",
+  "settings.descriptionLines": "Rader i beskrivningen, som mest",
+  "settings.descriptionLines.any": "Ingen gräns",
+  "github.view": "Visa projektet på GitHub"
 }

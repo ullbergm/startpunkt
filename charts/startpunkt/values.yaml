@@ -48,6 +48,10 @@ config:
     # newer release exists, and say so in the footer of the page. The request
     # is made by the api pods and does not say which version is running.
     checkForUpdates: true
+    # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
+    # project on GitHub. When an update is available the corner is shown
+    # either way, in another colour and linking to the releases.
+    githubLink: true
     # Colours of the light and the dark appearance, as hex values, passed as
     # STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<NAME>. The names are those of 4.x,
     # so an existing theme can be copied over.

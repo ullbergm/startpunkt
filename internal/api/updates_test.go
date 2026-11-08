@@ -61,9 +61,9 @@ func TestVersionEndpoint(t *testing.T) {
 
 	serve := func(u *Updates) http.Handler { return (&Server{Store: store.New(), Updates: u}).Handler() }
 
-	h := serve(&Updates{Current: "5.0.0", Check: true, Source: github.URL})
+	h := serve(&Updates{Current: "5.0.0", Check: true, GitHubLink: true, Source: github.URL})
 	info := versionInfo(t, h)
-	if info.Version != "5.0.0" || !info.UpdateAvailable || info.Latest != "v5.1.0" ||
+	if info.Version != "5.0.0" || !info.GitHubLink || !info.UpdateAvailable || info.Latest != "v5.1.0" ||
 		info.URL != "https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0" {
 		t.Errorf("info = %+v", info)
 	}

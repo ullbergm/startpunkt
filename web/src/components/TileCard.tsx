@@ -2,6 +2,7 @@ import { t } from '../i18n';
 import { prefs, toggleFavorite } from '../prefs';
 import type { Tile } from '../types';
 import { safeHref } from '../url';
+import { FitText } from './FitText';
 import { Icon } from './Icons';
 import { TileIcon } from './TileIcon';
 
@@ -23,7 +24,9 @@ export function TileCard({ tile, iconColor, reorder }: { tile: Tile; iconColor: 
       <TileIcon tile={tile} color={iconColor} />
       <span class="tile-text">
         <span class="tile-name">{tile.name}</span>
-        {layout.showDescription && tile.info && <span class="tile-info">{tile.info}</span>}
+        {layout.showDescription && tile.info && (
+          <FitText class="tile-info" text={tile.info} lines={layout.descriptionLines} />
+        )}
         {layout.showTags && tile.tags.length > 0 && (
           <span class="tile-tags" aria-label={t('tile.tags', { tags: tile.tags.join(', ') })}>
             {tile.tags.map((tag) => (

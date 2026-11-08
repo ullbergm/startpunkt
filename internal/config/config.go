@@ -191,6 +191,9 @@ type Web struct {
 	// CheckForUpdates asks GitHub now and then whether a newer release of
 	// Startpunkt exists, and tells visitors in the footer when one does.
 	CheckForUpdates bool `json:"checkForUpdates"`
+	// GitHubLink shows a corner on the page that links to the project. When
+	// an update is available the corner is shown regardless.
+	GitHubLink bool `json:"githubLink"`
 	// Theme holds the colours of the light and the dark appearance.
 	Theme Theme `json:"theme"`
 }
@@ -252,6 +255,7 @@ func Default() Config {
 			DefaultLanguage: "en-US",
 			SearchEngine:    "https://www.google.com/search?q=",
 			CheckForUpdates: true,
+			GitHubLink:      true,
 			Theme: Theme{
 				Light: Palette{
 					BodyBgColor: "#F8F6F1", BodyColor: "#696969", EmphasisColor: "#000000",
@@ -311,6 +315,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"AVAILABILITY_INSECURESKIPVERIFY":      &c.Availability.InsecureSkipVerify,
 		"STATUS_ENABLED":                       &c.Status.Enabled,
 		"WEB_CHECKFORUPDATES":                  &c.Web.CheckForUpdates,
+		"WEB_GITHUBLINK":                       &c.Web.GitHubLink,
 		"SOURCES_APPLICATION_ENABLED":          &c.Sources.Application.Enabled,
 		"SOURCES_BOOKMARK_ENABLED":             &c.Sources.Bookmark.Enabled,
 		"SOURCES_ROUTE_ENABLED":                &c.Sources.Route.Enabled,
