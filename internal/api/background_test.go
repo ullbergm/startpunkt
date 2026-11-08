@@ -36,7 +36,11 @@ func TestBackground(t *testing.T) {
 		t.Errorf("picture = %+v", p)
 	}
 
-	get(t, h, "/api/v1/background")
+	// The size of the screen chooses the size of the picture.
+	rec = get(t, h, "/api/v1/background?width=3840&height=2160")
+	if json.Unmarshal(rec.Body.Bytes(), &p) != nil || p.URL != "https://www.bing.com/th?id=OHR.Example_UHD.jpg" {
+		t.Errorf("large screen: %+v", p)
+	}
 	if n := hits.Load(); n != 1 {
 		t.Errorf("the source was asked %d times within the cache time", n)
 	}
@@ -61,5 +65,31 @@ func TestBackgroundUnavailable(t *testing.T) {
 	off := (&Server{Store: store.New()}).Handler()
 	if rec := get(t, off, "/api/v1/background"); rec.Code != http.StatusNotFound {
 		t.Errorf("endpoint must be off without a Background: %d", rec.Code)
+	}
+}
+
+func TestResolution(t *testing.T) {
+	cases := map[[2]int]string{
+		{0, 0}:        "1920x1080",
+		{-5, 100}:     "1920x1080",
+		{1920, 1080}:  "1920x1080",
+		{2560, 1440}:  "1920x1080",
+		{1920, 1200}:  "1920x1200",
+		{2560, 1600}:  "1920x1200",
+		{3840, 2160}:  "UHD",
+		{5120, 1440}:  "UHD",
+		{1366, 768}:   "1366x768",
+		{1280, 720}:   "1366x768",
+		{1024, 768}:   "1024x768",
+		{1080, 1920}:  "1080x1920",
+		{1170, 2532}:  "1080x1920",
+		{800, 1280}:   "768x1280",
+		{390, 844}:    "480x800",
+		{99999999, 1}: "UHD",
+	}
+	for size, want := range cases {
+		if got := Resolution(size[0], size[1]); got != want {
+			t.Errorf("Resolution(%d, %d) = %q, want %q", size[0], size[1], got, want)
+		}
 	}
 }

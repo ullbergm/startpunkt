@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
+import { Fragment } from 'preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupTiles } from '../group';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { prefs } from '../prefs';
@@ -9,6 +10,7 @@ import { Background } from './Background';
 import { Icon } from './Icons';
 import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
+import { Skeleton } from './Skeleton';
 import { Spotlight } from './Spotlight';
 import { Tabs } from './Tabs';
 
@@ -27,6 +29,9 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   const p = prefs.value;
   const [dialog, setDialog] = useState<'search' | 'settings' | null>(null);
   const [chosen, setChosen] = useState<Kind | null>(null);
+  const [initialQuery, setInitialQuery] = useState('');
+  const dialogOpen = useRef(false);
+  dialogOpen.current = dialog !== null;
 
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {
@@ -55,13 +60,20 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const shortcut =
-        (event.key === '/' && !typing(event.target) && !event.ctrlKey && !event.metaKey && !event.altKey) ||
-        (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey));
-      if (shortcut) {
+      if (dialogOpen.current) return;
+      const modified = event.ctrlKey || event.metaKey || event.altKey;
+      if (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
+        setInitialQuery('');
         setDialog('search');
+        return;
       }
+      // Typing anywhere on the page starts a search with what was typed.
+      // "/" opens the search empty. Space is left alone: it scrolls.
+      if (modified || typing(event.target) || event.key.length !== 1 || event.key === ' ') return;
+      event.preventDefault();
+      setInitialQuery(event.key === '/' ? '' : event.key);
+      setDialog('search');
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
@@ -73,16 +85,19 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   // Favorites are shown once, in their own section and in the visitor's
   // order, and are left out of the groups below.
   const byId = new Map(tiles.map((tile) => [tile.id, tile]));
-  const favorites = p.favorites.flatMap((id) => byId.get(id) ?? []);
+  const allFavorites = p.favorites.flatMap((id) => byId.get(id) ?? []);
   const others = tiles.filter((tile) => !p.favorites.includes(tile.id));
   const applications = groupTiles(others, 'application');
   const bookmarks = groupTiles(others, 'bookmark');
   // The tab the visitor picked, for as long as it has something to show.
   const kinds: Kind[] = [
-    ...(applications.length > 0 ? (['applications'] as const) : []),
-    ...(bookmarks.length > 0 ? (['bookmarks'] as const) : []),
+    ...(tiles.some((tile) => tile.kind === 'application') ? (['applications'] as const) : []),
+    ...(tiles.some((tile) => tile.kind === 'bookmark') ? (['bookmarks'] as const) : []),
   ];
   const view: Kind = chosen && kinds.includes(chosen) ? chosen : (kinds[0] ?? 'applications');
+  // Each tab has its own favorites row.
+  const favorites = allFavorites.filter((tile) => tile.kind === (view === 'applications' ? 'application' : 'bookmark'));
+  const groups = view === 'applications' ? applications : bookmarks;
   const syncing = state?.clusters.some((cluster) => cluster.state === 'syncing') ?? false;
   const stale = state?.clusters.filter((cluster) => cluster.state === 'stale') ?? [];
   const empty = state !== null && tiles.length === 0;
@@ -99,7 +114,14 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
         <img class="logo" src="/logo.svg" alt="" width="40" height="40" />
         <h1>{title}</h1>
         <div class="page-actions">
-          <button type="button" class="search-button" onClick={() => setDialog('search')}>
+          <button
+            type="button"
+            class="search-button"
+            onClick={() => {
+              setInitialQuery('');
+              setDialog('search');
+            }}
+          >
             <Icon name="search" size={18} />
             <span>{t('search.open')}</span>
             <kbd aria-hidden="true">/</kbd>
@@ -111,7 +133,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
       </header>
       <main id="content" tabIndex={-1}>
         <div role="status" aria-live="polite">
-          {!state && !error && <p class="notice">{t('page.loading')}</p>}
+          {!state && !error && <p class="visually-hidden">{t('page.loading')}</p>}
           {status === 'reconnecting' && !error && <p class="notice">{t('page.reconnecting')}</p>}
           {syncing && <p class="notice">{t('page.syncing')}</p>}
           {stale.length > 0 && (
@@ -127,9 +149,10 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
             </button>
           </div>
         )}
-        <Favorites tiles={favorites} iconColor={iconColor} />
+        {!state && !error && <Skeleton />}
         {kinds.length === 2 ? (
           // Both kinds exist: one tab each, opening on the applications.
+          // The tabs sit at the top right, above the favorites.
           <>
             <Tabs
               id="tiles"
@@ -139,25 +162,25 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
               onSelect={setChosen}
             />
             <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
-              <Section id={view} groups={view === 'applications' ? applications : bookmarks} iconColor={iconColor} />
+              <Favorites tiles={favorites} iconColor={iconColor} />
+              <Section id={view} groups={groups} iconColor={iconColor} />
             </div>
           </>
         ) : (
           // Only one kind: no tabs to choose between, just its heading.
           kinds.map((kind) => (
-            <Section
-              key={kind}
-              id={kind}
-              title={t(`section.${kind}`)}
-              groups={kind === 'applications' ? applications : bookmarks}
-              iconColor={iconColor}
-            />
+            <Fragment key={kind}>
+              <Favorites tiles={favorites} iconColor={iconColor} />
+              <Section id={kind} title={t(`section.${kind}`)} groups={groups} iconColor={iconColor} />
+            </Fragment>
           ))
         )}
       </main>
       {dialog === 'search' && state && (
         <Spotlight
           tiles={tiles}
+          initialQuery={initialQuery}
+          iconColor={iconColor}
           searchEngine={state.config.searchEngine}
           showCluster={state.clusters.length > 1}
           onClose={() => setDialog(null)}

@@ -289,10 +289,62 @@ kbd {
   list-style: none;
 }
 
-/* A fixed number of columns, but only where there is room for them. */
+/* Each list says how many columns it wants in --columns. On a narrow screen
+   that is ignored and the list fits what it can. */
 @media (min-width: 640px) {
-  :root[data-columns='fixed'] .tiles {
-    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  .tiles {
+    grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr));
+  }
+
+  /* The favorites: rows as wide as their tiles need, centred. */
+  .tiles-centred {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tiles-centred > li {
+    flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+    min-width: 0;
+  }
+}
+
+.favorites {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.skeleton {
+  display: block;
+  border-radius: var(--radius);
+  background: var(--border);
+  opacity: 0.6;
+}
+
+.skeleton-tab {
+  width: 6.5rem;
+  height: 2rem;
+  margin: 0 0 0.4rem 0.4rem;
+}
+
+.skeleton-heading {
+  width: 9rem;
+  height: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.skeleton-tile {
+  height: calc(40px + 2 * var(--tile-pad));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.25;
   }
 }
 
@@ -539,9 +591,20 @@ dialog::backdrop {
   list-style: none;
 }
 
+.spotlight-option .tile-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 0.8rem;
+}
+
+.spotlight-option .tile-tags {
+  flex: none;
+  margin-top: 0;
+}
+
 .spotlight-option {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -612,9 +675,12 @@ dialog::backdrop {
   padding: 0.5rem 1rem 0;
 }
 
-main > .tabs {
-  margin-top: 1.5rem;
-  font-size: 1.1rem;
+/* The tabs for applications and bookmarks sit at the top right. */
+main > .tabs,
+.skeleton-page > .tabs {
+  justify-content: flex-end;
+  margin-top: 1rem;
+  font-size: 1.05rem;
 }
 
 .tabs button {

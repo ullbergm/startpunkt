@@ -51,6 +51,29 @@ describe('Spotlight', () => {
     expect(screen.getByRole('status').textContent).toBe('2 results');
   });
 
+  it('shows the icon and the tags of each result', () => {
+    cleanup();
+    const tagged = [tile({ name: 'Plex', icon: 'mdi:plex', tags: ['home', 'media'] }), tile({ name: 'Plain' })];
+    render(<Spotlight tiles={tagged} searchEngine="https://s/?q=" showCluster={false} onClose={() => undefined} />);
+    fireEvent.input(screen.getByRole('combobox'), { target: { value: 'pl' } });
+    const [plex, plain] = screen.getAllByRole('option');
+    expect(plex!.querySelector('img.tile-icon')?.getAttribute('src')).toContain('mdi/plex.svg');
+    expect(plex!.querySelector('[aria-label="Tags: home, media"]')?.textContent).toBe('homemedia');
+    expect(plain!.querySelector('.tile-icon-fallback')?.textContent).toBe('P');
+    expect(plain!.querySelector('.tile-tags')).toBeNull();
+  });
+
+  it('starts from what was typed to open it, with the cursor at the end', () => {
+    cleanup();
+    render(
+      <Spotlight tiles={tiles} searchEngine="https://s/?q=" showCluster initialQuery="g" onClose={() => undefined} />,
+    );
+    const input = screen.getByRole('combobox') as HTMLInputElement;
+    expect(input.value).toBe('g');
+    expect(input.selectionStart).toBe(1);
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0);
+  });
+
   it('leaves the cluster out when there is only one', () => {
     const { type } = open(false);
     type('graf');

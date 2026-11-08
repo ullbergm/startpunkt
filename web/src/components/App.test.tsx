@@ -152,11 +152,6 @@ describe('App', () => {
     await waitFor(() => expect(screen.queryByText(/Reconnecting/)).toBeNull());
   });
 
-  it('shows loading until the first snapshot', () => {
-    render(<App open={openFake} />);
-    expect(screen.getByText('Loading…')).toBeTruthy();
-  });
-
   it('asks for a reload when the server speaks another protocol', async () => {
     render(<App open={openFake} />);
     act(() => FakeStream.last.emit('snapshot', { ...serverState(), schemaVersion: 2 }));
@@ -271,14 +266,104 @@ describe('App', () => {
     expect(within(screen.getByRole('region', { name: 'Applications' })).getByRole('link', { name: /Plex/ })).toBeTruthy();
   });
 
-  it('keeps a kind out of the tabs when all of it is in the favorites', async () => {
-    updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Docs'] }));
+  it('gives each tab its own favorites row, below the tabs', async () => {
+    updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Docs', 'c/apps/ns/Plex'] }));
     renderWith(
-      serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Docs', kind: 'bookmark', group: 'reference' })] }),
+      serverState({
+        tiles: [
+          tile({ name: 'Plex' }),
+          tile({ name: 'Grafana' }),
+          tile({ name: 'Docs', kind: 'bookmark', group: 'reference' }),
+        ],
+      }),
     );
-    expect(await screen.findByRole('region', { name: 'Favorites' })).toBeTruthy();
-    expect(screen.queryByRole('tablist')).toBeNull();
-    expect(screen.getByRole('region', { name: 'Applications' })).toBeTruthy();
+    // A kind keeps its tab even when all of it is in the favorites.
+    const tabs = await screen.findAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['Applications', 'Bookmarks']);
+
+    const favorites = () => screen.getByRole('region', { name: 'Favorites' });
+    expect(within(favorites()).getByRole('link', { name: /Plex/ })).toBeTruthy();
+    expect(within(favorites()).queryByRole('link', { name: /Docs/ })).toBeNull();
+    // The tabs come first in the page, then the favorites.
+    const position = screen.getByRole('tablist').compareDocumentPosition(favorites());
+    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // The row has no visible heading.
+    expect(within(favorites()).queryByRole('heading')).toBeNull();
+
+    fireEvent.click(tabs[1]!);
+    await waitFor(() => expect(within(favorites()).getByRole('link', { name: /Docs/ })).toBeTruthy());
+    expect(within(favorites()).queryByRole('link', { name: /Plex/ })).toBeNull();
+  });
+
+  it('sizes each list for the fewest rows on auto, and to the chosen number otherwise', async () => {
+    const eight = Array.from({ length: 8 }, (_, i) => tile({ name: `Tool ${i}`, group: 'tools' }));
+    renderWith(serverState({ tiles: [...eight, tile({ name: 'Plex', group: 'media' }), tile({ name: 'Sonarr', group: 'media' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+    const columns = (group: string) =>
+      (screen.getByRole('region', { name: group }).querySelector('.tiles') as HTMLElement).style.getPropertyValue('--columns');
+    // The test window is 1024 wide, which has room for four columns.
+    expect(columns('tools')).toBe('4'); // 8 tiles: two rows of four
+    expect(columns('media')).toBe('2'); // 2 tiles: one row
+
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, columns: 3 } })));
+    await waitFor(() => expect(columns('tools')).toBe('3'));
+    expect(columns('media')).toBe('3');
+
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, columns: 6 } })));
+    await waitFor(() => expect(columns('tools')).toBe('4')); // never more than fit
+  });
+
+  it('sizes the favorites row to its favorites', async () => {
+    updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Plex', 'c/apps/ns/Grafana'] }));
+    renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' }), tile({ name: 'Other' })] }));
+    const row = (await screen.findByRole('region', { name: 'Favorites' })).querySelector('.tiles') as HTMLElement;
+    expect(row.className).toContain('tiles-centred');
+    expect(row.style.getPropertyValue('--columns')).toBe('2');
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, columns: 4 } })));
+    // Two favorites never spread over more than two columns.
+    await waitFor(() => expect(row.style.getPropertyValue('--columns')).toBe('2'));
+  });
+
+  it('shows placeholders until the first snapshot, and says it is loading', async () => {
+    const { container } = render(<App open={openFake} />);
+    expect(container.querySelector('.skeleton-page')?.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelectorAll('.skeleton-tile').length).toBeGreaterThan(5);
+    expect(screen.getByRole('status').textContent).toContain('Loading…');
+    act(() => FakeStream.last.emit('snapshot', serverState({ tiles: [tile({ name: 'Plex' })] })));
+    await screen.findByRole('link', { name: /Plex/ });
+    expect(container.querySelector('.skeleton-page')).toBeNull();
+  });
+
+  it('starts a search with whatever is typed on the page', async () => {
+    renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+
+    fireEvent.keyDown(document.body, { key: 'p' });
+    const dialog = await screen.findByRole('dialog', { name: 'Search applications and bookmarks' });
+    const input = within(dialog).getByRole('combobox') as HTMLInputElement;
+    expect(input.value).toBe('p');
+    // Plex comes first: its name starts with what was typed.
+    expect(within(dialog).getAllByRole('option')[0]!.querySelector('.spotlight-label')?.textContent).toBe('Plex');
+    // More typing goes to the field, not to a second dialog.
+    fireEvent.keyDown(input, { key: 'l' });
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+  });
+
+  it('does not start a search for shortcuts, space or keys that are not characters', async () => {
+    renderWith(serverState({ tiles: [tile({ name: 'Plex' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+    for (const init of [
+      { key: ' ' },
+      { key: 'Tab' },
+      { key: 'ArrowDown' },
+      { key: 'Enter' },
+      { key: 'c', ctrlKey: true },
+      { key: 'r', metaKey: true },
+      { key: 'd', altKey: true },
+    ]) {
+      fireEvent.keyDown(document.body, init);
+    }
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   describe('favorites order', () => {
@@ -383,9 +468,7 @@ describe('App', () => {
       })),
     );
     const root = document.documentElement;
-    await waitFor(() => expect(root.dataset.columns).toBe('fixed'));
-    expect(root.style.getPropertyValue('--columns')).toBe('3');
-    expect(root.dataset.spacing).toBe('tight');
+    await waitFor(() => expect(root.dataset.spacing).toBe('tight'));
     expect(root.dataset.compact).toBe('true');
     expect(root.dataset.contrast).toBe('high');
     expect(root.style.fontSize).toBe('130%');

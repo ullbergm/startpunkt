@@ -110,6 +110,5 @@
   "section.kinds": "Typer av brickor",
   "favorites.moveEarlier": "Flytta {name} tidigare",
   "favorites.moveLater": "Flytta {name} senare",
-  "favorites.moved": "{name} är nu favorit {position} av {count}.",
-  "favorites.help": "Dra en favorit för att ändra ordningen."
+  "favorites.moved": "{name} är nu favorit {position} av {count}."
 }

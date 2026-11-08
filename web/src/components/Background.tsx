@@ -66,7 +66,10 @@ export function Background({
   useEffect(() => {
     if (!wantsBing) return;
     let current = true;
-    fetcher('/api/v1/background')
+    // The server picks the size of picture that suits this screen.
+    const scale = window.devicePixelRatio || 1;
+    const size = `width=${Math.round(window.screen.width * scale)}&height=${Math.round(window.screen.height * scale)}`;
+    fetcher(`/api/v1/background?${size}`)
       .then((response) => (response.ok ? (response.json() as Promise<Picture>) : null))
       .then((found) => {
         if (current && found && imageAddress(found.url)) setPicture(found);

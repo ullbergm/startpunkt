@@ -5,9 +5,11 @@ import type { Tile } from '../types';
 import { safeHref } from '../url';
 import { Icon } from './Icons';
 import { Modal } from './Modal';
+import { TileIcon } from './TileIcon';
 
 interface Result {
   key: string;
+  tile?: Tile;
   label: string;
   detail: string;
   badge: string;
@@ -32,19 +34,30 @@ export function Spotlight({
   tiles,
   searchEngine,
   showCluster,
+  initialQuery = '',
+  iconColor = '#4c8dd6',
   onClose,
   navigate = go,
 }: {
+  // What was typed on the page to open the search.
+  initialQuery?: string;
+  iconColor?: string;
   tiles: Tile[];
   searchEngine: string;
   showCluster: boolean;
   onClose: () => void;
   navigate?: Navigate;
 }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => input.current?.focus(), []);
+  useEffect(() => {
+    const field = input.current;
+    if (!field) return;
+    field.focus();
+    // Carry on typing after the character that opened the search.
+    field.setSelectionRange(field.value.length, field.value.length);
+  }, []);
 
   const results = useMemo<Result[]>(() => {
     const web = webQuery(query);
@@ -68,6 +81,7 @@ export function Spotlight({
       return [
         {
           key: tile.id,
+          tile,
           label: tile.name,
           detail: [showCluster ? tile.cluster : '', tile.group, tile.info ?? ''].filter(Boolean).join(' · '),
           badge: t(tile.kind === 'bookmark' ? 'search.bookmark' : 'search.application'),
@@ -138,8 +152,18 @@ export function Spotlight({
             onMouseEnter={() => setActive(index)}
             onClick={() => open(result)}
           >
+            {result.tile ? <TileIcon tile={result.tile} color={iconColor} /> : <Icon name="search" size={24} />}
             <span class="spotlight-label">{result.label}</span>
             {result.detail && <span class="spotlight-detail">{result.detail}</span>}
+            {result.tile && result.tile.tags.length > 0 && (
+              <span class="tile-tags" aria-label={t('tile.tags', { tags: result.tile.tags.join(', ') })}>
+                {result.tile.tags.map((tag) => (
+                  <span class="tile-tag" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+              </span>
+            )}
             {result.badge && <span class="spotlight-badge">{result.badge}</span>}
           </li>
         ))}

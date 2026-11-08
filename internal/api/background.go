@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,8 +40,51 @@ type Background struct {
 	expires time.Time
 }
 
+// Resolution picks the size Bing offers that suits a screen best: the
+// largest one for very large screens, otherwise the one closest in shape
+// that the screen is at least as large as. Unknown or odd sizes get the
+// common 1920x1080.
+func Resolution(width, height int) string {
+	const fallback = "1920x1080"
+	if width <= 0 || height <= 0 {
+		return fallback
+	}
+	if height > width {
+		for _, size := range []struct {
+			w, h int
+			name string
+		}{{1080, 1920, "1080x1920"}, {768, 1280, "768x1280"}, {720, 1280, "720x1280"}} {
+			if width >= size.w && height >= size.h {
+				return size.name
+			}
+		}
+		return "480x800"
+	}
+	if width >= 3840 || height >= 2160 {
+		return "UHD"
+	}
+	ratio := float64(width) / float64(height)
+	switch {
+	case ratio < 1.45:
+		return "1024x768"
+	case ratio < 1.7 && width >= 1920:
+		return "1920x1200"
+	case width >= 1920:
+		return fallback
+	default:
+		return "1366x768"
+	}
+}
+
 func (b *Background) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	picture, err := b.get(r.Context())
+	if err == nil {
+		// The size is the visitor's screen; anything unreadable means the
+		// default size.
+		width, _ := strconv.Atoi(r.URL.Query().Get("width"))
+		height, _ := strconv.Atoi(r.URL.Query().Get("height"))
+		picture.URL += "_" + Resolution(width, height) + ".jpg"
+	}
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "the picture of the day is not available")
 		return
@@ -114,7 +158,7 @@ func (b *Background) fetch(ctx context.Context) (Picture, error) {
 	return Picture{
 		// The base path comes from Bing's answer and is only ever joined
 		// onto Bing's own host.
-		URL:       "https://www.bing.com" + image.URLBase + "_1920x1080.jpg",
+		URL:       "https://www.bing.com" + image.URLBase,
 		Title:     image.Title,
 		Copyright: image.Copyright,
 	}, nil

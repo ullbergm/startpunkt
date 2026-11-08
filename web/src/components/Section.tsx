@@ -1,14 +1,36 @@
 import type { TileGroup } from '../group';
 import { t } from '../i18n';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { columnsThatFit, MAX_AUTO_COLUMNS, optimalColumns } from '../columns';
 import { moveFavorite, prefs, toggleCollapsed } from '../prefs';
 import type { Tile } from '../types';
 import { Icon } from './Icons';
 import { TileCard } from './TileCard';
 
+// The widest a list may get, following the width of the window.
+function useColumnsThatFit(): number {
+  const [fit, setFit] = useState(() => columnsThatFit(window.innerWidth));
+  useEffect(() => {
+    const onResize = () => setFit(columnsThatFit(window.innerWidth));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return fit;
+}
+
+// The number of columns for a list of the given length: the visitor's fixed
+// number, or on "auto" the number that needs the fewest rows. Either way
+// never more than the window has room for.
+function useColumns(count: number): number {
+  const fit = useColumnsThatFit();
+  const fixed = prefs.value.layout.columns;
+  return fixed > 0 ? Math.min(fixed, fit) : optimalColumns(count, Math.min(MAX_AUTO_COLUMNS, fit));
+}
+
 function Tiles({ tiles, iconColor }: { tiles: Tile[]; iconColor: string }) {
+  const columns = useColumns(tiles.length);
   return (
-    <ul class="tiles">
+    <ul class="tiles" style={{ '--columns': String(columns) }}>
       {tiles.map((tile) => (
         <li key={tile.id}>
           <TileCard tile={tile} iconColor={iconColor} />
@@ -21,7 +43,11 @@ function Tiles({ tiles, iconColor }: { tiles: Tile[]; iconColor: string }) {
 // The favorites, in the visitor's own order. A favorite is moved by
 // dragging it onto another one, or with the buttons on its tile, which do
 // the same from the keyboard. Each move is announced.
+//
+// The row has no heading of its own. It is as wide as its favorites need,
+// and a row that is not full is centred.
 export function Favorites({ tiles, iconColor }: { tiles: Tile[]; iconColor: string }) {
+  const columns = Math.min(useColumns(tiles.length), Math.max(tiles.length, 1));
   const [dragged, setDragged] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -37,9 +63,8 @@ export function Favorites({ tiles, iconColor }: { tiles: Tile[]; iconColor: stri
   };
 
   return (
-    <section aria-labelledby="favorites">
-      <h2 id="favorites">{t('section.favorites')}</h2>
-      <ul class="tiles" title={tiles.length > 1 ? t('favorites.help') : undefined}>
+    <section class="favorites" aria-label={t('section.favorites')}>
+      <ul class="tiles tiles-centred" style={{ '--columns': String(columns) }}>
         {tiles.map((tile, index) => (
           <li
             key={tile.id}

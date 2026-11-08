@@ -110,6 +110,5 @@
   "section.kinds": "Kinds of tiles",
   "favorites.moveEarlier": "Move {name} earlier",
   "favorites.moveLater": "Move {name} later",
-  "favorites.moved": "{name} is now favorite {position} of {count}.",
-  "favorites.help": "Drag a favorite to change the order."
+  "favorites.moved": "{name} is now favorite {position} of {count}."
 }

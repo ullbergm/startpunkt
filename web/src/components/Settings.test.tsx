@@ -338,7 +338,8 @@ describe('Background', () => {
       <Background background={{ ...base, type: 'pictureOfDay' }} fetcher={fetcher as unknown as typeof fetch} />,
     );
     await waitFor(() => expect(element(container)).not.toBeNull());
-    expect(fetcher).toHaveBeenCalledWith('/api/v1/background');
+    // The size of the screen goes along, so the server can pick a picture.
+    expect(fetcher).toHaveBeenCalledWith(`/api/v1/background?width=${window.screen.width}&height=${window.screen.height}`);
     expect(screen.getByText('Picture: A view (Someone)')).toBeTruthy();
   });
 
