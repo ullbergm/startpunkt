@@ -224,8 +224,7 @@ main:focus {
 }
 
 /* Frosted glass: what shows through the panel is blurred. */
-:root[data-overlay='true'][data-overlay-blur='true'] main,
-:root[data-overlay='true'][data-overlay-blur='true'] .page-header {
+:root[data-overlay='true'][data-overlay-blur='true'] main {
   -webkit-backdrop-filter: blur(var(--overlay-blur, 3px));
   backdrop-filter: blur(var(--overlay-blur, 3px));
 }
@@ -238,11 +237,12 @@ main:focus {
   background: var(--overlay);
 }
 
-:root[data-overlay='true'] .page-header {
-  padding: 0.75rem 1rem;
-  margin-top: 1rem;
-  border-radius: var(--radius);
-  background: var(--overlay);
+/* The logo and the title have no panel: they sit straight on the
+   background. A soft shadow keeps the title readable on a picture. */
+:root:not([data-background='theme']) .page-header h1 {
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 55%),
+    0 0 12px rgb(0 0 0 / 35%);
 }
 
 button,
