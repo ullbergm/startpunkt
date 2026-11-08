@@ -5,6 +5,7 @@ package probe
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"io"
 	"log/slog"
 	"math/rand/v2"
@@ -250,7 +251,8 @@ func probeable(url string) bool {
 
 // probe sends one request. Any answer below 500 means the service is there:
 // a login redirect or a 404 on the root path still comes from a running
-// application. A 5xx answer or no answer at all counts as unavailable.
+// application, and so does a TLS handshake whose certificate cannot be
+// verified. A 5xx answer or no answer at all counts as unavailable.
 func (p *Prober) probe(ctx context.Context, url string) (available bool, detail string) {
 	ctx, cancel := context.WithTimeout(ctx, p.Options.Timeout)
 	defer cancel()
@@ -261,6 +263,14 @@ func (p *Prober) probe(ctx context.Context, url string) (available bool, detail 
 	req.Header.Set("User-Agent", p.Options.UserAgent)
 	resp, err := p.Client.Do(req)
 	if err != nil {
+		// A certificate that cannot be verified still came from a server
+		// that is there: self-signed and mismatched certificates are common
+		// on internal services. The probe asks whether something answers,
+		// not whether it can be trusted, and nothing was sent to it.
+		var certificate *tls.CertificateVerificationError
+		if errors.As(err, &certificate) {
+			return true, "answered with a certificate that could not be verified: " + certificate.Err.Error()
+		}
 		return false, err.Error()
 	}
 	// Only the status line matters. Read a little so the connection can be

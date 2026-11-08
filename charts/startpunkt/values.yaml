@@ -131,8 +131,9 @@ sources:
     defaultProtocol: http
 
 # Probing of the tiles' URLs, done by the controller from inside the cluster.
-# An answer below 500, including a redirect or a 404, counts as available; a
-# 5xx answer or none counts as unavailable. Redirects are not followed.
+# An answer below 500, including a redirect or a 404, counts as available, and
+# so does a server whose certificate cannot be verified. A 5xx answer or none
+# counts as unavailable. Redirects are not followed.
 # Each setting is passed as STARTPUNKT_AVAILABILITY_<SETTING>.
 availability:
   enabled: true
@@ -146,8 +147,10 @@ availability:
   maxBackoff: 5m
   # Probes that may run at once.
   concurrency: 8
-  # Accept any TLS certificate, for applications whose certificates the
-  # controller cannot verify.
+  # Accept any TLS certificate and go on to send the request. Without it, a
+  # certificate that cannot be verified already counts as available, but the
+  # request is not sent, so a 5xx answer behind such a certificate is not
+  # seen.
   insecureSkipVerify: false
 
 status:

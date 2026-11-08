@@ -96,6 +96,21 @@ func TestStatusCodes(t *testing.T) {
 	}
 }
 
+func TestUnverifiableCertificateCountsAsAnswered(t *testing.T) {
+	var requests atomic.Int32
+	// The test server's certificate is signed by nobody the prober trusts.
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { requests.Add(1) }))
+	defer ts.Close()
+
+	s := store.New()
+	s.Upsert(mk("selfsigned", ts.URL))
+	start(t, s, fast())
+	eventually(t, "the tile to count as available", is(s, "selfsigned", true))
+	if n := requests.Load(); n != 0 {
+		t.Errorf("%d requests were sent over a connection that was not verified", n)
+	}
+}
+
 func TestSkipsWhatItMustNotProbe(t *testing.T) {
 	var hits atomic.Int32
 	ts := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits.Add(1) }))

@@ -237,7 +237,7 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 - A probe sends a GET to a URL taken from a cluster resource, from inside the cluster. Whoever can create an Application or annotate a Route can therefore make the controller send that request. Only whether an answer came back is kept; nothing from the response is exposed.
 - Results are stored on the tile. For Application resources, a change in availability is also written to `status`.
 - `lastProbe` is the time of the probe that established the current value. A probe that confirms what is known changes nothing, so it produces no event and no status write.
-- 4.x semantics carry over: 2xx, 3xx and 4xx count as available; 5xx and connection failures count as unavailable; failing targets use exponential backoff up to a cap, and a success resets it.
+- 4.x semantics carry over: 2xx, 3xx and 4xx count as available, and so does a server whose certificate cannot be verified, because it answered and nothing is sent to it; 5xx and connection failures count as unavailable; failing targets use exponential backoff up to a cap, and a success resets it.
 - A hub never probes remote tiles. It displays what the owning instance reports.
 
 ## Federation
