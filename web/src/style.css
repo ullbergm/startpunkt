@@ -156,9 +156,11 @@ main {
   padding: 0 1rem;
 }
 
+/* The logo and the title, centred. */
 .page-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   padding-top: 1.5rem;
 }
