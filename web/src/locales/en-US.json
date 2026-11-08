@@ -115,5 +115,6 @@
   "settings.background.overlayBlur": "Blur the background behind the panel",
   "settings.background.overlay.off": "Off",
   "settings.background.overlay.white": "White {percent}",
-  "settings.background.overlay.black": "Black {percent}"
+  "settings.background.overlay.black": "Black {percent}",
+  "settings.hoverEffect": "Highlight the tile under the pointer"
 }

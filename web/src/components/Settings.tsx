@@ -258,6 +258,11 @@ function Layout({ p }: { p: Preferences }) {
         onChange={(showBoxes) => setLayout({ showBoxes })}
       />
       <Check
+        label={t('settings.hoverEffect')}
+        checked={p.layout.hoverEffect}
+        onChange={(hoverEffect) => setLayout({ hoverEffect })}
+      />
+      <Check
         label={t('settings.showDescription')}
         checked={p.layout.showDescription}
         onChange={(showDescription) => setLayout({ showDescription })}

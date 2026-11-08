@@ -115,5 +115,6 @@
   "settings.background.overlayBlur": "Gör bakgrunden bakom panelen suddig",
   "settings.background.overlay.off": "Av",
   "settings.background.overlay.white": "Vit {percent}",
-  "settings.background.overlay.black": "Svart {percent}"
+  "settings.background.overlay.black": "Svart {percent}",
+  "settings.hoverEffect": "Markera brickan under pekaren"
 }

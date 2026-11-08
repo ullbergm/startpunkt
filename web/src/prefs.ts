@@ -33,6 +33,8 @@ export interface Preferences {
     compact: boolean;
     // A box around each tile. Without it tiles sit straight on the page.
     showBoxes: boolean;
+    // Mark the tile the pointer is over.
+    hoverEffect: boolean;
     showDescription: boolean;
     showTags: boolean;
     showStatus: boolean;
@@ -115,6 +117,7 @@ export function defaults(): Preferences {
       spacing: 'normal',
       compact: false,
       showBoxes: false,
+      hoverEffect: false,
       showDescription: true,
       showTags: false,
       showStatus: true,
@@ -172,6 +175,7 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
     spacing: oneOf<Spacing>(layout.spacing, ['tight', 'normal', 'relaxed'], d.spacing),
     compact: bool(layout.compact, d.compact),
     showBoxes: bool(layout.showBoxes, d.showBoxes),
+    hoverEffect: bool(layout.hoverEffect, d.hoverEffect),
     showDescription: bool(layout.showDescription, d.showDescription),
     showTags: bool(layout.showTags, d.showTags),
     showStatus: bool(layout.showStatus, d.showStatus),

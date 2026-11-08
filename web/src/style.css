@@ -186,8 +186,11 @@ h2 {
   font-size: 1.25rem;
 }
 
+/* A line under each group heading separates the groups. */
 h3 {
-  margin: 1.25rem 0 0.5rem;
+  margin: 1.25rem 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
   font-size: 0.85rem;
 }
 
@@ -365,20 +368,19 @@ kbd {
   background: var(--surface);
 }
 
-.tile:hover,
-.tile:focus-within {
+/* Marking the tile under the pointer is a preference. Keyboard focus is
+   always shown, by the outline on the link itself. */
+:root[data-hover='true'] .tile:hover {
   border-color: var(--accent);
 }
 
-/* Without boxes a tile has no border or surface of its own. Pointing at it
-   or moving focus into it still marks it, with a surface and a border. */
+/* Without boxes a tile has no border or surface of its own. */
 :root[data-boxes='false'] .tile {
   border-color: transparent;
   background: none;
 }
 
-:root[data-boxes='false'] .tile:hover,
-:root[data-boxes='false'] .tile:focus-within {
+:root[data-boxes='false'][data-hover='true'] .tile:hover {
   border-color: var(--accent);
   background: var(--surface);
 }
@@ -530,6 +532,8 @@ li[draggable='true'] {
 .tile-name {
   color: var(--primary);
   font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 

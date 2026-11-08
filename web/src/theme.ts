@@ -31,6 +31,7 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   root.dataset.spacing = p.layout.spacing;
   root.dataset.compact = String(p.layout.compact);
   root.dataset.boxes = String(p.layout.showBoxes);
+  root.dataset.hover = String(p.layout.hoverEffect);
   root.dataset.contrast = p.accessibility.highContrast ? 'high' : 'normal';
   root.dataset.background = p.background.type;
   const panel = panelMode(p);
