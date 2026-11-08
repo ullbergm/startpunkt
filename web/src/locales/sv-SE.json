@@ -4,7 +4,7 @@
   "page.loading": "Laddar…",
   "page.reconnecting": "Anslutningen till servern bröts. Återansluter…",
   "page.syncing": "Läser fortfarande klustret. Fler brickor kan dyka upp.",
-  "page.stale": "Inte ansluten till {clusters}. Visar de senast kända brickorna.",
+  "page.stale": "Inte ansluten till {clusters}. Visar de senast kända brickorna, om det finns några.",
   "page.empty": "Det finns inga program eller bokmärken att visa ännu.",
   "page.reload": "Ladda om",
   "page.newerProtocol": "Servern använder ett nyare protokoll. Ladda om sidan.",
@@ -121,5 +121,11 @@
   "footer.update": "Uppdatering tillgänglig: {version}",
   "settings.descriptionLines": "Rader i beskrivningen, som mest",
   "settings.descriptionLines.any": "Ingen gräns",
-  "github.view": "Visa projektet på GitHub"
+  "github.view": "Visa projektet på GitHub",
+  "tile.cluster": "på {cluster}",
+  "settings.clusters": "Kluster",
+  "settings.clusters.help": "Visa program och bokmärken från de här klustren.",
+  "settings.clusters.local": "Det här klustret",
+  "settings.clusters.connected": "Ansluten",
+  "settings.clusters.unreachable": "Kan inte nås; visar de senast kända brickorna"
 }

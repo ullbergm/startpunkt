@@ -29,13 +29,23 @@ function useColumns(count: number): number {
 
 // sizeFor is the length the columns are worked out for. It is the list's
 // own length unless several lists are to line up with each other.
-function Tiles({ tiles, iconColor, sizeFor }: { tiles: Tile[]; iconColor: string; sizeFor?: number }) {
+function Tiles({
+  tiles,
+  iconColor,
+  sizeFor,
+  showCluster,
+}: {
+  tiles: Tile[];
+  iconColor: string;
+  sizeFor?: number;
+  showCluster?: boolean;
+}) {
   const columns = useColumns(sizeFor ?? tiles.length);
   return (
     <ul class="tiles" style={{ '--columns': String(columns) }}>
       {tiles.map((tile) => (
         <li key={tile.id}>
-          <TileCard tile={tile} iconColor={iconColor} />
+          <TileCard tile={tile} iconColor={iconColor} showCluster={showCluster} />
         </li>
       ))}
     </ul>
@@ -48,7 +58,15 @@ function Tiles({ tiles, iconColor, sizeFor }: { tiles: Tile[]; iconColor: string
 //
 // The row has no heading of its own. It is as wide as its favorites need,
 // and a row that is not full is centred.
-export function Favorites({ tiles, iconColor }: { tiles: Tile[]; iconColor: string }) {
+export function Favorites({
+  tiles,
+  iconColor,
+  showCluster,
+}: {
+  tiles: Tile[];
+  iconColor: string;
+  showCluster?: boolean;
+}) {
   const columns = Math.min(useColumns(tiles.length), Math.max(tiles.length, 1));
   const [dragged, setDragged] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
@@ -98,6 +116,7 @@ export function Favorites({ tiles, iconColor }: { tiles: Tile[]; iconColor: stri
             <TileCard
               tile={tile}
               iconColor={iconColor}
+              showCluster={showCluster}
               reorder={
                 tiles.length > 1
                   ? { first: index === 0, last: index === tiles.length - 1, onMove: (delta) => move(tile, index + delta) }
@@ -127,7 +146,9 @@ export function Section({
   groups,
   iconColor,
   aligned = false,
+  showCluster,
 }: {
+  showCluster?: boolean;
   id: string;
   title?: string;
   groups: TileGroup[];
@@ -161,7 +182,7 @@ export function Section({
               </button>
             </h3>
             <div id={`${groupId}-tiles`} hidden={!open}>
-              {open && <Tiles tiles={group.tiles} iconColor={iconColor} sizeFor={largest} />}
+              {open && <Tiles tiles={group.tiles} iconColor={iconColor} sizeFor={largest} showCluster={showCluster} />}
             </div>
           </section>
         );

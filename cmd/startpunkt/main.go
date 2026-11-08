@@ -152,6 +152,13 @@ func run() error {
 		return fmt.Errorf("unknown role %q", role)
 	}
 	if handler.Store != nil && role != roleController {
+		// The roles a browser talks to are the hub: they show the tiles of
+		// the remotes next to their own.
+		for _, r := range cfg.Federation.Remotes {
+			go (&follow.Follower{
+				URL: r.URL, Remote: r.Name, Headers: r.Headers, Store: handler.Store, Log: log,
+			}).Run(ctx)
+		}
 		// Only the roles a browser talks to fetch pictures.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 		handler.Updates = &api.Updates{

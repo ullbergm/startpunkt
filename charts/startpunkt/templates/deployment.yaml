@@ -93,6 +93,10 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
+            {{- if and (ne $role "web") (ne $role "controller") $.Values.federation.remotes }}
+            - name: STARTPUNKT_FEDERATION_REMOTES
+              value: {{ toJson $.Values.federation.remotes | quote }}
+            {{- end }}
             {{- if eq $role "api" }}
             - name: STARTPUNKT_UPSTREAM_URL
               value: "http://{{ include "startpunkt.roleName" (dict "root" $ "role" "controller") }}:{{ $.Values.service.port }}"

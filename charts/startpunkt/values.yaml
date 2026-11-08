@@ -153,6 +153,19 @@ availability:
   # seen.
   insecureSkipVerify: false
 
+# Other Startpunkt instances whose tiles are shown next to this one's.
+federation:
+  # STARTPUNKT_FEDERATION_REMOTES, as JSON. This instance subscribes to each
+  # remote; the remotes need no configuration. A remote's tiles appear under
+  # the name given here, which is part of their ids: keep it unique and do
+  # not change it. Headers are optional, for a remote behind an
+  # authenticating proxy; they end up in the pod's environment, so put
+  # secrets in extraEnv from a Secret instead.
+  #   remotes:
+  #     - name: prod
+  #       url: https://start.prod.example.com
+  remotes: []
+
 status:
   # STARTPUNKT_STATUS_ENABLED. Write the resolved URL, the availability and
   # conditions to the status of Application resources, and grant the

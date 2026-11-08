@@ -4,7 +4,7 @@
   "page.loading": "Loading…",
   "page.reconnecting": "Connection to the server lost. Reconnecting…",
   "page.syncing": "Still reading the cluster. More tiles may appear.",
-  "page.stale": "Not connected to {clusters}. Showing the last known tiles.",
+  "page.stale": "Not connected to {clusters}. Showing the last known tiles, if any.",
   "page.empty": "There are no applications or bookmarks to show yet.",
   "page.reload": "Reload",
   "page.newerProtocol": "The server speaks a newer protocol. Reload the page.",
@@ -121,5 +121,11 @@
   "footer.update": "Update available: {version}",
   "settings.descriptionLines": "Description lines, at most",
   "settings.descriptionLines.any": "No limit",
-  "github.view": "View the project on GitHub"
+  "github.view": "View the project on GitHub",
+  "tile.cluster": "on {cluster}",
+  "settings.clusters": "Clusters",
+  "settings.clusters.help": "Show the applications and bookmarks of these clusters.",
+  "settings.clusters.local": "This cluster",
+  "settings.clusters.connected": "Connected",
+  "settings.clusters.unreachable": "Not reachable; showing the last known tiles"
 }

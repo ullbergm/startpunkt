@@ -13,6 +13,7 @@ import {
   prefs,
   resetPrefs,
   savePreset,
+  setClusterShown,
   setPanel,
   setTheme,
   TYPES,
@@ -23,6 +24,7 @@ import {
   type Spacing,
   type ThemeMode,
 } from '../prefs';
+import type { Cluster } from '../types';
 import { Icon } from './Icons';
 import { Modal } from './Modal';
 import { Tabs } from './Tabs';
@@ -506,17 +508,37 @@ function Accessibility({ p }: { p: Preferences }) {
   );
 }
 
-const TABS = ['appearance', 'layout', 'background', 'accessibility'] as const;
-type Tab = (typeof TABS)[number];
+type Tab = 'appearance' | 'layout' | 'background' | 'clusters' | 'accessibility';
+
+// Which clusters' tiles are shown. Offered when there is more than one.
+function Clusters({ p, clusters }: { p: Preferences; clusters: Cluster[] }) {
+  return (
+    <>
+      <p class="help">{t('settings.clusters.help')}</p>
+      {clusters.map((cluster) => (
+        <Check
+          key={cluster.name}
+          label={cluster.name}
+          help={t(`settings.clusters.${cluster.local ? 'local' : cluster.state === 'connected' ? 'connected' : 'unreachable'}` as MessageKey)}
+          checked={!p.hiddenClusters.includes(cluster.name)}
+          onChange={(shown) => setClusterShown(cluster.name, shown)}
+        />
+      ))}
+    </>
+  );
+}
 
 // The settings, one section per tab.
-export function Settings({ onClose }: { onClose: () => void }) {
+export function Settings({ onClose, clusters = [] }: { onClose: () => void; clusters?: Cluster[] }) {
   const p = prefs.value;
   const [tab, setTab] = useState<Tab>('appearance');
+  // The clusters tab is there only when there is a choice to make.
+  const TABS: Tab[] = ['appearance', 'layout', 'background', ...(clusters.length > 1 ? (['clusters'] as const) : []), 'accessibility'];
   const panels: Record<Tab, ComponentChildren> = {
     appearance: <Appearance p={p} />,
     layout: <Layout p={p} />,
     background: <BackgroundTab p={p} />,
+    clusters: <Clusters p={p} clusters={clusters} />,
     accessibility: <Accessibility p={p} />,
   };
 

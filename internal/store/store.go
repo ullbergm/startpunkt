@@ -73,17 +73,23 @@ type Store struct {
 	tiles    map[string]tile.Tile
 	owned    map[Owner][]string
 	clusters map[string]Cluster
-	nextSub  int
-	subs     map[int]chan []Event
+	// origin records which feed a mirrored tile or cluster came from, so
+	// that one feed's snapshot replaces only what that feed brought.
+	tileOrigin    map[string]string
+	clusterOrigin map[string]string
+	nextSub       int
+	subs          map[int]chan []Event
 }
 
 // New returns an empty store.
 func New() *Store {
 	return &Store{
-		tiles:    map[string]tile.Tile{},
-		owned:    map[Owner][]string{},
-		clusters: map[string]Cluster{},
-		subs:     map[int]chan []Event{},
+		tiles:         map[string]tile.Tile{},
+		owned:         map[Owner][]string{},
+		clusters:      map[string]Cluster{},
+		tileOrigin:    map[string]string{},
+		clusterOrigin: map[string]string{},
+		subs:          map[int]chan []Event{},
 	}
 }
 
@@ -174,6 +180,7 @@ func (s *Store) publish(events []Event) {
 func (s *Store) SetCluster(c Cluster) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.clusterOrigin[c.Name] = LocalFeed
 	if s.clusters[c.Name] == c {
 		return
 	}
@@ -213,13 +220,24 @@ func (s *Store) Owned(owner Owner) []tile.Tile {
 	return out
 }
 
-// Upsert adds or replaces single tiles by id. It is for tiles mirrored from
-// another instance, which arrive one at a time and are not tracked by owner.
-func (s *Store) Upsert(tiles ...tile.Tile) {
+// A feed is another Startpunkt process whose tiles are mirrored into this
+// store: the controller, when this process only serves the API, and each
+// federated remote. Every feed has a name of its own, and what one feed
+// brings is never touched by another.
+
+// LocalFeed is the feed of the controller this process follows.
+const LocalFeed = ""
+
+// Upsert adds or replaces single tiles of a feed by id.
+func (s *Store) Upsert(tiles ...tile.Tile) { s.UpsertFrom(LocalFeed, tiles...) }
+
+// UpsertFrom adds or replaces single tiles of a feed by id.
+func (s *Store) UpsertFrom(feed string, tiles ...tile.Tile) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var events []Event
 	for _, t := range tiles {
+		s.tileOrigin[t.ID] = feed
 		if old, ok := s.tiles[t.ID]; ok && tile.Equal(old, t) {
 			continue
 		}
@@ -237,62 +255,88 @@ func (s *Store) Remove(ids ...string) {
 	for _, id := range ids {
 		if _, ok := s.tiles[id]; ok {
 			delete(s.tiles, id)
+			delete(s.tileOrigin, id)
 			events = append(events, Event{Type: EventDelete, ID: id})
 		}
 	}
 	s.publish(events)
 }
 
-// Mirror makes the store hold exactly the given clusters and tiles, emitting
-// events only for what differs. It is for a store that follows one other
-// instance and applies that instance's snapshot.
-func (s *Store) Mirror(snap Snapshot) {
+// SetClusterFrom records the state of a cluster that a feed reports.
+func (s *Store) SetClusterFrom(feed string, c Cluster) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.clusterOrigin[c.Name] = feed
+	if s.clusters[c.Name] == c {
+		return
+	}
+	s.clusters[c.Name] = c
+	s.publish([]Event{{Type: EventCluster, Cluster: c}})
+}
+
+// Mirror makes the store hold exactly the given clusters and tiles for the
+// local feed.
+func (s *Store) Mirror(snap Snapshot) { s.MirrorFrom(LocalFeed, snap) }
+
+// MirrorFrom makes the store hold exactly the given clusters and tiles for
+// one feed, emitting events only for what differs. Tiles and clusters of
+// other feeds, and tiles set by owner, are left alone.
+func (s *Store) MirrorFrom(feed string, snap Snapshot) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var events []Event
 	keep := make(map[string]bool, len(snap.Tiles))
 	for _, t := range snap.Tiles {
 		keep[t.ID] = true
+		s.tileOrigin[t.ID] = feed
 		if old, ok := s.tiles[t.ID]; ok && tile.Equal(old, t) {
 			continue
 		}
 		s.tiles[t.ID] = t
 		events = append(events, Event{Type: EventUpsert, ID: t.ID, Tile: t})
 	}
-	for id := range s.tiles {
-		if !keep[id] {
+	for id, origin := range s.tileOrigin {
+		if origin == feed && !keep[id] {
 			delete(s.tiles, id)
+			delete(s.tileOrigin, id)
 			events = append(events, Event{Type: EventDelete, ID: id})
 		}
 	}
 	names := make(map[string]bool, len(snap.Clusters))
 	for _, c := range snap.Clusters {
 		names[c.Name] = true
+		s.clusterOrigin[c.Name] = feed
 		if s.clusters[c.Name] != c {
 			s.clusters[c.Name] = c
 			events = append(events, Event{Type: EventCluster, Cluster: c})
 		}
 	}
-	for name := range s.clusters {
-		if !names[name] {
+	for name, origin := range s.clusterOrigin {
+		if origin == feed && !names[name] {
 			delete(s.clusters, name)
+			delete(s.clusterOrigin, name)
 		}
 	}
-	s.owned = map[Owner][]string{}
 	s.publish(events)
 }
 
-// MarkStale sets every cluster that is not already stale to stale.
-func (s *Store) MarkStale() {
+// MarkStale sets every cluster of the local feed that is not already stale
+// to stale.
+func (s *Store) MarkStale() { s.MarkStaleFrom(LocalFeed) }
+
+// MarkStaleFrom sets every cluster of one feed that is not already stale to
+// stale. Its tiles stay: they are the last known ones.
+func (s *Store) MarkStaleFrom(feed string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	var events []Event
 	for name, c := range s.clusters {
-		if c.State != StateStale {
-			c.State = StateStale
-			s.clusters[name] = c
-			events = append(events, Event{Type: EventCluster, Cluster: c})
+		if s.clusterOrigin[name] != feed || c.State == StateStale {
+			continue
 		}
+		c.State = StateStale
+		s.clusters[name] = c
+		events = append(events, Event{Type: EventCluster, Cluster: c})
 	}
 	s.publish(events)
 }

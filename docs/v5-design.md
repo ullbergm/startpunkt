@@ -245,12 +245,15 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 Each instance is fully authoritative for its own cluster. A hub is another client of the same API.
 
 - The hub is configured with a list of remotes: name, base URL, and optional request headers for remotes that sit behind an authenticating proxy.
+- The roles a browser talks to are the hub: `all`, or `api` in split mode. The controller does not federate.
+- Each source of mirrored tiles is a feed with a name of its own: the instance's own controller, and one per remote. A snapshot from one feed replaces only what that feed brought, so remotes cannot disturb each other or the local tiles.
+- A remote is listed as a cluster before it has been reached, so the page can say that it is not connected.
 - For each remote, the hub opens `GET /api/v1/events`, receives the snapshot, and applies events to its own store under that cluster's key.
 - The cluster key is the name in the hub's own configuration, not the name the remote reports. Names must be unique within a hub, because they are part of the tile id.
 - A remote needs no configuration to be federated and does not know it is being consumed.
 - If a stream drops, the hub keeps the last known tiles, marks the cluster as stale with a last-seen time, and reconnects with backoff. The snapshot sent on reconnect replaces that cluster's tiles, which resynchronises it. The UI shows a stale cluster as unreachable instead of dropping its tiles.
 - Remote tiles are read-only on the hub, whether or not the hub is unlocked. The UI links to the owning instance for editing. The hub holds no edit keys for remotes.
-- A hub does not re-export tiles it received from remotes when it is itself consumed by another instance, which prevents loops and duplicate tiles.
+- A hub does not re-export tiles it received from remotes when it is itself consumed by another instance, which prevents loops and duplicate tiles. This is done on the receiving side: a hub takes from a remote only the tiles of the clusters that the remote marks as its own.
 - The hub always initiates the connection. A push mode, where a remote the hub cannot reach sends its state to an ingest endpoint on the hub, is a possible later addition. The store is keyed by cluster and fed by events either way, so adding it does not change the model.
 
 ### Identical tiles across clusters
@@ -409,6 +412,6 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
-7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters.
+7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, the cluster label on tiles and a filter of clusters per visitor. Still to do: the setting for which clusters a new visitor sees, the two layouts and combined cards.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
 9. User-defined CEL mappings. This can follow the first release.

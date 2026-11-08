@@ -654,6 +654,21 @@ li[draggable='true'] {
   overflow-wrap: anywhere;
 }
 
+/* The cluster a tile belongs to, when several are shown. */
+.tile-cluster {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
+}
+
 .tile-tags {
   display: flex;
   flex-wrap: wrap;

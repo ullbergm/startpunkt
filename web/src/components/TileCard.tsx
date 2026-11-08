@@ -13,7 +13,18 @@ export interface Reorder {
   onMove: (delta: -1 | 1) => void;
 }
 
-export function TileCard({ tile, iconColor, reorder }: { tile: Tile; iconColor: string; reorder?: Reorder }) {
+export function TileCard({
+  tile,
+  iconColor,
+  reorder,
+  showCluster = false,
+}: {
+  tile: Tile;
+  iconColor: string;
+  reorder?: Reorder;
+  // Name the cluster on the tile, when tiles of several clusters are shown.
+  showCluster?: boolean;
+}) {
   const { layout, favorites } = prefs.value;
   const href = safeHref(tile.url);
   // Only a probe that failed marks a tile. Without a result nothing is shown.
@@ -23,7 +34,14 @@ export function TileCard({ tile, iconColor, reorder }: { tile: Tile; iconColor: 
     <>
       <TileIcon tile={tile} color={iconColor} />
       <span class="tile-text">
-        <span class="tile-name">{tile.name}</span>
+        <span class="tile-name">
+          {tile.name}
+          {showCluster && (
+            <span class="tile-cluster" aria-label={t('tile.cluster', { cluster: tile.cluster })}>
+              {tile.cluster}
+            </span>
+          )}
+        </span>
         {layout.showDescription && tile.info && (
           <FitText class="tile-info" text={tile.info} lines={layout.descriptionLines} />
         )}

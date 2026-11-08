@@ -32,6 +32,7 @@ type Config struct {
 	NamespaceSelector NamespaceSelector `json:"namespaceSelector"`
 	Sources           Sources           `json:"sources"`
 	Availability      Availability      `json:"availability"`
+	Federation        Federation        `json:"federation"`
 	Status            Status            `json:"status"`
 	Server            Server            `json:"server"`
 	Upstream          Upstream          `json:"upstream"`
@@ -153,6 +154,28 @@ type Status struct {
 	// the status of Application resources.
 	// Environment: STARTPUNKT_STATUS_ENABLED.
 	Enabled bool `json:"enabled"`
+}
+
+// Federation lists the other Startpunkt instances whose tiles this one
+// shows next to its own. This instance subscribes to each of them; they need
+// no configuration and do not know they are being read.
+type Federation struct {
+	// Remotes are the instances to subscribe to. In the environment the
+	// list is JSON: STARTPUNKT_FEDERATION_REMOTES='[{"name":"prod","url":"https://start.prod.example.com"}]'.
+	Remotes []Remote `json:"remotes"`
+}
+
+// Remote is one other instance.
+type Remote struct {
+	// Name is the cluster name its tiles get here, whatever the remote
+	// calls itself. It is part of their ids, so it must be unique and must
+	// not change.
+	Name string `json:"name"`
+	// URL is the base URL of the remote, as a browser would open it.
+	URL string `json:"url"`
+	// Headers are sent with the request, for a remote behind an
+	// authenticating proxy.
+	Headers map[string]string `json:"headers,omitempty"`
 }
 
 // Upstream is where the api role reads its state from when the controller
@@ -352,6 +375,13 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		}
 		c.Availability.Concurrency = parsed
 	}
+	if v := getenv(EnvPrefix + "FEDERATION_REMOTES"); v != "" {
+		var remotes []Remote
+		if err := json.Unmarshal([]byte(v), &remotes); err != nil {
+			return fmt.Errorf("%sFEDERATION_REMOTES is not a JSON list of remotes: %w", EnvPrefix, err)
+		}
+		c.Federation.Remotes = remotes
+	}
 	lists := map[string]*[]string{
 		"NAMESPACESELECTOR_MATCHNAMES": &c.NamespaceSelector.MatchNames,
 		"SOURCES_INGRESS_CLASSNAMES":   &c.Sources.Ingress.ClassNames,
@@ -429,6 +459,19 @@ func (c Config) validate() error {
 			if !hexColor.MatchString(value) {
 				return fmt.Errorf("web.theme.%s.%s %q is not a hex colour such as #1a2b3c", mode, name, value)
 			}
+		}
+	}
+	seen := map[string]bool{c.Cluster.Name: true}
+	for i, r := range c.Federation.Remotes {
+		if r.Name == "" || strings.ContainsAny(r.Name, "/ \t\n") {
+			return fmt.Errorf("federation.remotes[%d].name %q must be set and must not contain slashes or whitespace", i, r.Name)
+		}
+		if seen[r.Name] {
+			return fmt.Errorf("federation.remotes[%d].name %q is already the name of this cluster or of another remote", i, r.Name)
+		}
+		seen[r.Name] = true
+		if u, err := url.Parse(r.URL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return fmt.Errorf("federation.remotes[%d].url %q is not an http or https URL", i, r.URL)
 		}
 	}
 	a := c.Availability

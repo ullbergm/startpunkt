@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaults, moveFavorite, prefs, setPanel, setTheme, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -127,6 +127,13 @@ describe('stored preferences', () => {
     toggleCollapsed('bookmark:links');
     resetPrefs();
     expect(prefs.value).toEqual({ ...defaults(), favorites: ['a'], collapsed: ['bookmark:links'] });
+    setClusterShown('prod', false);
+    setClusterShown('prod', false);
+    expect(prefs.value.hiddenClusters).toEqual(['prod']);
+    resetPrefs();
+    expect(prefs.value.hiddenClusters).toEqual(['prod']); // a choice of content, kept
+    setClusterShown('prod', true);
+    expect(prefs.value.hiddenClusters).toEqual([]);
   });
 
   it('read what an earlier version stored', () => {

@@ -91,7 +91,13 @@ export function App({
 
   // The tag filter is part of the URL, so a filtered page can be bookmarked.
   const tagged = state ? filterByTags(state.tiles, tagsFromPath(window.location.pathname)) : [];
-  const tiles = p.layout.hideUnreachable ? tagged.filter((tile) => tile.available !== false) : tagged;
+  // Clusters the visitor has not hidden. Tiles of several clusters carry
+  // the name of theirs.
+  const clusters = state?.clusters ?? [];
+  const shown = clusters.filter((cluster) => !p.hiddenClusters.includes(cluster.name));
+  const showCluster = shown.length > 1;
+  const visible = tagged.filter((tile) => !p.hiddenClusters.includes(tile.cluster));
+  const tiles = p.layout.hideUnreachable ? visible.filter((tile) => tile.available !== false) : visible;
   // Favorites are shown once, in their own section and in the visitor's
   // order, and are left out of the groups below.
   const byId = new Map(tiles.map((tile) => [tile.id, tile]));
@@ -108,8 +114,11 @@ export function App({
   // Each tab has its own favorites row.
   const favorites = allFavorites.filter((tile) => tile.kind === (view === 'applications' ? 'application' : 'bookmark'));
   const groups = view === 'applications' ? applications : bookmarks;
-  const syncing = state?.clusters.some((cluster) => cluster.state === 'syncing') ?? false;
-  const stale = state?.clusters.filter((cluster) => cluster.state === 'stale') ?? [];
+  // The local cluster may still be read for the first time. Any other state
+  // that is not "connected" means the tiles of that cluster are the last
+  // known ones, or that it has not been reached at all.
+  const syncing = clusters.some((cluster) => cluster.local && cluster.state === 'syncing');
+  const stale = shown.filter((cluster) => cluster.state !== 'connected' && !(cluster.local && cluster.state === 'syncing'));
   const empty = state !== null && tiles.length === 0;
   // Icons without a colour of their own take the theme's secondary colour,
   // so that they stand apart from the names next to them.
@@ -158,21 +167,28 @@ export function App({
               onSelect={setChosen}
             />
             <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
-              <Favorites tiles={favorites} iconColor={iconColor} />
-              <Section id={view} groups={groups} iconColor={iconColor} aligned={view === 'bookmarks'} />
+              <Favorites tiles={favorites} iconColor={iconColor} showCluster={showCluster} />
+              <Section
+                id={view}
+                groups={groups}
+                iconColor={iconColor}
+                aligned={view === 'bookmarks'}
+                showCluster={showCluster}
+              />
             </div>
           </>
         ) : (
           // Only one kind: no tabs to choose between, just its heading.
           kinds.map((kind) => (
             <Fragment key={kind}>
-              <Favorites tiles={favorites} iconColor={iconColor} />
+              <Favorites tiles={favorites} iconColor={iconColor} showCluster={showCluster} />
               <Section
                 id={kind}
                 title={t(`section.${kind}`)}
                 groups={groups}
                 iconColor={iconColor}
                 aligned={kind === 'bookmarks'}
+                showCluster={showCluster}
               />
             </Fragment>
           ))
@@ -205,11 +221,11 @@ export function App({
           initialQuery={initialQuery}
           iconColor={iconColor}
           searchEngine={state.config.searchEngine}
-          showCluster={state.clusters.length > 1}
+          showCluster={showCluster}
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog === 'settings' && <Settings onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <Settings clusters={clusters} onClose={() => setDialog(null)} />}
     </>
   );
 }

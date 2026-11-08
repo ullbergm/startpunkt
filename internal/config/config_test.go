@@ -200,3 +200,39 @@ func TestWebSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestFederationRemotes(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	data := "federation:\n  remotes:\n    - name: prod\n      url: https://start.prod.example.com\n      headers: {X-Token: abc}\n"
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path, true, env(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := cfg.Federation.Remotes; len(r) != 1 || r[0].Name != "prod" || r[0].URL != "https://start.prod.example.com" || r[0].Headers["X-Token"] != "abc" {
+		t.Errorf("from file: %+v", r)
+	}
+
+	cfg, err = Load("", false, env(map[string]string{
+		"STARTPUNKT_FEDERATION_REMOTES": `[{"name":"a","url":"http://a"},{"name":"b","url":"https://b"}]`,
+	}))
+	if err != nil || len(cfg.Federation.Remotes) != 2 || cfg.Federation.Remotes[1].Name != "b" {
+		t.Errorf("from the environment: %+v, %v", cfg.Federation.Remotes, err)
+	}
+
+	for want, value := range map[string]string{
+		"not a JSON list":  `{"name":"a"}`,
+		"must be set":      `[{"url":"http://a"}]`,
+		"slashes":          `[{"name":"a/b","url":"http://a"}]`,
+		"already the name": `[{"name":"a","url":"http://a"},{"name":"a","url":"http://b"}]`,
+		"of this cluster":  `[{"name":"local","url":"http://a"}]`,
+		"http or https":    `[{"name":"a","url":"ftp://a"}]`,
+	} {
+		_, err := Load("", false, env(map[string]string{"STARTPUNKT_FEDERATION_REMOTES": value}))
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got error %v", want, err)
+		}
+	}
+}

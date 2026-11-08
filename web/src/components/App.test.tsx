@@ -626,6 +626,77 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Search' }).className).toContain('touch-only');
   });
 
+  describe('with a second cluster', () => {
+    const two = (remoteState: 'connected' | 'stale' | 'syncing' = 'connected') =>
+      serverState({
+        clusters: [
+          { name: 'local', local: true, state: 'connected' },
+          { name: 'prod', local: false, state: remoteState },
+        ],
+        tiles: [
+          tile({ id: 'local/apps/ns/grafana', name: 'Grafana', cluster: 'local' }),
+          tile({ id: 'prod/apps/ns/grafana', name: 'Grafana', cluster: 'prod', editable: false }),
+        ],
+      });
+
+    it('shows the tiles of both, each naming its cluster', async () => {
+      renderWith(two());
+      const links = await screen.findAllByRole('link', { name: /Grafana/ });
+      expect(links).toHaveLength(2);
+      expect(links.map((link) => link.querySelector('.tile-cluster')?.textContent).sort()).toEqual(['local', 'prod']);
+      expect(screen.getByLabelText('on prod')).toBeTruthy();
+    });
+
+    it('names no cluster when there is only one', async () => {
+      renderWith(serverState({ tiles: [tile({ name: 'Grafana' })] }));
+      await screen.findByRole('link', { name: /Grafana/ });
+      expect(document.querySelector('.tile-cluster')).toBeNull();
+    });
+
+    it('hides a cluster the visitor has turned off, and its label with it', async () => {
+      renderWith(two());
+      await screen.findAllByRole('link', { name: /Grafana/ });
+      fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+      fireEvent.click(await screen.findByRole('tab', { name: 'Clusters' }));
+      const prod = screen.getByRole('checkbox', { name: /prod/ }) as HTMLInputElement;
+      expect(prod.checked).toBe(true);
+      expect(screen.getByRole('checkbox', { name: /local/ }).parentElement?.textContent).toContain('This cluster');
+      fireEvent.click(prod);
+
+      await waitFor(() => expect(screen.getAllByRole('link', { name: /Grafana/ })).toHaveLength(1));
+      expect(prefs.value.hiddenClusters).toEqual(['prod']);
+      expect(document.querySelector('.tile-cluster')).toBeNull();
+    });
+
+    it('offers no clusters tab with a single cluster', async () => {
+      renderWith(serverState());
+      fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+      await screen.findByRole('tab', { name: 'Appearance' });
+      expect(screen.queryByRole('tab', { name: 'Clusters' })).toBeNull();
+    });
+
+    it('says when a remote is not reachable and keeps its tiles', async () => {
+      renderWith(two('stale'));
+      expect(await screen.findByText(/Not connected to prod/)).toBeTruthy();
+      expect(screen.getAllByRole('link', { name: /Grafana/ })).toHaveLength(2);
+      act(() => FakeStream.last.emit('cluster.status', { name: 'prod', local: false, state: 'connected' }));
+      await waitFor(() => expect(screen.queryByText(/Not connected to prod/)).toBeNull());
+    });
+
+    it('treats a remote that was never reached as not connected, not as loading', async () => {
+      renderWith(two('syncing'));
+      expect(await screen.findByText(/Not connected to prod/)).toBeTruthy();
+      expect(screen.queryByText(/Still reading the cluster/)).toBeNull();
+    });
+
+    it('says nothing about a remote the visitor has hidden', async () => {
+      updatePrefs((p) => ({ ...p, hiddenClusters: ['prod'] }));
+      renderWith(two('stale'));
+      await screen.findByRole('link', { name: /Grafana/ });
+      expect(screen.queryByText(/Not connected to prod/)).toBeNull();
+    });
+  });
+
   it('has a skip link to the content', () => {
     renderWith(serverState());
     const skip = screen.getByRole('link', { name: 'Skip to main content' });

@@ -26,6 +26,8 @@ export interface Preferences {
   favorites: string[];
   // Keys of collapsed groups, "<kind>:<group name>".
   collapsed: string[];
+  // Names of clusters whose tiles are not shown.
+  hiddenClusters: string[];
   layout: {
     // Number of columns, or 0 to fit as many as there is room for.
     columns: number;
@@ -117,6 +119,7 @@ export function defaults(): Preferences {
     language: null,
     favorites: [],
     collapsed: [],
+    hiddenClusters: [],
     layout: {
       columns: 0,
       spacing: 'normal',
@@ -246,6 +249,7 @@ export function sanitize(raw: unknown): Preferences {
     language: typeof r.language === 'string' && r.language !== '' ? r.language : null,
     favorites: strings(r.favorites),
     collapsed: strings(r.collapsed),
+    hiddenClusters: strings(r.hiddenClusters),
     layout: sanitizeLayout(r.layout),
     background: sanitizeBackground(r.background),
     handwrittenFont: bool(r.handwrittenFont, d.handwrittenFont),
@@ -314,6 +318,7 @@ export function resetPrefs(): void {
     ...defaults(),
     favorites: current.favorites,
     collapsed: current.collapsed,
+    hiddenClusters: current.hiddenClusters,
     presets: current.presets,
   }));
 }
@@ -335,6 +340,13 @@ export function moveFavorite(id: string, toIndex: number): void {
     const rest = current.favorites.filter((other) => other !== id);
     const index = Math.min(Math.max(toIndex, 0), rest.length);
     return { ...current, favorites: [...rest.slice(0, index), id, ...rest.slice(index)] };
+  });
+}
+
+export function setClusterShown(name: string, shown: boolean): void {
+  updatePrefs((current) => {
+    const rest = current.hiddenClusters.filter((other) => other !== name);
+    return { ...current, hiddenClusters: shown ? rest : [...rest, name] };
   });
 }
 
