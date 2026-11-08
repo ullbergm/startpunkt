@@ -277,7 +277,8 @@ kbd {
   padding: 0.15rem 0.4rem 0.15rem 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  /* The same colour as the icons. */
+  color: var(--muted);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -548,7 +549,7 @@ li[draggable='true'] {
 }
 
 .tile-info {
-  color: var(--muted);
+  color: var(--accent);
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }

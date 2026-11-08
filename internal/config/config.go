@@ -202,14 +202,14 @@ type Theme struct {
 type Palette struct {
 	// BodyBgColor is the page background.
 	BodyBgColor string `json:"bodyBgColor"`
-	// BodyColor is secondary text, such as descriptions, and icons without a
-	// colour of their own.
+	// BodyColor is group headings, icons without a colour of their own, and
+	// other secondary text.
 	BodyColor string `json:"bodyColor"`
 	// EmphasisColor is headings and other prominent text.
 	EmphasisColor string `json:"emphasisColor"`
 	// TextPrimaryColor is tile names.
 	TextPrimaryColor string `json:"textPrimaryColor"`
-	// TextAccentColor is group headings, focus rings and highlights.
+	// TextAccentColor is descriptions, focus rings and highlights.
 	TextAccentColor string `json:"textAccentColor"`
 }
 
