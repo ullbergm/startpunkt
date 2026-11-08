@@ -3,7 +3,7 @@ import type { Tile } from '../types';
 import { iconSource } from '../url';
 
 // The icon is decorative: the tile's name is right next to it. An Iconify
-// icon without a colour of its own takes the theme's primary colour.
+// icon without a colour of its own takes the colour it is given.
 export function TileIcon({ tile, color }: { tile: Tile; color: string }) {
   const source = iconSource(tile.icon, tile.iconColor || color);
   const [failed, setFailed] = useState<string | null>(null);

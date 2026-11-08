@@ -101,7 +101,9 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   const syncing = state?.clusters.some((cluster) => cluster.state === 'syncing') ?? false;
   const stale = state?.clusters.filter((cluster) => cluster.state === 'stale') ?? [];
   const empty = state !== null && tiles.length === 0;
-  const iconColor = palette?.textPrimaryColor ?? '#4c8dd6';
+  // Icons without a colour of their own take the theme's secondary colour,
+  // so that they stand apart from the names next to them.
+  const iconColor = palette?.bodyColor ?? '#696969';
 
   return (
     <>
@@ -163,7 +165,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
             />
             <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
               <Favorites tiles={favorites} iconColor={iconColor} />
-              <Section id={view} groups={groups} iconColor={iconColor} />
+              <Section id={view} groups={groups} iconColor={iconColor} aligned={view === 'bookmarks'} />
             </div>
           </>
         ) : (
@@ -171,7 +173,13 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
           kinds.map((kind) => (
             <Fragment key={kind}>
               <Favorites tiles={favorites} iconColor={iconColor} />
-              <Section id={kind} title={t(`section.${kind}`)} groups={groups} iconColor={iconColor} />
+              <Section
+                id={kind}
+                title={t(`section.${kind}`)}
+                groups={groups}
+                iconColor={iconColor}
+                aligned={kind === 'bookmarks'}
+              />
             </Fragment>
           ))
         )}

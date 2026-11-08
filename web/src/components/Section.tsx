@@ -27,8 +27,10 @@ function useColumns(count: number): number {
   return fixed > 0 ? Math.min(fixed, fit) : optimalColumns(count, Math.min(MAX_AUTO_COLUMNS, fit));
 }
 
-function Tiles({ tiles, iconColor }: { tiles: Tile[]; iconColor: string }) {
-  const columns = useColumns(tiles.length);
+// sizeFor is the length the columns are worked out for. It is the list's
+// own length unless several lists are to line up with each other.
+function Tiles({ tiles, iconColor, sizeFor }: { tiles: Tile[]; iconColor: string; sizeFor?: number }) {
+  const columns = useColumns(sizeFor ?? tiles.length);
   return (
     <ul class="tiles" style={{ '--columns': String(columns) }}>
       {tiles.map((tile) => (
@@ -116,18 +118,24 @@ export function Favorites({ tiles, iconColor }: { tiles: Tile[]; iconColor: stri
 //
 // With a title it is a section of its own under that heading. Without one
 // it is the content of a tab, and the tab names it.
+//
+// With aligned set, every group uses the columns of the largest one, so
+// that the tiles of all groups line up under each other.
 export function Section({
   id,
   title,
   groups,
   iconColor,
+  aligned = false,
 }: {
   id: string;
   title?: string;
   groups: TileGroup[];
   iconColor: string;
+  aligned?: boolean;
 }) {
   if (groups.length === 0) return null;
+  const largest = aligned ? Math.max(...groups.map((group) => group.tiles.length)) : undefined;
   const collapsed = prefs.value.collapsed;
   const Wrapper = title ? 'section' : 'div';
   return (
@@ -153,7 +161,7 @@ export function Section({
               </button>
             </h3>
             <div id={`${groupId}-tiles`} hidden={!open}>
-              {open && <Tiles tiles={group.tiles} iconColor={iconColor} />}
+              {open && <Tiles tiles={group.tiles} iconColor={iconColor} sizeFor={largest} />}
             </div>
           </section>
         );

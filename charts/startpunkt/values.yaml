@@ -48,9 +48,10 @@ config:
     # STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<NAME>. The names are those of 4.x,
     # so an existing theme can be copied over.
     #   bodyBgColor       page background
-    #   bodyColor         secondary text, such as descriptions
+    #   bodyColor         secondary text, such as descriptions, and icons
+    #                     without a colour of their own
     #   emphasisColor     headings and other prominent text
-    #   textPrimaryColor  tile names, and icons without a colour of their own
+    #   textPrimaryColor  tile names
     #   textAccentColor   group headings, focus rings and highlights
     theme:
       light:

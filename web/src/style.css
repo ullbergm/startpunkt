@@ -382,10 +382,13 @@ kbd {
   background: var(--surface);
 }
 
+/* Content starts at the top of the tile. In a row of tiles with
+   descriptions of different lengths, icons and names then sit on one line
+   instead of each being centred in its own tile. */
 .tile-link {
   display: flex;
   flex: 1;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
   min-width: 0;
   min-height: calc(40px + 2 * var(--tile-pad));
@@ -513,7 +516,7 @@ li[draggable='true'] {
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--border);
-  color: var(--primary);
+  color: var(--muted);
   font-weight: 600;
 }
 

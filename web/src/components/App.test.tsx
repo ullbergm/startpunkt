@@ -318,6 +318,31 @@ describe('App', () => {
     await waitFor(() => expect(columns('tools')).toBe('4')); // never more than fit
   });
 
+  it('gives every bookmark group the same columns, so they line up', async () => {
+    const group = (name: string, count: number) =>
+      Array.from({ length: count }, (_, i) =>
+        tile({ name: `${name} ${i}`, kind: 'bookmark', group: name }),
+      );
+    renderWith(serverState({ tiles: [...group('big', 7), ...group('small', 2), ...group('one', 1)] }));
+    await screen.findByRole('region', { name: 'Bookmarks' });
+    const columns = (name: string) =>
+      (screen.getByRole('region', { name }).querySelector('.tiles') as HTMLElement).style.getPropertyValue('--columns');
+    // Seven tiles in a window with room for four columns: two rows of four.
+    expect([columns('big'), columns('small'), columns('one')]).toEqual(['4', '4', '4']);
+  });
+
+  it('gives icons the secondary colour of the theme, not the colour of the names', async () => {
+    const { container } = renderWith(serverState({ tiles: [tile({ name: 'Plex', icon: 'mdi:plex' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+    await waitFor(() =>
+      expect(container.querySelector('img.tile-icon')?.getAttribute('src')).toContain('color=%23696969'),
+    );
+    cleanup();
+    const own = renderWith(serverState({ tiles: [tile({ name: 'Plex', icon: 'mdi:plex', iconColor: 'orange' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+    expect(own.container.querySelector('img.tile-icon')?.getAttribute('src')).toContain('color=orange');
+  });
+
   it('sizes the favorites row to its favorites', async () => {
     updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Plex', 'c/apps/ns/Grafana'] }));
     renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' }), tile({ name: 'Other' })] }));
