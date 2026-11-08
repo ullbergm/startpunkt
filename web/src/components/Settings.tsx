@@ -9,6 +9,7 @@ import {
   loadPreset,
   MAX_BLUR,
   MAX_COLUMNS,
+  MAX_PANEL_BLUR,
   prefs,
   resetPrefs,
   savePreset,
@@ -430,9 +431,13 @@ function BackgroundTab({ p }: { p: Preferences }) {
             onChange={(overlayOpacity) => setBackground({ overlayOpacity })}
           />
           {b.overlayOpacity !== 0 && (
-            <Check
+            <Range
               label={t('settings.background.overlayBlur')}
-              checked={b.overlayBlur}
+              value={b.overlayBlur}
+              min={0}
+              max={MAX_PANEL_BLUR}
+              step={1}
+              format={(value) => (value === 0 ? t('settings.background.overlay.off') : `${value}px`)}
               onChange={(overlayBlur) => setBackground({ overlayBlur })}
             />
           )}

@@ -112,7 +112,7 @@
   "favorites.moveLater": "Flytta {name} senare",
   "favorites.moved": "{name} är nu favorit {position} av {count}.",
   "settings.showBoxes": "Ruta runt varje bricka",
-  "settings.background.overlayBlur": "Gör bakgrunden bakom panelen suddig",
+  "settings.background.overlayBlur": "Oskärpa bakom panelen",
   "settings.background.overlay.off": "Av",
   "settings.background.overlay.white": "Vit {percent}",
   "settings.background.overlay.black": "Svart {percent}",

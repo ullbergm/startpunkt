@@ -38,7 +38,8 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   root.dataset.overlay = String(panel !== null);
   const shade = panel === 'light' ? '255 255 255' : '0 0 0';
   root.style.setProperty('--overlay', `rgb(${shade} / ${Math.round(Math.abs(p.background.overlayOpacity) * 100)}%)`);
-  root.dataset.overlayBlur = String(p.background.overlayBlur);
+  root.dataset.overlayBlur = String(p.background.overlayBlur > 0);
+  root.style.setProperty('--overlay-blur', `${p.background.overlayBlur}px`);
   root.dataset.font = p.handwrittenFont ? 'handwritten' : 'default';
   root.style.fontSize = `${p.accessibility.fontScale}%`;
   if (!palette) return;

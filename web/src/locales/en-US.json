@@ -112,7 +112,7 @@
   "favorites.moveLater": "Move {name} later",
   "favorites.moved": "{name} is now favorite {position} of {count}.",
   "settings.showBoxes": "Box around each tile",
-  "settings.background.overlayBlur": "Blur the background behind the panel",
+  "settings.background.overlayBlur": "Blur behind the panel",
   "settings.background.overlay.off": "Off",
   "settings.background.overlay.white": "White {percent}",
   "settings.background.overlay.black": "Black {percent}",

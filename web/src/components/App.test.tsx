@@ -123,8 +123,11 @@ describe('App', () => {
     await waitFor(() => expect(root.dataset.font).toBe('handwritten'));
     expect(root.dataset.overlay).toBe('true');
     expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 60%)');
-    expect(root.dataset.overlayBlur).toBe('true'); // on unless turned off
-    act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: false } })));
+    expect(root.dataset.overlayBlur).toBe('true'); // a light blur unless changed
+    expect(root.style.getPropertyValue('--overlay-blur')).toBe('8px');
+    act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: 20 } })));
+    await waitFor(() => expect(root.style.getPropertyValue('--overlay-blur')).toBe('20px'));
+    act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: 0 } })));
     await waitFor(() => expect(root.dataset.overlayBlur).toBe('false'));
     expect(document.querySelector('.background-pattern')).not.toBeNull();
   });

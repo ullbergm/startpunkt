@@ -72,8 +72,9 @@ export interface Background {
   // from zero the more solid: -1 is solid white, 0 is no panel, 1 is solid
   // black.
   overlayOpacity: number;
-  // Blur what shows through the panel, like frosted glass.
-  overlayBlur: boolean;
+  // How much what shows through the panel is blurred, like frosted glass,
+  // in pixels. 0 is no blur.
+  overlayBlur: number;
 }
 
 export interface Preset {
@@ -83,6 +84,7 @@ export interface Preset {
 
 export const MAX_COLUMNS = 6;
 export const MAX_BLUR = 20;
+export const MAX_PANEL_BLUR = 30;
 export const MESH_COLORS = 5;
 export const MAX_PRESETS = 20;
 // In the order they are offered. The first is the default.
@@ -138,7 +140,7 @@ export function defaults(): Preferences {
       // A dark panel by default, as in 4.x: headings sit straight on the
       // background, and few pictures leave them readable.
       overlayOpacity: 0.7,
-      overlayBlur: true,
+      overlayBlur: 8,
     },
     handwrittenFont: false,
     presets: {},
@@ -206,7 +208,13 @@ function sanitizeBackground(raw: unknown): Background {
           ? d.overlayOpacity
           : 0
         : number(background.overlayOpacity, -1, 1, d.overlayOpacity),
-    overlayBlur: bool(background.overlayBlur, d.overlayBlur),
+    // Earlier versions stored this as on or off.
+    overlayBlur:
+      typeof background.overlayBlur === 'boolean'
+        ? background.overlayBlur
+          ? d.overlayBlur
+          : 0
+        : number(background.overlayBlur, 0, MAX_PANEL_BLUR, d.overlayBlur),
   };
 }
 
