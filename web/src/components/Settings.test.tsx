@@ -195,6 +195,15 @@ describe('Background settings', () => {
     expect(screen.queryByRole('checkbox', { name: 'Blur the background behind the panel' })).toBeNull();
     expect(screen.getByRole('slider', { name: 'Blur' }).getAttribute('aria-valuetext')).toBe('8px');
     expect(screen.getByRole('slider', { name: 'Opacity' }).getAttribute('aria-valuetext')).toBe('50%');
+    // The panel runs from white through none to black.
+    const panelText = () => screen.getByRole('slider', { name: /Panel behind the content/ }).getAttribute('aria-valuetext');
+    expect(panelText()).toBe('Off');
+    slide(/Panel behind the content/, -0.4);
+    expect(panelText()).toBe('White 40%');
+    slide(/Panel behind the content/, 0.7);
+    expect(panelText()).toBe('Black 70%');
+    expect(prefs.value.background.overlayOpacity).toBe(0.7);
+    expect(screen.getByRole('checkbox', { name: 'Blur the background behind the panel' })).toBeTruthy();
   });
 
   it('edits the mesh gradient', () => {

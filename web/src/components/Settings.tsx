@@ -412,13 +412,19 @@ function BackgroundTab({ p }: { p: Preferences }) {
             label={t('settings.background.overlayOpacity')}
             help={t('settings.background.overlayHelp')}
             value={b.overlayOpacity}
-            min={0}
+            min={-1}
             max={1}
             step={0.05}
-            format={percent}
+            format={(value) =>
+              value === 0
+                ? t('settings.background.overlay.off')
+                : t(value < 0 ? 'settings.background.overlay.white' : 'settings.background.overlay.black', {
+                    percent: percent(Math.abs(value)),
+                  })
+            }
             onChange={(overlayOpacity) => setBackground({ overlayOpacity })}
           />
-          {b.overlayOpacity > 0 && (
+          {b.overlayOpacity !== 0 && (
             <Check
               label={t('settings.background.overlayBlur')}
               checked={b.overlayBlur}

@@ -122,7 +122,7 @@ describe('App', () => {
     );
     await waitFor(() => expect(root.dataset.font).toBe('handwritten'));
     expect(root.dataset.overlay).toBe('true');
-    expect(root.style.getPropertyValue('--overlay')).toBe('60%');
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 60%)');
     expect(root.dataset.overlayBlur).toBe('true'); // on unless turned off
     act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: false } })));
     await waitFor(() => expect(root.dataset.overlayBlur).toBe('false'));
@@ -331,7 +331,30 @@ describe('App', () => {
     expect([columns('big'), columns('small'), columns('one')]).toEqual(['4', '4', '4']);
   });
 
+  it('lets the panel behind the content decide between the light and the dark theme', async () => {
+    renderWith(serverState());
+    const root = document.documentElement;
+    const panel = (overlayOpacity: number, theme: 'light' | 'dark' = 'light') =>
+      act(() => updatePrefs((p) => ({ ...p, theme, background: { ...p.background, type: 'solid', overlayOpacity } })));
+
+    panel(0.7, 'light'); // a black panel: light text, whatever the theme says
+    await waitFor(() => expect(root.dataset.mode).toBe('dark'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 70%)');
+    expect(root.style.getPropertyValue('--bg')).toBe('#232530');
+
+    panel(-0.4, 'dark'); // a white panel: dark text
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(255 255 255 / 40%)');
+
+    panel(0, 'dark'); // no panel: the visitor's theme again
+    await waitFor(() => expect(root.dataset.overlay).toBe('false'));
+    expect(root.dataset.mode).toBe('dark');
+    panel(0, 'light');
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+  });
+
   it('gives icons the secondary colour of the theme, not the colour of the names', async () => {
+    updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
     const { container } = renderWith(serverState({ tiles: [tile({ name: 'Plex', icon: 'mdi:plex' })] }));
     await screen.findByRole('link', { name: /Plex/ });
     await waitFor(() =>
@@ -477,6 +500,8 @@ describe('App', () => {
   });
 
   it('applies the theme of the chosen mode to the document', async () => {
+    // On the theme background, where no panel decides the mode.
+    updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
     renderWith(serverState());
     const root = document.documentElement;
     await waitFor(() => expect(root.dataset.mode).toBe('light'));

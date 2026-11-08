@@ -106,7 +106,7 @@ describe('stored preferences', () => {
   it('read what an earlier version stored', () => {
     const old = sanitize({ background: { type: 'image', blur: true, overlay: false } });
     expect(old.background).toMatchObject({ type: 'image', blur: 10, overlayOpacity: 0 });
-    expect(sanitize({ background: { overlay: true } }).background.overlayOpacity).toBe(0.85);
+    expect(sanitize({ background: { overlay: true } }).background.overlayOpacity).toBe(0.7);
   });
 
   it('keep presets valid whatever was stored', () => {
@@ -127,5 +127,7 @@ describe('stored preferences', () => {
   it('clamp numbers to their range', () => {
     const b = sanitize({ background: { blur: 500, opacity: 0, overlayOpacity: 7 } }).background;
     expect(b).toMatchObject({ blur: 20, opacity: 0.1, overlayOpacity: 1 });
+    expect(sanitize({ background: { overlayOpacity: -7 } }).background.overlayOpacity).toBe(-1);
+    expect(sanitize({ background: { overlayOpacity: -0.4 } }).background.overlayOpacity).toBe(-0.4);
   });
 });

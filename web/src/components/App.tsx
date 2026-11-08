@@ -5,7 +5,7 @@ import { chooseLanguage, setLanguage, t } from '../i18n';
 import { prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
-import { applyAppearance, resolveMode, systemPrefersDark } from '../theme';
+import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { Icon } from './Icons';
 import { Favorites, Section } from './Section';
@@ -47,7 +47,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
     query.addEventListener('change', listener);
     return () => query.removeEventListener('change', listener);
   }, []);
-  const mode = resolveMode(p.theme, systemDark);
+  const mode = panelMode(p) ?? resolveMode(p.theme, systemDark);
   const palette = state?.config.theme[mode];
   useEffect(() => applyAppearance(document.documentElement, mode, palette, p), [mode, palette, p]);
 

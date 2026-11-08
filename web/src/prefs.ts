@@ -65,8 +65,10 @@ export interface Background {
   blur: number;
   // How much of the background shows, from 0.1 to 1.
   opacity: number;
-  // How solid the panel behind the content is, from 0 (none) to 1. It
-  // keeps text readable on a busy background.
+  // The panel behind the content, which keeps text readable on a busy
+  // background. Below zero it is white, above zero black, and the further
+  // from zero the more solid: -1 is solid white, 0 is no panel, 1 is solid
+  // black.
   overlayOpacity: number;
   // Blur what shows through the panel, like frosted glass.
   overlayBlur: boolean;
@@ -130,9 +132,9 @@ export function defaults(): Preferences {
       meshAnimated: false,
       blur: 0,
       opacity: 1,
-      // Mostly solid by default: headings sit straight on the background,
-      // and few pictures leave them readable.
-      overlayOpacity: 0.85,
+      // A dark panel by default, as in 4.x: headings sit straight on the
+      // background, and few pictures leave them readable.
+      overlayOpacity: 0.7,
       overlayBlur: true,
     },
     handwrittenFont: false,
@@ -199,7 +201,7 @@ function sanitizeBackground(raw: unknown): Background {
         ? background.overlay
           ? d.overlayOpacity
           : 0
-        : number(background.overlayOpacity, 0, 1, d.overlayOpacity),
+        : number(background.overlayOpacity, -1, 1, d.overlayOpacity),
     overlayBlur: bool(background.overlayBlur, d.overlayBlur),
   };
 }

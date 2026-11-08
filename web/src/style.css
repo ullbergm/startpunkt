@@ -211,14 +211,14 @@ main:focus {
   margin-top: 1rem;
   padding-top: 0.25rem;
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--bg) var(--overlay, 85%), transparent);
+  background: var(--overlay);
 }
 
 :root[data-overlay='true'] .page-header {
   padding: 0.75rem 1rem;
   margin-top: 1rem;
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--bg) var(--overlay, 85%), transparent);
+  background: var(--overlay);
 }
 
 button,

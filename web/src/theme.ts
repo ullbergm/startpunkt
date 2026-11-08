@@ -8,6 +8,15 @@ export function resolveMode(preference: ThemeMode, systemPrefersDark: boolean): 
   return preference;
 }
 
+// The panel behind the content decides the mode while there is one: text on
+// a white panel has to be dark, and text on a black panel light, whatever
+// the visitor's theme. Returns null when there is no panel.
+export function panelMode(p: Preferences): Mode | null {
+  const { type, overlayOpacity } = p.background;
+  if (type === 'theme' || overlayOpacity === 0) return null;
+  return overlayOpacity > 0 ? 'dark' : 'light';
+}
+
 export function systemPrefersDark(): boolean {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }
@@ -24,8 +33,10 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   root.dataset.boxes = String(p.layout.showBoxes);
   root.dataset.contrast = p.accessibility.highContrast ? 'high' : 'normal';
   root.dataset.background = p.background.type;
-  root.dataset.overlay = String(p.background.type !== 'theme' && p.background.overlayOpacity > 0);
-  root.style.setProperty('--overlay', `${Math.round(p.background.overlayOpacity * 100)}%`);
+  const panel = panelMode(p);
+  root.dataset.overlay = String(panel !== null);
+  const shade = panel === 'light' ? '255 255 255' : '0 0 0';
+  root.style.setProperty('--overlay', `rgb(${shade} / ${Math.round(Math.abs(p.background.overlayOpacity) * 100)}%)`);
   root.dataset.overlayBlur = String(p.background.overlayBlur);
   root.dataset.font = p.handwrittenFont ? 'handwritten' : 'default';
   root.style.fontSize = `${p.accessibility.fontScale}%`;

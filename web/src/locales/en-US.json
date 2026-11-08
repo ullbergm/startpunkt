@@ -105,12 +105,15 @@
   "settings.background.blur": "Blur",
   "settings.background.opacity": "Opacity",
   "settings.background.overlayOpacity": "Panel behind the content",
-  "settings.background.overlayHelp": "Improves readability on busy backgrounds. 0% turns it off.",
+  "settings.background.overlayHelp": "From solid white on the left, through none in the middle, to solid black on the right. A white panel uses the light theme and a black one the dark theme.",
   "tile.tags": "Tags: {tags}",
   "section.kinds": "Kinds of tiles",
   "favorites.moveEarlier": "Move {name} earlier",
   "favorites.moveLater": "Move {name} later",
   "favorites.moved": "{name} is now favorite {position} of {count}.",
   "settings.showBoxes": "Box around each tile",
-  "settings.background.overlayBlur": "Blur the background behind the panel"
+  "settings.background.overlayBlur": "Blur the background behind the panel",
+  "settings.background.overlay.off": "Off",
+  "settings.background.overlay.white": "White {percent}",
+  "settings.background.overlay.black": "Black {percent}"
 }

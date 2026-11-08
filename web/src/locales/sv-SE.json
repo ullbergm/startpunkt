@@ -105,12 +105,15 @@
   "settings.background.blur": "Oskärpa",
   "settings.background.opacity": "Opacitet",
   "settings.background.overlayOpacity": "Panel bakom innehållet",
-  "settings.background.overlayHelp": "Förbättrar läsbarheten på röriga bakgrunder. 0 % stänger av den.",
+  "settings.background.overlayHelp": "Från helt vit till vänster, via ingen i mitten, till helt svart till höger. En vit panel använder det ljusa temat och en svart det mörka.",
   "tile.tags": "Taggar: {tags}",
   "section.kinds": "Typer av brickor",
   "favorites.moveEarlier": "Flytta {name} tidigare",
   "favorites.moveLater": "Flytta {name} senare",
   "favorites.moved": "{name} är nu favorit {position} av {count}.",
   "settings.showBoxes": "Ruta runt varje bricka",
-  "settings.background.overlayBlur": "Gör bakgrunden bakom panelen suddig"
+  "settings.background.overlayBlur": "Gör bakgrunden bakom panelen suddig",
+  "settings.background.overlay.off": "Av",
+  "settings.background.overlay.white": "Vit {percent}",
+  "settings.background.overlay.black": "Svart {percent}"
 }
