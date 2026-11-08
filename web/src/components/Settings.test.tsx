@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/pr
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setLanguage } from '../i18n';
 import { defaults, prefs, reloadPrefs, toggleFavorite } from '../prefs';
-import { Background, imageAddress, meshGradient, picsumAddress, timeGradient } from './Background';
+import { Background, imageAddress, meshGradient, timeGradient } from './Background';
 import { Settings } from './Settings';
 
 beforeEach(async () => {
@@ -184,13 +184,6 @@ describe('Background settings', () => {
     expect(screen.getByRole('slider', { name: 'Opacity' }).getAttribute('aria-valuetext')).toBe('50%');
   });
 
-  it('chooses the picture provider', () => {
-    open('Background');
-    select('Background type', 'pictureOfDay');
-    select('Picture provider', 'picsum');
-    expect(prefs.value.background.provider).toBe('picsum');
-  });
-
   it('edits the mesh gradient', () => {
     open('Background');
     select('Background type', 'meshGradient');
@@ -347,21 +340,6 @@ describe('Background', () => {
     await waitFor(() => expect(element(container)).not.toBeNull());
     expect(fetcher).toHaveBeenCalledWith('/api/v1/background');
     expect(screen.getByText('Picture: A view (Someone)')).toBeTruthy();
-  });
-
-  it('uses one Lorem Picsum picture per day without asking the server', () => {
-    const fetcher = vi.fn();
-    const day = new Date(Date.UTC(2026, 10, 12, 9, 0));
-    expect(picsumAddress(day)).toBe('https://picsum.photos/seed/2026-11-12/1920/1080');
-    const { container } = render(
-      <Background
-        background={{ ...base, type: 'pictureOfDay', provider: 'picsum' }}
-        fetcher={fetcher as unknown as typeof fetch}
-        now={() => day}
-      />,
-    );
-    expect(element(container)!.style.backgroundImage).toContain('picsum.photos/seed/2026-11-12');
-    expect(fetcher).not.toHaveBeenCalled();
   });
 
   it('draws nothing when the picture of the day is not available', async () => {

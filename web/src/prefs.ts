@@ -14,7 +14,6 @@ export type BackgroundType =
   | 'image'
   | 'pictureOfDay'
   | 'geopattern';
-export type PictureProvider = 'bing' | 'picsum';
 export type Complexity = 'low' | 'medium' | 'high';
 export type Direction = 'to bottom' | 'to top' | 'to right' | 'to left' | 'to bottom right' | 'to bottom left';
 
@@ -55,7 +54,6 @@ export interface Background {
   color2: string;
   direction: Direction;
   imageUrl: string;
-  provider: PictureProvider;
   // Text the geopattern is generated from.
   patternSeed: string;
   meshColors: string[];
@@ -120,7 +118,6 @@ export function defaults(): Preferences {
       color2: '#7a4fa3',
       direction: 'to bottom right',
       imageUrl: '',
-      provider: 'bing',
       patternSeed: 'startpunkt',
       meshColors: ['#2d5016', '#f4c430', '#00ffff', '#ff0080', '#800000'],
       meshComplexity: 'high',
@@ -182,7 +179,6 @@ function sanitizeBackground(raw: unknown): Background {
     color2: hex(background.color2, d.color2),
     direction: oneOf<Direction>(background.direction, DIRECTIONS, d.direction),
     imageUrl: typeof background.imageUrl === 'string' ? background.imageUrl.slice(0, 2000) : '',
-    provider: oneOf<PictureProvider>(background.provider, ['bing', 'picsum'], d.provider),
     patternSeed: typeof background.patternSeed === 'string' ? background.patternSeed.slice(0, 100) : d.patternSeed,
     meshColors: d.meshColors.map((fallback, i) => hex(mesh[i], fallback)),
     meshComplexity: oneOf<Complexity>(background.meshComplexity, ['low', 'medium', 'high'], d.meshComplexity),

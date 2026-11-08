@@ -16,7 +16,6 @@ import {
   updatePrefs,
   type Background,
   type Complexity,
-  type PictureProvider,
   type Preferences,
   type Spacing,
   type ThemeMode,
@@ -277,7 +276,6 @@ function Layout({ p }: { p: Preferences }) {
 function BackgroundTab({ p }: { p: Preferences }) {
   const b = p.background;
   const type = b.type;
-  const providers: PictureProvider[] = ['bing', 'picsum'];
   const complexities: Complexity[] = ['low', 'medium', 'high'];
   const isPicture = type === 'image' || type === 'pictureOfDay';
   return (
@@ -361,17 +359,6 @@ function BackgroundTab({ p }: { p: Preferences }) {
             onChange={(event) => setBackground({ imageUrl: event.currentTarget.value })}
           />
         </label>
-      )}
-      {type === 'pictureOfDay' && (
-        <Select
-          label={t('settings.background.provider')}
-          value={b.provider}
-          options={providers.map((value) => ({
-            value,
-            label: t(`settings.background.provider.${value}` as MessageKey),
-          }))}
-          onChange={(provider) => setBackground({ provider })}
-        />
       )}
       {type === 'geopattern' && (
         <>

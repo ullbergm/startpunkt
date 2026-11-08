@@ -49,11 +49,6 @@ export function meshGradient(colors: string[], complexity: Complexity): string {
     .join(', ');
 }
 
-// One picture per day, the same for everyone that day.
-export function picsumAddress(date: Date): string {
-  return `https://picsum.photos/seed/${date.toISOString().slice(0, 10)}/1920/1080`;
-}
-
 // The page background, behind everything else. With the "theme" type there
 // is nothing to draw: the page colour comes from the theme.
 export function Background({
@@ -67,7 +62,7 @@ export function Background({
 }) {
   const { type } = background;
   const [picture, setPicture] = useState<Picture | null>(null);
-  const wantsBing = type === 'pictureOfDay' && background.provider === 'bing';
+  const wantsBing = type === 'pictureOfDay';
   useEffect(() => {
     if (!wantsBing) return;
     let current = true;
@@ -128,9 +123,7 @@ export function Background({
     }
     case 'pictureOfDay':
       isPicture = true;
-      if (background.provider === 'picsum') {
-        style = { backgroundImage: cssUrl(picsumAddress(now())) };
-      } else if (picture) {
+      if (picture) {
         style = { backgroundImage: cssUrl(imageAddress(picture.url)!) };
         credit = t('background.credit', { title: picture.title, copyright: picture.copyright });
       }
