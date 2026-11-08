@@ -105,7 +105,7 @@
   "settings.background.blur": "Oskärpa",
   "settings.background.opacity": "Opacitet",
   "settings.background.overlayOpacity": "Panel bakom innehållet",
-  "settings.background.overlayHelp": "Från helt vit till vänster, via ingen i mitten, till helt svart till höger. En vit panel använder det ljusa temat och en svart det mörka.",
+  "settings.background.overlayHelp": "Från helt vit till vänster, via ingen i mitten, till helt svart till höger. En vit panel hör ihop med det ljusa temat och en svart med det mörka, så när du ändrar den ena ändras den andra.",
   "tile.tags": "Taggar: {tags}",
   "section.kinds": "Typer av brickor",
   "favorites.moveEarlier": "Flytta {name} tidigare",

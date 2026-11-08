@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaults, moveFavorite, prefs, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { defaults, moveFavorite, prefs, setPanel, setTheme, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -86,6 +86,32 @@ describe('stored preferences', () => {
     expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
     moveFavorite('unknown', 0);
     expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
+  });
+
+  it('keep the theme and the panel in agreement', () => {
+    // The default: a black panel on the picture of the day, theme on auto.
+    expect(prefs.value.background.overlayOpacity).toBe(0.7);
+
+    setTheme('light'); // the panel turns white, as strong as it was
+    expect(prefs.value).toMatchObject({ theme: 'light', background: { overlayOpacity: -0.7 } });
+    setTheme('dark');
+    expect(prefs.value).toMatchObject({ theme: 'dark', background: { overlayOpacity: 0.7 } });
+
+    setPanel(-0.4); // moving the panel to white switches to the light theme
+    expect(prefs.value).toMatchObject({ theme: 'light', background: { overlayOpacity: -0.4 } });
+    setPanel(0.2);
+    expect(prefs.value.theme).toBe('dark');
+
+    setPanel(0); // no panel: the theme stays as it was
+    expect(prefs.value).toMatchObject({ theme: 'dark', background: { overlayOpacity: 0 } });
+    setTheme('light'); // and with no panel there is nothing to turn
+    expect(prefs.value).toMatchObject({ theme: 'light', background: { overlayOpacity: 0 } });
+
+    setPanel(0.5);
+    setTheme('auto'); // auto leaves the panel alone and follows it
+    expect(prefs.value).toMatchObject({ theme: 'auto', background: { overlayOpacity: 0.5 } });
+    setPanel(-0.5);
+    expect(prefs.value.theme).toBe('auto');
   });
 
   it('toggle a collapsed group', () => {

@@ -276,6 +276,32 @@ export function updatePrefs(change: (current: Preferences) => Preferences): void
   }
 }
 
+// The theme and the panel behind the content have to agree: dark text is
+// unreadable on a black panel and light text on a white one. So choosing a
+// theme turns the panel to match it, and moving the panel to the other
+// colour changes the theme. Neither control is ever without effect.
+
+// Chooses light, dark or auto. With light or dark, a panel that is shown
+// becomes white or black, keeping its strength.
+export function setTheme(theme: ThemeMode): void {
+  updatePrefs((current) => {
+    const strength = Math.abs(current.background.overlayOpacity);
+    const overlayOpacity =
+      theme === 'auto' || strength === 0 ? current.background.overlayOpacity : theme === 'dark' ? strength : -strength;
+    return { ...current, theme, background: { ...current.background, overlayOpacity } };
+  });
+}
+
+// Sets the panel: below zero white, above zero black. Unless the theme is
+// on auto, it follows the colour of the panel.
+export function setPanel(overlayOpacity: number): void {
+  updatePrefs((current) => ({
+    ...current,
+    theme: current.theme === 'auto' || overlayOpacity === 0 ? current.theme : overlayOpacity > 0 ? 'dark' : 'light',
+    background: { ...current.background, overlayOpacity },
+  }));
+}
+
 export function resetPrefs(): void {
   // Favorites, collapsed groups and saved presets are content, not
   // appearance. Keep them.

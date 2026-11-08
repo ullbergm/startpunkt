@@ -356,6 +356,23 @@ describe('App', () => {
     await waitFor(() => expect(root.dataset.mode).toBe('light'));
   });
 
+  it('changes the look when the theme is changed in settings, panel or not', async () => {
+    renderWith(serverState());
+    const root = document.documentElement;
+    await waitFor(() => expect(root.dataset.mode).toBe('dark')); // the default black panel
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    const theme = await screen.findByRole('combobox', { name: 'Theme' });
+    fireEvent.change(theme, { target: { value: 'light' } });
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(255 255 255 / 70%)');
+    expect(root.style.getPropertyValue('--bg')).toBe('#F8F6F1');
+
+    fireEvent.change(theme, { target: { value: 'dark' } });
+    await waitFor(() => expect(root.dataset.mode).toBe('dark'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 70%)');
+  });
+
   it('gives icons the secondary colour of the theme, not the colour of the names', async () => {
     updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
     const { container } = renderWith(serverState({ tiles: [tile({ name: 'Plex', icon: 'mdi:plex' })] }));

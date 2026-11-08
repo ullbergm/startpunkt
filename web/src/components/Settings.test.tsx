@@ -209,6 +209,8 @@ describe('Background settings', () => {
     expect(panelText()).toBe('White 40%');
     slide(/Panel behind the content/, 0.7);
     expect(panelText()).toBe('Black 70%');
+    // The theme was on auto, so it is left alone.
+    expect(prefs.value.theme).toBe('auto');
     expect(prefs.value.background.overlayOpacity).toBe(0.7);
     expect(screen.getByRole('slider', { name: 'Blur behind the panel' })).toBeTruthy();
   });

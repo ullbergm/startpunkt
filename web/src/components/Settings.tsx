@@ -13,6 +13,8 @@ import {
   prefs,
   resetPrefs,
   savePreset,
+  setPanel,
+  setTheme,
   TYPES,
   updatePrefs,
   type Background,
@@ -154,7 +156,7 @@ function Appearance({ p }: { p: Preferences }) {
         label={t('settings.theme')}
         value={p.theme}
         options={themes.map((value) => ({ value, label: t(`settings.theme.${value}` as MessageKey) }))}
-        onChange={(theme) => updatePrefs((current) => ({ ...current, theme }))}
+        onChange={setTheme}
       />
       <Select
         label={t('settings.language')}
@@ -428,7 +430,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
                     percent: percent(Math.abs(value)),
                   })
             }
-            onChange={(overlayOpacity) => setBackground({ overlayOpacity })}
+            onChange={setPanel}
           />
           {b.overlayOpacity !== 0 && (
             <Range
