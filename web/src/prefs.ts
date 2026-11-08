@@ -31,6 +31,8 @@ export interface Preferences {
     columns: number;
     spacing: Spacing;
     compact: boolean;
+    // A box around each tile. Without it tiles sit straight on the page.
+    showBoxes: boolean;
     showDescription: boolean;
     showTags: boolean;
     showStatus: boolean;
@@ -107,6 +109,7 @@ export function defaults(): Preferences {
       columns: 0,
       spacing: 'normal',
       compact: false,
+      showBoxes: false,
       showDescription: true,
       showTags: false,
       showStatus: true,
@@ -162,6 +165,7 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
         : d.columns,
     spacing: oneOf<Spacing>(layout.spacing, ['tight', 'normal', 'relaxed'], d.spacing),
     compact: bool(layout.compact, d.compact),
+    showBoxes: bool(layout.showBoxes, d.showBoxes),
     showDescription: bool(layout.showDescription, d.showDescription),
     showTags: bool(layout.showTags, d.showTags),
     showStatus: bool(layout.showStatus, d.showStatus),

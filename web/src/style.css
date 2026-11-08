@@ -362,6 +362,19 @@ kbd {
   border-color: var(--accent);
 }
 
+/* Without boxes a tile has no border or surface of its own. Pointing at it
+   or moving focus into it still marks it, with a surface and a border. */
+:root[data-boxes='false'] .tile {
+  border-color: transparent;
+  background: none;
+}
+
+:root[data-boxes='false'] .tile:hover,
+:root[data-boxes='false'] .tile:focus-within {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
 .tile-link {
   display: flex;
   flex: 1;

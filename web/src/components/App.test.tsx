@@ -469,6 +469,9 @@ describe('App', () => {
     );
     const root = document.documentElement;
     await waitFor(() => expect(root.dataset.spacing).toBe('tight'));
+    expect(root.dataset.boxes).toBe('false'); // tiles have no box unless asked for
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, showBoxes: true } })));
+    await waitFor(() => expect(root.dataset.boxes).toBe('true'));
     expect(root.dataset.compact).toBe('true');
     expect(root.dataset.contrast).toBe('high');
     expect(root.style.fontSize).toBe('130%');

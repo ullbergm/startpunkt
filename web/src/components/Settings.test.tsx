@@ -76,12 +76,16 @@ describe('Settings', () => {
     select('Columns', '4');
     select('Spacing', 'relaxed');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Compact tiles' }));
+    const boxes = screen.getByRole('checkbox', { name: 'Box around each tile' }) as HTMLInputElement;
+    expect(boxes.checked).toBe(false);
+    fireEvent.click(boxes);
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show tags' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Hide unreachable applications' }));
     expect(prefs.value.layout).toMatchObject({
       columns: 4,
       spacing: 'relaxed',
       compact: true,
+      showBoxes: true,
       showTags: true,
       hideUnreachable: true,
     });

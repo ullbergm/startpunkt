@@ -253,6 +253,11 @@ function Layout({ p }: { p: Preferences }) {
       />
       <Check label={t('settings.compact')} checked={p.layout.compact} onChange={(compact) => setLayout({ compact })} />
       <Check
+        label={t('settings.showBoxes')}
+        checked={p.layout.showBoxes}
+        onChange={(showBoxes) => setLayout({ showBoxes })}
+      />
+      <Check
         label={t('settings.showDescription')}
         checked={p.layout.showDescription}
         onChange={(showDescription) => setLayout({ showDescription })}
