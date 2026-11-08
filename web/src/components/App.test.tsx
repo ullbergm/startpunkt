@@ -124,7 +124,7 @@ describe('App', () => {
     expect(root.dataset.overlay).toBe('true');
     expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 60%)');
     expect(root.dataset.overlayBlur).toBe('true'); // a light blur unless changed
-    expect(root.style.getPropertyValue('--overlay-blur')).toBe('8px');
+    expect(root.style.getPropertyValue('--overlay-blur')).toBe('3px');
     act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: 20 } })));
     await waitFor(() => expect(root.style.getPropertyValue('--overlay-blur')).toBe('20px'));
     act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: 0 } })));
@@ -595,6 +595,18 @@ describe('App', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Settings' });
     fireEvent.keyDown(within(dialog).getAllByRole('combobox')[0]!, { key: '/' });
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
+  });
+
+  it('has no search control in the header, and keeps settings in the corner', async () => {
+    renderWith(serverState({ tiles: [tile({ name: 'Plex' })] }));
+    await screen.findByRole('link', { name: /Plex/ });
+    const header = screen.getByRole('banner');
+    expect(within(header).queryByRole('button')).toBeNull();
+    const settings = screen.getByRole('button', { name: 'Settings' });
+    expect(settings.closest('.corner-actions')).not.toBeNull();
+    // The search button exists for touch screens only; the stylesheet hides
+    // it wherever there is a keyboard to type on.
+    expect(screen.getByRole('button', { name: 'Search' }).className).toContain('touch-only');
   });
 
   it('has a skip link to the content', () => {

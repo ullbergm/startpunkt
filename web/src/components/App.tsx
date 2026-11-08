@@ -115,23 +115,6 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
         {/* Decorative: the heading next to it names the page. */}
         <img class="logo" src="/logo.svg" alt="" width="40" height="40" />
         <h1>{title}</h1>
-        <div class="page-actions">
-          <button
-            type="button"
-            class="search-button"
-            onClick={() => {
-              setInitialQuery('');
-              setDialog('search');
-            }}
-          >
-            <Icon name="search" size={18} />
-            <span>{t('search.open')}</span>
-            <kbd aria-hidden="true">/</kbd>
-          </button>
-          <button type="button" class="icon-button" aria-label={t('settings.open')} onClick={() => setDialog('settings')}>
-            <Icon name="settings" />
-          </button>
-        </div>
       </header>
       <main id="content" tabIndex={-1}>
         <div role="status" aria-live="polite">
@@ -184,6 +167,26 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
           ))
         )}
       </main>
+      {/* The page's own controls sit in the bottom right corner of the
+          window, out of the way of the content. Search has no button on a
+          device with a keyboard: it opens when you start typing. A touch
+          screen has no keys to start typing on, so there it gets one. */}
+      <div class="corner-actions">
+        <button
+          type="button"
+          class="icon-button touch-only"
+          aria-label={t('search.open')}
+          onClick={() => {
+            setInitialQuery('');
+            setDialog('search');
+          }}
+        >
+          <Icon name="search" />
+        </button>
+        <button type="button" class="icon-button" aria-label={t('settings.open')} onClick={() => setDialog('settings')}>
+          <Icon name="settings" />
+        </button>
+      </div>
       {dialog === 'search' && state && (
         <Spotlight
           tiles={tiles}

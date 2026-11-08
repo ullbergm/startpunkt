@@ -190,7 +190,7 @@ describe('Background settings', () => {
     slide('Blur', 8);
     slide('Opacity', 0.5);
     const frosted = screen.getByRole('slider', { name: 'Blur behind the panel' });
-    expect(frosted.getAttribute('aria-valuetext')).toBe('8px');
+    expect(frosted.getAttribute('aria-valuetext')).toBe('3px');
     slide('Blur behind the panel', 0);
     expect(prefs.value.background.overlayBlur).toBe(0);
     expect(screen.getByRole('slider', { name: 'Blur behind the panel' }).getAttribute('aria-valuetext')).toBe('Off');
@@ -200,7 +200,7 @@ describe('Background settings', () => {
     expect(prefs.value.background).toMatchObject({ blur: 8, opacity: 0.5, overlayOpacity: 0 });
     // Without a panel there is nothing to blur behind.
     expect(screen.queryByRole('slider', { name: 'Blur behind the panel' })).toBeNull();
-    expect(screen.getByRole('slider', { name: 'Blur' }).getAttribute('aria-valuetext')).toBe('8px');
+    expect(screen.getByRole('slider', { name: 'Blur' }).getAttribute('aria-valuetext')).toBe('3px');
     expect(screen.getByRole('slider', { name: 'Opacity' }).getAttribute('aria-valuetext')).toBe('50%');
     // The panel runs from white through none to black.
     const panelText = () => screen.getByRole('slider', { name: /Panel behind the content/ }).getAttribute('aria-valuetext');

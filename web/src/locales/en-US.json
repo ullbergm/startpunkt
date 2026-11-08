@@ -73,7 +73,7 @@
   "settings.highContrast": "High contrast",
   "settings.highContrastHelp": "Stronger borders and text colors.",
   "settings.shortcuts": "Keyboard shortcuts",
-  "settings.shortcuts.search": "Open search",
+  "settings.shortcuts.search": "Open search, or just start typing",
   "settings.shortcuts.close": "Close a dialog",
   "background.credit": "Picture: {title} ({copyright})",
   "settings.tabs": "Settings sections",

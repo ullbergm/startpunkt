@@ -8,33 +8,39 @@ export function webQuery(query: string): string | null {
   return trimmed.startsWith('?') ? trimmed.slice(1).trim() : null;
 }
 
-function host(url: string): string {
-  try {
-    return new URL(url).host;
-  } catch {
-    return '';
-  }
+// Lower-cased words, with accents removed so that "cafe" finds "Café".
+function words(text: string): string[] {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
 }
 
-// Finds tiles for a query. Every word must occur somewhere in the tile: its
-// name, group, description, tags, cluster or host. The cluster is included
-// so that "grafana prod" finds one tile among several of the same name.
+// Finds tiles by name, as 4.x does: each word of the query must be the
+// start of a word in the tile's name. "ho as" finds "Home Assistant"; "ome"
+// does not. Descriptions, groups and addresses are not searched, because
+// matching on them returns most of the page for a short query.
 //
-// Tiles whose name starts with the query come first, then those whose name
-// contains a word, then the rest; ties keep the order they came in.
+// One addition: a word of the query may instead be the start of the tile's
+// cluster name, as long as another word matches the name. That lets
+// "grafana prod" pick one tile among several of the same name.
+//
+// Tiles whose name starts with the query come first; the rest keep the
+// order they came in.
 export function searchTiles(tiles: Tile[], query: string, limit = MAX_RESULTS): Tile[] {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  if (words.length === 0) return [];
-  const whole = words.join(' ');
+  const wanted = words(query);
+  if (wanted.length === 0) return [];
+  const whole = wanted.join(' ');
   const scored: { tile: Tile; score: number; index: number }[] = [];
   tiles.forEach((tile, index) => {
-    const name = tile.name.toLowerCase();
-    const haystack = [name, tile.group, tile.info ?? '', tile.tags.join(' '), tile.cluster, host(tile.url)]
-      .join(' ')
-      .toLowerCase();
-    if (!words.every((word) => haystack.includes(word))) return;
-    const score = name.startsWith(whole) ? 0 : words.some((word) => name.includes(word)) ? 1 : 2;
-    scored.push({ tile, score, index });
+    const name = words(tile.name);
+    const cluster = words(tile.cluster);
+    const inName = (word: string) => name.some((part) => part.startsWith(word));
+    const inCluster = (word: string) => cluster.some((part) => part.startsWith(word));
+    if (!wanted.some(inName) || !wanted.every((word) => inName(word) || inCluster(word))) return;
+    scored.push({ tile, score: name.join(' ').startsWith(whole) ? 0 : 1, index });
   });
   return scored
     .sort((a, b) => a.score - b.score || a.index - b.index)

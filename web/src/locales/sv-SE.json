@@ -73,7 +73,7 @@
   "settings.highContrast": "Hög kontrast",
   "settings.highContrastHelp": "Tydligare kanter och textfärger.",
   "settings.shortcuts": "Tangentbordsgenvägar",
-  "settings.shortcuts.search": "Öppna sökningen",
+  "settings.shortcuts.search": "Öppna sökningen, eller börja bara skriva",
   "settings.shortcuts.close": "Stäng en dialogruta",
   "background.credit": "Bild: {title} ({copyright})",
   "settings.tabs": "Inställningsavsnitt",

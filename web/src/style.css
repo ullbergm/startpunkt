@@ -135,7 +135,7 @@ body {
 
 .background-credit {
   position: fixed;
-  right: 0.5rem;
+  left: 0.5rem;
   bottom: 0.25rem;
   margin: 0;
   padding: 0.1rem 0.5rem;
@@ -169,11 +169,30 @@ main {
   height: 2.5rem;
 }
 
-.page-actions {
+.corner-actions {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 5;
   display: flex;
-  align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
+}
+
+.corner-actions .icon-button {
+  padding: 0.55rem;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+}
+
+/* Only where there is no keyboard to start typing on. */
+.touch-only {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-only {
+    display: inline-grid;
+  }
 }
 
 h1 {
@@ -205,8 +224,8 @@ main:focus {
 /* Frosted glass: what shows through the panel is blurred. */
 :root[data-overlay='true'][data-overlay-blur='true'] main,
 :root[data-overlay='true'][data-overlay-blur='true'] .page-header {
-  -webkit-backdrop-filter: blur(var(--overlay-blur, 8px));
-  backdrop-filter: blur(var(--overlay-blur, 8px));
+  -webkit-backdrop-filter: blur(var(--overlay-blur, 3px));
+  backdrop-filter: blur(var(--overlay-blur, 3px));
 }
 
 /* A translucent panel behind the content, for busy backgrounds. */
@@ -256,13 +275,6 @@ input:focus-visible {
   display: inline-grid;
   place-items: center;
   padding: 0.4rem;
-}
-
-.search-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--muted);
 }
 
 kbd {
@@ -554,6 +566,8 @@ li[draggable='true'] {
 
 .tile-info {
   color: var(--accent);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }

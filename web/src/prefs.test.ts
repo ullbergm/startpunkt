@@ -130,7 +130,7 @@ describe('stored preferences', () => {
     expect(sanitize({ background: { overlayOpacity: -7 } }).background.overlayOpacity).toBe(-1);
     expect(sanitize({ background: { overlayBlur: 99 } }).background.overlayBlur).toBe(30);
     // Stored as on or off by an earlier version.
-    expect(sanitize({ background: { overlayBlur: true } }).background.overlayBlur).toBe(8);
+    expect(sanitize({ background: { overlayBlur: true } }).background.overlayBlur).toBe(3);
     expect(sanitize({ background: { overlayBlur: false } }).background.overlayBlur).toBe(0);
     expect(sanitize({ background: { overlayOpacity: -0.4 } }).background.overlayOpacity).toBe(-0.4);
   });

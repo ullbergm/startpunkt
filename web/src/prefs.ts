@@ -140,7 +140,7 @@ export function defaults(): Preferences {
       // A dark panel by default, as in 4.x: headings sit straight on the
       // background, and few pictures leave them readable.
       overlayOpacity: 0.7,
-      overlayBlur: 8,
+      overlayBlur: 3,
     },
     handwrittenFont: false,
     presets: {},
