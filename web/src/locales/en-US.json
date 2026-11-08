@@ -111,5 +111,6 @@
   "favorites.moveEarlier": "Move {name} earlier",
   "favorites.moveLater": "Move {name} later",
   "favorites.moved": "{name} is now favorite {position} of {count}.",
-  "settings.showBoxes": "Box around each tile"
+  "settings.showBoxes": "Box around each tile",
+  "settings.background.overlayBlur": "Blur the background behind the panel"
 }

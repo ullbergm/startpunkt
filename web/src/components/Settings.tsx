@@ -418,6 +418,13 @@ function BackgroundTab({ p }: { p: Preferences }) {
             format={percent}
             onChange={(overlayOpacity) => setBackground({ overlayOpacity })}
           />
+          {b.overlayOpacity > 0 && (
+            <Check
+              label={t('settings.background.overlayBlur')}
+              checked={b.overlayBlur}
+              onChange={(overlayBlur) => setBackground({ overlayBlur })}
+            />
+          )}
         </>
       )}
     </>

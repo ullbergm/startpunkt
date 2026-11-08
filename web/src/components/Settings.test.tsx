@@ -143,18 +143,21 @@ describe('Settings', () => {
 describe('Background settings', () => {
   it('shows only the options that apply to the chosen type', () => {
     open('Background');
+    // The picture of the day is the default and comes first.
+    expect((screen.getByRole('combobox', { name: 'Background type' }) as HTMLSelectElement).value).toBe('pictureOfDay');
+    select('Background type', 'theme');
     expect(screen.queryByLabelText('Color')).toBeNull();
     expect(screen.queryByRole('slider')).toBeNull();
     expect(
       [...screen.getByRole('combobox', { name: 'Background type' }).querySelectorAll('option')].map((o) => o.textContent),
     ).toEqual([
+      'Picture of the day',
       'Theme',
       'Solid color',
       'Gradient',
       'Time of day',
       'Mesh gradient',
       'Custom image',
-      'Picture of the day',
       'Geopattern',
     ]);
 
@@ -182,8 +185,14 @@ describe('Background settings', () => {
     select('Background type', 'pictureOfDay');
     slide('Blur', 8);
     slide('Opacity', 0.5);
+    const frosted = screen.getByRole('checkbox', { name: 'Blur the background behind the panel' }) as HTMLInputElement;
+    expect(frosted.checked).toBe(true);
+    fireEvent.click(frosted);
+    expect(prefs.value.background.overlayBlur).toBe(false);
     slide(/Panel behind the content/, 0);
     expect(prefs.value.background).toMatchObject({ blur: 8, opacity: 0.5, overlayOpacity: 0 });
+    // Without a panel there is nothing to blur behind.
+    expect(screen.queryByRole('checkbox', { name: 'Blur the background behind the panel' })).toBeNull();
     expect(screen.getByRole('slider', { name: 'Blur' }).getAttribute('aria-valuetext')).toBe('8px');
     expect(screen.getByRole('slider', { name: 'Opacity' }).getAttribute('aria-valuetext')).toBe('50%');
   });
@@ -263,7 +272,7 @@ describe('Background', () => {
   const element = (container: Element) => container.querySelector('.background') as HTMLElement | null;
 
   it('draws nothing for the theme background', () => {
-    const { container } = render(<Background background={base} />);
+    const { container } = render(<Background background={{ ...base, type: 'theme' }} />);
     expect(element(container)).toBeNull();
   });
 

@@ -199,6 +199,13 @@ main:focus {
   outline: none;
 }
 
+/* Frosted glass: what shows through the panel is blurred. */
+:root[data-overlay='true'][data-overlay-blur='true'] main,
+:root[data-overlay='true'][data-overlay-blur='true'] .page-header {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
 /* A translucent panel behind the content, for busy backgrounds. */
 :root[data-overlay='true'] main {
   margin-top: 1rem;

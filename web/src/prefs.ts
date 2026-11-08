@@ -68,6 +68,8 @@ export interface Background {
   // How solid the panel behind the content is, from 0 (none) to 1. It
   // keeps text readable on a busy background.
   overlayOpacity: number;
+  // Blur what shows through the panel, like frosted glass.
+  overlayBlur: boolean;
 }
 
 export interface Preset {
@@ -79,14 +81,15 @@ export const MAX_COLUMNS = 6;
 export const MAX_BLUR = 20;
 export const MESH_COLORS = 5;
 export const MAX_PRESETS = 20;
+// In the order they are offered. The first is the default.
 export const TYPES: BackgroundType[] = [
+  'pictureOfDay',
   'theme',
   'solid',
   'gradient',
   'timeGradient',
   'meshGradient',
   'image',
-  'pictureOfDay',
   'geopattern',
 ];
 export const FONT_SCALES = [85, 100, 115, 130, 150];
@@ -116,7 +119,7 @@ export function defaults(): Preferences {
       hideUnreachable: false,
     },
     background: {
-      type: 'theme',
+      type: 'pictureOfDay',
       color: '#214667',
       color2: '#7a4fa3',
       direction: 'to bottom right',
@@ -130,6 +133,7 @@ export function defaults(): Preferences {
       // Mostly solid by default: headings sit straight on the background,
       // and few pictures leave them readable.
       overlayOpacity: 0.85,
+      overlayBlur: true,
     },
     handwrittenFont: false,
     presets: {},
@@ -196,6 +200,7 @@ function sanitizeBackground(raw: unknown): Background {
           ? d.overlayOpacity
           : 0
         : number(background.overlayOpacity, 0, 1, d.overlayOpacity),
+    overlayBlur: bool(background.overlayBlur, d.overlayBlur),
   };
 }
 

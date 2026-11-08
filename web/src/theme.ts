@@ -26,6 +26,7 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   root.dataset.background = p.background.type;
   root.dataset.overlay = String(p.background.type !== 'theme' && p.background.overlayOpacity > 0);
   root.style.setProperty('--overlay', `${Math.round(p.background.overlayOpacity * 100)}%`);
+  root.dataset.overlayBlur = String(p.background.overlayBlur);
   root.dataset.font = p.handwrittenFont ? 'handwritten' : 'default';
   root.style.fontSize = `${p.accessibility.fontScale}%`;
   if (!palette) return;

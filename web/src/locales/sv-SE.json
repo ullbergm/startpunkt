@@ -111,5 +111,6 @@
   "favorites.moveEarlier": "Flytta {name} tidigare",
   "favorites.moveLater": "Flytta {name} senare",
   "favorites.moved": "{name} är nu favorit {position} av {count}.",
-  "settings.showBoxes": "Ruta runt varje bricka"
+  "settings.showBoxes": "Ruta runt varje bricka",
+  "settings.background.overlayBlur": "Gör bakgrunden bakom panelen suddig"
 }

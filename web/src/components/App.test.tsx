@@ -110,7 +110,9 @@ describe('App', () => {
     renderWith(serverState());
     const root = document.documentElement;
     await waitFor(() => expect(root.dataset.font).toBe('default'));
-    expect(root.dataset.overlay).toBe('false'); // no panel on the theme background
+    expect(root.dataset.overlay).toBe('true'); // the default background has a panel
+    act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } })));
+    await waitFor(() => expect(root.dataset.overlay).toBe('false')); // the theme background has none
     act(() =>
       updatePrefs((p) => ({
         ...p,
@@ -121,6 +123,9 @@ describe('App', () => {
     await waitFor(() => expect(root.dataset.font).toBe('handwritten'));
     expect(root.dataset.overlay).toBe('true');
     expect(root.style.getPropertyValue('--overlay')).toBe('60%');
+    expect(root.dataset.overlayBlur).toBe('true'); // on unless turned off
+    act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: false } })));
+    await waitFor(() => expect(root.dataset.overlayBlur).toBe('false'));
     expect(document.querySelector('.background-pattern')).not.toBeNull();
   });
 
