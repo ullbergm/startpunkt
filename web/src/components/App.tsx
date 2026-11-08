@@ -8,6 +8,7 @@ import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { Icon } from './Icons';
+import { Footer } from './Footer';
 import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
 import { Skeleton } from './Skeleton';
@@ -113,7 +114,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
       <Background background={p.background} />
       <header class="page-header">
         {/* Decorative: the heading next to it names the page. */}
-        <img class="logo" src="/logo.svg" alt="" width="40" height="40" />
+        <img class="logo" src="/logo.svg" alt="" width="72" height="72" />
         <h1>{title}</h1>
       </header>
       <main id="content" tabIndex={-1}>
@@ -167,6 +168,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
           ))
         )}
       </main>
+      <Footer />
       {/* The page's own controls sit in the bottom right corner of the
           window, out of the way of the content. Search has no button on a
           device with a keyboard: it opens when you start typing. A touch

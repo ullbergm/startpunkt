@@ -116,5 +116,7 @@
   "settings.background.overlay.off": "Av",
   "settings.background.overlay.white": "Vit {percent}",
   "settings.background.overlay.black": "Svart {percent}",
-  "settings.hoverEffect": "Markera brickan under pekaren"
+  "settings.hoverEffect": "Markera brickan under pekaren",
+  "footer.by": "av",
+  "footer.update": "Uppdatering tillgänglig: {version}"
 }

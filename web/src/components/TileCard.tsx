@@ -33,9 +33,9 @@ export function TileCard({ tile, iconColor, reorder }: { tile: Tile; iconColor: 
             ))}
           </span>
         )}
+        {/* Said in words, not only by dimming, and part of the link's name. */}
+        {unavailable && layout.showStatus && <span class="tile-badge">{t('tile.offline')}</span>}
       </span>
-      {/* Said in words, not only by dimming, and part of the link's name. */}
-      {unavailable && layout.showStatus && <span class="tile-badge">{t('tile.offline')}</span>}
     </>
   );
   return (

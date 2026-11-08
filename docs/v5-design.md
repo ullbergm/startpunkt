@@ -205,6 +205,7 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 | `GET /events` | Open | SSE stream. Sends a full snapshot on every connect, then `tile.upsert`, `tile.delete` and `cluster.status` events. |
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
 | `POST /applications`, `PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, update and delete Application resources on the local cluster. Same for `/bookmarks`. |
+| `GET /version` | Open | The running version and, when update checking is on, the newer release if there is one. |
 | `GET /background` | Open | Address, title and copyright of the Bing picture of the day. The lookup is server-side because of CORS and is kept for an hour; the browser loads the picture itself from Bing. The page sends the size of the screen, and the answer names the size of picture that suits it. Served by the roles a browser talks to. |
 
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
@@ -310,7 +311,9 @@ cluster B: informers ─> store ─> prober ─┤                              
 - Dialogs are native `dialog` elements, which keep focus inside, close on Escape and make the rest of the page inert. The settings dialog has one tab per area.
 - The page fetches nothing but pictures from other hosts. The handwritten typeface is part of the bundle, not loaded from a font service, and the pattern is generated in the page. The mesh animation is off for visitors whose system asks for reduced motion.
 - v5 replaces what 4.x does, not how: a pattern text gives a different pattern than in 4.x, and stored 4.x preferences are not read.
-- Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, the "what's new" dialog, the update check and the GitHub ribbon.
+- A footer under the content names the running version and links to the project and its author. When update checking is on, it also says when a newer release exists. The check is made by the server a few times a day, not by the page, and the request does not say which version is running.
+- The page is in the right colours from its first frame. A small script, loaded as a file because the Content-Security-Policy allows no inline script, applies the colours the application last used before anything is drawn; a first visit starts dark.
+- Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, the "what's new" dialog and the GitHub ribbon.
 - Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons are fetched from the Iconify API as image data.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 

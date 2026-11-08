@@ -3,6 +3,8 @@ import type { Palette } from './types';
 
 export type Mode = 'light' | 'dark';
 
+export const APPEARANCE_KEY = 'startpunkt.appearance';
+
 export function resolveMode(preference: ThemeMode, systemPrefersDark: boolean): Mode {
   if (preference === 'auto') return systemPrefersDark ? 'dark' : 'light';
   return preference;
@@ -52,5 +54,12 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   };
   for (const [name, value] of Object.entries(colors)) {
     root.style.setProperty(name, value);
+  }
+  // Remembered for public/boot.js, which applies them before the next
+  // load of the page is drawn.
+  try {
+    window.localStorage.setItem(APPEARANCE_KEY, JSON.stringify({ mode, colors }));
+  } catch {
+    // Without storage the next load starts from the defaults.
   }
 }

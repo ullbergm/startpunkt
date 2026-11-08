@@ -188,6 +188,9 @@ type Web struct {
 	// SearchEngine is the URL a web search from the search box is sent to,
 	// with the query appended.
 	SearchEngine string `json:"searchEngine"`
+	// CheckForUpdates asks GitHub now and then whether a newer release of
+	// Startpunkt exists, and tells visitors in the footer when one does.
+	CheckForUpdates bool `json:"checkForUpdates"`
 	// Theme holds the colours of the light and the dark appearance.
 	Theme Theme `json:"theme"`
 }
@@ -248,6 +251,7 @@ func Default() Config {
 			Title:           "Startpunkt",
 			DefaultLanguage: "en-US",
 			SearchEngine:    "https://www.google.com/search?q=",
+			CheckForUpdates: true,
 			Theme: Theme{
 				Light: Palette{
 					BodyBgColor: "#F8F6F1", BodyColor: "#696969", EmphasisColor: "#000000",
@@ -306,6 +310,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"AVAILABILITY_ENABLED":                 &c.Availability.Enabled,
 		"AVAILABILITY_INSECURESKIPVERIFY":      &c.Availability.InsecureSkipVerify,
 		"STATUS_ENABLED":                       &c.Status.Enabled,
+		"WEB_CHECKFORUPDATES":                  &c.Web.CheckForUpdates,
 		"SOURCES_APPLICATION_ENABLED":          &c.Sources.Application.Enabled,
 		"SOURCES_BOOKMARK_ENABLED":             &c.Sources.Bookmark.Enabled,
 		"SOURCES_ROUTE_ENABLED":                &c.Sources.Route.Enabled,

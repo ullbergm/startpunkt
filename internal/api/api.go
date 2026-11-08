@@ -82,6 +82,9 @@ type Server struct {
 	UI UIConfig
 	// Background serves the picture of the day. Nil turns the endpoint off.
 	Background *Background
+	// Updates serves the running version and whether a newer one exists.
+	// Nil turns the endpoint off.
+	Updates *Updates
 	// Assets is the built frontend, with index.html at its root.
 	Assets fs.FS
 	// Heartbeat overrides DefaultHeartbeat.
@@ -96,6 +99,9 @@ func (s *Server) Handler() http.Handler {
 		mux.HandleFunc("GET /api/v1/events", s.handleEvents)
 		if s.Background != nil {
 			mux.Handle("GET /api/v1/background", s.Background)
+		}
+		if s.Updates != nil {
+			mux.Handle("GET /api/v1/version", s.Updates)
 		}
 	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {

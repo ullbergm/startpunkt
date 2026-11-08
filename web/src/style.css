@@ -21,8 +21,15 @@
   line-height: 1.4;
 }
 
+/* The default dark theme, for the time before the server has answered. The
+   page is dark from its first frame: see public/boot.js. */
 :root[data-mode='dark'] {
   color-scheme: dark;
+  --bg: #232530;
+  --muted: #696969;
+  --text: #fab795;
+  --primary: #fab795;
+  --accent: #e95678;
   --error: #ffb4ab;
 }
 
@@ -58,9 +65,14 @@
   box-sizing: border-box;
 }
 
+/* The page colour is on the root element only. On the body it would be
+   painted over the background picture, which sits behind the content. */
+html {
+  background: var(--bg);
+}
+
 body {
   margin: 0;
-  background: var(--bg);
   color: var(--text);
 }
 
@@ -167,8 +179,8 @@ main {
 
 .logo {
   flex: none;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
 }
 
 .corner-actions {
@@ -199,7 +211,9 @@ main {
 
 h1 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 2.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 h2 {
@@ -216,7 +230,7 @@ h3 {
 }
 
 main {
-  padding-bottom: 3rem;
+  padding-bottom: 2rem;
 }
 
 main:focus {
@@ -238,11 +252,51 @@ main:focus {
 }
 
 /* The logo and the title have no panel: they sit straight on the
-   background. A soft shadow keeps the title readable on a picture. */
+   background. On anything but the plain theme background they are nearly
+   white with a strong shadow, which stays readable on any picture. The
+   footer is treated the same way. */
+:root:not([data-background='theme']) .page-header h1,
+:root:not([data-background='theme']) .page-footer,
+:root:not([data-background='theme']) .page-footer a {
+  color: rgb(255 255 255 / 92%);
+}
+
 :root:not([data-background='theme']) .page-header h1 {
   text-shadow:
-    0 1px 3px rgb(0 0 0 / 55%),
-    0 0 12px rgb(0 0 0 / 35%);
+    0 2px 4px rgb(0 0 0 / 85%),
+    0 4px 14px rgb(0 0 0 / 70%),
+    0 0 28px rgb(0 0 0 / 45%);
+}
+
+:root:not([data-background='theme']) .page-header .logo {
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%));
+}
+
+:root:not([data-background='theme']) .page-footer {
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 85%),
+    0 2px 8px rgb(0 0 0 / 65%);
+}
+
+.page-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1rem 4.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.page-footer p {
+  margin: 0.2rem 0;
+}
+
+.page-footer a {
+  color: inherit;
+}
+
+.page-footer .update {
+  font-weight: 600;
 }
 
 button,
@@ -501,13 +555,16 @@ li[draggable='true'] {
 }
 
 .tile-unavailable .tile-icon,
-.tile-unavailable .tile-text {
+.tile-unavailable .tile-name,
+.tile-unavailable .tile-info {
   opacity: 0.55;
 }
 
+/* Under the text, so that it takes no width from the name and the
+   description. */
 .tile-badge {
-  flex: none;
-  margin-left: auto;
+  align-self: flex-start;
+  margin-top: 0.3rem;
   padding: 0.1rem 0.5rem;
   border: 1px solid var(--error);
   border-radius: 999px;

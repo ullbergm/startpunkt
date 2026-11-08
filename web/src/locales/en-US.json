@@ -116,5 +116,7 @@
   "settings.background.overlay.off": "Off",
   "settings.background.overlay.white": "White {percent}",
   "settings.background.overlay.black": "Black {percent}",
-  "settings.hoverEffect": "Highlight the tile under the pointer"
+  "settings.hoverEffect": "Highlight the tile under the pointer",
+  "footer.by": "by",
+  "footer.update": "Update available: {version}"
 }
