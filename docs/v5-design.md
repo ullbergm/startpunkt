@@ -206,6 +206,7 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
 | `POST /applications`, `PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, update and delete Application resources on the local cluster. Same for `/bookmarks`. |
 | `GET /version` | Open | The running version and, when update checking is on, the newer release if there is one. |
+| `GET /icons/{set}/{name}.svg` | Open | An Iconify icon, optionally in a given colour. The instance fetches each icon from the Iconify API once and keeps it in memory, a few at a time, so browsers never ask the icon service themselves. Icons of one set that are asked for within a moment of each other go out as one request, because the public API refuses a client that asks for icons one by one. The address of the Iconify API is a setting, so a self-hosted one can be used instead of the public one. An icon that does not exist is remembered as missing for an hour. |
 | `GET /background` | Open | Address, title and copyright of the Bing picture of the day. The lookup is server-side because of CORS and is kept for an hour; the browser loads the picture itself from Bing. The page sends the size of the screen, and the answer names the size of picture that suits it. Served by the roles a browser talks to. |
 
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
@@ -320,7 +321,7 @@ cluster B: informers ─> store ─> prober ─┤                              
 - The page is in the right colours from its first frame. A small script, loaded as a file because the Content-Security-Policy allows no inline script, applies the colours the application last used before anything is drawn; a first visit starts dark.
 - A corner at the top right links to the project on GitHub, unless it is turned off. When a newer release exists the corner is shown either way, in another colour, named for the update and linking to the release.
 - Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, and the "what's new" dialog.
-- Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons are fetched from the Iconify API as image data.
+- Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons are images served by the instance itself.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 
 ## Configuration

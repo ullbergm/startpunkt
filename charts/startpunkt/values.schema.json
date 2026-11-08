@@ -231,6 +231,16 @@
           }
         }
       }
+    },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^https?://"
+        }
+      }
     }
   }
 }

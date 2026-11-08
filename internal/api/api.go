@@ -85,6 +85,9 @@ type Server struct {
 	// Updates serves the running version and whether a newer one exists.
 	// Nil turns the endpoint off.
 	Updates *Updates
+	// Icons serves Iconify icons from this instance. Nil turns the endpoint
+	// off.
+	Icons *Icons
 	// Assets is the built frontend, with index.html at its root.
 	Assets fs.FS
 	// Heartbeat overrides DefaultHeartbeat.
@@ -102,6 +105,9 @@ func (s *Server) Handler() http.Handler {
 		}
 		if s.Updates != nil {
 			mux.Handle("GET /api/v1/version", s.Updates)
+		}
+		if s.Icons != nil {
+			mux.Handle("GET /api/v1/icons/{prefix}/{file}", s.Icons)
 		}
 	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {

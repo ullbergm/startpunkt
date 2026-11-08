@@ -153,6 +153,14 @@ availability:
   # seen.
   insecureSkipVerify: false
 
+# Icons named like "mdi:home" come from an Iconify API. The api pods fetch
+# each icon once, a whole icon set's worth per request, and keep it; browsers
+# load icons from the instance itself.
+icons:
+  # STARTPUNKT_ICONS_SOURCE. The public Iconify API by default. Set it to an
+  # Iconify API you host yourself to depend on nothing outside the cluster.
+  source: https://api.iconify.design
+
 # Other Startpunkt instances whose tiles are shown next to this one's.
 federation:
   # STARTPUNKT_FEDERATION_REMOTES, as JSON. This instance subscribes to each

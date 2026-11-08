@@ -93,6 +93,10 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
+            {{- if and (ne $role "web") (ne $role "controller") }}
+            - name: STARTPUNKT_ICONS_SOURCE
+              value: {{ $.Values.icons.source | quote }}
+            {{- end }}
             {{- if and (ne $role "web") (ne $role "controller") $.Values.federation.remotes }}
             - name: STARTPUNKT_FEDERATION_REMOTES
               value: {{ toJson $.Values.federation.remotes | quote }}

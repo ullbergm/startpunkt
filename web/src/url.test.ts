@@ -27,15 +27,15 @@ describe('safeHref', () => {
 describe('iconSource', () => {
   it('maps Iconify names to image URLs', () => {
     expect(iconSource('mdi:home', '#4c8dd6')).toBe(
-      'https://api.iconify.design/mdi/home.svg?color=%234c8dd6',
+      '/api/v1/icons/mdi/home.svg?color=%234c8dd6',
     );
     expect(iconSource('simple-icons:grafana', 'orange')).toBe(
-      'https://api.iconify.design/simple-icons/grafana.svg?color=orange',
+      '/api/v1/icons/simple-icons/grafana.svg?color=orange',
     );
   });
 
   it('defaults to the mdi set', () => {
-    expect(iconSource('home', 'red')).toBe('https://api.iconify.design/mdi/home.svg?color=red');
+    expect(iconSource('home', 'red')).toBe('/api/v1/icons/mdi/home.svg?color=red');
   });
 
   it('passes image URLs through', () => {
@@ -43,7 +43,7 @@ describe('iconSource', () => {
   });
 
   it('drops a colour it cannot pass on safely', () => {
-    expect(iconSource('mdi:home', 'red&x=1')).toBe('https://api.iconify.design/mdi/home.svg');
+    expect(iconSource('mdi:home', 'red&x=1')).toBe('/api/v1/icons/mdi/home.svg');
   });
 
   it('returns null for missing or malformed icons', () => {

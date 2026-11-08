@@ -710,7 +710,7 @@ describe('App', () => {
     );
     await screen.findByRole('link', { name: /plex/ });
     const image = container.querySelector('img.tile-icon')!;
-    expect(image.getAttribute('src')).toContain('api.iconify.design/mdi/plex.svg');
+    expect(image.getAttribute('src')).toContain('/api/v1/icons/mdi/plex.svg');
     fireEvent.error(image);
     await waitFor(() =>
       expect(container.querySelector('.tile-icon-fallback')?.textContent).toBe('P'),

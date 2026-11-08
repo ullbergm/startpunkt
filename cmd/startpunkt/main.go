@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -161,6 +162,7 @@ func run() error {
 		}
 		// Only the roles a browser talks to fetch pictures.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
+		handler.Icons = &api.Icons{Source: strings.TrimRight(cfg.Icons.Source, "/"), UserAgent: "startpunkt"}
 		handler.Updates = &api.Updates{
 			Current: version, Check: cfg.Web.CheckForUpdates, GitHubLink: cfg.Web.GitHubLink,
 		}

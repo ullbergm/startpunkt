@@ -33,6 +33,7 @@ type Config struct {
 	Sources           Sources           `json:"sources"`
 	Availability      Availability      `json:"availability"`
 	Federation        Federation        `json:"federation"`
+	Icons             Icons             `json:"icons"`
 	Status            Status            `json:"status"`
 	Server            Server            `json:"server"`
 	Upstream          Upstream          `json:"upstream"`
@@ -156,6 +157,15 @@ type Status struct {
 	Enabled bool `json:"enabled"`
 }
 
+// Icons configures where icons come from.
+type Icons struct {
+	// Source is the base URL of the Iconify API that icons are fetched
+	// from, once each. The default is the public one. Point it at an
+	// Iconify API of your own to depend on nothing outside the cluster.
+	// Environment: STARTPUNKT_ICONS_SOURCE.
+	Source string `json:"source"`
+}
+
 // Federation lists the other Startpunkt instances whose tiles this one
 // shows next to its own. This instance subscribes to each of them; they need
 // no configuration and do not know they are being read.
@@ -272,6 +282,7 @@ func Default() Config {
 			Concurrency:    8,
 		},
 		Status: Status{Enabled: true},
+		Icons:  Icons{Source: "https://api.iconify.design"},
 		Server: Server{Address: ":8080"},
 		Web: Web{
 			Title:           "Startpunkt",
@@ -324,6 +335,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"CLUSTER_NAME":                           &c.Cluster.Name,
 		"SERVER_ADDRESS":                         &c.Server.Address,
 		"UPSTREAM_URL":                           &c.Upstream.URL,
+		"ICONS_SOURCE":                           &c.Icons.Source,
 		"WEB_TITLE":                              &c.Web.Title,
 		"WEB_DEFAULTLANGUAGE":                    &c.Web.DefaultLanguage,
 		"WEB_SEARCHENGINE":                       &c.Web.SearchEngine,
@@ -473,6 +485,9 @@ func (c Config) validate() error {
 		if u, err := url.Parse(r.URL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 			return fmt.Errorf("federation.remotes[%d].url %q is not an http or https URL", i, r.URL)
 		}
+	}
+	if u, err := url.Parse(c.Icons.Source); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return fmt.Errorf("icons.source %q is not an http or https URL", c.Icons.Source)
 	}
 	a := c.Availability
 	if a.Interval <= 0 || a.Timeout <= 0 || a.InitialBackoff <= 0 || a.MaxBackoff < a.InitialBackoff {

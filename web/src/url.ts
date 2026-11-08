@@ -22,7 +22,7 @@ const COLOR = /^(?:#[0-9a-fA-F]{3,8}|[a-zA-Z]+)$/;
 //
 // An icon is either an image URL or an Iconify name such as "mdi:home". A
 // name without a prefix is taken from the "mdi" set, as in 4.x. Iconify icons
-// are fetched as images, never as script.
+// are shown as images, never run as script.
 export function iconSource(icon: string | undefined, color: string): string | null {
   const value = icon?.trim();
   if (!value) return null;
@@ -34,5 +34,7 @@ export function iconSource(icon: string | undefined, color: string): string | nu
     return null;
   }
   const query = COLOR.test(color) ? `?color=${encodeURIComponent(color)}` : '';
-  return `https://api.iconify.design/${prefix}/${name}.svg${query}`;
+  // From this instance, which fetches each icon from Iconify once and keeps
+  // it. The browser never asks the icon service itself.
+  return `/api/v1/icons/${prefix}/${name}.svg${query}`;
 }
