@@ -5,7 +5,14 @@ import { safeHref } from '../url';
 import { Icon } from './Icons';
 import { TileIcon } from './TileIcon';
 
-export function TileCard({ tile, iconColor }: { tile: Tile; iconColor: string }) {
+// The controls that move a favorite, for those who do not drag.
+export interface Reorder {
+  first: boolean;
+  last: boolean;
+  onMove: (delta: -1 | 1) => void;
+}
+
+export function TileCard({ tile, iconColor, reorder }: { tile: Tile; iconColor: string; reorder?: Reorder }) {
   const { layout, favorites } = prefs.value;
   const href = safeHref(tile.url);
   // Only a probe that failed marks a tile. Without a result nothing is shown.
@@ -17,6 +24,15 @@ export function TileCard({ tile, iconColor }: { tile: Tile; iconColor: string })
       <span class="tile-text">
         <span class="tile-name">{tile.name}</span>
         {layout.showDescription && tile.info && <span class="tile-info">{tile.info}</span>}
+        {layout.showTags && tile.tags.length > 0 && (
+          <span class="tile-tags" aria-label={t('tile.tags', { tags: tile.tags.join(', ') })}>
+            {tile.tags.map((tag) => (
+              <span class="tile-tag" key={tag}>
+                {tag}
+              </span>
+            ))}
+          </span>
+        )}
       </span>
       {/* Said in words, not only by dimming, and part of the link's name. */}
       {unavailable && layout.showStatus && <span class="tile-badge">{t('tile.offline')}</span>}
@@ -37,6 +53,26 @@ export function TileCard({ tile, iconColor }: { tile: Tile; iconColor: string })
         <div class="tile-link tile-disabled" title={t('tile.noLink')}>
           {body}
         </div>
+      )}
+      {reorder && (
+        <span class="tile-move">
+          <button
+            type="button"
+            aria-label={t('favorites.moveEarlier', { name: tile.name })}
+            disabled={reorder.first}
+            onClick={() => reorder.onMove(-1)}
+          >
+            <Icon name="left" size={16} />
+          </button>
+          <button
+            type="button"
+            aria-label={t('favorites.moveLater', { name: tile.name })}
+            disabled={reorder.last}
+            onClick={() => reorder.onMove(1)}
+          >
+            <Icon name="right" size={16} />
+          </button>
+        </span>
       )}
       {/* Next to the link, not inside it: a button in a link is not valid
           and cannot be reached separately with the keyboard. */}

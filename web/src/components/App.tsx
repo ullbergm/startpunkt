@@ -7,9 +7,12 @@ import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { Icon } from './Icons';
-import { Section, TileList } from './Section';
+import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
 import { Spotlight } from './Spotlight';
+import { Tabs } from './Tabs';
+
+type Kind = 'applications' | 'bookmarks';
 
 // True while the keyboard is being used to type somewhere.
 const typing = (target: EventTarget | null) =>
@@ -23,6 +26,7 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   const status = connection.value;
   const p = prefs.value;
   const [dialog, setDialog] = useState<'search' | 'settings' | null>(null);
+  const [chosen, setChosen] = useState<Kind | null>(null);
 
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {
@@ -66,12 +70,19 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
   // The tag filter is part of the URL, so a filtered page can be bookmarked.
   const tagged = state ? filterByTags(state.tiles, tagsFromPath(window.location.pathname)) : [];
   const tiles = p.layout.hideUnreachable ? tagged.filter((tile) => tile.available !== false) : tagged;
-  const favorites = groupTiles(
-    tiles.filter((tile) => p.favorites.includes(tile.id)).map((tile) => ({ ...tile, group: '' })),
-    null,
-  ).flatMap((group) => group.tiles);
-  const applications = groupTiles(tiles, 'application');
-  const bookmarks = groupTiles(tiles, 'bookmark');
+  // Favorites are shown once, in their own section and in the visitor's
+  // order, and are left out of the groups below.
+  const byId = new Map(tiles.map((tile) => [tile.id, tile]));
+  const favorites = p.favorites.flatMap((id) => byId.get(id) ?? []);
+  const others = tiles.filter((tile) => !p.favorites.includes(tile.id));
+  const applications = groupTiles(others, 'application');
+  const bookmarks = groupTiles(others, 'bookmark');
+  // The tab the visitor picked, for as long as it has something to show.
+  const kinds: Kind[] = [
+    ...(applications.length > 0 ? (['applications'] as const) : []),
+    ...(bookmarks.length > 0 ? (['bookmarks'] as const) : []),
+  ];
+  const view: Kind = chosen && kinds.includes(chosen) ? chosen : (kinds[0] ?? 'applications');
   const syncing = state?.clusters.some((cluster) => cluster.state === 'syncing') ?? false;
   const stale = state?.clusters.filter((cluster) => cluster.state === 'stale') ?? [];
   const empty = state !== null && tiles.length === 0;
@@ -116,9 +127,33 @@ export function App({ open }: { open?: (url: string) => EventStream }) {
             </button>
           </div>
         )}
-        <TileList id="favorites" title={t('section.favorites')} tiles={favorites} iconColor={iconColor} />
-        <Section id="applications" title={t('section.applications')} groups={applications} iconColor={iconColor} />
-        <Section id="bookmarks" title={t('section.bookmarks')} groups={bookmarks} iconColor={iconColor} />
+        <Favorites tiles={favorites} iconColor={iconColor} />
+        {kinds.length === 2 ? (
+          // Both kinds exist: one tab each, opening on the applications.
+          <>
+            <Tabs
+              id="tiles"
+              label={t('section.kinds')}
+              tabs={kinds.map((key) => ({ key, label: t(`section.${key}`) }))}
+              selected={view}
+              onSelect={setChosen}
+            />
+            <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
+              <Section id={view} groups={view === 'applications' ? applications : bookmarks} iconColor={iconColor} />
+            </div>
+          </>
+        ) : (
+          // Only one kind: no tabs to choose between, just its heading.
+          kinds.map((kind) => (
+            <Section
+              key={kind}
+              id={kind}
+              title={t(`section.${kind}`)}
+              groups={kind === 'applications' ? applications : bookmarks}
+              iconColor={iconColor}
+            />
+          ))
+        )}
       </main>
       {dialog === 'search' && state && (
         <Spotlight

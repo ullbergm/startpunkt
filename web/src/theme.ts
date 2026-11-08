@@ -23,7 +23,9 @@ export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette 
   root.dataset.compact = String(p.layout.compact);
   root.dataset.contrast = p.accessibility.highContrast ? 'high' : 'normal';
   root.dataset.background = p.background.type;
-  root.dataset.overlay = String(p.background.overlay);
+  root.dataset.overlay = String(p.background.type !== 'theme' && p.background.overlayOpacity > 0);
+  root.style.setProperty('--overlay', `${Math.round(p.background.overlayOpacity * 100)}%`);
+  root.dataset.font = p.handwrittenFont ? 'handwritten' : 'default';
   root.style.setProperty('--columns', String(p.layout.columns));
   root.dataset.columns = p.layout.columns === 0 ? 'auto' : 'fixed';
   root.style.fontSize = `${p.accessibility.fontScale}%`;

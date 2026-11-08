@@ -24,7 +24,7 @@ beforeEach(async () => {
 afterEach(() => cleanup());
 
 describe('App', () => {
-  it('renders applications and bookmarks in their groups', async () => {
+  it('puts applications and bookmarks on tabs, opening on the applications', async () => {
     renderWith(
       serverState({
         tiles: [
@@ -41,7 +41,11 @@ describe('App', () => {
       }),
     );
 
-    const applications = await screen.findByRole('region', { name: 'Applications' });
+    const tabs = await screen.findAllByRole('tab');
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['Applications', 'Bookmarks']);
+    expect(tabs[0]!.getAttribute('aria-selected')).toBe('true');
+
+    const applications = screen.getByRole('tabpanel', { name: 'Applications' });
     expect(
       within(applications)
         .getAllByRole('heading', { level: 3 })
@@ -53,15 +57,71 @@ describe('App', () => {
     expect(grafana.getAttribute('target')).toBe('_blank');
     expect(grafana.getAttribute('rel')).toBe('noopener noreferrer');
     expect(grafana.textContent).toContain('Dashboards');
+    expect(within(applications).getByRole('link', { name: /Plex/ }).hasAttribute('target')).toBe(false);
+    expect(screen.queryByRole('link', { name: /Docs/ })).toBeNull();
 
-    const plex = within(applications).getByRole('link', { name: /Plex/ });
-    expect(plex.hasAttribute('target')).toBe(false);
-
-    const bookmarks = screen.getByRole('region', { name: 'Bookmarks' });
+    fireEvent.click(tabs[1]!);
+    const bookmarks = await screen.findByRole('tabpanel', { name: 'Bookmarks' });
     expect(within(bookmarks).getByRole('link', { name: /Docs/ })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /Plex/ })).toBeNull();
+
+    // The arrow keys move between the tabs.
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'ArrowLeft' });
+    expect(await screen.findByRole('tabpanel', { name: 'Applications' })).toBeTruthy();
 
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Home lab');
     await waitFor(() => expect(document.title).toBe('Home lab'));
+  });
+
+  it('shows the bookmarks straight away when there are no applications', async () => {
+    renderWith(serverState({ tiles: [tile({ name: 'Docs', kind: 'bookmark', group: 'reference' })] }));
+    const bookmarks = await screen.findByRole('region', { name: 'Bookmarks' });
+    expect(within(bookmarks).getByRole('link', { name: /Docs/ })).toBeTruthy();
+    expect(screen.queryByRole('tablist')).toBeNull();
+  });
+
+  it('falls back to the other tab when the chosen one becomes empty', async () => {
+    renderWith(
+      serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Docs', kind: 'bookmark', group: 'reference' })] }),
+    );
+    fireEvent.click((await screen.findAllByRole('tab'))[1]!);
+    expect(await screen.findByRole('link', { name: /Docs/ })).toBeTruthy();
+    act(() => FakeStream.last.emit('tile.delete', { id: 'c/apps/ns/Docs' }));
+    expect(await screen.findByRole('region', { name: 'Applications' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Plex/ })).toBeTruthy();
+  });
+
+  it('shows tags on tiles when asked to', async () => {
+    renderWith(serverState({ tiles: [tile({ name: 'Plex', tags: ['home', 'media'] })] }));
+    window.history.pushState({}, '', '/home');
+    try {
+      cleanup();
+      renderWith(serverState({ tiles: [tile({ name: 'Plex', tags: ['home', 'media'] })] }));
+      await screen.findByRole('link', { name: /Plex/ });
+      expect(screen.queryByLabelText('Tags: home, media')).toBeNull();
+      act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, showTags: true } })));
+      expect((await screen.findByLabelText('Tags: home, media')).textContent).toBe('homemedia');
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
+  });
+
+  it('applies the handwritten font and the content panel to the document', async () => {
+    renderWith(serverState());
+    const root = document.documentElement;
+    await waitFor(() => expect(root.dataset.font).toBe('default'));
+    expect(root.dataset.overlay).toBe('false'); // no panel on the theme background
+    act(() =>
+      updatePrefs((p) => ({
+        ...p,
+        handwrittenFont: true,
+        background: { ...p.background, type: 'geopattern', overlayOpacity: 0.6 },
+      })),
+    );
+    await waitFor(() => expect(root.dataset.font).toBe('handwritten'));
+    expect(root.dataset.overlay).toBe('true');
+    expect(root.style.getPropertyValue('--overlay')).toBe('60%');
+    expect(document.querySelector('.background-pattern')).not.toBeNull();
   });
 
   it('follows changes from the event stream', async () => {
@@ -188,7 +248,7 @@ describe('App', () => {
     );
   });
 
-  it('keeps favorites in their own section and remembers them', async () => {
+  it('moves a favorite out of its group into the favorites section', async () => {
     renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' })] }));
     expect(screen.queryByRole('region', { name: 'Favorites' })).toBeNull();
 
@@ -199,12 +259,94 @@ describe('App', () => {
     const favorites = await screen.findByRole('region', { name: 'Favorites' });
     expect(within(favorites).getByRole('link', { name: /Plex/ })).toBeTruthy();
     expect(within(favorites).queryByRole('link', { name: /Grafana/ })).toBeNull();
-    // The tile also stays in its group.
-    expect(within(screen.getByRole('region', { name: 'Applications' })).getByRole('link', { name: /Plex/ })).toBeTruthy();
+    // It is shown once: not in its group any more.
+    const applications = screen.getByRole('region', { name: 'Applications' });
+    expect(within(applications).queryByRole('link', { name: /Plex/ })).toBeNull();
+    expect(within(applications).getByRole('link', { name: /Grafana/ })).toBeTruthy();
+    expect(screen.getAllByRole('link', { name: /Plex/ })).toHaveLength(1);
     expect(prefs.value.favorites).toEqual(['c/apps/ns/Plex']);
 
     fireEvent.click(within(favorites).getByRole('button', { name: 'Remove Plex from favorites' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Favorites' })).toBeNull());
+    expect(within(screen.getByRole('region', { name: 'Applications' })).getByRole('link', { name: /Plex/ })).toBeTruthy();
+  });
+
+  it('keeps a kind out of the tabs when all of it is in the favorites', async () => {
+    updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Docs'] }));
+    renderWith(
+      serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Docs', kind: 'bookmark', group: 'reference' })] }),
+    );
+    expect(await screen.findByRole('region', { name: 'Favorites' })).toBeTruthy();
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Applications' })).toBeTruthy();
+  });
+
+  describe('favorites order', () => {
+    const three = () =>
+      serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Beta' }), tile({ name: 'Gamma' })] });
+    const order = () =>
+      within(screen.getByRole('region', { name: 'Favorites' }))
+        .getAllByRole('link')
+        .map((link) => link.querySelector('.tile-name')?.textContent);
+    beforeEach(() =>
+      updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Gamma', 'c/apps/ns/Alpha', 'c/apps/ns/Beta'] })),
+    );
+
+    it('is the order they were added in, not alphabetical', async () => {
+      renderWith(three());
+      await screen.findByRole('region', { name: 'Favorites' });
+      expect(order()).toEqual(['Gamma', 'Alpha', 'Beta']);
+    });
+
+    it('changes with the move buttons and is announced and remembered', async () => {
+      renderWith(three());
+      await screen.findByRole('region', { name: 'Favorites' });
+      expect((screen.getByRole('button', { name: 'Move Gamma earlier' }) as HTMLButtonElement).disabled).toBe(true);
+      expect((screen.getByRole('button', { name: 'Move Beta later' }) as HTMLButtonElement).disabled).toBe(true);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Move Gamma later' }));
+      await waitFor(() => expect(order()).toEqual(['Alpha', 'Gamma', 'Beta']));
+      expect(within(screen.getByRole('region', { name: 'Favorites' })).getByRole('status').textContent).toBe(
+        'Gamma is now favorite 2 of 3.',
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Move Beta earlier' }));
+      await waitFor(() => expect(order()).toEqual(['Alpha', 'Beta', 'Gamma']));
+
+      reloadPrefs();
+      expect(prefs.value.favorites).toEqual(['c/apps/ns/Alpha', 'c/apps/ns/Beta', 'c/apps/ns/Gamma']);
+    });
+
+    it('changes by dragging one favorite onto another', async () => {
+      renderWith(three());
+      const region = await screen.findByRole('region', { name: 'Favorites' });
+      const items = () => within(region).getAllByRole('listitem');
+      expect(items()[0]!.getAttribute('draggable')).toBe('true');
+
+      fireEvent.dragStart(items()[2]!); // Beta
+      fireEvent.dragOver(items()[0]!);
+      await waitFor(() => expect(items()[0]!.className).toBe('drop-target'));
+      fireEvent.drop(items()[0]!); // onto Gamma
+      await waitFor(() => expect(order()).toEqual(['Beta', 'Gamma', 'Alpha']));
+      expect(items().every((item) => item.className === '')).toBe(true);
+    });
+
+    it('keeps favorites that are hidden right now in their place', async () => {
+      // Beta is not on the page, for example because of the tag filter.
+      renderWith(serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Gamma' })] }));
+      await screen.findByRole('region', { name: 'Favorites' });
+      expect(order()).toEqual(['Gamma', 'Alpha']);
+      fireEvent.click(screen.getByRole('button', { name: 'Move Alpha earlier' }));
+      await waitFor(() => expect(order()).toEqual(['Alpha', 'Gamma']));
+      expect(prefs.value.favorites).toContain('c/apps/ns/Beta');
+    });
+
+    it('offers no reordering for a single favorite', async () => {
+      updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Alpha'] }));
+      renderWith(three());
+      const region = await screen.findByRole('region', { name: 'Favorites' });
+      expect(within(region).queryByRole('button', { name: /Move/ })).toBeNull();
+      expect(within(region).getByRole('listitem').getAttribute('draggable')).toBe('false');
+    });
   });
 
   it('collapses and expands a group', async () => {

@@ -5,14 +5,25 @@ import { signal } from '@preact/signals';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
 export type Spacing = 'tight' | 'normal' | 'relaxed';
-export type BackgroundType = 'theme' | 'solid' | 'gradient' | 'image' | 'pictureOfDay';
+export type BackgroundType =
+  | 'theme'
+  | 'solid'
+  | 'gradient'
+  | 'timeGradient'
+  | 'meshGradient'
+  | 'image'
+  | 'pictureOfDay'
+  | 'geopattern';
+export type PictureProvider = 'bing' | 'picsum';
+export type Complexity = 'low' | 'medium' | 'high';
 export type Direction = 'to bottom' | 'to top' | 'to right' | 'to left' | 'to bottom right' | 'to bottom left';
 
 export interface Preferences {
   theme: ThemeMode;
   // A language tag, or null to follow the browser and the server's default.
   language: string | null;
-  // Tile ids. An id includes the cluster, so a favorite is one tile.
+  // Tile ids, in the order the favorites are shown. An id includes the
+  // cluster, so a favorite is one tile.
   favorites: string[];
   // Keys of collapsed groups, "<kind>:<group name>".
   collapsed: string[];
@@ -22,19 +33,15 @@ export interface Preferences {
     spacing: Spacing;
     compact: boolean;
     showDescription: boolean;
+    showTags: boolean;
     showStatus: boolean;
     hideUnreachable: boolean;
   };
-  background: {
-    type: BackgroundType;
-    color: string;
-    color2: string;
-    direction: Direction;
-    imageUrl: string;
-    blur: boolean;
-    // A translucent panel behind the content, for busy backgrounds.
-    overlay: boolean;
-  };
+  background: Background;
+  // A casual handwritten typeface for the whole page.
+  handwrittenFont: boolean;
+  // Named snapshots of the layout and the background.
+  presets: Record<string, Preset>;
   accessibility: {
     // Text size in percent of the browser's own.
     fontScale: number;
@@ -42,7 +49,46 @@ export interface Preferences {
   };
 }
 
+export interface Background {
+  type: BackgroundType;
+  color: string;
+  color2: string;
+  direction: Direction;
+  imageUrl: string;
+  provider: PictureProvider;
+  // Text the geopattern is generated from.
+  patternSeed: string;
+  meshColors: string[];
+  meshComplexity: Complexity;
+  meshAnimated: boolean;
+  // Blur of a picture, in pixels.
+  blur: number;
+  // How much of the background shows, from 0.1 to 1.
+  opacity: number;
+  // How solid the panel behind the content is, from 0 (none) to 1. It
+  // keeps text readable on a busy background.
+  overlayOpacity: number;
+}
+
+export interface Preset {
+  layout: Preferences['layout'];
+  background: Background;
+}
+
 export const MAX_COLUMNS = 6;
+export const MAX_BLUR = 20;
+export const MESH_COLORS = 5;
+export const MAX_PRESETS = 20;
+export const TYPES: BackgroundType[] = [
+  'theme',
+  'solid',
+  'gradient',
+  'timeGradient',
+  'meshGradient',
+  'image',
+  'pictureOfDay',
+  'geopattern',
+];
 export const FONT_SCALES = [85, 100, 115, 130, 150];
 export const DIRECTIONS: Direction[] = [
   'to bottom',
@@ -64,6 +110,7 @@ export function defaults(): Preferences {
       spacing: 'normal',
       compact: false,
       showDescription: true,
+      showTags: false,
       showStatus: true,
       hideUnreachable: false,
     },
@@ -73,11 +120,19 @@ export function defaults(): Preferences {
       color2: '#7a4fa3',
       direction: 'to bottom right',
       imageUrl: '',
-      blur: false,
-      // On by default: headings sit straight on the background, and few
-      // pictures leave them readable.
-      overlay: true,
+      provider: 'bing',
+      patternSeed: 'startpunkt',
+      meshColors: ['#2d5016', '#f4c430', '#00ffff', '#ff0080', '#800000'],
+      meshComplexity: 'high',
+      meshAnimated: false,
+      blur: 0,
+      opacity: 1,
+      // Mostly solid by default: headings sit straight on the background,
+      // and few pictures leave them readable.
+      overlayOpacity: 0.85,
     },
+    handwrittenFont: false,
+    presets: {},
     accessibility: { fontScale: 100, highContrast: false },
   };
 }
@@ -96,45 +151,81 @@ const hex = (value: unknown, fallback: string): string =>
 const record = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {};
 
+const number = (value: unknown, min: number, max: number, fallback: number): number =>
+  typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
+
+function sanitizeLayout(raw: unknown): Preferences['layout'] {
+  const d = defaults().layout;
+  const layout = record(raw);
+  const columns = layout.columns;
+  return {
+    columns:
+      typeof columns === 'number' && Number.isInteger(columns) && columns >= 0 && columns <= MAX_COLUMNS
+        ? columns
+        : d.columns,
+    spacing: oneOf<Spacing>(layout.spacing, ['tight', 'normal', 'relaxed'], d.spacing),
+    compact: bool(layout.compact, d.compact),
+    showDescription: bool(layout.showDescription, d.showDescription),
+    showTags: bool(layout.showTags, d.showTags),
+    showStatus: bool(layout.showStatus, d.showStatus),
+    hideUnreachable: bool(layout.hideUnreachable, d.hideUnreachable),
+  };
+}
+
+function sanitizeBackground(raw: unknown): Background {
+  const d = defaults().background;
+  const background = record(raw);
+  const mesh = Array.isArray(background.meshColors) ? background.meshColors : [];
+  return {
+    type: oneOf<BackgroundType>(background.type, TYPES, d.type),
+    color: hex(background.color, d.color),
+    color2: hex(background.color2, d.color2),
+    direction: oneOf<Direction>(background.direction, DIRECTIONS, d.direction),
+    imageUrl: typeof background.imageUrl === 'string' ? background.imageUrl.slice(0, 2000) : '',
+    provider: oneOf<PictureProvider>(background.provider, ['bing', 'picsum'], d.provider),
+    patternSeed: typeof background.patternSeed === 'string' ? background.patternSeed.slice(0, 100) : d.patternSeed,
+    meshColors: d.meshColors.map((fallback, i) => hex(mesh[i], fallback)),
+    meshComplexity: oneOf<Complexity>(background.meshComplexity, ['low', 'medium', 'high'], d.meshComplexity),
+    meshAnimated: bool(background.meshAnimated, d.meshAnimated),
+    // Earlier versions stored blur and the panel as on or off.
+    blur: background.blur === true ? 10 : number(background.blur, 0, MAX_BLUR, d.blur),
+    opacity: number(background.opacity, 0.1, 1, d.opacity),
+    overlayOpacity:
+      typeof background.overlay === 'boolean' && background.overlayOpacity === undefined
+        ? background.overlay
+          ? d.overlayOpacity
+          : 0
+        : number(background.overlayOpacity, 0, 1, d.overlayOpacity),
+  };
+}
+
+function sanitizePresets(raw: unknown): Record<string, Preset> {
+  const out: Record<string, Preset> = {};
+  for (const [name, value] of Object.entries(record(raw)).slice(0, MAX_PRESETS)) {
+    const trimmed = name.trim().slice(0, 40);
+    if (trimmed === '') continue;
+    const preset = record(value);
+    out[trimmed] = { layout: sanitizeLayout(preset.layout), background: sanitizeBackground(preset.background) };
+  }
+  return out;
+}
+
 // Turns whatever was stored into valid preferences. Stored data may come
 // from an older version or have been edited by hand, so nothing is trusted:
 // each value is checked and replaced by its default when it does not fit.
 export function sanitize(raw: unknown): Preferences {
   const d = defaults();
   const r = record(raw);
-  const layout = record(r.layout);
-  const background = record(r.background);
   const accessibility = record(r.accessibility);
-  const columns = layout.columns;
   return {
     theme: oneOf<ThemeMode>(r.theme, ['auto', 'light', 'dark'], d.theme),
     language: typeof r.language === 'string' && r.language !== '' ? r.language : null,
     favorites: strings(r.favorites),
     collapsed: strings(r.collapsed),
-    layout: {
-      columns:
-        typeof columns === 'number' && Number.isInteger(columns) && columns >= 0 && columns <= MAX_COLUMNS
-          ? columns
-          : d.layout.columns,
-      spacing: oneOf<Spacing>(layout.spacing, ['tight', 'normal', 'relaxed'], d.layout.spacing),
-      compact: bool(layout.compact, d.layout.compact),
-      showDescription: bool(layout.showDescription, d.layout.showDescription),
-      showStatus: bool(layout.showStatus, d.layout.showStatus),
-      hideUnreachable: bool(layout.hideUnreachable, d.layout.hideUnreachable),
-    },
-    background: {
-      type: oneOf<BackgroundType>(
-        background.type,
-        ['theme', 'solid', 'gradient', 'image', 'pictureOfDay'],
-        d.background.type,
-      ),
-      color: hex(background.color, d.background.color),
-      color2: hex(background.color2, d.background.color2),
-      direction: oneOf<Direction>(background.direction, DIRECTIONS, d.background.direction),
-      imageUrl: typeof background.imageUrl === 'string' ? background.imageUrl.slice(0, 2000) : '',
-      blur: bool(background.blur, d.background.blur),
-      overlay: bool(background.overlay, d.background.overlay),
-    },
+    layout: sanitizeLayout(r.layout),
+    background: sanitizeBackground(r.background),
+    handwrittenFont: bool(r.handwrittenFont, d.handwrittenFont),
+    presets: sanitizePresets(r.presets),
     accessibility: {
       fontScale: oneOf(accessibility.fontScale, FONT_SCALES, d.accessibility.fontScale),
       highContrast: bool(accessibility.highContrast, d.accessibility.highContrast),
@@ -167,8 +258,14 @@ export function updatePrefs(change: (current: Preferences) => Preferences): void
 }
 
 export function resetPrefs(): void {
-  // Favorites and collapsed groups are content, not appearance. Keep them.
-  updatePrefs((current) => ({ ...defaults(), favorites: current.favorites, collapsed: current.collapsed }));
+  // Favorites, collapsed groups and saved presets are content, not
+  // appearance. Keep them.
+  updatePrefs((current) => ({
+    ...defaults(),
+    favorites: current.favorites,
+    collapsed: current.collapsed,
+    presets: current.presets,
+  }));
 }
 
 export function toggleFavorite(ids: string[]): void {
@@ -179,6 +276,18 @@ export function toggleFavorite(ids: string[]): void {
   });
 }
 
+// Moves a favorite to the place of another one. The order of the list is
+// the order the favorites are shown in.
+export function moveFavorite(id: string, toIndex: number): void {
+  updatePrefs((current) => {
+    const from = current.favorites.indexOf(id);
+    if (from < 0) return current;
+    const rest = current.favorites.filter((other) => other !== id);
+    const index = Math.min(Math.max(toIndex, 0), rest.length);
+    return { ...current, favorites: [...rest.slice(0, index), id, ...rest.slice(index)] };
+  });
+}
+
 export function toggleCollapsed(key: string): void {
   updatePrefs((current) => ({
     ...current,
@@ -186,6 +295,38 @@ export function toggleCollapsed(key: string): void {
       ? current.collapsed.filter((other) => other !== key)
       : [...current.collapsed, key],
   }));
+}
+
+// Saves the current layout and background under a name, replacing a preset
+// of the same name.
+export function savePreset(name: string): void {
+  const trimmed = name.trim();
+  if (trimmed === '') return;
+  updatePrefs((current) => ({
+    ...current,
+    presets: { ...current.presets, [trimmed]: { layout: current.layout, background: current.background } },
+  }));
+}
+
+export function loadPreset(name: string): void {
+  updatePrefs((current) => {
+    const preset = current.presets[name];
+    return preset ? { ...current, layout: preset.layout, background: preset.background } : current;
+  });
+}
+
+export function deletePreset(name: string): void {
+  updatePrefs((current) => {
+    const { [name]: _removed, ...rest } = current.presets;
+    return { ...current, presets: rest };
+  });
+}
+
+// The name of the preset that matches the current layout and background, if
+// there is one.
+export function activePreset(p: Preferences): string | null {
+  const now = JSON.stringify({ layout: p.layout, background: p.background });
+  return Object.keys(p.presets).find((name) => JSON.stringify(p.presets[name]) === now) ?? null;
 }
 
 // For tests.

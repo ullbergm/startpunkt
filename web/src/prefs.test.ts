@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaults, prefs, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { defaults, moveFavorite, prefs, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -76,6 +76,18 @@ describe('stored preferences', () => {
     expect(prefs.value.favorites).toEqual([]);
   });
 
+  it('move a favorite to another place', () => {
+    for (const id of ['a', 'b', 'c', 'd']) toggleFavorite([id]);
+    moveFavorite('d', 0);
+    expect(prefs.value.favorites).toEqual(['d', 'a', 'b', 'c']);
+    moveFavorite('d', 2);
+    expect(prefs.value.favorites).toEqual(['a', 'b', 'd', 'c']);
+    moveFavorite('a', 99);
+    expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
+    moveFavorite('unknown', 0);
+    expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
+  });
+
   it('toggle a collapsed group', () => {
     toggleCollapsed('application:media');
     expect(prefs.value.collapsed).toEqual(['application:media']);
@@ -89,5 +101,31 @@ describe('stored preferences', () => {
     toggleCollapsed('bookmark:links');
     resetPrefs();
     expect(prefs.value).toEqual({ ...defaults(), favorites: ['a'], collapsed: ['bookmark:links'] });
+  });
+
+  it('read what an earlier version stored', () => {
+    const old = sanitize({ background: { type: 'image', blur: true, overlay: false } });
+    expect(old.background).toMatchObject({ type: 'image', blur: 10, overlayOpacity: 0 });
+    expect(sanitize({ background: { overlay: true } }).background.overlayOpacity).toBe(0.85);
+  });
+
+  it('keep presets valid whatever was stored', () => {
+    const result = sanitize({
+      presets: {
+        ' Evening ': { layout: { columns: 3, spacing: 'nope' }, background: { type: 'meshGradient', meshColors: ['#111111', 'x'] } },
+        '': { layout: {} },
+        broken: 'not a preset',
+      },
+    });
+    expect(Object.keys(result.presets).sort()).toEqual(['Evening', 'broken']);
+    expect(result.presets.Evening?.layout).toMatchObject({ columns: 3, spacing: 'normal' });
+    expect(result.presets.Evening?.background.meshColors[0]).toBe('#111111');
+    expect(result.presets.Evening?.background.meshColors[1]).toBe(defaults().background.meshColors[1]);
+    expect(result.presets.broken).toEqual({ layout: defaults().layout, background: defaults().background });
+  });
+
+  it('clamp numbers to their range', () => {
+    const b = sanitize({ background: { blur: 500, opacity: 0, overlayOpacity: 7 } }).background;
+    expect(b).toMatchObject({ blur: 20, opacity: 0.1, overlayOpacity: 1 });
   });
 });
