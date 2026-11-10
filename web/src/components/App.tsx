@@ -1,12 +1,13 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { groupTiles } from '../group';
+import { groupCards, toCards } from '../cards';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
+import { ClusterChips } from './ClusterChips';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
 import { GitHubCorner } from './GitHubCorner';
@@ -98,13 +99,21 @@ export function App({
   const showCluster = shown.length > 1;
   const visible = tagged.filter((tile) => !p.hiddenClusters.includes(tile.cluster));
   const tiles = p.layout.hideUnreachable ? visible.filter((tile) => tile.available !== false) : visible;
-  // Favorites are shown once, in their own section and in the visitor's
-  // order, and are left out of the groups below.
-  const byId = new Map(tiles.map((tile) => [tile.id, tile]));
-  const allFavorites = p.favorites.flatMap((id) => byId.get(id) ?? []);
-  const others = tiles.filter((tile) => !p.favorites.includes(tile.id));
-  const applications = groupTiles(others, 'application');
-  const bookmarks = groupTiles(others, 'bookmark');
+  // The same service on several clusters is one card, unless the visitor
+  // prefers them apart. The local cluster comes first.
+  const order = [...shown].sort((a, b) => Number(b.local) - Number(a.local)).map((cluster) => cluster.name);
+  const cards = toCards(tiles, p.layout.combine && showCluster, order);
+  // Favorites are shown once, in their own row and in the visitor's order,
+  // and are left out of the groups below. A combined card is a favorite
+  // when any of its tiles is.
+  const favoriteIndex = (card: (typeof cards)[number]) =>
+    Math.min(...card.members.map((member) => p.favorites.indexOf(member.id)).filter((index) => index >= 0));
+  const allFavorites = cards
+    .filter((card) => card.members.some((member) => p.favorites.includes(member.id)))
+    .sort((a, b) => favoriteIndex(a) - favoriteIndex(b));
+  const others = cards.filter((card) => !allFavorites.includes(card));
+  const applications = groupCards(others, 'application');
+  const bookmarks = groupCards(others, 'bookmark');
   // The tab the visitor picked, for as long as it has something to show.
   const kinds: Kind[] = [
     ...(tiles.some((tile) => tile.kind === 'application') ? (['applications'] as const) : []),
@@ -112,7 +121,9 @@ export function App({
   ];
   const view: Kind = chosen && kinds.includes(chosen) ? chosen : (kinds[0] ?? 'applications');
   // Each tab has its own favorites row.
-  const favorites = allFavorites.filter((tile) => tile.kind === (view === 'applications' ? 'application' : 'bookmark'));
+  const favorites = allFavorites.filter(
+    (card) => card.primary.kind === (view === 'applications' ? 'application' : 'bookmark'),
+  );
   const groups = view === 'applications' ? applications : bookmarks;
   // The local cluster may still be read for the first time. Any other state
   // that is not "connected" means the tiles of that cluster are the last
@@ -155,19 +166,26 @@ export function App({
           </div>
         )}
         {!state && !error && <Skeleton />}
+        {(clusters.length > 1 || kinds.length === 2) && (
+          // The clusters to show on the left, the kinds of tiles on the right.
+          <div class="toolbar">
+            <ClusterChips clusters={clusters} hidden={p.hiddenClusters} />
+            {kinds.length === 2 && (
+              <Tabs
+                id="tiles"
+                label={t('section.kinds')}
+                tabs={kinds.map((key) => ({ key, label: t(`section.${key}`) }))}
+                selected={view}
+                onSelect={setChosen}
+              />
+            )}
+          </div>
+        )}
         {kinds.length === 2 ? (
           // Both kinds exist: one tab each, opening on the applications.
-          // The tabs sit at the top right, above the favorites.
           <>
-            <Tabs
-              id="tiles"
-              label={t('section.kinds')}
-              tabs={kinds.map((key) => ({ key, label: t(`section.${key}`) }))}
-              selected={view}
-              onSelect={setChosen}
-            />
             <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
-              <Favorites tiles={favorites} iconColor={iconColor} showCluster={showCluster} />
+              <Favorites cards={favorites} iconColor={iconColor} showCluster={showCluster} />
               <Section
                 id={view}
                 groups={groups}
@@ -181,7 +199,7 @@ export function App({
           // Only one kind: no tabs to choose between, just its heading.
           kinds.map((kind) => (
             <Fragment key={kind}>
-              <Favorites tiles={favorites} iconColor={iconColor} showCluster={showCluster} />
+              <Favorites cards={favorites} iconColor={iconColor} showCluster={showCluster} />
               <Section
                 id={kind}
                 title={t(`section.${kind}`)}

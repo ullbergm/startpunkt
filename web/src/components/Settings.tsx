@@ -514,6 +514,12 @@ type Tab = 'appearance' | 'layout' | 'background' | 'clusters' | 'accessibility'
 function Clusters({ p, clusters }: { p: Preferences; clusters: Cluster[] }) {
   return (
     <>
+      <Check
+        label={t('settings.combine')}
+        help={t('settings.combineHelp')}
+        checked={p.layout.combine}
+        onChange={(combine) => setLayout({ combine })}
+      />
       <p class="help">{t('settings.clusters.help')}</p>
       {clusters.map((cluster) => (
         <Check

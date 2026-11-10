@@ -1,3 +1,4 @@
+import type { Card } from '../cards';
 import { t } from '../i18n';
 import { prefs, toggleFavorite } from '../prefs';
 import type { Tile } from '../types';
@@ -13,35 +14,71 @@ export interface Reorder {
   onMove: (delta: -1 | 1) => void;
 }
 
+// One cluster of a card. On a card that stands for several clusters each
+// pill is a link to that cluster's instance of the service and says, in its
+// name and with a mark, whether that instance answers.
+function Pill({ tile, link }: { tile: Tile; link: boolean }) {
+  const state =
+    tile.available === true ? 'available' : tile.available === false ? 'unavailable' : 'unknown';
+  const label = t(`pill.${state}`, { name: tile.name, cluster: tile.cluster });
+  const body = (
+    <>
+      {/* Filled or hollow, so that the state is not told by colour alone. */}
+      {state !== 'unknown' && (
+        <span class={`pill-mark pill-${state}`} aria-hidden="true">
+          {state === 'available' ? '●' : '○'}
+        </span>
+      )}
+      {tile.cluster}
+    </>
+  );
+  const href = link ? safeHref(tile.url) : null;
+  return href ? (
+    <a
+      class="pill"
+      href={href}
+      aria-label={label}
+      title={label}
+      target={tile.targetBlank ? '_blank' : undefined}
+      rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+    >
+      {body}
+    </a>
+  ) : (
+    <span class="pill" aria-label={label} title={label}>
+      {body}
+    </span>
+  );
+}
+
 export function TileCard({
-  tile,
+  card,
   iconColor,
   reorder,
   showCluster = false,
 }: {
-  tile: Tile;
+  card: Card;
   iconColor: string;
   reorder?: Reorder;
-  // Name the cluster on the tile, when tiles of several clusters are shown.
+  // Name the clusters on the card, when tiles of several clusters are shown.
   showCluster?: boolean;
 }) {
   const { layout, favorites } = prefs.value;
+  const tile = card.primary;
+  const combined = card.members.length > 1;
   const href = safeHref(tile.url);
-  // Only a probe that failed marks a tile. Without a result nothing is shown.
-  const unavailable = tile.available === false;
-  const favorite = favorites.includes(tile.id);
+  // Only a probe that failed marks a card, and a combined card only when
+  // every one of its clusters failed: the pills tell them apart.
+  const unavailable = card.members.every((member) => member.available === false);
+  const ids = card.members.map((member) => member.id);
+  // A combined card is a favorite when any of its tiles is, and the star
+  // adds or removes all of them.
+  const favorite = ids.some((id) => favorites.includes(id));
   const body = (
     <>
       <TileIcon tile={tile} color={iconColor} />
       <span class="tile-text">
-        <span class="tile-name">
-          {tile.name}
-          {showCluster && (
-            <span class="tile-cluster" aria-label={t('tile.cluster', { cluster: tile.cluster })}>
-              {tile.cluster}
-            </span>
-          )}
-        </span>
+        <span class="tile-name">{tile.name}</span>
         {layout.showDescription && tile.info && (
           <FitText class="tile-info" text={tile.info} lines={layout.descriptionLines} />
         )}
@@ -61,20 +98,31 @@ export function TileCard({
   );
   return (
     <div class={unavailable && layout.showStatus ? 'tile tile-unavailable' : 'tile'}>
-      {href ? (
-        <a
-          class="tile-link"
-          href={href}
-          target={tile.targetBlank ? '_blank' : undefined}
-          rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
-        >
-          {body}
-        </a>
-      ) : (
-        <div class="tile-link tile-disabled" title={t('tile.noLink')}>
-          {body}
-        </div>
-      )}
+      <div class="tile-main">
+        {href ? (
+          <a
+            class="tile-link"
+            href={href}
+            target={tile.targetBlank ? '_blank' : undefined}
+            rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+          >
+            {body}
+          </a>
+        ) : (
+          <div class="tile-link tile-disabled" title={t('tile.noLink')}>
+            {body}
+          </div>
+        )}
+        {/* Next to the card's link, not inside it: a link in a link is not
+            valid, and each cluster has to be reachable on its own. */}
+        {showCluster && (
+          <span class="tile-pills">
+            {card.members.map((member) => (
+              <Pill key={member.id} tile={member} link={combined} />
+            ))}
+          </span>
+        )}
+      </div>
       {reorder && (
         <span class="tile-move">
           <button
@@ -102,7 +150,7 @@ export function TileCard({
         class="tile-favorite"
         aria-pressed={favorite}
         aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', { name: tile.name })}
-        onClick={() => toggleFavorite([tile.id])}
+        onClick={() => toggleFavorite(ids)}
       >
         <Icon name={favorite ? 'star' : 'starOutline'} size={18} />
       </button>

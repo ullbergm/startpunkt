@@ -639,23 +639,99 @@ describe('App', () => {
         ],
       });
 
-    it('shows the tiles of both, each naming its cluster', async () => {
+    it('shows the same service on both clusters as one card with a pill per cluster', async () => {
+      renderWith({
+        ...two(),
+        tiles: [
+          tile({ id: 'local/apps/ns/grafana', name: 'Grafana', cluster: 'local', url: 'https://grafana.local', available: true }),
+          tile({ id: 'prod/apps/ns/grafana', name: 'Grafana', cluster: 'prod', url: 'https://grafana.prod', available: false }),
+          tile({ id: 'prod/apps/ns/plex', name: 'Plex', cluster: 'prod', url: 'https://plex.prod' }),
+        ],
+      });
+      // One card for Grafana: its body opens the local one.
+      const body = await screen.findByRole('link', { name: /^G?Grafana$/ });
+      expect(body.getAttribute('href')).toBe('https://grafana.local');
+      expect(document.querySelectorAll('.tile')).toHaveLength(2);
+
+      // Each cluster is one click away and says whether it answers.
+      const local = screen.getByRole('link', { name: 'Grafana on local, available' });
+      const prod = screen.getByRole('link', { name: 'Grafana on prod, not available' });
+      expect(local.getAttribute('href')).toBe('https://grafana.local');
+      expect(prod.getAttribute('href')).toBe('https://grafana.prod');
+      expect(local.textContent).toContain('●');
+      expect(prod.textContent).toContain('○');
+      // One cluster down does not mark the whole card.
+      expect(body.textContent).not.toContain('Offline');
+
+      // A service on one cluster only names it, without a second link.
+      expect(screen.getByLabelText('Plex on prod').tagName).toBe('SPAN');
+      expect(screen.getAllByRole('link', { name: /Plex/ })).toHaveLength(1);
+    });
+
+    it('marks a combined card offline only when every cluster is down', async () => {
+      renderWith({
+        ...two(),
+        tiles: [
+          tile({ id: 'local/apps/ns/grafana', name: 'Grafana', cluster: 'local', available: false }),
+          tile({ id: 'prod/apps/ns/grafana', name: 'Grafana', cluster: 'prod', available: false }),
+        ],
+      });
+      expect((await screen.findByRole('link', { name: /Grafana.*Offline/ })).textContent).toContain('Offline');
+    });
+
+    it('makes a combined card a favorite as a whole', async () => {
       renderWith(two());
-      const links = await screen.findAllByRole('link', { name: /Grafana/ });
-      expect(links).toHaveLength(2);
-      expect(links.map((link) => link.querySelector('.tile-cluster')?.textContent).sort()).toEqual(['local', 'prod']);
-      expect(screen.getByLabelText('on prod')).toBeTruthy();
+      fireEvent.click(await screen.findByRole('button', { name: 'Add Grafana to favorites' }));
+      expect(prefs.value.favorites.sort()).toEqual(['local/apps/ns/grafana', 'prod/apps/ns/grafana']);
+      const favorites = await screen.findByRole('region', { name: 'Favorites' });
+      expect(favorites.querySelectorAll('.tile')).toHaveLength(1);
+      expect(document.querySelectorAll('.tile')).toHaveLength(1); // not in its group as well
+      fireEvent.click(within(favorites).getByRole('button', { name: 'Remove Grafana from favorites' }));
+      expect(prefs.value.favorites).toEqual([]);
+    });
+
+    it('keeps the tiles apart when combining is turned off', async () => {
+      updatePrefs((p) => ({ ...p, layout: { ...p.layout, combine: false } }));
+      renderWith(two());
+      await waitFor(() => expect(document.querySelectorAll('.tile')).toHaveLength(2));
+      expect(screen.getByLabelText('Grafana on local').tagName).toBe('SPAN');
+      expect(screen.getByLabelText('Grafana on prod').tagName).toBe('SPAN');
+    });
+
+    it('shows and hides a cluster from the page itself', async () => {
+      renderWith(two());
+      await screen.findByRole('link', { name: 'Grafana on prod' });
+      const group = screen.getByRole('group', { name: 'Clusters to show' });
+      const chips = within(group).getAllByRole('button');
+      expect(chips.map((chip) => chip.textContent)).toEqual(['local', 'prod']); // the local cluster first
+      expect(chips.every((chip) => chip.getAttribute('aria-pressed') === 'true')).toBe(true);
+
+      fireEvent.click(chips[1]!);
+      await waitFor(() => expect(screen.queryByRole('link', { name: 'Grafana on prod' })).toBeNull());
+      expect(chips[1]!.getAttribute('aria-pressed')).toBe('false');
+      expect(prefs.value.hiddenClusters).toEqual(['prod']);
+      // With one cluster left there is nothing to tell apart.
+      expect(document.querySelector('.tile-pills')).toBeNull();
+
+      fireEvent.click(chips[1]!);
+      expect(await screen.findByRole('link', { name: 'Grafana on prod' })).toBeTruthy();
+    });
+
+    it('has no cluster buttons with a single cluster', async () => {
+      renderWith(serverState({ tiles: [tile({ name: 'Grafana' })] }));
+      await screen.findByRole('link', { name: /Grafana/ });
+      expect(screen.queryByRole('group', { name: 'Clusters to show' })).toBeNull();
     });
 
     it('names no cluster when there is only one', async () => {
       renderWith(serverState({ tiles: [tile({ name: 'Grafana' })] }));
       await screen.findByRole('link', { name: /Grafana/ });
-      expect(document.querySelector('.tile-cluster')).toBeNull();
+      expect(document.querySelector('.tile-pills')).toBeNull();
     });
 
     it('hides a cluster the visitor has turned off, and its label with it', async () => {
       renderWith(two());
-      await screen.findAllByRole('link', { name: /Grafana/ });
+      await screen.findByRole('link', { name: 'Grafana on prod' });
       fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
       fireEvent.click(await screen.findByRole('tab', { name: 'Clusters' }));
       const prod = screen.getByRole('checkbox', { name: /prod/ }) as HTMLInputElement;
@@ -663,9 +739,9 @@ describe('App', () => {
       expect(screen.getByRole('checkbox', { name: /local/ }).parentElement?.textContent).toContain('This cluster');
       fireEvent.click(prod);
 
-      await waitFor(() => expect(screen.getAllByRole('link', { name: /Grafana/ })).toHaveLength(1));
+      await waitFor(() => expect(screen.queryByRole('link', { name: 'Grafana on prod' })).toBeNull());
       expect(prefs.value.hiddenClusters).toEqual(['prod']);
-      expect(document.querySelector('.tile-cluster')).toBeNull();
+      expect(document.querySelector('.tile-pills')).toBeNull();
     });
 
     it('offers no clusters tab with a single cluster', async () => {
@@ -678,7 +754,8 @@ describe('App', () => {
     it('says when a remote is not reachable and keeps its tiles', async () => {
       renderWith(two('stale'));
       expect(await screen.findByText(/Not connected to prod/)).toBeTruthy();
-      expect(screen.getAllByRole('link', { name: /Grafana/ })).toHaveLength(2);
+      expect(screen.getByRole('link', { name: 'Grafana on prod' })).toBeTruthy();
+      expect(within(screen.getByRole('group', { name: 'Clusters to show' })).getByLabelText('prod is not connected')).toBeTruthy();
       act(() => FakeStream.last.emit('cluster.status', { name: 'prod', local: false, state: 'connected' }));
       await waitFor(() => expect(screen.queryByText(/Not connected to prod/)).toBeNull());
     });
@@ -692,7 +769,7 @@ describe('App', () => {
     it('says nothing about a remote the visitor has hidden', async () => {
       updatePrefs((p) => ({ ...p, hiddenClusters: ['prod'] }));
       renderWith(two('stale'));
-      await screen.findByRole('link', { name: /Grafana/ });
+      await waitFor(() => expect(document.querySelectorAll('.tile')).toHaveLength(1));
       expect(screen.queryByText(/Not connected to prod/)).toBeNull();
     });
   });

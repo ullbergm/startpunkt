@@ -654,19 +654,104 @@ li[draggable='true'] {
   overflow-wrap: anywhere;
 }
 
-/* The cluster a tile belongs to, when several are shown. */
-.tile-cluster {
-  display: inline-block;
-  margin-left: 0.4rem;
-  padding: 0 0.4rem;
+/* The link of a card, and under it the clusters the card stands for. */
+.tile-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tile-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  /* In line with the text: past the icon and the gap next to it. */
+  padding: 0 var(--tile-pad) var(--tile-pad) calc(var(--tile-pad) + 40px + 0.75rem);
+}
+
+:root[data-compact='true'] .tile-pills {
+  padding-left: calc(var(--tile-pad) + 28px + 0.75rem);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.45rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.65rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-  vertical-align: middle;
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+a.pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.pill-mark {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.pill-available {
+  color: #3fb950;
+}
+
+.pill-unavailable {
+  color: var(--error);
+}
+
+/* The row above the tiles: clusters to show on the left, tabs on the right. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar .tabs {
+  margin-top: 0;
+  border-bottom: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+.chip {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* A shown cluster is marked by weight and a solid border, a hidden one by a
+   dashed border and a line through its name. */
+.chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chip[aria-pressed='false'] {
+  border-style: dashed;
+  text-decoration: line-through;
+}
+
+.chip-warning {
+  margin-left: 0.3rem;
+  color: var(--error);
+  font-weight: 700;
 }
 
 .tile-tags {

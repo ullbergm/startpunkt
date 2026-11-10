@@ -264,7 +264,7 @@ The same service is often deployed to several clusters with the same name, group
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
-- The cluster filter is a personal preference. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
+- The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles that shows or hides it, and the settings offer the same. A cluster that is not connected is marked on its button. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
 
 Two layouts are offered as a personal preference.
 
@@ -413,6 +413,6 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
-7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, the cluster label on tiles and a filter of clusters per visitor. Still to do: the setting for which clusters a new visitor sees, the two layouts and combined cards.
+7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, cluster pills, combined cards, and a filter of clusters per visitor, both in the settings and as buttons on the page. Still to do: the setting for which clusters a new visitor sees, and the cluster-first layout.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
 9. User-defined CEL mappings. This can follow the first release.

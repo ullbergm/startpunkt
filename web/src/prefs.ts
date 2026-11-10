@@ -44,6 +44,8 @@ export interface Preferences {
     showTags: boolean;
     showStatus: boolean;
     hideUnreachable: boolean;
+    // Show the same service on several clusters as one card.
+    combine: boolean;
   };
   background: Background;
   // A casual handwritten typeface for the whole page.
@@ -131,6 +133,7 @@ export function defaults(): Preferences {
       showTags: false,
       showStatus: true,
       hideUnreachable: false,
+      combine: true,
     },
     background: {
       type: 'pictureOfDay',
@@ -190,6 +193,7 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
     showTags: bool(layout.showTags, d.showTags),
     showStatus: bool(layout.showStatus, d.showStatus),
     hideUnreachable: bool(layout.hideUnreachable, d.hideUnreachable),
+    combine: bool(layout.combine, d.combine),
   };
 }
 

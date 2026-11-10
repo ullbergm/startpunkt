@@ -122,10 +122,16 @@
   "settings.descriptionLines": "Rader i beskrivningen, som mest",
   "settings.descriptionLines.any": "Ingen gräns",
   "github.view": "Visa projektet på GitHub",
-  "tile.cluster": "på {cluster}",
   "settings.clusters": "Kluster",
   "settings.clusters.help": "Visa program och bokmärken från de här klustren.",
   "settings.clusters.local": "Det här klustret",
   "settings.clusters.connected": "Ansluten",
-  "settings.clusters.unreachable": "Kan inte nås; visar de senast kända brickorna"
+  "settings.clusters.unreachable": "Kan inte nås; visar de senast kända brickorna",
+  "pill.available": "{name} på {cluster}, tillgänglig",
+  "pill.unavailable": "{name} på {cluster}, inte tillgänglig",
+  "pill.unknown": "{name} på {cluster}",
+  "clusters.show": "Kluster att visa",
+  "clusters.notConnected": "{cluster} är inte anslutet",
+  "settings.combine": "Slå ihop samma tjänst på flera kluster till ett kort",
+  "settings.combineHelp": "Varje kluster får då en etikett på kortet som länkar dit."
 }

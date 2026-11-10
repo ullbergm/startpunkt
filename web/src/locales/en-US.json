@@ -122,10 +122,16 @@
   "settings.descriptionLines": "Description lines, at most",
   "settings.descriptionLines.any": "No limit",
   "github.view": "View the project on GitHub",
-  "tile.cluster": "on {cluster}",
   "settings.clusters": "Clusters",
   "settings.clusters.help": "Show the applications and bookmarks of these clusters.",
   "settings.clusters.local": "This cluster",
   "settings.clusters.connected": "Connected",
-  "settings.clusters.unreachable": "Not reachable; showing the last known tiles"
+  "settings.clusters.unreachable": "Not reachable; showing the last known tiles",
+  "pill.available": "{name} on {cluster}, available",
+  "pill.unavailable": "{name} on {cluster}, not available",
+  "pill.unknown": "{name} on {cluster}",
+  "clusters.show": "Clusters to show",
+  "clusters.notConnected": "{cluster} is not connected",
+  "settings.combine": "Combine the same service on several clusters into one card",
+  "settings.combineHelp": "Each cluster then gets a pill on the card that links to it."
 }
