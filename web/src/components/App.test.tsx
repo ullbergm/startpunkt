@@ -703,23 +703,40 @@ describe('App', () => {
       expect(screen.getByLabelText('Grafana on prod').tagName).toBe('SPAN');
     });
 
-    it('shows and hides a cluster from the page itself', async () => {
-      renderWith(two());
+    it('picks one cluster with a click, and adds or removes one with a modifier', async () => {
+      const three = two();
+      three.clusters.push({ name: 'dev', local: false, state: 'connected' });
+      three.tiles.push(tile({ id: 'dev/apps/ns/wiki', name: 'Wiki', cluster: 'dev' }));
+      renderWith(three);
       await screen.findByRole('link', { name: 'Grafana on prod' });
       const group = screen.getByRole('group', { name: 'Clusters to show' });
-      const chips = within(group).getAllByRole('button');
-      expect(chips.map((chip) => chip.textContent)).toEqual(['local', 'prod']); // the local cluster first
-      expect(chips.every((chip) => chip.getAttribute('aria-pressed') === 'true')).toBe(true);
+      const chip = (name: string) => within(group).getByRole('button', { name });
+      const pressed = () =>
+        within(group)
+          .getAllByRole('button')
+          .filter((button) => button.getAttribute('aria-pressed') === 'true')
+          .map((button) => button.textContent);
+      expect(within(group).getAllByRole('button').map((button) => button.textContent)).toEqual(['local', 'dev', 'prod']);
+      expect(pressed()).toEqual(['local', 'dev', 'prod']);
 
-      fireEvent.click(chips[1]!);
-      await waitFor(() => expect(screen.queryByRole('link', { name: 'Grafana on prod' })).toBeNull());
-      expect(chips[1]!.getAttribute('aria-pressed')).toBe('false');
-      expect(prefs.value.hiddenClusters).toEqual(['prod']);
-      // With one cluster left there is nothing to tell apart.
-      expect(document.querySelector('.tile-pills')).toBeNull();
+      // A plain click: that cluster alone.
+      fireEvent.click(chip('prod'));
+      await waitFor(() => expect(pressed()).toEqual(['prod']));
+      expect(prefs.value.hiddenClusters.sort()).toEqual(['dev', 'local']);
+      expect(screen.queryByRole('link', { name: /Wiki/ })).toBeNull();
+      expect(document.querySelector('.tile-pills')).toBeNull(); // one cluster: nothing to tell apart
 
-      fireEvent.click(chips[1]!);
-      expect(await screen.findByRole('link', { name: 'Grafana on prod' })).toBeTruthy();
+      // Shift adds one, Ctrl takes one out again.
+      fireEvent.click(chip('dev'), { shiftKey: true });
+      await waitFor(() => expect(pressed()).toEqual(['dev', 'prod']));
+      expect(screen.getByRole('link', { name: /Wiki/ })).toBeTruthy();
+      fireEvent.click(chip('prod'), { ctrlKey: true });
+      await waitFor(() => expect(pressed()).toEqual(['dev']));
+
+      // A plain click on the only cluster shown brings all of them back.
+      fireEvent.click(chip('dev'));
+      await waitFor(() => expect(pressed()).toEqual(['local', 'dev', 'prod']));
+      expect(prefs.value.hiddenClusters).toEqual([]);
     });
 
     it('has no cluster buttons with a single cluster', async () => {

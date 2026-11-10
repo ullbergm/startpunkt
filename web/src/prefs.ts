@@ -354,6 +354,19 @@ export function setClusterShown(name: string, shown: boolean): void {
   });
 }
 
+// Shows one cluster alone, hiding the others given. When it already is the
+// only one shown, all of them are shown again, so that a second click on
+// the same cluster undoes the first.
+export function showOnlyCluster(name: string, all: string[]): void {
+  updatePrefs((current) => {
+    const others = all.filter((other) => other !== name);
+    const alone = !current.hiddenClusters.includes(name) && others.every((other) => current.hiddenClusters.includes(other));
+    // Hidden clusters that are not listed right now stay hidden.
+    const unrelated = current.hiddenClusters.filter((hidden) => !all.includes(hidden));
+    return { ...current, hiddenClusters: alone ? unrelated : [...unrelated, ...others] };
+  });
+}
+
 export function toggleCollapsed(key: string): void {
   updatePrefs((current) => ({
     ...current,

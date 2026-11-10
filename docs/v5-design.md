@@ -265,7 +265,7 @@ The same service is often deployed to several clusters with the same name, group
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
-- The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles that shows or hides it, and the settings offer the same. A cluster that is not connected is marked on its button. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
+- The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles. A click shows that cluster alone, a second click on it shows all again, and a click with Shift, Ctrl or Command held adds or removes one. The settings have a checkbox per cluster for the same. A cluster that is not connected is marked on its button. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
 
 Two layouts are offered as a personal preference.
 

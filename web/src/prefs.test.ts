@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -112,6 +112,17 @@ describe('stored preferences', () => {
     expect(prefs.value).toMatchObject({ theme: 'auto', background: { overlayOpacity: 0.5 } });
     setPanel(-0.5);
     expect(prefs.value.theme).toBe('auto');
+  });
+
+  it('show one cluster alone, and all again on a second pick', () => {
+    const all = ['local', 'dev', 'prod'];
+    updatePrefs((p) => ({ ...p, hiddenClusters: ['gone'] })); // a cluster that is not listed any more
+    showOnlyCluster('dev', all);
+    expect(prefs.value.hiddenClusters.sort()).toEqual(['gone', 'local', 'prod']);
+    showOnlyCluster('prod', all);
+    expect(prefs.value.hiddenClusters.sort()).toEqual(['dev', 'gone', 'local']);
+    showOnlyCluster('prod', all);
+    expect(prefs.value.hiddenClusters).toEqual(['gone']);
   });
 
   it('toggle a collapsed group', () => {

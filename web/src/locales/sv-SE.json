@@ -133,5 +133,6 @@
   "clusters.show": "Kluster att visa",
   "clusters.notConnected": "{cluster} är inte anslutet",
   "settings.combine": "Slå ihop samma tjänst på flera kluster till ett kort",
-  "settings.combineHelp": "Varje kluster får då en etikett på kortet som länkar dit."
+  "settings.combineHelp": "Varje kluster får då en etikett på kortet som länkar dit.",
+  "clusters.hint": "Klicka för att visa bara det här klustret, igen för att visa alla. Skift- eller Ctrl-klicka för att lägga till eller ta bort det."
 }

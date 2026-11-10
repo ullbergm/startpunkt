@@ -1,10 +1,11 @@
 import { assignColors, orderClusters } from '../clusters';
 import { t } from '../i18n';
-import { setClusterShown } from '../prefs';
+import { setClusterShown, showOnlyCluster } from '../prefs';
 import type { Cluster } from '../types';
 
-// One button per cluster, to show or hide its tiles without opening the
-// settings. Shown when there is more than one cluster. A cluster that is
+// One button per cluster, to choose whose tiles are shown without opening
+// the settings. A click shows that cluster alone, and a second click on it
+// shows all again; with Shift, Ctrl or Command a click adds or removes one. Shown when there is more than one cluster. A cluster that is
 // not connected says so in its name and with a mark.
 export function ClusterChips({ clusters, hidden }: { clusters: Cluster[]; hidden: string[] }) {
   if (clusters.length < 2) return <span />;
@@ -22,8 +23,16 @@ export function ClusterChips({ clusters, hidden }: { clusters: Cluster[]; hidden
             class="chip"
             style={{ '--cluster': colors[cluster.name]! }}
             aria-pressed={shown}
-            title={connected ? undefined : t('clusters.notConnected', { cluster: cluster.name })}
-            onClick={() => setClusterShown(cluster.name, !shown)}
+            title={connected ? t('clusters.hint') : t('clusters.notConnected', { cluster: cluster.name })}
+            onClick={(event) => {
+              // A plain click picks this cluster alone. With Shift, Ctrl or
+              // Command held it is added to, or taken out of, what is shown.
+              if (event.shiftKey || event.ctrlKey || event.metaKey) {
+                setClusterShown(cluster.name, !shown);
+              } else {
+                showOnlyCluster(cluster.name, clusters.map((other) => other.name));
+              }
+            }}
           >
             {cluster.name}
             {!connected && (
