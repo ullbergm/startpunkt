@@ -294,3 +294,5 @@ func TestTwoRemotesDoNotDisturbEachOther(t *testing.T) {
 		t.Errorf("tiles: %v", got)
 	}
 }
+
+func testLogger() *slog.Logger { return slog.Default() }

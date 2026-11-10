@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"net/url"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -186,6 +187,23 @@ type Remote struct {
 	// Headers are sent with the request, for a remote behind an
 	// authenticating proxy.
 	Headers map[string]string `json:"headers,omitempty"`
+	// Include, when set, limits what is taken from the remote to the tiles
+	// it describes. Exclude leaves tiles out, also among the included.
+	Include Selector `json:"include,omitempty"`
+	Exclude Selector `json:"exclude,omitempty"`
+}
+
+// Selector describes a set of tiles. A tile is in the set when every field
+// that is given matches it.
+type Selector struct {
+	// Names and Groups are patterns, where "*" stands for any text and "?"
+	// for one character. Case is ignored.
+	Names  []string `json:"names,omitempty"`
+	Groups []string `json:"groups,omitempty"`
+	// Tags match a tile that carries at least one of them.
+	Tags []string `json:"tags,omitempty"`
+	// Kinds are "application" and "bookmark".
+	Kinds []string `json:"kinds,omitempty"`
 }
 
 // Upstream is where the api role reads its state from when the controller
@@ -482,6 +500,18 @@ func (c Config) validate() error {
 			return fmt.Errorf("federation.remotes[%d].name %q is already the name of this cluster or of another remote", i, r.Name)
 		}
 		seen[r.Name] = true
+		for which, selector := range map[string]Selector{"include": r.Include, "exclude": r.Exclude} {
+			for _, pattern := range append(append([]string{}, selector.Names...), selector.Groups...) {
+				if _, err := path.Match(strings.ToLower(pattern), ""); err != nil {
+					return fmt.Errorf("federation.remotes[%d].%s: pattern %q cannot be read", i, which, pattern)
+				}
+			}
+			for _, kind := range selector.Kinds {
+				if kind != "application" && kind != "bookmark" {
+					return fmt.Errorf("federation.remotes[%d].%s: kind %q is not application or bookmark", i, which, kind)
+				}
+			}
+		}
 		if u, err := url.Parse(r.URL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 			return fmt.Errorf("federation.remotes[%d].url %q is not an http or https URL", i, r.URL)
 		}

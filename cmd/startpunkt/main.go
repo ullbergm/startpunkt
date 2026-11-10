@@ -156,8 +156,12 @@ func run() error {
 		// The roles a browser talks to are the hub: they show the tiles of
 		// the remotes next to their own.
 		for _, r := range cfg.Federation.Remotes {
+			selector := func(s config.Selector) follow.Selector {
+				return follow.Selector{Names: s.Names, Groups: s.Groups, Tags: s.Tags, Kinds: s.Kinds}
+			}
 			go (&follow.Follower{
 				URL: r.URL, Remote: r.Name, Headers: r.Headers, Store: handler.Store, Log: log,
+				Filter: follow.Filter{Include: selector(r.Include), Exclude: selector(r.Exclude)},
 			}).Run(ctx)
 		}
 		// Only the roles a browser talks to fetch pictures.

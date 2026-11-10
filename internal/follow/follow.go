@@ -35,8 +35,10 @@ type Follower struct {
 	// Headers are sent with the request, for a remote that sits behind an
 	// authenticating proxy.
 	Headers map[string]string
-	Client  *http.Client
-	Log     *slog.Logger
+	// Filter chooses which of a remote's tiles are taken over.
+	Filter Filter
+	Client *http.Client
+	Log    *slog.Logger
 	// IdleTimeout is how long the stream may be silent before it is
 	// considered dead. It must exceed the upstream's heartbeat interval.
 	IdleTimeout time.Duration
@@ -197,7 +199,7 @@ type remote struct {
 // hub gives the remote, and read-only. It reports false for a tile that the
 // remote received from somewhere else.
 func (f *Follower) adopt(t tile.Tile) (tile.Tile, bool) {
-	if !f.own.local[t.Cluster] {
+	if !f.own.local[t.Cluster] || !f.Filter.Allows(t) {
 		return t, false
 	}
 	t.ID = f.Remote + strings.TrimPrefix(t.ID, t.Cluster)
@@ -305,6 +307,9 @@ func (f *Follower) applyRemote(name, data string) error {
 		}
 		if adopted, ok := f.adopt(t); ok {
 			f.Store.UpsertFrom(feed, adopted)
+		} else if id, own := f.adoptID(t.ID); own {
+			// The tile changed into one that is not taken over.
+			f.Store.Remove(id)
 		}
 	case string(store.EventDelete):
 		var d api.TileDelete

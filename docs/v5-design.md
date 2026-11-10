@@ -249,6 +249,7 @@ Each instance is fully authoritative for its own cluster. A hub is another clien
 - The roles a browser talks to are the hub: `all`, or `api` in split mode. The controller does not federate.
 - Each source of mirrored tiles is a feed with a name of its own: the instance's own controller, and one per remote. A snapshot from one feed replaces only what that feed brought, so remotes cannot disturb each other or the local tiles.
 - A remote is listed as a cluster before it has been reached, so the page can say that it is not connected.
+- What is taken from a remote can be limited per remote with `include` and `exclude`: by name and group, as patterns, by tag and by kind. Without `include` everything is taken, and `exclude` leaves tiles out, also among the included. The filter is applied by the hub as tiles arrive, so a tile that changes into or out of the selection appears or disappears.
 - For each remote, the hub opens `GET /api/v1/events`, receives the snapshot, and applies events to its own store under that cluster's key.
 - The cluster key is the name in the hub's own configuration, not the name the remote reports. Names must be unique within a hub, because they are part of the tile id.
 - A remote needs no configuration to be federated and does not know it is being consumed.

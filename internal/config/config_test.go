@@ -236,3 +236,24 @@ func TestFederationRemotes(t *testing.T) {
 		}
 	}
 }
+
+func TestFederationFilters(t *testing.T) {
+	cfg, err := Load("", false, env(map[string]string{
+		"STARTPUNKT_FEDERATION_REMOTES": `[{"name":"a","url":"http://a","include":{"kinds":["application"],"groups":["media","home*"]},"exclude":{"tags":["private"],"names":["plex"]}}]`,
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := cfg.Federation.Remotes[0]
+	if len(r.Include.Groups) != 2 || r.Include.Kinds[0] != "application" || r.Exclude.Tags[0] != "private" || r.Exclude.Names[0] != "plex" {
+		t.Errorf("remote = %+v", r)
+	}
+	for want, value := range map[string]string{
+		"cannot be read":  `[{"name":"a","url":"http://a","include":{"names":["[a"]}}]`,
+		"not application": `[{"name":"a","url":"http://a","exclude":{"kinds":["widget"]}}]`,
+	} {
+		if _, err := Load("", false, env(map[string]string{"STARTPUNKT_FEDERATION_REMOTES": value})); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got error %v", want, err)
+		}
+	}
+}

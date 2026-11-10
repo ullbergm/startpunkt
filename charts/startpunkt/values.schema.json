@@ -226,6 +226,72 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "include": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "kinds": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "application",
+                        "bookmark"
+                      ]
+                    }
+                  }
+                }
+              },
+              "exclude": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "kinds": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "application",
+                        "bookmark"
+                      ]
+                    }
+                  }
+                }
               }
             }
           }
