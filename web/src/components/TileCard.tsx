@@ -1,4 +1,5 @@
 import type { Card } from '../cards';
+import { clusterColors } from '../clusters';
 import { t } from '../i18n';
 import { prefs, toggleFavorite } from '../prefs';
 import type { Tile } from '../types';
@@ -33,9 +34,12 @@ function Pill({ tile, link }: { tile: Tile; link: boolean }) {
     </>
   );
   const href = link ? safeHref(tile.url) : null;
+  // The cluster's own colour, the same as on its button above the tiles.
+  const style = { '--cluster': clusterColors.value[tile.cluster] ?? 'currentColor' };
   return href ? (
     <a
       class="pill"
+      style={style}
       href={href}
       aria-label={label}
       title={label}
@@ -45,7 +49,7 @@ function Pill({ tile, link }: { tile: Tile; link: boolean }) {
       {body}
     </a>
   ) : (
-    <span class="pill" aria-label={label} title={label}>
+    <span class="pill" style={style} aria-label={label} title={label}>
       {body}
     </span>
   );

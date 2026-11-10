@@ -660,6 +660,11 @@ describe('App', () => {
       expect(prod.getAttribute('href')).toBe('https://grafana.prod');
       expect(local.textContent).toContain('●');
       expect(prod.textContent).toContain('○');
+      // Each cluster has a colour of its own, the same on its pill and its button.
+      const colour = (element: Element) => (element as HTMLElement).style.getPropertyValue('--cluster');
+      expect(colour(local)).not.toBe(colour(prod));
+      const chips = within(screen.getByRole('group', { name: 'Clusters to show' })).getAllByRole('button');
+      expect(chips.map(colour)).toEqual([colour(local), colour(prod)]);
       // One cluster down does not mark the whole card.
       expect(body.textContent).not.toContain('Offline');
 

@@ -1,3 +1,4 @@
+import { assignColors, orderClusters } from '../clusters';
 import { t } from '../i18n';
 import { setClusterShown } from '../prefs';
 import type { Cluster } from '../types';
@@ -7,7 +8,8 @@ import type { Cluster } from '../types';
 // not connected says so in its name and with a mark.
 export function ClusterChips({ clusters, hidden }: { clusters: Cluster[]; hidden: string[] }) {
   if (clusters.length < 2) return <span />;
-  const ordered = [...clusters].sort((a, b) => Number(b.local) - Number(a.local) || a.name.localeCompare(b.name));
+  const ordered = orderClusters(clusters);
+  const colors = assignColors(clusters);
   return (
     <div class="chips" role="group" aria-label={t('clusters.show')}>
       {ordered.map((cluster) => {
@@ -18,6 +20,7 @@ export function ClusterChips({ clusters, hidden }: { clusters: Cluster[]; hidden
             key={cluster.name}
             type="button"
             class="chip"
+            style={{ '--cluster': colors[cluster.name]! }}
             aria-pressed={shown}
             title={connected ? undefined : t('clusters.notConnected', { cluster: cluster.name })}
             onClick={() => setClusterShown(cluster.name, !shown)}

@@ -1,6 +1,7 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
+import { orderClusters } from '../clusters';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
@@ -101,7 +102,7 @@ export function App({
   const tiles = p.layout.hideUnreachable ? visible.filter((tile) => tile.available !== false) : visible;
   // The same service on several clusters is one card, unless the visitor
   // prefers them apart. The local cluster comes first.
-  const order = [...shown].sort((a, b) => Number(b.local) - Number(a.local)).map((cluster) => cluster.name);
+  const order = orderClusters(shown).map((cluster) => cluster.name);
   const cards = toCards(tiles, p.layout.combine && showCluster, order);
   // Favorites are shown once, in their own row and in the visitor's order,
   // and are left out of the groups below. A combined card is a favorite

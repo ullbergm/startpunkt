@@ -679,16 +679,19 @@ li[draggable='true'] {
   align-items: center;
   gap: 0.25rem;
   padding: 0 0.45rem;
-  border: 1px solid var(--border);
+  /* In the cluster's own colour, softened a little towards the text colour
+     so that it stays readable on the light and on the dark theme. */
+  border: 1px solid color-mix(in srgb, var(--cluster, var(--border)) 70%, transparent);
   border-radius: 999px;
-  color: var(--muted);
+  background: color-mix(in srgb, var(--cluster, transparent) 14%, transparent);
+  color: color-mix(in srgb, var(--cluster, var(--muted)) 78%, var(--text));
   font-size: 0.7rem;
   text-decoration: none;
 }
 
 a.pill:hover {
-  border-color: var(--accent);
-  color: var(--text);
+  border-color: var(--cluster, var(--accent));
+  background: color-mix(in srgb, var(--cluster, transparent) 28%, transparent);
 }
 
 .pill-mark {
@@ -738,8 +741,9 @@ a.pill:hover {
 /* A shown cluster is marked by weight and a solid border, a hidden one by a
    dashed border and a line through its name. */
 .chip[aria-pressed='true'] {
-  border-color: var(--accent);
-  color: var(--text);
+  border-color: var(--cluster, var(--accent));
+  background: color-mix(in srgb, var(--cluster, transparent) 16%, transparent);
+  color: color-mix(in srgb, var(--cluster, var(--text)) 78%, var(--text));
   font-weight: 600;
 }
 

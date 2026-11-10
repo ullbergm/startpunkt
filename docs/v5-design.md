@@ -281,6 +281,7 @@ Group only: groups contain tiles from all visible clusters. Each card shows a pi
 ```
 
 - Tiles are combined when their name, group and kind match.
+- Every cluster has a colour of its own, taken from a fixed set by its place in the list of clusters, the local one first. The colour is on the cluster's pills and on its button above the tiles, always next to its name.
 - The card shows one pill per cluster. Each pill is a link to that cluster's URL and carries that cluster's availability indicator, so every instance is one click away and its state is visible without expanding anything.
 - Activating the card body opens the local cluster's tile when there is one, otherwise the tile of the first cluster in the hub's configured order. The icon and description are taken from the same tile.
 - Combining is display only. The store, the API and the stored preferences still hold separate tiles.
