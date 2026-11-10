@@ -47,6 +47,23 @@ describe('connect', () => {
     ]);
   });
 
+  it('drops a cluster that is no longer part of the state', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState());
+    stream.emit('cluster.status', { name: 'prod', local: false, state: 'connected' });
+    expect(state.value?.clusters.map((c) => c.name)).toEqual(['local', 'prod']);
+    stream.emit('cluster.delete', { name: 'prod' });
+    expect(state.value?.clusters.map((c) => c.name)).toEqual(['local']);
+  });
+
+  it('takes changed settings of the page from the stream', () => {
+    const stream = FakeStream.last;
+    stream.emit('snapshot', serverState({ tiles: [tile({ name: 'a' })] }));
+    stream.emit('config', { ...serverState().config, title: 'Renamed' });
+    expect(state.value?.config.title).toBe('Renamed');
+    expect(names()).toEqual(['a']);
+  });
+
   it('replaces the signal value so that views update', () => {
     const stream = FakeStream.last;
     stream.emit('snapshot', serverState());

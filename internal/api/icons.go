@@ -39,9 +39,11 @@ var errNoIcon = errors.New("no such icon")
 // well clear of the service's rate limit even on a cold start.
 type Icons struct {
 	// Source overrides the address icons are fetched from.
-	Source    string
-	Client    *http.Client
-	UserAgent string
+	Source string
+	// SourceFunc, when set, is asked for the address in place of Source.
+	SourceFunc func() string
+	Client     *http.Client
+	UserAgent  string
 	// Limit is the number of batches that may be fetched at the same time.
 	Limit int
 	// MaxEntries bounds the number of icons kept.
@@ -228,9 +230,13 @@ type iconData struct {
 func (i *Icons) fetch(ctx context.Context, prefix string, names []string) (map[string][]byte, time.Duration, error) {
 	const retry = 30 * time.Second
 	source := i.Source
+	if i.SourceFunc != nil {
+		source = i.SourceFunc()
+	}
 	if source == "" {
 		source = iconSource
 	}
+	source = strings.TrimRight(source, "/")
 	client := i.Client
 	if client == nil {
 		client = &http.Client{}

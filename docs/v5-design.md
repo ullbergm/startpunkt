@@ -328,7 +328,24 @@ cluster B: informers ─> store ─> prober ─┤                              
 
 ## Configuration
 
-Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart configures the processes that way. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles, later `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
+Settings live in the cluster as custom resources. The environment holds only what a process needs to start: its role, its listen address, where the `api` role finds the controller, logging, and which resource to read.
+
+| Kind | Holds | Read by |
+| --- | --- | --- |
+| `Startpunkt` | The settings of one instance: `cluster`, `web`, `namespaceSelector`, `sources`, `availability`, `status`, `icons`. | The instance, by its own name in its own namespace. |
+| `Remote` | One federated instance: its URL and what to take from it. The resource's name is the cluster name its tiles get. | The instance in the same namespace. |
+
+- The controller watches both and applies a change without a restart. A new title or theme reaches open pages over the stream they already hold. A remote that is added is followed, and one that is deleted is dropped together with its tiles.
+- Settings that decide how the cluster is read, the sources, the namespaces, probing and the cluster's name, make the controller read the cluster again: its tiles are cleared and rebuilt, and the instance is not ready for the moment that takes.
+- A setting that is left out keeps its default. The definitions are generated from the Go types in `api/v1`, which are also the sections of the configuration file, so there is one definition of every setting.
+- What the schema can check is refused when the resource is applied. What it cannot, such as a search engine address that is not http, is reported in the `Startpunkt` resource's status as the `Configured` condition, and the instance carries on with the last valid settings.
+- Only the controller has access to the cluster. In split mode it passes the settings the `api` role needs, those of the page, the icon source and the remotes, over an internal stream that is not routed from outside the cluster. Request headers of remotes are never in a resource or on that stream, because they may be secrets: they reach the pods that use them through the environment, by the remote's name.
+- Without the definitions installed, or without a `Startpunkt` resource, the instance runs on the environment and the configuration file, which is also how it runs outside a cluster. The chart can be set to work this way.
+- A `Remote` resource does not have a status yet. Whether a remote is connected is visible on the page and in the API.
+
+### Environment and file
+
+Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles, later `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
 
 ## Deployment
 
@@ -392,7 +409,7 @@ Once `v1` is the storage version, going back to the 4.x chart's definitions is n
 
 - Go as the implementation language.
 - One image with roles. It runs as a single process or split into `controller`, `api` and `web`, and the roles talk to each other with the public snapshot and event stream.
-- Configuration is environment-first, with a YAML file as an alternative.
+- Settings are custom resources, `Startpunkt` and `Remote`, applied without a restart. The environment holds what a process needs to start and is the fallback when the resources are not there.
 - Single store with snapshot plus SSE; no GraphQL.
 - Every SSE connection starts with a full snapshot; no event replay.
 - Built-in sources are plain Go adapters. CEL mappings for user-defined sources come later.
@@ -418,3 +435,5 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, cluster pills, combined cards, and a filter of clusters per visitor, both in the settings and as buttons on the page. Still to do: the setting for which clusters a new visitor sees, and the cluster-first layout.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
 9. User-defined CEL mappings. This can follow the first release.
+
+Added along the way: configuration through the `Startpunkt` and `Remote` resources, built after federation. Its definitions are in the chart's `crds` directory and are generated with `make crds`.

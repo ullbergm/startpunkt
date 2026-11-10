@@ -80,6 +80,15 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
         clusters: [...state.clusters.filter((other) => other.name !== cluster.name), cluster],
       }));
     });
+    current.addEventListener('cluster.delete', (event) => {
+      const { name } = JSON.parse(event.data) as { name: string };
+      update((state) => ({ ...state, clusters: state.clusters.filter((cluster) => cluster.name !== name) }));
+    });
+    // The page's settings changed on the server: a new title, theme and so on.
+    current.addEventListener('config', (event) => {
+      const config = JSON.parse(event.data) as ServerState['config'];
+      update((state) => ({ ...state, config }));
+    });
     current.onerror = () => {
       if (stopped) return;
       if (serverState.value && connection.value === 'live') {

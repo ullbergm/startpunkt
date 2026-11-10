@@ -45,6 +45,9 @@ type Updates struct {
 	Check bool
 	// GitHubLink is passed on to the page.
 	GitHubLink bool
+	// Flags, when set, is asked for Check and GitHubLink in their place,
+	// for settings that can change while the process runs.
+	Flags func() (check, githubLink bool)
 	// Source overrides the address the latest release is looked up at.
 	Source string
 	Client *http.Client
@@ -57,8 +60,12 @@ type Updates struct {
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	info := VersionInfo{Version: u.Current, GitHubLink: u.GitHubLink}
-	if latest := u.newer(r.Context()); latest != "" {
+	check, githubLink := u.Check, u.GitHubLink
+	if u.Flags != nil {
+		check, githubLink = u.Flags()
+	}
+	info := VersionInfo{Version: u.Current, GitHubLink: githubLink}
+	if latest := u.newer(r.Context(), check); latest != "" {
 		info.Latest = latest
 		info.UpdateAvailable = true
 		info.URL = releasePages + "tag/" + latest
@@ -70,8 +77,8 @@ func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // newer returns the tag of the latest release when it is newer than the
 // running version, otherwise "".
-func (u *Updates) newer(ctx context.Context) string {
-	if !u.Check {
+func (u *Updates) newer(ctx context.Context, check bool) string {
+	if !check {
 		return ""
 	}
 	if _, ok := parseVersion(u.Current); !ok {

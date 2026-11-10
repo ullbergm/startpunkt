@@ -130,8 +130,8 @@ func TestMirrorReplacesContent(t *testing.T) {
 	for _, e := range drain(events) {
 		types[e.ID+e.Cluster.Name] = e.Type
 	}
-	if len(types) != 3 || types["new"] != EventUpsert || types["old"] != EventDelete ||
-		types["c"] != EventCluster {
+	if len(types) != 4 || types["new"] != EventUpsert || types["old"] != EventDelete ||
+		types["c"] != EventCluster || types["gone"] != EventClusterDelete {
 		t.Fatalf("unexpected events: %v", types)
 	}
 	snap := s.Snapshot()
@@ -201,5 +201,47 @@ func TestProbeResults(t *testing.T) {
 	s.Set(owner, []tile.Tile{withURL("https://two")})
 	if tl := s.Owned(owner)[0]; tl.Available != nil || tl.LastProbe != nil {
 		t.Errorf("result kept for another URL: %+v", tl)
+	}
+}
+
+func TestDroppingAFeedAndOwnedTiles(t *testing.T) {
+	s := New()
+	s.SetCluster(Cluster{Name: "local", Local: true, State: StateConnected})
+	s.Set(Owner{Cluster: "local", Type: "apps", Name: "a"}, []tile.Tile{mk("local/a", "A", 1)})
+	s.SetClusterFrom("remote:prod", Cluster{Name: "prod", State: StateConnected})
+	s.UpsertFrom("remote:prod", mk("prod/a", "A", 1))
+	s.SetClusterFrom("remote:dev", Cluster{Name: "dev", State: StateConnected})
+	s.UpsertFrom("remote:dev", mk("dev/a", "A", 1))
+	_, events, cancel := s.Subscribe()
+	defer cancel()
+
+	s.DropFeed("remote:prod")
+	got := drain(events)
+	if len(got) != 2 || got[0].Type != EventDelete || got[0].ID != "prod/a" ||
+		got[1].Type != EventClusterDelete || got[1].Cluster.Name != "prod" {
+		t.Fatalf("dropping a feed: %+v", got)
+	}
+	snap := s.Snapshot()
+	if len(snap.Tiles) != 2 || len(snap.Clusters) != 2 {
+		t.Fatalf("the other feed and the local tiles must stay: %+v", snap)
+	}
+
+	s.DropOwned()
+	got = drain(events)
+	if len(got) != 2 || got[0].ID != "local/a" || got[1].Type != EventClusterDelete || got[1].Cluster.Name != "local" {
+		t.Fatalf("dropping owned tiles: %+v", got)
+	}
+	snap = s.Snapshot()
+	if len(snap.Tiles) != 1 || snap.Tiles[0].ID != "dev/a" || len(snap.Clusters) != 1 || snap.Clusters[0].Name != "dev" {
+		t.Fatalf("what the remaining feed brought must stay: %+v", snap)
+	}
+	if s.Ready() {
+		t.Error("without a local cluster the store is not ready")
+	}
+
+	s.RemoveCluster("dev")
+	s.RemoveCluster("dev")
+	if got := drain(events); len(got) != 1 || got[0].Type != EventClusterDelete {
+		t.Errorf("removing a cluster: %+v", got)
 	}
 }

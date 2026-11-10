@@ -1,7 +1,7 @@
 VERSION ?= dev
 IMAGE ?= ghcr.io/ullbergm/startpunkt:$(VERSION)
 
-.PHONY: all web build test check image icons clean
+.PHONY: all web build test check image icons crds clean
 
 all: check build
 
@@ -39,6 +39,14 @@ icons:
 	tmp=$$(mktemp -d) && \
 		for size in 16 32 48; do rsvg-convert -w $$size docs/images/logo.svg -o $$tmp/$$size.png; done && \
 		magick $$tmp/16.png $$tmp/32.png $$tmp/48.png web/public/favicon.ico && \
+		rm -r $$tmp
+
+# The definitions of the Startpunkt and Remote resources, generated from the
+# Go types in api/v1. Run after changing those types and commit the result.
+crds:
+	tmp=$$(mktemp -d) && \
+		go run sigs.k8s.io/controller-tools/cmd/controller-gen@v0.23.0 crd paths=./api/v1 output:crd:dir=$$tmp && \
+		cp $$tmp/startpunkt.ullberg.us_startpunkts.yaml $$tmp/startpunkt.ullberg.us_remotes.yaml charts/startpunkt/crds/ && \
 		rm -r $$tmp
 
 clean:

@@ -796,6 +796,23 @@ describe('App', () => {
     });
   });
 
+  it('follows a change of title and theme without a reload', async () => {
+    updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
+    renderWith(serverState());
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Home lab');
+    const config = serverState().config;
+    act(() =>
+      FakeStream.last.emit('config', {
+        ...config,
+        title: 'Renamed',
+        theme: { ...config.theme, light: { ...config.theme.light, bodyBgColor: '#ABCDEF' } },
+      }),
+    );
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Renamed'));
+    await waitFor(() => expect(document.documentElement.style.getPropertyValue('--bg')).toBe('#ABCDEF'));
+    expect(document.title).toBe('Renamed');
+  });
+
   it('has a skip link to the content', () => {
     renderWith(serverState());
     const skip = screen.getByRole('link', { name: 'Skip to main content' });

@@ -134,7 +134,9 @@ type ApplicationStatus struct {
 
 // Condition has the fields of the standard Kubernetes condition.
 type Condition struct {
-	Type               string `json:"type"`
+	// +kubebuilder:validation:Required
+	Type string `json:"type"`
+	// +kubebuilder:validation:Required
 	Status             string `json:"status"`
 	Reason             string `json:"reason"`
 	Message            string `json:"message"`

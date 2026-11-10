@@ -51,6 +51,11 @@ type Controller struct {
 	ctx     context.Context
 	status  *statusWriter
 
+	// life lets Close wait for conversions that are under way and turn
+	// later ones away.
+	life   sync.RWMutex
+	closed bool
+
 	// refMu guards refs and deps. It is never held together with mu.
 	refMu sync.Mutex
 	refs  map[source.Ref]*refWatch
@@ -83,10 +88,25 @@ func (c *Controller) Synced() bool {
 	return true
 }
 
+// Close makes the controller stop writing to the store. Call it after the
+// context passed to Run has been cancelled: informers may still deliver a
+// last event after that, and it must not land in a store that has since
+// been cleared for another reading of the cluster.
+func (c *Controller) Close() {
+	c.life.Lock()
+	c.closed = true
+	c.life.Unlock()
+}
+
 // reportSynced marks the cluster as connected in the store once the initial
 // sync is complete. A version switch later on does not go back to syncing,
 // because the tiles of the previous version stay in place meanwhile.
 func (c *Controller) reportSynced() {
+	c.life.RLock()
+	defer c.life.RUnlock()
+	if c.closed {
+		return
+	}
 	if c.Synced() {
 		c.Store.SetCluster(store.Cluster{Name: c.Cluster, Local: true, State: store.StateConnected})
 	}
@@ -233,6 +253,11 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 				obj = tomb.Obj
 			}
 			if u, ok := obj.(*unstructured.Unstructured); ok {
+				c.life.RLock()
+				defer c.life.RUnlock()
+				if c.closed {
+					return
+				}
 				owner := c.owner(typ, u)
 				c.Store.Delete(owner)
 				c.setDeps(owner, nil)
@@ -296,6 +321,11 @@ func (c *Controller) owner(typ string, obj *unstructured.Unstructured) store.Own
 // that cannot be converted loses its tiles and is logged; other objects are
 // not affected.
 func (c *Controller) apply(src source.Source, version string, obj *unstructured.Unstructured) {
+	c.life.RLock()
+	defer c.life.RUnlock()
+	if c.closed {
+		return
+	}
 	typ := source.Type(src)
 	owner := c.owner(typ, obj)
 	var used []source.Ref

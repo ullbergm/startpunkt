@@ -257,3 +257,76 @@ func TestFederationFilters(t *testing.T) {
 		}
 	}
 }
+
+func TestWithResources(t *testing.T) {
+	base := Default()
+	base.Web.Title = "From env"
+	base.Server.Address = ":9999"
+	base.Federation.Remotes = []Remote{{Name: "prod", URL: "http://old", Headers: map[string]string{"X-Token": "abc"}}}
+
+	cfg, err := base.WithResources([]byte(`{
+		"web": {"title": "From resource", "theme": {"dark": {"textAccentColor": "#abcdef"}}},
+		"sources": {"ingress": {"onlyAnnotated": false}},
+		"availability": {"interval": "30s"},
+		"server": {"address": ":1"}
+	}`), []Remote{{Name: "prod", URL: "https://new"}, {Name: "dev", URL: "https://dev"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Web.Title != "From resource" || cfg.Web.Theme.Dark.TextAccentColor != "#abcdef" {
+		t.Errorf("web = %+v", cfg.Web)
+	}
+	// What a section leaves out keeps its value.
+	if cfg.Web.SearchEngine != base.Web.SearchEngine || cfg.Web.Theme.Dark.BodyBgColor != base.Web.Theme.Dark.BodyBgColor ||
+		cfg.Web.Theme.Light != base.Web.Theme.Light || !cfg.Sources.Ingress.Enabled || cfg.Sources.Ingress.OnlyAnnotated ||
+		!cfg.Sources.Route.OnlyAnnotated || time.Duration(cfg.Availability.Interval) != 30*time.Second ||
+		cfg.Availability.Timeout != base.Availability.Timeout {
+		t.Errorf("defaults were lost: %+v", cfg)
+	}
+	// Settings of the process itself cannot come from the resource.
+	if cfg.Server.Address != ":9999" {
+		t.Errorf("server.address = %q", cfg.Server.Address)
+	}
+	// Remotes come from the list, and keep the headers configured by name.
+	r := cfg.Federation.Remotes
+	if len(r) != 2 || r[0].URL != "https://new" || r[0].Headers["X-Token"] != "abc" || r[1].Headers != nil {
+		t.Errorf("remotes = %+v", r)
+	}
+	if base.Web.Title != "From env" || base.Federation.Remotes[0].URL != "http://old" {
+		t.Error("the configuration it is applied to must not change")
+	}
+
+	// A resource that spells out the defaults changes nothing.
+	spelled, err := Default().WithResources([]byte(`{"namespaceSelector":{"any":true,"matchNames":[]},"sources":{"ingress":{"classNames":[]}}}`), nil)
+	if err != nil || !reflect.DeepEqual(spelled, Default()) {
+		t.Errorf("defaults spelled out: %v", err)
+	}
+
+	// No resource and no remotes given: unchanged.
+	same, err := base.WithResources(nil, nil)
+	if err != nil || !reflect.DeepEqual(same, base) {
+		t.Errorf("nothing applied: %+v, %v", same, err)
+	}
+	// An empty list of remotes removes them.
+	none, _ := base.WithResources(nil, []Remote{})
+	if len(none.Federation.Remotes) != 0 {
+		t.Errorf("remotes = %+v", none.Federation.Remotes)
+	}
+
+	for want, spec := range map[string]string{
+		"textAccentColor": `{"web": {"theme": {"dark": {"textAccentColor": "red"}}}}`,
+		"availability":    `{"availability": {"timeout": "0s"}}`,
+		"reading":         `{"availability": {"interval": 60}}`,
+	} {
+		got, err := base.WithResources([]byte(spec), nil)
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got error %v", want, err)
+		}
+		if !reflect.DeepEqual(got, base) {
+			t.Errorf("%s: an invalid resource must leave the configuration as it was", want)
+		}
+	}
+	if _, err := base.WithResources(nil, []Remote{{Name: "local", URL: "http://x"}}); err == nil {
+		t.Error("a remote named like this cluster must be refused")
+	}
+}

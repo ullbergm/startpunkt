@@ -1,0 +1,49 @@
+{{- if .Values.customResources.enabled }}
+apiVersion: startpunkt.ullberg.us/v1
+kind: Startpunkt
+metadata:
+  name: {{ include "startpunkt.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+  annotations:
+    # The definition of this kind arrives with the same release.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  cluster:
+    {{- toYaml .Values.config.cluster | nindent 4 }}
+  web:
+    {{- toYaml .Values.config.web | nindent 4 }}
+  namespaceSelector:
+    {{- toYaml .Values.namespaceSelector | nindent 4 }}
+  sources:
+    {{- toYaml .Values.sources | nindent 4 }}
+  availability:
+    {{- toYaml .Values.availability | nindent 4 }}
+  status:
+    {{- toYaml .Values.status | nindent 4 }}
+  icons:
+    {{- toYaml .Values.icons | nindent 4 }}
+{{- range .Values.federation.remotes }}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Remote
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" $ | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  url: {{ .url | quote }}
+  {{- with .include }}
+  include:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .exclude }}
+  exclude:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

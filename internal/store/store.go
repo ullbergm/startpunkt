@@ -26,6 +26,10 @@ const (
 	EventUpsert  EventType = "tile.upsert"
 	EventDelete  EventType = "tile.delete"
 	EventCluster EventType = "cluster.status"
+	// EventClusterDelete means a cluster is no longer part of the state,
+	// because the remote it came from was removed or this cluster was
+	// given another name. Cluster holds its name.
+	EventClusterDelete EventType = "cluster.delete"
 )
 
 // Event is one change to the store. Tile is set for upserts, ID for upserts
@@ -313,6 +317,7 @@ func (s *Store) MirrorFrom(feed string, snap Snapshot) {
 	}
 	for name, origin := range s.clusterOrigin {
 		if origin == feed && !names[name] {
+			events = append(events, Event{Type: EventClusterDelete, Cluster: s.clusters[name]})
 			delete(s.clusters, name)
 			delete(s.clusterOrigin, name)
 		}
@@ -339,6 +344,69 @@ func (s *Store) MarkStaleFrom(feed string) {
 		events = append(events, Event{Type: EventCluster, Cluster: c})
 	}
 	s.publish(events)
+}
+
+// DropFeed removes everything one feed brought: its tiles and its clusters.
+// It is used when a remote is no longer configured.
+func (s *Store) DropFeed(feed string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var events []Event
+	for id, origin := range s.tileOrigin {
+		if origin != feed {
+			continue
+		}
+		delete(s.tiles, id)
+		delete(s.tileOrigin, id)
+		events = append(events, Event{Type: EventDelete, ID: id})
+	}
+	events = append(events, s.dropClusters(feed)...)
+	s.publish(events)
+}
+
+// DropOwned removes every tile that was set by owner, and the clusters this
+// process reported itself. It is used before the cluster is read again
+// with other settings, so that nothing of the old reading is left behind.
+func (s *Store) DropOwned() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var events []Event
+	for owner, ids := range s.owned {
+		for _, id := range ids {
+			delete(s.tiles, id)
+			events = append(events, Event{Type: EventDelete, ID: id})
+		}
+		delete(s.owned, owner)
+	}
+	events = append(events, s.dropClusters(LocalFeed)...)
+	s.publish(events)
+}
+
+// RemoveCluster takes one cluster out of the state.
+func (s *Store) RemoveCluster(name string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.clusters[name]; !ok {
+		return
+	}
+	c := s.clusters[name]
+	delete(s.clusters, name)
+	delete(s.clusterOrigin, name)
+	s.publish([]Event{{Type: EventClusterDelete, Cluster: c}})
+}
+
+// dropClusters must be called with the lock held.
+func (s *Store) dropClusters(feed string) []Event {
+	var events []Event
+	for name, origin := range s.clusterOrigin {
+		if origin != feed {
+			continue
+		}
+		events = append(events, Event{Type: EventClusterDelete, Cluster: s.clusters[name]})
+		delete(s.clusters, name)
+		delete(s.clusterOrigin, name)
+	}
+	return events
 }
 
 // Snapshot returns a consistent view of all tiles and clusters.

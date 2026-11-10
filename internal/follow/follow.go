@@ -264,6 +264,12 @@ func (f *Follower) apply(name, data string) error {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
 		f.Store.SetCluster(c)
+	case string(store.EventClusterDelete):
+		var d api.ClusterDelete
+		if err := json.Unmarshal([]byte(data), &d); err != nil {
+			return fmt.Errorf("decoding %s: %w", name, err)
+		}
+		f.Store.RemoveCluster(d.Name)
 	default:
 		// Unknown events are ignored so that an upstream can add new ones.
 	}

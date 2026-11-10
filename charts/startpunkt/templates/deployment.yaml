@@ -46,6 +46,20 @@ spec:
               value: {{ $.Values.config.log.level | quote }}
             - name: STARTPUNKT_LOG_FORMAT
               value: {{ $.Values.config.log.format | quote }}
+            {{- if and $kube $.Values.customResources.enabled }}
+            # Which Startpunkt resource holds this instance's settings.
+            - name: STARTPUNKT_RESOURCES_NAME
+              value: {{ include "startpunkt.fullname" $ }}
+            - name: STARTPUNKT_RESOURCES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- end }}
+            {{- if eq $role "api" }}
+            - name: STARTPUNKT_UPSTREAM_URL
+              value: "http://{{ include "startpunkt.roleName" (dict "root" $ "role" "controller") }}:{{ $.Values.service.port }}"
+            {{- end }}
+            {{- if not $.Values.customResources.enabled }}
             {{- if $kube }}
             - name: STARTPUNKT_CLUSTER_NAME
               value: {{ $.Values.config.cluster.name | quote }}
@@ -101,9 +115,20 @@ spec:
             - name: STARTPUNKT_FEDERATION_REMOTES
               value: {{ toJson $.Values.federation.remotes | quote }}
             {{- end }}
-            {{- if eq $role "api" }}
-            - name: STARTPUNKT_UPSTREAM_URL
-              value: "http://{{ include "startpunkt.roleName" (dict "root" $ "role" "controller") }}:{{ $.Values.service.port }}"
+            {{- else if and (ne $role "web") (ne $role "controller") }}
+            {{- /* Headers of remotes may be secrets, so they are not put in
+                   the Remote resources. They reach the pods that use them
+                   here, by the name of the remote. */}}
+            {{- $withHeaders := list }}
+            {{- range $.Values.federation.remotes }}
+            {{- if .headers }}
+            {{- $withHeaders = append $withHeaders (dict "name" .name "url" .url "headers" .headers) }}
+            {{- end }}
+            {{- end }}
+            {{- with $withHeaders }}
+            - name: STARTPUNKT_FEDERATION_REMOTES
+              value: {{ toJson . | quote }}
+            {{- end }}
             {{- end }}
             {{- with $.Values.extraEnv }}
             {{- toYaml . | nindent 12 }}

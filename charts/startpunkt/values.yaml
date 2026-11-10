@@ -4,6 +4,20 @@ nameOverride: ""
 # is derived from the release name, so two releases never share a name.
 fullnameOverride: ""
 
+# Where the settings below are kept.
+#   true:  in a Startpunkt resource, and one Remote resource per remote, that
+#          this chart creates from the values. The instance watches them, so
+#          a change takes effect without restarting pods, and whether the
+#          settings are in use shows in the Startpunkt resource's status.
+#          Needs the definitions in this chart's crds directory, which Helm
+#          installs with the release unless told to skip them. Helm does not
+#          update them on an upgrade; apply the files of that directory
+#          after upgrading the chart.
+#   false: in environment variables on the pods. Nothing is read from the
+#          cluster for configuration and a change restarts the pods.
+customResources:
+  enabled: true
+
 # How Startpunkt is deployed. Both modes run the same image.
 #   single: one Deployment that watches the cluster and serves the API and the
 #           page.

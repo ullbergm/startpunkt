@@ -66,6 +66,14 @@ type TileDelete struct {
 	ID string `json:"id"`
 }
 
+// ClusterDelete is the payload of a cluster.delete event.
+type ClusterDelete struct {
+	Name string `json:"name"`
+}
+
+// EventConfig is the name of the event that carries a changed UIConfig.
+const EventConfig = "config"
+
 // EventSnapshot is the name of the first event on the stream. The names of
 // the events that follow are the store's event types.
 const EventSnapshot = "snapshot"
@@ -80,6 +88,15 @@ type Server struct {
 	Store *store.Store
 	// UI is passed to the frontend as it is.
 	UI UIConfig
+	// UIFunc, when set, is asked for the frontend's configuration in place
+	// of UI. Changed tells when its answer may have changed; the event
+	// stream then sends the new configuration to every browser.
+	UIFunc  func() UIConfig
+	Changed func() (changed <-chan struct{}, cancel func())
+	// Internal, when set, is served under /internal/. It is for the other
+	// roles of the same instance and must only be given to a process that
+	// is not reachable from outside the cluster.
+	Internal http.Handler
 	// Background serves the picture of the day. Nil turns the endpoint off.
 	Background *Background
 	// Updates serves the running version and whether a newer one exists.
@@ -113,6 +130,9 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
 		writeError(w, http.StatusNotFound, "not found")
 	})
+	if s.Internal != nil {
+		mux.Handle("/internal/", s.Internal)
+	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
@@ -134,9 +154,16 @@ func (s *Server) state(snap store.Snapshot) State {
 		SchemaVersion: SchemaVersion,
 		Tiles:         snap.Tiles,
 		Clusters:      snap.Clusters,
-		Config:        s.UI,
+		Config:        s.ui(),
 		Editing:       Editing{Available: false},
 	}
+}
+
+func (s *Server) ui() UIConfig {
+	if s.UIFunc != nil {
+		return s.UIFunc()
+	}
+	return s.UI
 }
 
 func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
@@ -186,10 +213,25 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	heartbeat := time.NewTicker(interval)
 	defer heartbeat.Stop()
+	var changed <-chan struct{}
+	sent := s.ui()
+	if s.Changed != nil {
+		var stop func()
+		changed, stop = s.Changed()
+		defer stop()
+	}
 	for {
 		select {
 		case <-r.Context().Done():
 			return
+		case <-changed:
+			// Settings changed. Tell the page only if its part of them did.
+			if now := s.ui(); now != sent {
+				sent = now
+				if writeEvent(w, EventConfig, now) != nil {
+					return
+				}
+			}
 		case <-heartbeat.C:
 			if _, err := io.WriteString(w, ": keepalive\n\n"); err != nil {
 				return
@@ -207,6 +249,8 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 					payload = TileDelete{ID: e.ID}
 				case store.EventCluster:
 					payload = e.Cluster
+				case store.EventClusterDelete:
+					payload = ClusterDelete{Name: e.Cluster.Name}
 				default:
 					continue
 				}

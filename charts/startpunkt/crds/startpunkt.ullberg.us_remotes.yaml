@@ -1,0 +1,117 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.23.0
+  name: remotes.startpunkt.ullberg.us
+spec:
+  group: startpunkt.ullberg.us
+  names:
+    kind: Remote
+    listKind: RemoteList
+    plural: remotes
+    singular: remote
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.url
+      name: URL
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Remote is another Startpunkt instance whose tiles are shown next to this
+          one's. Its name is the cluster name its tiles get here, whatever the
+          remote calls itself; it is part of their ids, so it should not change.
+          The instance in the same namespace subscribes to every Remote there, and
+          stops when one is deleted.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RemoteSpec says where the remote is and what to take from
+              it.
+            properties:
+              exclude:
+                description: Tiles it describes are left out, also among the included.
+                properties:
+                  groups:
+                    items:
+                      type: string
+                    type: array
+                  kinds:
+                    description: Kinds are "application" and "bookmark".
+                    items:
+                      type: string
+                    type: array
+                  names:
+                    description: |-
+                      Names and Groups are patterns, where "*" stands for any text and "?"
+                      for one character. Case is ignored.
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    description: Tags match a tile that carries at least one of them.
+                    items:
+                      type: string
+                    type: array
+                type: object
+              include:
+                description: When set, only the tiles it describes are taken.
+                properties:
+                  groups:
+                    items:
+                      type: string
+                    type: array
+                  kinds:
+                    description: Kinds are "application" and "bookmark".
+                    items:
+                      type: string
+                    type: array
+                  names:
+                    description: |-
+                      Names and Groups are patterns, where "*" stands for any text and "?"
+                      for one character. Case is ignored.
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    description: Tags match a tile that carries at least one of them.
+                    items:
+                      type: string
+                    type: array
+                type: object
+              url:
+                description: The base URL of the remote, as a browser would open it.
+                pattern: ^https?://
+                type: string
+            required:
+            - url
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources: {}

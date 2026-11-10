@@ -17,11 +17,34 @@ import (
 	"time"
 
 	"sigs.k8s.io/yaml"
+
+	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 )
 
 var (
 	languageTag = regexp.MustCompile(`^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$`)
 	hexColor    = regexp.MustCompile(`^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$`)
+)
+
+// The settings themselves are defined with the custom resources, in api/v1,
+// so that the configuration file, the environment and the Startpunkt
+// resource share one definition.
+type (
+	NamespaceSelector = apiv1.NamespaceSelector
+	Sources           = apiv1.Sources
+	Source            = apiv1.Source
+	Annotated         = apiv1.Annotated
+	IngressSource     = apiv1.IngressSource
+	RoutedSource      = apiv1.RoutedSource
+	Duration          = apiv1.Duration
+	Availability      = apiv1.Availability
+	Status            = apiv1.StatusSettings
+	Icons             = apiv1.Icons
+	Selector          = apiv1.Selector
+	Cluster           = apiv1.Cluster
+	Web               = apiv1.Web
+	Theme             = apiv1.Theme
+	Palette           = apiv1.Palette
 )
 
 // EnvPrefix starts the name of every environment variable read by Load.
@@ -34,6 +57,7 @@ type Config struct {
 	Sources           Sources           `json:"sources"`
 	Availability      Availability      `json:"availability"`
 	Federation        Federation        `json:"federation"`
+	Resources         Resources         `json:"resources"`
 	Icons             Icons             `json:"icons"`
 	Status            Status            `json:"status"`
 	Server            Server            `json:"server"`
@@ -42,129 +66,18 @@ type Config struct {
 	Log               Log               `json:"log"`
 }
 
-// NamespaceSelector chooses the namespaces resources are read from.
-type NamespaceSelector struct {
-	// Any reads every namespace. It must be false for MatchNames to apply.
-	// Environment: STARTPUNKT_NAMESPACESELECTOR_ANY.
-	Any bool `json:"any"`
-	// MatchNames lists the namespaces to read when Any is false.
-	// Environment: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES, comma-separated.
-	MatchNames []string `json:"matchNames"`
-}
-
-// Namespaces returns the namespaces to watch, or nil for all of them.
-func (n NamespaceSelector) Namespaces() []string {
-	if n.Any {
-		return nil
-	}
-	return n.MatchNames
-}
-
-// Sources configures the resource types tiles are built from. The
-// environment variable of a setting is STARTPUNKT_SOURCES_<SOURCE>_<SETTING>
-// in upper case, for example STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED.
-type Sources struct {
-	Application    Source        `json:"application"`
-	Bookmark       Source        `json:"bookmark"`
-	Route          Annotated     `json:"route"`
-	Ingress        IngressSource `json:"ingress"`
-	HTTPRoute      RoutedSource  `json:"httpRoute"`
-	VirtualService RoutedSource  `json:"virtualService"`
-}
-
-// Source turns a source on or off.
-type Source struct {
-	Enabled bool `json:"enabled"`
-}
-
-// Annotated is a source whose objects are published with annotations.
-type Annotated struct {
-	Enabled bool `json:"enabled"`
-	// OnlyAnnotated limits the source to objects annotated with
-	// startpunkt.ullberg.us/enable: "true".
-	OnlyAnnotated bool `json:"onlyAnnotated"`
-}
-
-// IngressSource configures the Ingress source.
-type IngressSource struct {
-	Annotated `json:",inline"`
-	// ClassNames limits the source to these ingress classes; empty means
-	// all. In the environment the list is comma-separated.
-	ClassNames []string `json:"classNames"`
-	// IncludeUnclassified keeps Ingresses without a class when ClassNames
-	// is set.
-	IncludeUnclassified bool `json:"includeUnclassified"`
-}
-
-// RoutedSource is a source whose objects do not say whether they are served
-// over TLS.
-type RoutedSource struct {
-	Annotated `json:",inline"`
-	// DefaultProtocol is http or https. It is used when an object does not
-	// set the protocol annotation.
-	DefaultProtocol string `json:"defaultProtocol"`
-}
-
-// Duration is a time.Duration written as a string such as "60s" or "5m".
-type Duration time.Duration
-
-// UnmarshalJSON implements json.Unmarshaler. The YAML file is decoded as
-// JSON, so this covers it too.
-func (d *Duration) UnmarshalJSON(data []byte) error {
-	var text string
-	if err := json.Unmarshal(data, &text); err != nil {
-		return fmt.Errorf("a duration must be a string such as \"60s\": %w", err)
-	}
-	parsed, err := time.ParseDuration(text)
-	if err != nil {
-		return err
-	}
-	*d = Duration(parsed)
-	return nil
-}
-
-// MarshalJSON implements json.Marshaler.
-func (d Duration) MarshalJSON() ([]byte, error) {
-	return json.Marshal(time.Duration(d).String())
-}
-
-// Availability configures the probing of the local cluster's tiles. The
-// environment variable of a setting is STARTPUNKT_AVAILABILITY_<SETTING> in
-// upper case.
-type Availability struct {
-	// Enabled turns probing on. When it is off, tiles carry no
-	// availability at all.
-	Enabled bool `json:"enabled"`
-	// Interval is the time between probes of a URL that answers.
-	Interval Duration `json:"interval"`
-	// Timeout bounds a single probe.
-	Timeout Duration `json:"timeout"`
-	// InitialBackoff is the wait after a first failure. It doubles with
-	// each further failure up to MaxBackoff.
-	InitialBackoff Duration `json:"initialBackoff"`
-	MaxBackoff     Duration `json:"maxBackoff"`
-	// Concurrency is the number of probes that may run at once.
-	Concurrency int `json:"concurrency"`
-	// InsecureSkipVerify accepts any TLS certificate. Use it when the
-	// applications use certificates the controller cannot verify.
-	InsecureSkipVerify bool `json:"insecureSkipVerify"`
-}
-
-// Status configures what is written back to the cluster.
-type Status struct {
-	// Enabled writes the resolved URL, the availability and conditions to
-	// the status of Application resources.
-	// Environment: STARTPUNKT_STATUS_ENABLED.
-	Enabled bool `json:"enabled"`
-}
-
-// Icons configures where icons come from.
-type Icons struct {
-	// Source is the base URL of the Iconify API that icons are fetched
-	// from, once each. The default is the public one. Point it at an
-	// Iconify API of your own to depend on nothing outside the cluster.
-	// Environment: STARTPUNKT_ICONS_SOURCE.
-	Source string `json:"source"`
+// Resources says which Startpunkt resource holds this instance's settings.
+// It belongs to the process, like the listen address: it cannot itself come
+// from that resource.
+type Resources struct {
+	// Name of the Startpunkt resource to read. Empty means settings come
+	// from the environment and the file only.
+	// Environment: STARTPUNKT_RESOURCES_NAME.
+	Name string `json:"name"`
+	// Namespace of that resource and of the Remote resources. Empty means
+	// the namespace the process runs in.
+	// Environment: STARTPUNKT_RESOURCES_NAMESPACE.
+	Namespace string `json:"namespace"`
 }
 
 // Federation lists the other Startpunkt instances whose tiles this one
@@ -193,19 +106,6 @@ type Remote struct {
 	Exclude Selector `json:"exclude,omitempty"`
 }
 
-// Selector describes a set of tiles. A tile is in the set when every field
-// that is given matches it.
-type Selector struct {
-	// Names and Groups are patterns, where "*" stands for any text and "?"
-	// for one character. Case is ignored.
-	Names  []string `json:"names,omitempty"`
-	Groups []string `json:"groups,omitempty"`
-	// Tags match a tile that carries at least one of them.
-	Tags []string `json:"tags,omitempty"`
-	// Kinds are "application" and "bookmark".
-	Kinds []string `json:"kinds,omitempty"`
-}
-
 // Upstream is where the api role reads its state from when the controller
 // runs as a separate process.
 type Upstream struct {
@@ -214,60 +114,10 @@ type Upstream struct {
 	URL string `json:"url"`
 }
 
-// Cluster describes the cluster this instance runs in.
-type Cluster struct {
-	// Name identifies this instance's tiles. It is part of every tile id.
-	// Environment: STARTPUNKT_CLUSTER_NAME.
-	Name string `json:"name"`
-}
-
 // Server configures the HTTP listener.
 type Server struct {
 	// Address to listen on. Environment: STARTPUNKT_SERVER_ADDRESS.
 	Address string `json:"address"`
-}
-
-// Web holds settings passed on to the frontend. The environment variable of
-// a setting is STARTPUNKT_WEB_<SETTING> in upper case, and
-// STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<COLOR> for the palettes.
-type Web struct {
-	// Title of the page.
-	Title string `json:"title"`
-	// DefaultLanguage is used for a visitor who has not chosen a language
-	// and whose browser asks for none that is available, for example en-US.
-	DefaultLanguage string `json:"defaultLanguage"`
-	// SearchEngine is the URL a web search from the search box is sent to,
-	// with the query appended.
-	SearchEngine string `json:"searchEngine"`
-	// CheckForUpdates asks GitHub now and then whether a newer release of
-	// Startpunkt exists, and tells visitors in the footer when one does.
-	CheckForUpdates bool `json:"checkForUpdates"`
-	// GitHubLink shows a corner on the page that links to the project. When
-	// an update is available the corner is shown regardless.
-	GitHubLink bool `json:"githubLink"`
-	// Theme holds the colours of the light and the dark appearance.
-	Theme Theme `json:"theme"`
-}
-
-// Theme is the pair of palettes the page switches between.
-type Theme struct {
-	Light Palette `json:"light"`
-	Dark  Palette `json:"dark"`
-}
-
-// Palette has the colour names of 4.x, so an existing theme carries over.
-type Palette struct {
-	// BodyBgColor is the page background.
-	BodyBgColor string `json:"bodyBgColor"`
-	// BodyColor is group headings, icons without a colour of their own, and
-	// other secondary text.
-	BodyColor string `json:"bodyColor"`
-	// EmphasisColor is headings and other prominent text.
-	EmphasisColor string `json:"emphasisColor"`
-	// TextPrimaryColor is tile names.
-	TextPrimaryColor string `json:"textPrimaryColor"`
-	// TextAccentColor is descriptions, focus rings and highlights.
-	TextAccentColor string `json:"textAccentColor"`
 }
 
 // Log configures logging.
@@ -343,7 +193,7 @@ func Load(path string, required bool, getenv func(string) string) (Config, error
 	if err := cfg.applyEnvironment(getenv); err != nil {
 		return cfg, err
 	}
-	return cfg, cfg.validate()
+	return cfg, cfg.Validate()
 }
 
 // applyEnvironment overrides settings with the environment variables that
@@ -353,6 +203,8 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"CLUSTER_NAME":                           &c.Cluster.Name,
 		"SERVER_ADDRESS":                         &c.Server.Address,
 		"UPSTREAM_URL":                           &c.Upstream.URL,
+		"RESOURCES_NAME":                         &c.Resources.Name,
+		"RESOURCES_NAMESPACE":                    &c.Resources.Namespace,
 		"ICONS_SOURCE":                           &c.Icons.Source,
 		"WEB_TITLE":                              &c.Web.Title,
 		"WEB_DEFAULTLANGUAGE":                    &c.Web.DefaultLanguage,
@@ -454,7 +306,8 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 	return nil
 }
 
-func (c Config) validate() error {
+// Validate reports the first setting that cannot be used.
+func (c Config) Validate() error {
 	name := c.Cluster.Name
 	if name == "" {
 		return errors.New("cluster.name must not be empty")
@@ -547,4 +400,55 @@ func (c Config) validate() error {
 		return fmt.Errorf("log.format %q is not one of json, text", c.Log.Format)
 	}
 	return nil
+}
+
+// WithResources returns the configuration with the settings of a Startpunkt
+// resource and the given remotes applied on top of it. spec is the JSON of
+// the resource's spec; a setting it leaves out keeps the value it has here.
+// A remote keeps the headers configured for its name, because resources do
+// not carry secrets.
+//
+// The result is validated. On an error the receiver is still the
+// configuration to use.
+func (c Config) WithResources(spec []byte, remotes []Remote) (Config, error) {
+	out := c
+	// The sections are value types, but lists inside them are shared with
+	// the receiver until they are replaced, which decoding does.
+	if len(spec) > 0 {
+		var settings apiv1.StartpunktSpec
+		if err := json.Unmarshal(spec, &settings); err != nil {
+			return c, fmt.Errorf("reading the settings: %w", err)
+		}
+		// Decode a second time onto the current values, so that a field
+		// left out of a section that is present keeps its value too.
+		if err := json.Unmarshal(spec, &out); err != nil {
+			return c, fmt.Errorf("reading the settings: %w", err)
+		}
+		// Only the sections of the resource may come from it.
+		out.Server, out.Upstream, out.Log, out.Federation, out.Resources = c.Server, c.Upstream, c.Log, c.Federation, c.Resources
+	}
+	if remotes != nil {
+		headers := map[string]map[string]string{}
+		for _, r := range c.Federation.Remotes {
+			headers[r.Name] = r.Headers
+		}
+		merged := make([]Remote, len(remotes))
+		for i, r := range remotes {
+			r.Headers = headers[r.Name]
+			merged[i] = r
+		}
+		out.Federation.Remotes = merged
+	}
+	// An empty list in a resource means the same as none. Without this, a
+	// resource that spells out the defaults would count as a change.
+	if len(out.NamespaceSelector.MatchNames) == 0 {
+		out.NamespaceSelector.MatchNames = c.NamespaceSelector.MatchNames
+	}
+	if len(out.Sources.Ingress.ClassNames) == 0 {
+		out.Sources.Ingress.ClassNames = c.Sources.Ingress.ClassNames
+	}
+	if err := out.Validate(); err != nil {
+		return c, err
+	}
+	return out, nil
 }
