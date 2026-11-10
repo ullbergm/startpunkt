@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
 import { orderClusters } from '../clusters';
 import { chooseLanguage, setLanguage, t } from '../i18n';
-import { prefs } from '../prefs';
+import { clusterShown, prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
@@ -96,9 +96,15 @@ export function App({
   // Clusters the visitor has not hidden. Tiles of several clusters carry
   // the name of theirs.
   const clusters = state?.clusters ?? [];
-  const shown = clusters.filter((cluster) => !p.hiddenClusters.includes(cluster.name));
+  const showAll = state?.config.showAllClusters ?? false;
+  const shown = clusters.filter((cluster) => clusterShown(p, cluster, showAll));
+  const shownNames = shown.map((cluster) => cluster.name);
   const showCluster = shown.length > 1;
-  const visible = tagged.filter((tile) => !p.hiddenClusters.includes(tile.cluster));
+  // A tile is left out when its cluster is one that is not shown. A tile
+  // of a cluster the server does not list is kept: there is nothing to say
+  // it should be hidden.
+  const notShown = clusters.filter((cluster) => !shownNames.includes(cluster.name)).map((cluster) => cluster.name);
+  const visible = tagged.filter((tile) => !notShown.includes(tile.cluster) && !p.hiddenClusters.includes(tile.cluster));
   const tiles = p.layout.hideUnreachable ? visible.filter((tile) => tile.available !== false) : visible;
   // The same service on several clusters is one card, unless the visitor
   // prefers them apart. The local cluster comes first.
@@ -170,7 +176,7 @@ export function App({
         {(clusters.length > 1 || kinds.length === 2) && (
           // The clusters to show on the left, the kinds of tiles on the right.
           <div class="toolbar">
-            <ClusterChips clusters={clusters} hidden={p.hiddenClusters} />
+            <ClusterChips clusters={clusters} shown={shownNames} />
             {kinds.length === 2 && (
               <Tabs
                 id="tiles"
@@ -244,7 +250,7 @@ export function App({
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog === 'settings' && <Settings clusters={clusters} onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <Settings clusters={clusters} shownClusters={shownNames} onClose={() => setDialog(null)} />}
     </>
   );
 }

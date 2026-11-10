@@ -265,7 +265,7 @@ The same service is often deployed to several clusters with the same name, group
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
 - Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
-- The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles. A click shows that cluster alone, a second click on it shows all again, and a click with Shift, Ctrl or Command held adds or removes one. The settings have a checkbox per cluster for the same. A cluster that is not connected is marked on its button. A configuration setting chooses whether a new visitor sees only the local cluster or all clusters, as in 4.x.
+- The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles. A click shows that cluster alone, a second click on it shows all again, and a click with Shift, Ctrl or Command held adds or removes one. The settings have a checkbox per cluster for the same. A cluster that is not connected is marked on its button. A visitor who has made no choice sees the local cluster only, and the buttons of the other clusters are there to switch them on. The `web.showAllClusters` setting makes every cluster shown from the start instead. A choice the visitor has made about a cluster, either way, is kept.
 
 Two layouts are offered as a personal preference.
 
@@ -424,6 +424,8 @@ Once `v1` is the storage version, going back to the 4.x chart's definitions is n
 
 ## Milestones
 
+Order of the remaining work: federation is finished first, then release packaging (8). Editing (6) and user-defined mappings (9) come after that.
+
 Every milestone ends with an image that runs next to a 4.x installation on a real cluster, so each step is compared against 4.x on the same data.
 
 1. Skeleton, deployable: binary with its roles, store, `Application` and `Bookmark` types with the fallback to `v1alpha4`, snapshot endpoint, the server side of the event stream and the follower that the split mode needs, minimal UI that renders tiles, container build, and a minimal chart with both modes, `crds.install: false` and release-based names.
@@ -432,7 +434,7 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
-7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, cluster pills, combined cards, and a filter of clusters per visitor, both in the settings and as buttons on the page. Still to do: the setting for which clusters a new visitor sees, and the cluster-first layout.
+7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, cluster pills, combined cards, and a filter of clusters per visitor, both in the settings and as buttons on the page. Still to do: the cluster-first layout and a status on the Remote resource.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
 9. User-defined CEL mappings. This can follow the first release.
 

@@ -511,7 +511,7 @@ function Accessibility({ p }: { p: Preferences }) {
 type Tab = 'appearance' | 'layout' | 'background' | 'clusters' | 'accessibility';
 
 // Which clusters' tiles are shown. Offered when there is more than one.
-function Clusters({ p, clusters }: { p: Preferences; clusters: Cluster[] }) {
+function Clusters({ p, clusters, shown }: { p: Preferences; clusters: Cluster[]; shown: string[] }) {
   return (
     <>
       <Check
@@ -526,7 +526,7 @@ function Clusters({ p, clusters }: { p: Preferences; clusters: Cluster[] }) {
           key={cluster.name}
           label={cluster.name}
           help={t(`settings.clusters.${cluster.local ? 'local' : cluster.state === 'connected' ? 'connected' : 'unreachable'}` as MessageKey)}
-          checked={!p.hiddenClusters.includes(cluster.name)}
+          checked={shown.includes(cluster.name)}
           onChange={(shown) => setClusterShown(cluster.name, shown)}
         />
       ))}
@@ -535,7 +535,16 @@ function Clusters({ p, clusters }: { p: Preferences; clusters: Cluster[] }) {
 }
 
 // The settings, one section per tab.
-export function Settings({ onClose, clusters = [] }: { onClose: () => void; clusters?: Cluster[] }) {
+export function Settings({
+  onClose,
+  clusters = [],
+  shownClusters = clusters.map((cluster) => cluster.name),
+}: {
+  onClose: () => void;
+  clusters?: Cluster[];
+  // The names of the clusters whose tiles are shown right now.
+  shownClusters?: string[];
+}) {
   const p = prefs.value;
   const [tab, setTab] = useState<Tab>('appearance');
   // The clusters tab is there only when there is a choice to make.
@@ -544,7 +553,7 @@ export function Settings({ onClose, clusters = [] }: { onClose: () => void; clus
     appearance: <Appearance p={p} />,
     layout: <Layout p={p} />,
     background: <BackgroundTab p={p} />,
-    clusters: <Clusters p={p} clusters={clusters} />,
+    clusters: <Clusters p={p} clusters={clusters} shown={shownClusters} />,
     accessibility: <Accessibility p={p} />,
   };
 

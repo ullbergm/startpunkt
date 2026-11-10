@@ -59,5 +59,6 @@ export interface UIConfig {
   title: string;
   defaultLanguage: string;
   searchEngine: string;
+  showAllClusters: boolean;
   theme: { light: Palette; dark: Palette };
 }

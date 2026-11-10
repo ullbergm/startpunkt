@@ -67,6 +67,8 @@ export function serverState(overrides: Partial<ServerState> = {}): ServerState {
       title: 'Home lab',
       defaultLanguage: 'en-US',
       searchEngine: 'https://search.example.com/?q=',
+      // Most tests are about what is shown, not about this default.
+      showAllClusters: true,
       theme: {
         light: {
           bodyBgColor: '#F8F6F1',

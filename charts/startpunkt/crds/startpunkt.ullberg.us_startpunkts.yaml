@@ -245,6 +245,12 @@ spec:
                       SearchEngine is the URL a web search from the search box is sent to,
                       with the query appended.
                     type: string
+                  showAllClusters:
+                    description: |-
+                      ShowAllClusters makes a visitor who has not chosen see the tiles of
+                      every cluster. Without it they see this cluster's only, and switch
+                      others on themselves.
+                    type: boolean
                   theme:
                     description: Theme holds the colours of the light and the dark
                       appearance.

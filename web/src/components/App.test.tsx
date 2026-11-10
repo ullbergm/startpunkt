@@ -739,6 +739,24 @@ describe('App', () => {
       expect(prefs.value.hiddenClusters).toEqual([]);
     });
 
+    it('shows only the local cluster to a visitor who has not chosen', async () => {
+      const state = two();
+      renderWith({ ...state, config: { ...state.config, showAllClusters: false } });
+      await waitFor(() => expect(document.querySelectorAll('.tile')).toHaveLength(1));
+      expect(document.querySelector('.tile-pills')).toBeNull();
+      const group = screen.getByRole('group', { name: 'Clusters to show' });
+      const chip = (name: string) => within(group).getByRole('button', { name });
+      expect(chip('local').getAttribute('aria-pressed')).toBe('true');
+      expect(chip('prod').getAttribute('aria-pressed')).toBe('false');
+      // Nothing is said about a remote that is not shown.
+      expect(screen.queryByText(/Not connected/)).toBeNull();
+
+      // Switched on, it stays on.
+      fireEvent.click(chip('prod'), { shiftKey: true });
+      expect(await screen.findByRole('link', { name: 'Grafana on prod' })).toBeTruthy();
+      expect(prefs.value.shownClusters).toEqual(['prod']);
+    });
+
     it('has no cluster buttons with a single cluster', async () => {
       renderWith(serverState({ tiles: [tile({ name: 'Grafana' })] }));
       await screen.findByRole('link', { name: /Grafana/ });

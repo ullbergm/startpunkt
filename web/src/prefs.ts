@@ -26,8 +26,12 @@ export interface Preferences {
   favorites: string[];
   // Keys of collapsed groups, "<kind>:<group name>".
   collapsed: string[];
-  // Names of clusters whose tiles are not shown.
+  // Clusters the visitor has made a choice about: those to hide and those
+  // to show. A cluster in neither list follows the default, which is to
+  // show the local cluster and, unless the instance says otherwise, to
+  // hide the others.
   hiddenClusters: string[];
+  shownClusters: string[];
   layout: {
     // Number of columns, or 0 to fit as many as there is room for.
     columns: number;
@@ -122,6 +126,7 @@ export function defaults(): Preferences {
     favorites: [],
     collapsed: [],
     hiddenClusters: [],
+    shownClusters: [],
     layout: {
       columns: 0,
       spacing: 'normal',
@@ -254,6 +259,7 @@ export function sanitize(raw: unknown): Preferences {
     favorites: strings(r.favorites),
     collapsed: strings(r.collapsed),
     hiddenClusters: strings(r.hiddenClusters),
+    shownClusters: strings(r.shownClusters).filter((name) => !strings(r.hiddenClusters).includes(name)),
     layout: sanitizeLayout(r.layout),
     background: sanitizeBackground(r.background),
     handwrittenFont: bool(r.handwrittenFont, d.handwrittenFont),
@@ -323,6 +329,7 @@ export function resetPrefs(): void {
     favorites: current.favorites,
     collapsed: current.collapsed,
     hiddenClusters: current.hiddenClusters,
+    shownClusters: current.shownClusters,
     presets: current.presets,
   }));
 }
@@ -347,23 +354,46 @@ export function moveFavorite(id: string, toIndex: number): void {
   });
 }
 
+// Whether a cluster's tiles are shown: the visitor's choice when they have
+// made one, otherwise the default. The local cluster is shown by default;
+// others only when the instance is set to show all clusters.
+export function clusterShown(
+  p: Pick<Preferences, 'hiddenClusters' | 'shownClusters'>,
+  cluster: { name: string; local: boolean },
+  showAllByDefault: boolean,
+): boolean {
+  if (p.hiddenClusters.includes(cluster.name)) return false;
+  if (p.shownClusters.includes(cluster.name)) return true;
+  return cluster.local || showAllByDefault;
+}
+
 export function setClusterShown(name: string, shown: boolean): void {
   updatePrefs((current) => {
-    const rest = current.hiddenClusters.filter((other) => other !== name);
-    return { ...current, hiddenClusters: shown ? rest : [...rest, name] };
+    const hidden = current.hiddenClusters.filter((other) => other !== name);
+    const chosen = current.shownClusters.filter((other) => other !== name);
+    return {
+      ...current,
+      hiddenClusters: shown ? hidden : [...hidden, name],
+      shownClusters: shown ? [...chosen, name] : chosen,
+    };
   });
 }
 
 // Shows one cluster alone, hiding the others given. When it already is the
-// only one shown, all of them are shown again, so that a second click on
-// the same cluster undoes the first.
-export function showOnlyCluster(name: string, all: string[]): void {
+// only one of them shown, all are shown again, so that a second click on
+// the same cluster undoes the first. visible lists the clusters that are
+// shown right now.
+export function showOnlyCluster(name: string, all: string[], visible: string[]): void {
   updatePrefs((current) => {
     const others = all.filter((other) => other !== name);
-    const alone = !current.hiddenClusters.includes(name) && others.every((other) => current.hiddenClusters.includes(other));
-    // Hidden clusters that are not listed right now stay hidden.
-    const unrelated = current.hiddenClusters.filter((hidden) => !all.includes(hidden));
-    return { ...current, hiddenClusters: alone ? unrelated : [...unrelated, ...others] };
+    const alone = visible.includes(name) && others.every((other) => !visible.includes(other));
+    // Choices about clusters that are not listed right now are kept.
+    const keep = (list: string[]) => list.filter((other) => !all.includes(other));
+    return {
+      ...current,
+      hiddenClusters: alone ? keep(current.hiddenClusters) : [...keep(current.hiddenClusters), ...others],
+      shownClusters: alone ? [...keep(current.shownClusters), ...all] : [...keep(current.shownClusters), name],
+    };
   });
 }
 

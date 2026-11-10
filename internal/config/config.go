@@ -221,6 +221,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"STATUS_ENABLED":                       &c.Status.Enabled,
 		"WEB_CHECKFORUPDATES":                  &c.Web.CheckForUpdates,
 		"WEB_GITHUBLINK":                       &c.Web.GitHubLink,
+		"WEB_SHOWALLCLUSTERS":                  &c.Web.ShowAllClusters,
 		"SOURCES_APPLICATION_ENABLED":          &c.Sources.Application.Enabled,
 		"SOURCES_BOOKMARK_ENABLED":             &c.Sources.Bookmark.Enabled,
 		"SOURCES_ROUTE_ENABLED":                &c.Sources.Route.Enabled,

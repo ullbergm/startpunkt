@@ -173,6 +173,10 @@ type Web struct {
 	// GitHubLink shows a corner on the page that links to the project. When
 	// an update is available the corner is shown regardless.
 	GitHubLink bool `json:"githubLink"`
+	// ShowAllClusters makes a visitor who has not chosen see the tiles of
+	// every cluster. Without it they see this cluster's only, and switch
+	// others on themselves.
+	ShowAllClusters bool `json:"showAllClusters"`
 	// Theme holds the colours of the light and the dark appearance.
 	Theme Theme `json:"theme"`
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -117,12 +117,34 @@ describe('stored preferences', () => {
   it('show one cluster alone, and all again on a second pick', () => {
     const all = ['local', 'dev', 'prod'];
     updatePrefs((p) => ({ ...p, hiddenClusters: ['gone'] })); // a cluster that is not listed any more
-    showOnlyCluster('dev', all);
+    showOnlyCluster('dev', all, all);
     expect(prefs.value.hiddenClusters.sort()).toEqual(['gone', 'local', 'prod']);
-    showOnlyCluster('prod', all);
+    expect(prefs.value.shownClusters).toEqual(['dev']);
+    showOnlyCluster('prod', all, ['dev']);
     expect(prefs.value.hiddenClusters.sort()).toEqual(['dev', 'gone', 'local']);
-    showOnlyCluster('prod', all);
+    expect(prefs.value.shownClusters).toEqual(['prod']);
+    // Picking the only one shown brings all of them back.
+    showOnlyCluster('prod', all, ['prod']);
     expect(prefs.value.hiddenClusters).toEqual(['gone']);
+    expect(prefs.value.shownClusters.sort()).toEqual(['dev', 'local', 'prod']);
+  });
+
+  it('show the local cluster by default, and others only when chosen or when the instance says so', () => {
+    const local = { name: 'home', local: true };
+    const remote = { name: 'prod', local: false };
+    const none = { hiddenClusters: [], shownClusters: [] };
+    expect(clusterShown(none, local, false)).toBe(true);
+    expect(clusterShown(none, remote, false)).toBe(false);
+    expect(clusterShown(none, remote, true)).toBe(true);
+    // The visitor's own choice wins either way.
+    expect(clusterShown({ hiddenClusters: [], shownClusters: ['prod'] }, remote, false)).toBe(true);
+    expect(clusterShown({ hiddenClusters: ['prod'], shownClusters: [] }, remote, true)).toBe(false);
+    expect(clusterShown({ hiddenClusters: ['home'], shownClusters: [] }, local, false)).toBe(false);
+
+    setClusterShown('prod', true);
+    expect(prefs.value).toMatchObject({ shownClusters: ['prod'], hiddenClusters: [] });
+    setClusterShown('prod', false);
+    expect(prefs.value).toMatchObject({ shownClusters: [], hiddenClusters: ['prod'] });
   });
 
   it('toggle a collapsed group', () => {

@@ -214,6 +214,7 @@ func uiConfig(w config.Web) api.UIConfig {
 		Title:           w.Title,
 		DefaultLanguage: w.DefaultLanguage,
 		SearchEngine:    w.SearchEngine,
+		ShowAllClusters: w.ShowAllClusters,
 		Theme:           api.Theme{Light: palette(w.Theme.Light), Dark: palette(w.Theme.Dark)},
 	}
 }

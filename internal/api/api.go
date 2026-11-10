@@ -38,7 +38,10 @@ type UIConfig struct {
 	Title           string `json:"title"`
 	DefaultLanguage string `json:"defaultLanguage"`
 	SearchEngine    string `json:"searchEngine"`
-	Theme           Theme  `json:"theme"`
+	// ShowAllClusters is whether a visitor who has not chosen sees every
+	// cluster, or this one only.
+	ShowAllClusters bool  `json:"showAllClusters"`
+	Theme           Theme `json:"theme"`
 }
 
 // Theme is the pair of palettes the page switches between.
