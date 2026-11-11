@@ -18,6 +18,12 @@ spec:
     - jsonPath: .spec.url
       name: URL
       type: string
+    - jsonPath: .status.conditions[?(@.type=="Connected")].status
+      name: Connected
+      type: string
+    - jsonPath: .status.tiles
+      name: Tiles
+      type: integer
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -30,6 +36,9 @@ spec:
           remote calls itself; it is part of their ids, so it should not change.
           The instance in the same namespace subscribes to every Remote there, and
           stops when one is deleted.
+
+          The status says whether the remote is connected and how many of its
+          tiles are shown.
         properties:
           apiVersion:
             description: |-
@@ -109,9 +118,52 @@ spec:
             required:
             - url
             type: object
+          status:
+            description: RemoteStatus is written by the instance that follows the
+              remote.
+            properties:
+              conditions:
+                description: |-
+                  Connected is true while the instance receives the remote's tiles.
+                  When it is false the message says why, and when it is unknown the
+                  part of the instance that follows remotes has not reported.
+                items:
+                  description: Condition has the fields of the standard Kubernetes
+                    condition.
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    message:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              tiles:
+                description: |-
+                  How many of the remote's tiles are shown here, after include and
+                  exclude. While the remote cannot be reached these are the last known
+                  ones.
+                format: int32
+                type: integer
+            type: object
         required:
         - spec
         type: object
     served: true
     storage: true
-    subresources: {}
+    subresources:
+      status: {}

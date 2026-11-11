@@ -73,7 +73,7 @@ rules:
     resources: [startpunkts, remotes]
     verbs: [get, list, watch]
   - apiGroups: [startpunkt.ullberg.us]
-    resources: [startpunkts/status]
+    resources: [startpunkts/status, remotes/status]
     verbs: [patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

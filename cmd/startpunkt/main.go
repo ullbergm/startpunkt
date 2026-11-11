@@ -116,6 +116,11 @@ func run() error {
 		UIFunc:  func() api.UIConfig { return uiConfig(holder.Get().Web) },
 		Changed: holder.Subscribe,
 	}
+	// How the state of the remotes reaches the Remote resources: handed to
+	// the writer in the process that has access to the cluster, and sent
+	// there by the one that follows the remotes when that is another.
+	var remoteStatus func([]follow.RemoteReport)
+	var reportRemotes func(context.Context, []follow.RemoteReport) error
 	switch role {
 	case roleAll, roleController:
 		handler.Store = store.New()
@@ -137,6 +142,9 @@ func run() error {
 			if namespace == "" {
 				namespace = ownNamespace()
 			}
+			statuses := &kube.RemoteStatusWriter{Dynamic: dynamicClient, Namespace: namespace, Log: log}
+			go statuses.Run(ctx)
+			remoteStatus = statuses.Report
 			go (&kube.ConfigWatcher{
 				Base: cfg, Holder: holder, Dynamic: dynamicClient, Discovery: discoveryClient,
 				Namespace: namespace, Name: cfg.Resources.Name, Log: log,
@@ -145,8 +153,17 @@ func run() error {
 		go watchCluster(ctx, holder, handler.Store, dynamicClient, discoveryClient, log)
 		if role == roleController {
 			// Only here: in this role the process is not reachable from
-			// outside the cluster.
-			handler.Internal = settings.Handler(holder)
+			// outside the cluster. The api role reads the settings from
+			// it and tells it how the remotes are doing.
+			internal := http.NewServeMux()
+			internal.Handle(settings.SharedPath, settings.Handler(holder))
+			internal.Handle(follow.ReportPath, follow.ReportHandler(remoteStatus))
+			handler.Internal = internal
+		} else if remoteStatus != nil {
+			reportRemotes = func(_ context.Context, reports []follow.RemoteReport) error {
+				remoteStatus(reports)
+				return nil
+			}
 		}
 	case roleAPI:
 		if cfg.Upstream.URL == "" {
@@ -155,6 +172,7 @@ func run() error {
 		handler.Store = store.New()
 		go (&follow.Follower{URL: cfg.Upstream.URL, Store: handler.Store, Log: log}).Run(ctx)
 		go settings.Follow(ctx, cfg.Upstream.URL, cfg, holder, log)
+		reportRemotes = follow.PostReports(cfg.Upstream.URL)
 	case roleWeb:
 	default:
 		return fmt.Errorf("unknown role %q", role)
@@ -163,7 +181,7 @@ func run() error {
 		// The roles a browser talks to are the hub: they show the tiles of
 		// the remotes next to their own, and follow the list of remotes as
 		// it changes.
-		go followRemotes(ctx, holder, handler.Store, log)
+		go followRemotes(ctx, holder, handler.Store, reportRemotes, log)
 		// Only these roles fetch pictures and icons and look for updates.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 		handler.Icons = &api.Icons{SourceFunc: func() string { return holder.Get().Icons.Source }, UserAgent: "startpunkt"}
@@ -300,9 +318,15 @@ func watchCluster(
 }
 
 // followRemotes keeps one follower per configured remote, as the list of
-// remotes changes.
-func followRemotes(ctx context.Context, holder *settings.Holder, tiles *store.Store, log *slog.Logger) {
+// remotes changes. With report set, it also says how the remotes are doing.
+func followRemotes(
+	ctx context.Context, holder *settings.Holder, tiles *store.Store,
+	report func(context.Context, []follow.RemoteReport) error, log *slog.Logger,
+) {
 	manager := &follow.Manager{Store: tiles, Log: log}
+	if report != nil {
+		go (&follow.Reporter{Store: tiles, Problems: manager.Problems, Send: report, Log: log}).Run(ctx)
+	}
 	changed, cancel := holder.Subscribe()
 	defer cancel()
 	for {

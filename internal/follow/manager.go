@@ -31,6 +31,7 @@ type Manager struct {
 }
 
 type running struct {
+	follower    *Follower
 	fingerprint string
 	feed        string
 	cancel      context.CancelFunc
@@ -80,7 +81,21 @@ func (m *Manager) Sync(ctx context.Context, remotes []RemoteConfig) {
 			defer close(done)
 			start(followCtx, f)
 		}()
-		m.running[name] = running{fingerprint: prints[name], feed: f.feed(), cancel: cancel, done: done}
+		m.running[name] = running{follower: f, fingerprint: prints[name], feed: f.feed(), cancel: cancel, done: done}
 		m.Log.Info("following remote", "remote", name, "url", r.URL)
 	}
+}
+
+// Problems says, for each remote that is not connected, why. A remote that
+// is connected, or whose first attempt is still under way, is not in it.
+func (m *Manager) Problems() map[string]string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := map[string]string{}
+	for name, r := range m.running {
+		if problem := r.follower.Problem(); problem != "" {
+			out[name] = problem
+		}
+	}
+	return out
 }

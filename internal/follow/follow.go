@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/ullbergm/startpunkt/internal/api"
@@ -46,6 +47,18 @@ type Follower struct {
 	MinBackoff, MaxBackoff time.Duration
 
 	own remote
+	// problem is why the last connection ended or could not be made, and
+	// is empty while connected.
+	problem atomic.Pointer[string]
+}
+
+// Problem says why the upstream is not connected. It is empty while it is,
+// and before the first attempt has failed.
+func (f *Follower) Problem() string {
+	if p := f.problem.Load(); p != nil {
+		return *p
+	}
+	return ""
 }
 
 // Run connects, applies the stream, and reconnects when it ends, until ctx
@@ -86,6 +99,10 @@ func (f *Follower) Run(ctx context.Context) {
 			return
 		}
 		f.Store.MarkStaleFrom(f.feed())
+		if err != nil {
+			problem := err.Error()
+			f.problem.Store(&problem)
+		}
 		if connected {
 			backoff = f.MinBackoff
 		}
@@ -162,6 +179,7 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 				}
 				if name == api.EventSnapshot {
 					connected = true
+					f.problem.Store(nil)
 				}
 			}
 			name = ""

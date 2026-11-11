@@ -341,7 +341,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 - What the schema can check is refused when the resource is applied. What it cannot, such as a search engine address that is not http, is reported in the `Startpunkt` resource's status as the `Configured` condition, and the instance carries on with the last valid settings.
 - Only the controller has access to the cluster. In split mode it passes the settings the `api` role needs, those of the page, the icon source and the remotes, over an internal stream that is not routed from outside the cluster. Request headers of remotes are never in a resource or on that stream, because they may be secrets: they reach the pods that use them through the environment, by the remote's name.
 - Without the definitions installed, or without a `Startpunkt` resource, the instance runs on the environment and the configuration file, which is also how it runs outside a cluster. The chart can be set to work this way.
-- A `Remote` resource does not have a status yet. Whether a remote is connected is visible on the page and in the API.
+- A `Remote` resource has a status: a `Connected` condition, with the last error in its message while the remote cannot be reached, and the number of its tiles that are shown. The process that follows the remotes knows this, and only the controller can write it. In split mode the `api` role therefore reports to the controller, over the same internal address it reads the settings from, when something changes and every 30 seconds. When the reports stop, the controller sets the condition to unknown rather than leave a claim it cannot stand behind.
 
 ### Environment and file
 
@@ -434,7 +434,7 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
-7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done so far: subscription, stale handling, cluster pills, combined cards, and a filter of clusters per visitor, both in the settings and as buttons on the page. Still to do: the cluster-first layout and a status on the Remote resource.
+7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
 9. User-defined CEL mappings. This can follow the first release.
 

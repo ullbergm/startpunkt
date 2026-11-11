@@ -11,6 +11,9 @@ const (
 	// ConditionConfigured says whether the settings of a Startpunkt
 	// resource are valid and in use.
 	ConditionConfigured = "Configured"
+	// ConditionConnected says whether the instance is connected to a
+	// remote.
+	ConditionConnected = "Connected"
 )
 
 // Startpunkt holds the settings of one Startpunkt instance. The instance
@@ -89,8 +92,14 @@ type StartpunktList struct {
 // The instance in the same namespace subscribes to every Remote there, and
 // stops when one is deleted.
 //
+// The status says whether the remote is connected and how many of its
+// tiles are shown.
+//
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="URL",type=string,JSONPath=`.spec.url`
+// +kubebuilder:printcolumn:name="Connected",type=string,JSONPath=`.status.conditions[?(@.type=="Connected")].status`
+// +kubebuilder:printcolumn:name="Tiles",type=integer,JSONPath=`.status.tiles`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 type Remote struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -98,6 +107,24 @@ type Remote struct {
 
 	// +kubebuilder:validation:Required
 	Spec RemoteSpec `json:"spec"`
+	// +optional
+	Status RemoteStatus `json:"status,omitempty"`
+}
+
+// RemoteStatus is written by the instance that follows the remote.
+type RemoteStatus struct {
+	// How many of the remote's tiles are shown here, after include and
+	// exclude. While the remote cannot be reached these are the last known
+	// ones.
+	// +optional
+	Tiles *int32 `json:"tiles,omitempty"`
+	// Connected is true while the instance receives the remote's tiles.
+	// When it is false the message says why, and when it is unknown the
+	// part of the instance that follows remotes has not reported.
+	// +optional
+	// +listType=map
+	// +listMapKey=type
+	Conditions []Condition `json:"conditions,omitempty"`
 }
 
 // RemoteSpec says where the remote is and what to take from it.
