@@ -351,7 +351,7 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 
 - Multi-stage container build producing a static binary on a distroless base.
 - The chart has a `mode` setting. `single` creates one Deployment running the `all` role. `split` creates one Deployment per role, mounts a service account token only in the controller, and routes `/api` to `api` and everything else to `web` on one host.
-- Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, an optional Secret for the edit key, and a ServiceMonitor for Prometheus metrics.
+- Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC. An optional Secret for the edit key comes with editing. A metrics endpoint with a ServiceMonitor is not built; 4.x had one, and it is listed in the migration notes as gone.
 - No admission or conversion webhooks, so no certificates to manage.
 - The `Application` and `Bookmark` definitions are templates of the chart, so that an upgrade of the chart upgrades them. `crds.install` leaves them out, for running next to a 4.x installation. The `Startpunkt` and `Remote` definitions are in the chart's `crds` directory instead, because the release creates a `Startpunkt` resource and Helm needs its definition to exist before that. All resource names derive from the release name and namespace.
 - Every process is stateless and logs to standard output. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
@@ -359,7 +359,8 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 ## Testing
 
 - Unit tests for each built-in adapter against fixture objects, including the annotation and tag rules.
-- Integration tests against `envtest` (a real API server without a cluster): create resources, assert on the snapshot and the event stream. These include reading and writing through each deprecated CRD version, and running against the 4.x definitions where `v1` is not served.
+- Controller tests against the fake clients of client-go: create resources, assert on the store and the event stream, including running against definitions where `v1` is not served. `envtest` was the plan; the fakes turned out to cover the controller's logic without needing an API server binary on every machine that runs the tests.
+- What only a real API server can show is tested on a throwaway kind cluster by `hack/test-cutover.sh`: reading and writing through each deprecated version, the 4.x definitions, the cutover, pruning and status writes, and the chart itself. CI runs it.
 - API tests for the edit key: missing, wrong and valid keys, and editing disabled when no key is configured.
 - Federation tests with two in-process instances, covering disconnect, stale marking and resynchronisation.
 - Frontend component tests with Vitest and Testing Library.
@@ -441,7 +442,7 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
 7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done.
-8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation.
+8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart from a tag. A release made now is one without editing.
 9. User-defined CEL mappings. This can follow the first release.
 
 Added along the way: configuration through the `Startpunkt` and `Remote` resources, built after federation. Its definitions are in the chart's `crds` directory and are generated with `make crds`.
