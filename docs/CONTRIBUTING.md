@@ -3,27 +3,9 @@
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
-<!--
 ## Development environment setup
 
-> **[?]**
-> Proceed to describe how to setup local development environment.
-> e.g:
-
-To set up a development environment, please follow these steps:
-
-1. Clone the repo
-
-   ```sh
-   git clone https://github.com/ullbergm/startpunkt
-   ```
-
-2. TODO
--->
-
-## Development environment setup
-
-To set up a development environment, please follow these steps:
+You need Go and Node.js with npm. Helm is needed for the chart checks, and Docker and kind for the test of the move from 4.x.
 
 1. Clone the repo
 
@@ -33,27 +15,32 @@ To set up a development environment, please follow these steps:
 
 2. Build and run the project
 
-   For combined backend + frontend development:
+   The binary serves the page that is built into it, and reads the cluster your `kubectl` points at:
 
    ```sh
-   ./mvnw quarkus:dev
+   make build
+   bin/startpunkt
    ```
 
-   For frontend-only development:
+   To work on the page, start the frontend's development server next to it. It reloads on every change and passes `/api` on to the binary:
 
    ```sh
-   cd src/main/webui
+   cd web
    npm install
    npm run dev
    ```
 
-   For full verification (including tests):
+   Before you send a change, run the checks:
 
    ```sh
-   ./mvnw verify
+   make check
    ```
 
-**Note on Package Manager:** This project uses **npm** as the canonical package manager. Quarkus Quinoa and the frontend-maven-plugin are both configured to use npm. The project maintains only `package-lock.json` (not pnpm or yarn lockfiles).
+   After changing the types in `api/v1`, regenerate the custom resource definitions with `make crds` and commit the result.
+
+The layout of the code and the rules it follows are in [AGENTS.md](../AGENTS.md), and the design with its reasons in [v5-design.md](v5-design.md).
+
+**Note on Package Manager:** This project uses **npm**. It maintains only `package-lock.json`, not pnpm or yarn lockfiles.
 
 ## Issues and feature requests
 
@@ -81,118 +68,19 @@ Please try to create bug reports that are:
 
 ## Release Process
 
-Startpunkt uses GitHub Actions to automate the release process. To create a new release:
+A release is a tag. Pushing a tag such as `v5.1.0` runs the Release workflow, which
 
-1. Navigate to the [Actions tab](https://github.com/ullbergm/startpunkt/actions/workflows/perform-release.yml) in the repository
-2. Click "Run workflow" on the "Perform Release" workflow
-3. Select the release type:
-   - **patch**: Increments the patch version (e.g., 2.1.0 → 2.1.1)
-   - **minor**: Increments the minor version (e.g., 2.1.0 → 2.2.0)
-   - **major**: Increments the major version (e.g., 2.1.0 → 3.0.0)
-   - **custom**: Allows you to specify a custom version number
-4. If you selected "custom", enter the desired version number (e.g., 2.3.0)
-5. Click "Run workflow"
+- runs the checks,
+- builds the image for amd64 and arm64 and pushes it to `ghcr.io/ullbergm/startpunkt`,
+- packages the chart with the tag's version and pushes it to `oci://ghcr.io/ullbergm/charts/startpunkt`,
+- creates the GitHub release, with notes generated from the pull requests merged since the last one.
 
-The workflow will:
-- Calculate the release version based on your selection
-- Run `mvnw release:prepare` to prepare the release
-- Run `mvnw release:perform` to complete the release
-- Push the release tag to the repository
-- Trigger the automatic GitHub release creation with changelog
+A tag with a suffix, such as `v5.1.0-rc.1`, becomes a pre-release and leaves the `latest` tag of the image where it is.
 
-**Note**: Only maintainers with write access can trigger releases.
+Only maintainers with write access can push tags.
 
-### Automated Changelog Generation
+**Pull request titles** end up in the release notes, so write them as [conventional commits](https://www.conventionalcommits.org): `type(scope): description`, for example
 
-When a new version tag (e.g., `v2.2.4`) is pushed to the repository, the Release workflow automatically:
-
-1. Collects all merged pull requests since the last release
-2. Categorizes them based on conventional commit types in PR titles
-3. Generates a structured changelog
-4. Creates a GitHub release with the changelog
-
-**Changelog Categories:**
-
-The changelog groups changes into the following categories based on the conventional commit type:
-
-- 🚀 **Features** (`feat:`) - New features and enhancements
-- 🐛 **Fixes** (`fix:`) - Bug fixes
-- 📚 **Documentation** (`docs:`) - Documentation changes
-- 🔨 **Refactoring** (`refactor:`) - Code refactoring
-- 🧪 **Tests** (`test:`) - Test additions or modifications
-- 📦 **Dependencies** (`chore:`) - Dependency updates and maintenance
-- ⚙️ **CI/CD** (`ci:`) - CI/CD workflow changes
-- 🎨 **Styling** (`style:`) - Code style changes
-- ⚡ **Performance** (`perf:`) - Performance improvements
-- 🔧 **Build** (`build:`) - Build system changes
-- ↩️ **Reverts** (`revert:`) - Reverted changes
-
-**Best Practices for PR Titles:**
-
-To ensure your contributions are properly categorized in the changelog:
-
-1. Use conventional commit format in your PR titles: `type(scope): description`
-2. Choose the appropriate type from the list above
-3. Keep the description clear and concise
-4. Examples:
-   - `feat(api): add theme customization endpoint`
-   - `fix(ui): correct bookmark sorting order`
-   - `docs(readme): update installation instructions`
-   - `chore(deps): bump quarkus to 3.8.0`
-
-The changelog configuration is maintained in `.github/workflows/changelog/configuration.json`.
-
-## Documentation Workflows
-
-### Screenshot Generation
-
-Startpunkt includes an automated workflow for capturing screenshots of all application features for documentation purposes.
-
-**Workflow**: `.github/workflows/capture-screenshots.yml`
-
-The screenshot workflow:
-- Builds the application in JVM mode
-- Sets up a KinD (Kubernetes in Docker) cluster with sample data
-- Uses Playwright to capture 22+ screenshots showing:
-  - Main application views
-  - Spotlight search functionality
-  - Settings panels (layout, background, accessibility)
-  - Theme variations (light/dark)
-  - Accessibility features (high contrast, font scaling)
-  - Responsive views (mobile, tablet, desktop)
-
-**Running the Workflow:**
-
-1. **Manual Trigger**:
-   - Go to [Actions → Capture Feature Screenshots](https://github.com/ullbergm/startpunkt/actions/workflows/capture-screenshots.yml)
-   - Click "Run workflow"
-   - Choose whether to commit screenshots to the repository
-   - Screenshots are always saved as artifacts (90-day retention)
-
-2. **Scheduled Execution**:
-   - Runs automatically on the 1st of each month at 2am UTC
-   - Screenshots are committed to `docs/images/features/`
-
-**Local Screenshot Capture:**
-
-To capture screenshots locally during development:
-
-```sh
-# Navigate to screenshot scripts directory
-cd .github/workflows/screenshot-scripts
-
-# Install dependencies
-npm install
-
-# Start your Startpunkt application (ensure it's running on port 8080)
-./mvnw quarkus:dev  # In another terminal
-
-# Capture screenshots
-export APP_URL=http://localhost:8080
-node capture-screenshots.js
-```
-
-Screenshots will be saved to `.github/workflows/screenshot-scripts/screenshots/`.
-
-
-
+- `feat(api): add theme customization endpoint`
+- `fix(ui): correct bookmark sorting order`
+- `docs(readme): update installation instructions`

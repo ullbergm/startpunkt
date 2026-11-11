@@ -34,7 +34,7 @@ var DeprecatedVersions = []string{"v1alpha1", "v1alpha2", "v1alpha3", "v1alpha4"
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Name",type=string,JSONPath=`.spec.name`
+// +kubebuilder:printcolumn:name="Title",type=string,JSONPath=`.spec.name`
 // +kubebuilder:printcolumn:name="Group",type=string,JSONPath=`.spec.group`
 // +kubebuilder:printcolumn:name="URL",type=string,JSONPath=`.status.url`
 // +kubebuilder:printcolumn:name="Available",type=boolean,JSONPath=`.status.available`
@@ -60,7 +60,7 @@ type ApplicationList struct {
 // Bookmark is a tile for a link to somewhere outside the cluster.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:printcolumn:name="Name",type=string,JSONPath=`.spec.name`
+// +kubebuilder:printcolumn:name="Title",type=string,JSONPath=`.spec.name`
 // +kubebuilder:printcolumn:name="Group",type=string,JSONPath=`.spec.group`
 // +kubebuilder:printcolumn:name="URL",type=string,JSONPath=`.spec.url`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`

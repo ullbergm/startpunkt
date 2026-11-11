@@ -19,7 +19,7 @@ spec:
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.name
-      name: Name
+      name: Title
       type: string
     - jsonPath: .spec.group
       name: Group
@@ -180,7 +180,7 @@ spec:
       status: {}
   - additionalPrinterColumns:
     - jsonPath: .spec.name
-      name: Name
+      name: Title
       type: string
     - jsonPath: .spec.group
       name: Group
@@ -344,7 +344,7 @@ spec:
       status: {}
   - additionalPrinterColumns:
     - jsonPath: .spec.name
-      name: Name
+      name: Title
       type: string
     - jsonPath: .spec.group
       name: Group
@@ -508,7 +508,7 @@ spec:
       status: {}
   - additionalPrinterColumns:
     - jsonPath: .spec.name
-      name: Name
+      name: Title
       type: string
     - jsonPath: .spec.group
       name: Group
@@ -672,7 +672,7 @@ spec:
       status: {}
   - additionalPrinterColumns:
     - jsonPath: .spec.name
-      name: Name
+      name: Title
       type: string
     - jsonPath: .spec.group
       name: Group
