@@ -35,11 +35,19 @@ image:
 imagePullSecrets: []
 
 crds:
-  # Install the Application and Bookmark custom resource definitions. Leave
-  # this off when a 4.x release on the same cluster already provides them:
-  # v5 then uses the v1alpha4 version they serve. Packaging the definitions
-  # with this chart is not available yet, so true is rejected.
-  install: false
+  # Install the Application and Bookmark custom resource definitions, and
+  # upgrade them with the chart. They serve v1 and, deprecated, the versions
+  # v1alpha1 to v1alpha4 of Startpunkt 4.x.
+  #
+  # Set this to false to try v5 next to a 4.x release on the same cluster.
+  # The 4.x release owns the definitions then; v5 reads the v1alpha4 version
+  # they serve, and writes no status. The documentation describes how to hand
+  # the definitions over when 4.x is retired.
+  install: true
+  # Leave the definitions in the cluster when the release is uninstalled.
+  # Deleting a definition deletes every Application or Bookmark in the
+  # cluster, so they are kept unless this is turned off.
+  keep: true
 
 # Settings of the process. Each one is passed as the environment variable
 # named in its comment.

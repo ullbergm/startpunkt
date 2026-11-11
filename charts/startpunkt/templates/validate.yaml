@@ -1,6 +1,3 @@
-{{- if .Values.crds.install }}
-{{- fail "crds.install=true is not available yet: this chart does not package the custom resource definitions. Keep crds.install=false and use the definitions of an existing 4.x installation." }}
-{{- end }}
 {{- if and (eq .Values.mode "split") .Values.route.enabled (not .Values.route.host) }}
 {{- fail "route.host is required when mode=split, because the /api Route and the page Route must share a host." }}
 {{- end }}

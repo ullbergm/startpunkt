@@ -177,7 +177,7 @@ The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`,
 
 ### Custom resources
 
-- `startpunkt.ullberg.us/v1` is the storage version for `Application` and `Bookmark`. Types are defined once in Go and the CRD YAML is generated with controller-gen.
+- `startpunkt.ullberg.us/v1` is the storage version for `Application` and `Bookmark`. Types are defined once in Go and the CRD YAML is generated with controller-gen. A small program, `hack/crdversions`, then adds the older versions as copies of `v1`; `make crds` runs both.
 - `v1` keeps the field names and shapes of `v1alpha4`. In particular `tags` stays a comma-separated string.
 - `v1alpha1` to `v1alpha4` stay served, marked deprecated, with `conversion: None`. This works without a webhook because the versions only ever added fields. Every served version carries the same schema as `v1`, so no field is lost when an object is read or written through an older version.
 - A `status` subresource carries the resolved URL, availability and conditions. Resolution errors, such as a `urlFrom` target that does not exist, are reported as conditions.
@@ -353,7 +353,7 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 - The chart has a `mode` setting. `single` creates one Deployment running the `all` role. `split` creates one Deployment per role, mounts a service account token only in the controller, and routes `/api` to `api` and everything else to `web` on one host.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC, an optional Secret for the edit key, and a ServiceMonitor for Prometheus metrics.
 - No admission or conversion webhooks, so no certificates to manage.
-- CRD installation can be turned off with `crds.install`, for running next to a 4.x installation. All resource names derive from the release name and namespace.
+- The `Application` and `Bookmark` definitions are templates of the chart, so that an upgrade of the chart upgrades them. `crds.install` leaves them out, for running next to a 4.x installation. The `Startpunkt` and `Remote` definitions are in the chart's `crds` directory instead, because the release creates a `Startpunkt` resource and Helm needs its definition to exist before that. All resource names derive from the release name and namespace.
 - Every process is stateless and logs to standard output. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
 
 ## Testing
@@ -386,14 +386,20 @@ Limits while both are running:
 
 ### Cutover
 
-Uninstalling the 4.x release deletes the custom resource definitions, because they are part of that release, and Kubernetes then deletes every `Application` and `Bookmark`. The cutover keeps the definitions in place:
+Uninstalling the 4.x release deletes the custom resource definitions, because they are part of that release, and Kubernetes then deletes every `Application` and `Bookmark`. A `helm.sh/resource-policy: keep` annotation put on the definitions afterwards does not prevent it: Helm goes by the manifest it stored when the release was installed. So 4.x is not uninstalled. It is taken away piece by piece, leaving the definitions:
 
-1. Annotate both definitions with `helm.sh/resource-policy: keep`.
-2. Uninstall the 4.x release. The definitions and all custom resources remain.
+1. Delete everything the 4.x release created except the definitions. All of it carries the label `app.kubernetes.io/name=startpunkt`, and the definitions carry no label, so `helm get manifest <release> | kubectl delete -f - -l app.kubernetes.io/name=startpunkt` does it.
+2. Delete Helm's record of the 4.x release, the Secrets labelled `owner=helm,name=<release>` in its namespace. Nothing else is deleted with them, and Helm no longer knows a release that could take the definitions with it.
 3. Change the Helm ownership annotations and label on the definitions to the v5 release, and upgrade the v5 release with `crds.install: true`. This adds the `v1` version as the storage version and the status schema.
 4. The controller switches to `v1` and status writes take effect.
 
+An installation that is managed by a GitOps tool follows the same idea with that tool's means: the tool has to stop managing the definitions before the 4.x application is removed from it, so that removing it does not delete them.
+
 Once `v1` is the storage version, going back to the 4.x chart's definitions is not supported, because they do not serve the version the objects are stored in.
+
+The chart's own definitions carry `helm.sh/resource-policy: keep` from the start (`crds.keep`), so uninstalling a v5 release leaves them and the resources in place.
+
+`hack/test-cutover.sh` runs all of this on a throwaway kind cluster: 4.x from its last release, v5 next to it, the cutover, and what must hold afterwards.
 
 ## Migration from 4.x
 

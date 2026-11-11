@@ -14,6 +14,9 @@
       "properties": {
         "install": {
           "type": "boolean"
+        },
+        "keep": {
+          "type": "boolean"
         }
       }
     },

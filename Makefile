@@ -1,7 +1,7 @@
 VERSION ?= dev
 IMAGE ?= ghcr.io/ullbergm/startpunkt:$(VERSION)
 
-.PHONY: all web build test check image icons crds clean
+.PHONY: all web build test check image icons crds test-cutover clean
 
 all: check build
 
@@ -22,6 +22,7 @@ check: test
 	cd web && npm run check
 	helm lint charts/startpunkt
 	helm lint charts/startpunkt --set mode=split
+	helm lint charts/startpunkt --set customResources.enabled=false --set crds.install=false
 
 image:
 	docker build --build-arg VERSION=$(VERSION) -t $(IMAGE) .
@@ -41,13 +42,23 @@ icons:
 		magick $$tmp/16.png $$tmp/32.png $$tmp/48.png web/public/favicon.ico && \
 		rm -r $$tmp
 
-# The definitions of the Startpunkt and Remote resources, generated from the
-# Go types in api/v1. Run after changing those types and commit the result.
+# The custom resource definitions, generated from the Go types in api/v1. Run
+# after changing those types and commit the result. Startpunkt and Remote go
+# to the chart's crds directory. Application and Bookmark are also given the
+# versions from before v1, with the same schema, and go to files/crds, from
+# where a template installs them when crds.install is set.
 crds:
 	tmp=$$(mktemp -d) && \
 		go run sigs.k8s.io/controller-tools/cmd/controller-gen@v0.23.0 crd paths=./api/v1 output:crd:dir=$$tmp && \
 		cp $$tmp/startpunkt.ullberg.us_startpunkts.yaml $$tmp/startpunkt.ullberg.us_remotes.yaml charts/startpunkt/crds/ && \
+		go run ./hack/crdversions $$tmp/startpunkt.ullberg.us_applications.yaml charts/startpunkt/files/crds/applications.yaml && \
+		go run ./hack/crdversions $$tmp/startpunkt.ullberg.us_bookmarks.yaml charts/startpunkt/files/crds/bookmarks.yaml && \
 		rm -r $$tmp
+
+# The move from 4.x to v5, on a throwaway kind cluster. Needs docker, kind,
+# kubectl and helm, and takes a few minutes.
+test-cutover:
+	hack/test-cutover.sh
 
 clean:
 	rm -rf bin
