@@ -757,6 +757,34 @@ describe('App', () => {
       expect(prefs.value.shownClusters).toEqual(['prod']);
     });
 
+    it('gives each cluster a section of its own when asked to', async () => {
+      updatePrefs((current) => ({ ...current, layout: { ...current.layout, byCluster: true } }));
+      renderWith({
+        ...two(),
+        tiles: [
+          tile({ id: 'prod/apps/ns/plex', name: 'Plex', cluster: 'prod', url: 'https://plex.prod' }),
+          tile({ id: 'prod/apps/ns/grafana', name: 'Grafana', cluster: 'prod', url: 'https://grafana.prod' }),
+          tile({ id: 'local/apps/ns/grafana', name: 'Grafana', cluster: 'local', url: 'https://grafana.local' }),
+        ],
+      });
+      // The local cluster first, then the others; the kind's own heading
+      // gives way to them.
+      await waitFor(() =>
+        expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['local', 'prod']),
+      );
+      // Grafana is on both, and is listed under both: nothing is combined.
+      expect(document.querySelectorAll('.tile')).toHaveLength(3);
+      expect(document.querySelector('.tile-pills')).toBeNull();
+      const prod = screen.getByRole('region', { name: 'prod' });
+      expect(within(prod).getByRole('link', { name: /Grafana/ }).getAttribute('href')).toBe('https://grafana.prod');
+      expect(within(prod).getByRole('link', { name: /Plex/ })).toBeTruthy();
+
+      // With one cluster shown there is nothing to divide.
+      fireEvent.click(within(screen.getByRole('group', { name: 'Clusters to show' })).getByRole('button', { name: 'local' }));
+      await waitFor(() => expect(document.querySelectorAll('.tile')).toHaveLength(1));
+      expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Applications']);
+    });
+
     it('has no cluster buttons with a single cluster', async () => {
       renderWith(serverState({ tiles: [tile({ name: 'Grafana' })] }));
       await screen.findByRole('link', { name: /Grafana/ });

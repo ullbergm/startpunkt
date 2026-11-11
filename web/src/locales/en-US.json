@@ -133,6 +133,8 @@
   "clusters.show": "Clusters to show",
   "clusters.notConnected": "{cluster} is not connected",
   "settings.combine": "Combine the same service on several clusters into one card",
+  "settings.byCluster": "A section for each cluster",
+  "settings.byClusterHelp": "Each cluster's applications and bookmarks are listed under its name. Nothing is combined then.",
   "settings.combineHelp": "Each cluster then gets a pill on the card that links to it.",
   "clusters.hint": "Click to show only this cluster, again to show all. Shift- or Ctrl-click to add or remove it."
 }

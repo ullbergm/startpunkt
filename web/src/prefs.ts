@@ -50,6 +50,9 @@ export interface Preferences {
     hideUnreachable: boolean;
     // Show the same service on several clusters as one card.
     combine: boolean;
+    // One section per cluster, instead of the clusters' tiles side by side
+    // in the same groups. Nothing is combined then.
+    byCluster: boolean;
   };
   background: Background;
   // A casual handwritten typeface for the whole page.
@@ -139,6 +142,7 @@ export function defaults(): Preferences {
       showStatus: true,
       hideUnreachable: false,
       combine: true,
+      byCluster: false,
     },
     background: {
       type: 'pictureOfDay',
@@ -199,6 +203,7 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
     showStatus: bool(layout.showStatus, d.showStatus),
     hideUnreachable: bool(layout.hideUnreachable, d.hideUnreachable),
     combine: bool(layout.combine, d.combine),
+    byCluster: bool(layout.byCluster, d.byCluster),
   };
 }
 

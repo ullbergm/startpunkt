@@ -1,7 +1,7 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
-import { orderClusters } from '../clusters';
+import { clusterColors, orderClusters } from '../clusters';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { clusterShown, prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
@@ -109,7 +109,10 @@ export function App({
   // The same service on several clusters is one card, unless the visitor
   // prefers them apart. The local cluster comes first.
   const order = orderClusters(shown).map((cluster) => cluster.name);
-  const cards = toCards(tiles, p.layout.combine && showCluster, order);
+  // With a section per cluster a card belongs to one cluster, so nothing
+  // is combined.
+  const byCluster = p.layout.byCluster && showCluster;
+  const cards = toCards(tiles, p.layout.combine && showCluster && !byCluster, order);
   // Favorites are shown once, in their own row and in the visitor's order,
   // and are left out of the groups below. A combined card is a favorite
   // when any of its tiles is.
@@ -132,6 +135,45 @@ export function App({
     (card) => card.primary.kind === (view === 'applications' ? 'application' : 'bookmark'),
   );
   const groups = view === 'applications' ? applications : bookmarks;
+  // One section per cluster that has something to show, the local one
+  // first. A cluster the server does not list comes last.
+  const rank = (name: string) => (order.includes(name) ? order.indexOf(name) : order.length);
+  const sections = byCluster
+    ? [...new Set(groups.flatMap((group) => group.cards.map((card) => card.primary.cluster)))]
+        .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+        .map((cluster) => ({
+          cluster,
+          groups: groups
+            .map((group) => ({ ...group, cards: group.cards.filter((card) => card.primary.cluster === cluster) }))
+            .filter((group) => group.cards.length > 0),
+        }))
+    : null;
+  // The tiles of one kind: in one set of groups, or in one per cluster. In
+  // a cluster's section the heading says whose the tiles are, so they
+  // carry no pill.
+  const sectionsOf = (kind: Kind, title?: string) =>
+    sections ? (
+      sections.map((section) => (
+        <Section
+          key={section.cluster}
+          id={`${kind}-${section.cluster.replace(/[^a-z0-9]+/gi, '-')}`}
+          title={section.cluster}
+          color={clusterColors.value[section.cluster]}
+          groups={section.groups}
+          iconColor={iconColor}
+          aligned={kind === 'bookmarks'}
+        />
+      ))
+    ) : (
+      <Section
+        id={kind}
+        title={title}
+        groups={groups}
+        iconColor={iconColor}
+        aligned={kind === 'bookmarks'}
+        showCluster={showCluster}
+      />
+    );
   // The local cluster may still be read for the first time. Any other state
   // that is not "connected" means the tiles of that cluster are the last
   // known ones, or that it has not been reached at all.
@@ -193,13 +235,7 @@ export function App({
           <>
             <div role="tabpanel" id="tiles-panel" aria-labelledby={`tiles-tab-${view}`}>
               <Favorites cards={favorites} iconColor={iconColor} showCluster={showCluster} />
-              <Section
-                id={view}
-                groups={groups}
-                iconColor={iconColor}
-                aligned={view === 'bookmarks'}
-                showCluster={showCluster}
-              />
+              {sectionsOf(view)}
             </div>
           </>
         ) : (
@@ -207,14 +243,7 @@ export function App({
           kinds.map((kind) => (
             <Fragment key={kind}>
               <Favorites cards={favorites} iconColor={iconColor} showCluster={showCluster} />
-              <Section
-                id={kind}
-                title={t(`section.${kind}`)}
-                groups={groups}
-                iconColor={iconColor}
-                aligned={kind === 'bookmarks'}
-                showCluster={showCluster}
-              />
+              {sectionsOf(kind, t(`section.${kind}`))}
             </Fragment>
           ))
         )}

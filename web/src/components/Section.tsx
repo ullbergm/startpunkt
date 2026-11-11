@@ -152,7 +152,12 @@ export function Section({
   iconColor,
   aligned = false,
   showCluster,
+  color,
 }: {
+  // The colour of the cluster the section is about, shown next to its
+  // title. The title names the cluster; the colour only ties it to the
+  // cluster's button.
+  color?: string;
   showCluster?: boolean;
   id: string;
   title?: string;
@@ -166,7 +171,11 @@ export function Section({
   const Wrapper = title ? 'section' : 'div';
   return (
     <Wrapper aria-labelledby={title ? id : undefined}>
-      {title && <h2 id={id}>{title}</h2>}
+      {title && (
+        <h2 id={id} class={color ? 'cluster-heading' : undefined} style={color ? { '--cluster': color } : undefined}>
+          {title}
+        </h2>
+      )}
       {groups.map((group) => {
         const key = `${id}:${group.name}`;
         const groupId = `${id}-${group.name.replace(/[^a-z0-9]+/gi, '-')}`;

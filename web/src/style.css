@@ -250,6 +250,18 @@ h2 {
   font-size: 1.25rem;
 }
 
+/* The heading of a cluster's section carries the cluster's colour, as its
+   button does. */
+.cluster-heading::before {
+  content: '';
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  background: var(--cluster);
+}
+
 /* A line under each group heading separates the groups. */
 h3 {
   margin: 0.8rem 0 0.4rem;

@@ -520,6 +520,12 @@ function Clusters({ p, clusters, shown }: { p: Preferences; clusters: Cluster[];
         checked={p.layout.combine}
         onChange={(combine) => setLayout({ combine })}
       />
+      <Check
+        label={t('settings.byCluster')}
+        help={t('settings.byClusterHelp')}
+        checked={p.layout.byCluster}
+        onChange={(byCluster) => setLayout({ byCluster })}
+      />
       <p class="help">{t('settings.clusters.help')}</p>
       {clusters.map((cluster) => (
         <Check
