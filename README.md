@@ -171,6 +171,8 @@ NAMESPACE    NAME   TITLE   GROUP            URL                       AVAILABLE
 startpunkt   nas    NAS     Infrastructure   https://nas.example.com   true        3d
 ```
 
+On a cluster that also runs Argo CD, `applications` on its own means Argo CD's kind; write `applications.startpunkt.ullberg.us`.
+
 A `Resolved` condition says why an Application has no tile, for example when its `urlFrom` points at something that does not exist.
 
 ### Bookmark resources

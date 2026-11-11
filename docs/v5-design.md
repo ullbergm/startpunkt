@@ -394,7 +394,7 @@ Uninstalling the 4.x release deletes the custom resource definitions, because th
 3. Change the Helm ownership annotations and label on the definitions to the v5 release, and upgrade the v5 release with `crds.install: true`. This adds the `v1` version as the storage version and the status schema.
 4. The controller switches to `v1` and status writes take effect.
 
-An installation that is managed by a GitOps tool follows the same idea with that tool's means: the tool has to stop managing the definitions before the 4.x application is removed from it, so that removing it does not delete them.
+An installation that is managed by a GitOps tool follows the same idea with that tool's means: the tool has to stop managing the definitions before the 4.x application is removed from it, so that removing it does not delete them. For Argo CD that is the `Delete=false` and `Prune=false` sync options on the two definitions; the migration notes have the steps, which were rehearsed on a test cluster. The chart's definitions carry `Delete=false` themselves.
 
 Once `v1` is the storage version, going back to the 4.x chart's definitions is not supported, because they do not serve the version the objects are stored in.
 

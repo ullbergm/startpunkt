@@ -182,9 +182,36 @@ After step 4 there is no way back to the 4.x definitions: they do not serve the 
 
 From here on the definitions belong to the v5 release, and they are marked to be kept. Uninstalling it leaves them, and your resources, in the cluster.
 
-### With a GitOps tool
+### With Argo CD
 
-When 4.x is deployed by Argo CD, Flux or similar, there is no Helm release to forget, and the tool is what would delete the definitions. The idea is the same: make the tool stop managing the two definitions before you remove the 4.x application from it, so that removing it leaves them in the cluster. Then let the v5 application adopt them with `crds.install: true`. How to exclude a resource from deletion differs per tool; check that the definitions survive on a test cluster first, with the copy of your resources at hand.
+When 4.x is an Argo CD application, there is no Helm release, and Argo CD is what could delete the definitions: they are among the resources of the 4.x application. The steps below were rehearsed with Argo CD 3.6 on a test cluster, with the 4.x application set to prune, to heal itself and to delete its resources when it is deleted.
+
+In that rehearsal the definitions survived the deletion of the 4.x application even without step 1. Do it anyway: it costs nothing, and losing the definitions loses every `Application` and `Bookmark`.
+
+1. Tell Argo CD to leave the two definitions alone when their application goes:
+
+   ```shell
+   for crd in applications.startpunkt.ullberg.us bookmarks.startpunkt.ullberg.us; do
+     kubectl annotate crd $crd --overwrite argocd.argoproj.io/sync-options=Delete=false,Prune=false
+   done
+   ```
+
+2. Remove the 4.x application from Argo CD the way you normally would, for example by deleting it from Git. Its Deployment, Service and the rest go with it. Check that the definitions and your resources are still there:
+
+   ```shell
+   kubectl get crd applications.startpunkt.ullberg.us bookmarks.startpunkt.ullberg.us
+   kubectl get applications.startpunkt.ullberg.us,bookmarks.startpunkt.ullberg.us -A
+   ```
+
+3. In the values of the v5 application, remove `crds.install: false`, or set it to `true`. On its next sync Argo CD upgrades the definitions in place and they become resources of the v5 application. v5 starts reading `v1` and writing status within a minute.
+
+4. Point your address at v5, as above.
+
+The definitions that the v5 chart installs carry the `Delete=false` option themselves, so removing the v5 application later leaves them in the cluster.
+
+With Argo CD installed, `kubectl get applications` means Argo CD's applications. Write `applications.startpunkt.ullberg.us` for Startpunkt's.
+
+With another GitOps tool the idea is the same: make the tool stop managing the two definitions before the 4.x installation is removed from it, and check on a test cluster that they survive.
 
 ### Starting fresh instead
 

@@ -46,7 +46,8 @@ crds:
   install: true
   # Leave the definitions in the cluster when the release is uninstalled.
   # Deleting a definition deletes every Application or Bookmark in the
-  # cluster, so they are kept unless this is turned off.
+  # cluster, so they are kept unless this is turned off. Helm and Argo CD
+  # are both told to keep them.
   keep: true
 
 # Settings of the process. Each one is passed as the environment variable

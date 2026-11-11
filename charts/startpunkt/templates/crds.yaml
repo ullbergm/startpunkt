@@ -11,6 +11,8 @@ own. The files themselves are generated; see `make crds`.
 {{- if $.Values.crds.keep }}
 {{- /* Deleting a definition deletes every resource of its kind. */ -}}
 {{- $_ := set $annotations "helm.sh/resource-policy" "keep" }}
+{{- /* The same for a release that Argo CD deploys. */ -}}
+{{- $_ := set $annotations "argocd.argoproj.io/sync-options" "Delete=false" }}
 {{- end }}
 {{- $metadata := dict "name" $crd.metadata.name "labels" (include "startpunkt.commonLabels" $ | fromYaml) "annotations" (merge $annotations ($crd.metadata.annotations | default dict)) }}
 ---
