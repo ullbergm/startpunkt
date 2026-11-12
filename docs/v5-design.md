@@ -138,25 +138,32 @@ Differences from 4.x, which are deliberate:
 - Only `startpunkt.ullberg.us/*` annotations are read. The `hajimari.io` and `forecastle.stakater.com` equivalents are ignored.
 - An annotation that cannot be parsed, such as a `port` that is not a number, removes the object's tiles and is logged, instead of being silently ignored.
 
-### User-defined mappings (later)
+### User-defined mappings
 
-After the built-in adapters are complete, operators can add sources for other resource types, for example Traefik `IngressRoute`, through configuration. A mapping names a group, version and kind, and gives CEL expressions for the tile fields. It is implemented as one more adapter behind the same interface, so the store, API and UI are unaffected.
+Operators can add sources for other resource types, for example Traefik `IngressRoute`, through the settings. A mapping names a group, version and resource, and gives a CEL expression for where an object is served. It is one more adapter behind the same interface, so the store, API and UI are unaffected.
 
 ```yaml
 sources:
   custom:
-    - name: traefik-ingressroute
-      group: traefik.io
+    - name: traefik
+      apiGroup: traefik.io
       version: v1alpha1
-      kind: IngressRoute
+      resource: ingressroutes
       onlyAnnotated: true
-      url: "'https://' + hostFromRule(object.spec.routes[0].match)"
-      name: "annotation(object, 'appName', object.metadata.name)"
-      group: "annotation(object, 'group', object.metadata.namespace)"
+      defaultProtocol: https
+      url: "object.spec.routes.map(r, hostFromRule(r.match))"
+      tileName: "object.metadata.name"
 ```
 
-- A mapping that fails to compile is rejected at startup with the expression and the error.
-- A mapping that fails on a specific object is logged with the object reference and skips that object only.
+- The mapping only has to say what is particular to the type: the address. Everything else is shared with the built-in annotated sources. The `startpunkt.ullberg.us` annotations name the tile, group it, show or hide it, and adjust the address, and `onlyAnnotated` means the same. The first sketch of this had expressions calling an `annotation()` function for each field; reusing the annotation handling made that unnecessary, and a mapping is usually one line.
+- `url` gives a string or a list of strings. Each is an address with its scheme, or a bare host, to which the protocol, `port` and `rootPath` annotations apply as for a built-in source. Only `http` and `https` addresses are accepted.
+- `tileName`, `tileGroup`, `icon` and `info` are optional expressions for what a tile shows when the object has no annotation for it.
+- Expressions see the object as `object`, the standard CEL functions, the string extensions, and `hostFromRule` and `hostsFromRule` for routing rules. An expression has a cost limit, so one that does far more work than a single object warrants is stopped.
+- A mapping names the plural resource, not the kind: that is what is watched, and it needs no lookup.
+- A mapping that fails to compile is rejected with the expression and the error. From a `Startpunkt` resource that means the settings are not applied and the status says why; from the environment the process does not start.
+- A mapping that fails on a specific object is logged with the object reference and skips that object only. An object that is not going to be shown is not evaluated.
+- A resource type that has a built-in source cannot be mapped, also while that source is turned off.
+- The chart grants `get`, `list` and `watch` on each mapped type.
 
 ### urlFrom
 
@@ -349,7 +356,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 
 ### Environment and file
 
-Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles, later `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
+Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles and `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
 
 ## Deployment
 
@@ -447,6 +454,6 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI. Done, after federation and packaging.
 7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done.
 8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart from a tag.
-9. User-defined CEL mappings. This can follow the first release.
+9. User-defined CEL mappings. Done.
 
 Added along the way: configuration through the `Startpunkt` and `Remote` resources, built after federation. Its definitions are in the chart's `crds` directory and are generated with `make crds`.

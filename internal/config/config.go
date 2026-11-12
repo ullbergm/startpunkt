@@ -19,6 +19,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
+	"github.com/ullbergm/startpunkt/internal/source"
 )
 
 var (
@@ -279,6 +280,13 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		}
 		c.Availability.Concurrency = parsed
 	}
+	if v := getenv(EnvPrefix + "SOURCES_CUSTOM"); v != "" {
+		var custom []apiv1.CustomSource
+		if err := json.Unmarshal([]byte(v), &custom); err != nil {
+			return fmt.Errorf("%sSOURCES_CUSTOM is not a JSON list of custom sources: %w", EnvPrefix, err)
+		}
+		c.Sources.Custom = custom
+	}
 	if v := getenv(EnvPrefix + "EDITING_KEY"); v != "" {
 		c.Editing.Key = v
 	} else if path := getenv(EnvPrefix + "EDITING_KEYFILE"); path != "" {
@@ -351,6 +359,11 @@ func (c Config) Validate() error {
 	if key := c.Editing.Key; key != "" && len(key) < MinEditKeyLength {
 		// The message must not repeat the key.
 		return fmt.Errorf("the edit key must be at least %d characters long", MinEditKeyLength)
+	}
+	// Compiling them is the check: an expression that cannot be used is
+	// found here, not when the first object arrives.
+	if _, err := source.NewCustom(c.Sources.Custom, nil); err != nil {
+		return err
 	}
 	if !c.NamespaceSelector.Any && len(c.NamespaceSelector.MatchNames) == 0 {
 		return errors.New("namespaceSelector.matchNames must list a namespace when namespaceSelector.any is false")

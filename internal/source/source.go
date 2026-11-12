@@ -7,6 +7,8 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	apiv1 "github.com/ullbergm/startpunkt/api/v1"
+
 	"github.com/ullbergm/startpunkt/internal/tile"
 )
 
@@ -128,6 +130,29 @@ func Builtin(o Options) []Source {
 		out = append(out, VirtualService{Options: o.VirtualService})
 	}
 	return out
+}
+
+// All returns the sources for the settings: the built-in ones that are
+// enabled, then the custom ones. It fails when a custom source cannot be
+// used.
+func All(o Options, custom []apiv1.CustomSource) ([]Source, error) {
+	// A custom source may not take a type that has a source of its own,
+	// whether that one is enabled or not: turning it on later would give
+	// the type two.
+	taken := map[string]bool{}
+	every := Options{
+		Application: Toggle{Enabled: true}, Bookmark: Toggle{Enabled: true},
+		Route: Annotated{Enabled: true}, Ingress: IngressOptions{Annotated: Annotated{Enabled: true}},
+		HTTPRoute: Routed{Annotated: Annotated{Enabled: true}}, VirtualService: Routed{Annotated: Annotated{Enabled: true}},
+	}
+	for _, s := range Builtin(every) {
+		taken[Type(s)] = true
+	}
+	extra, err := NewCustom(custom, taken)
+	if err != nil {
+		return nil, err
+	}
+	return append(Builtin(o), extra...), nil
 }
 
 // splitTags parses a comma-separated tag list into trimmed, lower-case,

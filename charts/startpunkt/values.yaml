@@ -156,6 +156,40 @@ sources:
     enabled: true
     onlyAnnotated: true
     defaultProtocol: http
+  # Resource types that have no source of their own, such as a Traefik
+  # IngressRoute. An expression says where an object is served, and the
+  # startpunkt.ullberg.us annotations do the rest, as for the sources above:
+  # they name the tile, group it, and show or hide it. The chart grants the
+  # controller get, list and watch on each type listed here.
+  #
+  # Expressions are written in CEL (https://cel.dev). The object is available
+  # as "object". Besides the standard functions and the string extensions
+  # there are hostFromRule and hostsFromRule, which take the host names out of
+  # a routing rule such as "Host(`a.example.com`) && PathPrefix(`/x`)".
+  #
+  #   custom:
+  #     - name: traefik            # for messages; unique
+  #       apiGroup: traefik.io     # empty for the core group
+  #       version: v1alpha1
+  #       resource: ingressroutes  # plural, as in "kubectl get ingressroutes"
+  #       onlyAnnotated: true      # the default; false shows every object
+  #       defaultProtocol: https   # for hosts without a scheme; default http
+  #       # Where the object is served: a string or a list of strings, each
+  #       # an address with its scheme or a bare host. One tile for each.
+  #       url: "object.spec.routes.map(r, hostFromRule(r.match))"
+  #       # Optional. What the tile shows when the object has no annotation
+  #       # for it. Without them: the object's name and its namespace.
+  #       tileName: "object.metadata.name"
+  #       tileGroup: "object.metadata.namespace"
+  #       icon: "'mdi:router'"
+  #       info: "'Served by Traefik'"
+  #
+  # A mapping whose expressions do not compile is refused as a whole, with
+  # the reason in the status of the Startpunkt resource. One that fails on a
+  # particular object skips that object and says so in the controller's log.
+  #
+  # In the environment the list is JSON: STARTPUNKT_SOURCES_CUSTOM.
+  custom: []
 
 # Probing of the tiles' URLs, done by the controller from inside the cluster.
 # An answer below 500, including a redirect or a 404, counts as available, and

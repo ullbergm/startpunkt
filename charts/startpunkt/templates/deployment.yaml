@@ -75,7 +75,11 @@ spec:
             {{- end }}
             - name: STARTPUNKT_STATUS_ENABLED
               value: {{ $.Values.status.enabled | quote }}
-            {{- range $name, $source := $.Values.sources }}
+            {{- with $.Values.sources.custom }}
+            - name: STARTPUNKT_SOURCES_CUSTOM
+              value: {{ toJson . | quote }}
+            {{- end }}
+            {{- range $name, $source := omit $.Values.sources "custom" }}
             {{- range $setting, $value := $source }}
             {{- if kindIs "slice" $value }}
             {{- if $value }}

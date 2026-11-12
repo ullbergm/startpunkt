@@ -37,6 +37,59 @@ type Sources struct {
 	Ingress        IngressSource `json:"ingress"`
 	HTTPRoute      RoutedSource  `json:"httpRoute"`
 	VirtualService RoutedSource  `json:"virtualService"`
+	// Custom adds resource types that have no source of their own. In the
+	// environment the list is JSON, in STARTPUNKT_SOURCES_CUSTOM.
+	// +optional
+	// +listType=map
+	// +listMapKey=name
+	Custom []CustomSource `json:"custom,omitempty"`
+}
+
+// CustomSource makes tiles from a resource type that Startpunkt has no
+// source for, such as a Traefik IngressRoute. An expression says where an
+// object is served; everything else works as for the built-in sources: the
+// startpunkt.ullberg.us annotations name the tile, group it and can hide
+// it.
+//
+// Expressions are written in CEL. The object is available as "object".
+type CustomSource struct {
+	// Name of the mapping, for messages. Unique among the custom sources.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Name string `json:"name"`
+	// APIGroup of the resource type, empty for the core group.
+	APIGroup string `json:"apiGroup,omitempty"`
+	// Version of the resource type to read, for example v1alpha1.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Version string `json:"version"`
+	// Resource is the plural, lower-case name of the resource type, as in
+	// "kubectl get <resource>", for example ingressroutes. The type has to
+	// be namespaced.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Resource string `json:"resource"`
+	// OnlyAnnotated limits the source to objects annotated with
+	// startpunkt.ullberg.us/enable: "true". It is on unless set to false.
+	OnlyAnnotated *bool `json:"onlyAnnotated,omitempty"`
+	// DefaultProtocol is http or https, used for a host that the url
+	// expression returns without a scheme, unless the object sets the
+	// protocol annotation. The default is http.
+	// +kubebuilder:validation:Enum=http;https
+	DefaultProtocol string `json:"defaultProtocol,omitempty"`
+	// URL is an expression for where the object is served: a string or a
+	// list of strings, each an address with its scheme or a bare host
+	// name. One tile is made for each.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	URL string `json:"url"`
+	// TileName, TileGroup, Icon and Info are expressions for what the tile
+	// shows when the object has no annotation for it. Without them the
+	// name is the object's name and the group its namespace.
+	TileName  string `json:"tileName,omitempty"`
+	TileGroup string `json:"tileGroup,omitempty"`
+	Icon      string `json:"icon,omitempty"`
+	Info      string `json:"info,omitempty"`
 }
 
 // Source turns a source on or off.

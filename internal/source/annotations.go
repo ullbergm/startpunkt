@@ -39,6 +39,16 @@ type endpoint struct {
 	// tls is whether the object itself says the host is served over TLS.
 	// It is nil when the object cannot tell.
 	tls *bool
+	// url, when set, is the whole address and the other fields are not
+	// used. The protocol and port annotations do not apply to it.
+	url string
+}
+
+// display is what a tile shows when the object has no annotation for it.
+// An empty field means the usual fallback: the object's name, its
+// namespace, or nothing.
+type display struct {
+	name, group, icon, info string
 }
 
 // annotatedTiles builds the tiles of an object that is published through
@@ -48,6 +58,15 @@ type endpoint struct {
 // The result is one tile per endpoint, all sharing the display fields.
 func annotatedTiles(
 	obj *unstructured.Unstructured, o Annotated, defaultProtocol string, endpoints []endpoint,
+) ([]tile.Tile, error) {
+	return annotatedTilesWith(obj, o, defaultProtocol, endpoints, func() (display, error) { return display{}, nil })
+}
+
+// annotatedTilesWith is annotatedTiles with fallbacks for the display
+// fields. They are only asked for when the object is going to be shown.
+func annotatedTilesWith(
+	obj *unstructured.Unstructured, o Annotated, defaultProtocol string, endpoints []endpoint,
+	fallbacks func() (display, error),
 ) ([]tile.Tile, error) {
 	ann := obj.GetAnnotations()
 
@@ -73,6 +92,13 @@ func annotatedTiles(
 		protocol := strings.TrimSuffix(strings.TrimSpace(ann[annProtocol]), "://")
 		seen := map[string]bool{}
 		for _, e := range endpoints {
+			if e.url != "" {
+				if !seen[e.url] {
+					seen[e.url] = true
+					urls = append(urls, e.url)
+				}
+				continue
+			}
 			if e.host == "" || strings.Contains(e.host, "*") {
 				// A wildcard names no single place to link to.
 				continue
@@ -99,13 +125,23 @@ func annotatedTiles(
 		return nil, nil
 	}
 
-	name := strings.TrimSpace(ann[annAppName])
-	if name == "" {
-		name = obj.GetName()
+	fallback, err := fallbacks()
+	if err != nil {
+		return nil, err
 	}
-	group := strings.TrimSpace(ann[annGroup])
-	if group == "" {
-		group = obj.GetNamespace()
+	first := func(values ...string) string {
+		for _, v := range values {
+			if v = strings.TrimSpace(v); v != "" {
+				return v
+			}
+		}
+		return ""
+	}
+	name := first(ann[annAppName], fallback.name, obj.GetName())
+	group := first(ann[annGroup], fallback.group, obj.GetNamespace())
+	info := ann[annInfo]
+	if strings.TrimSpace(info) == "" {
+		info = fallback.info
 	}
 	loc := 0
 	if v, ok := ann[annLocation]; ok {
@@ -127,9 +163,9 @@ func annotatedTiles(
 			Name:        name,
 			Group:       strings.ToLower(group),
 			URL:         appendRootPath(u, ann[annRootPath]),
-			Icon:        strings.TrimSpace(ann[annIcon]),
+			Icon:        first(ann[annIcon], fallback.icon),
 			IconColor:   strings.TrimSpace(ann[annIconColor]),
-			Info:        ann[annInfo],
+			Info:        info,
 			TargetBlank: targetBlank,
 			Location:    location(loc, apiv1.DefaultLocation),
 			Tags:        splitTags(ann[annTags]),

@@ -295,10 +295,17 @@ func watchCluster(
 		cfg := holder.Get()
 		key := clusterSettings(cfg)
 		runCtx, stop := context.WithCancel(ctx)
+		sources, err := source.All(sourceOptions(cfg.Sources), cfg.Sources.Custom)
+		if err != nil {
+			// Settings are validated before they are put to use, so this
+			// is not expected. Carry on with the built-in sources.
+			log.Error("the custom sources cannot be used", "error", err)
+			sources = source.Builtin(sourceOptions(cfg.Sources))
+		}
 		controller := &kube.Controller{
 			Cluster:     cfg.Cluster.Name,
 			Store:       tiles,
-			Sources:     source.Builtin(sourceOptions(cfg.Sources)),
+			Sources:     sources,
 			Namespaces:  cfg.NamespaceSelector.Namespaces(),
 			WriteStatus: cfg.Status.Enabled,
 			Discovery:   discoveryClient,

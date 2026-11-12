@@ -12,7 +12,8 @@
 #
 # It also checks that a release installed on its own leaves the definitions
 # behind when it is uninstalled, and that editing works through the chart,
-# with the key in a Secret and the roles in separate pods.
+# with the key in a Secret and the roles in separate pods, and that a custom
+# source reads a resource type of its own.
 #
 # Needs docker, kind, kubectl, helm and curl. Nothing outside the kind
 # cluster is touched: it has a kubeconfig of its own, so the current context
@@ -285,5 +286,52 @@ eventually "a deletion is shown" has_tiles "application First"
 forward_to fresh start-startpunkt
 [ "$(api GET unlock)" = 404 ] || fail "a release without an edit key answers on the edit endpoints"
 ok "a release without an edit key has no edit endpoints"
+
+step "a custom source for a resource type of its own"
+k apply -f - >/dev/null <<EOF
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: widgets.example.test}
+spec:
+  group: example.test
+  names: {kind: Widget, plural: widgets}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema: {openAPIV3Schema: {type: object, x-kubernetes-preserve-unknown-fields: true}}
+EOF
+k wait --for=condition=Established crd/widgets.example.test --timeout=60s >/dev/null
+k apply -f - >/dev/null <<EOF
+apiVersion: example.test/v1
+kind: Widget
+metadata: {name: gadget, namespace: editing}
+spec: {host: gadget.example.invalid}
+---
+apiVersion: example.test/v1
+kind: Widget
+metadata: {name: hostless, namespace: editing}
+spec: {}
+EOF
+custom='[{"name":"widgets","apiGroup":"example.test","version":"v1","resource":"widgets","onlyAnnotated":false,"defaultProtocol":"https","url":"object.spec.host","tileName":"\"Widget \" + object.metadata.name"}]'
+h upgrade edit charts/startpunkt -n editing --reuse-values --set-json "sources.custom=$custom" --wait --timeout 180s >/dev/null
+forward_to editing edit-startpunkt-api
+# The object without a host fails the expression and is skipped; the other
+# one is shown, without a restart and with the permissions the chart gave.
+eventually "an object of the custom type is shown" has_tiles $'application First\napplication Widget gadget'
+k -n editing logs deploy/edit-startpunkt-controller | grep -q '"skipping object".*"hostless"' ||
+  fail "the object the expression fails on was not reported"
+ok "an object the expression fails on is skipped and reported"
+# An expression that does not compile is refused, and says so.
+broken=${custom/object.spec.host/object.spec.(}
+h upgrade edit charts/startpunkt -n editing --reuse-values --set-json "sources.custom=$broken" --timeout 180s >/dev/null
+refused() {
+  k -n editing get startpunkt edit-startpunkt -o jsonpath='{.status.conditions[?(@.type=="Configured")].status} {.status.conditions[?(@.type=="Configured")].message}' |
+    grep -q '^False .*does not compile'
+}
+eventually "a mapping that does not compile is refused in the status" refused
+has_tiles $'application First\napplication Widget gadget' || fail "the last valid settings are no longer in use"
+ok "the instance carries on with the last valid settings"
 
 printf '\nAll checks passed.\n'

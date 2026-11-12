@@ -143,6 +143,58 @@
               ]
             }
           }
+        },
+        "custom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "version",
+              "resource",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "apiGroup": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "resource": {
+                "type": "string"
+              },
+              "defaultProtocol": {
+                "type": "string",
+                "enum": [
+                  "http",
+                  "https"
+                ]
+              },
+              "url": {
+                "type": "string"
+              },
+              "tileName": {
+                "type": "string"
+              },
+              "tileGroup": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "info": {
+                "type": "string"
+              },
+              "onlyAnnotated": {
+                "type": "boolean"
+              }
+            }
+          }
         }
       }
     },

@@ -27,6 +27,7 @@
   - [Annotations](#annotations)
   - [Application resources](#application-resources)
   - [Bookmark resources](#bookmark-resources)
+  - [Other resource types](#other-resource-types)
   - [Tags](#tags)
 - [Editing from the page](#editing-from-the-page)
 - [Configuration](#configuration)
@@ -47,7 +48,7 @@
 ## Features
 
 - **Automatic.** Services appear on the page when they are deployed to the cluster and disappear when they are removed. The page updates while it is open.
-- **Reads what you already have.** Kubernetes Ingresses, OpenShift Routes, Gateway API HTTPRoutes and Istio VirtualServices, published with an annotation, and `Application` and `Bookmark` resources for everything else.
+- **Reads what you already have.** Kubernetes Ingresses, OpenShift Routes, Gateway API HTTPRoutes and Istio VirtualServices, published with an annotation, and `Application` and `Bookmark` resources for everything else. Other resource types, such as a Traefik IngressRoute, can be added with one expression.
 - **Availability.** Each service is probed from inside the cluster, and the page shows which ones do not answer.
 - **Several clusters.** One instance can show the services of other instances next to its own, and combines a service that runs on several clusters into one card.
 - **Search.** Start typing anywhere on the page to find a service, or search the web with a `?` in front.
@@ -195,6 +196,27 @@ spec:
 ```
 
 `name`, `group` and `url` are required; `icon`, `info`, `targetBlank` and `location` are optional.
+
+### Other resource types
+
+A resource type that Startpunkt has no source for can be added in the settings. An expression says where an object of that type is served, and the annotations above do the rest. This reads Traefik's IngressRoutes:
+
+```yaml
+sources:
+  custom:
+    - name: traefik
+      apiGroup: traefik.io
+      version: v1alpha1
+      resource: ingressroutes
+      defaultProtocol: https
+      url: "object.spec.routes.map(r, hostFromRule(r.match))"
+```
+
+The expressions are [CEL](https://cel.dev), with the object as `object`. `url` gives a string or a list of strings, each an address with its scheme or a bare host name, and there is one tile for each. `hostFromRule` and `hostsFromRule` take the host names out of a routing rule such as ``Host(`a.example.com`) && PathPrefix(`/x`)``.
+
+As with the other sources, only annotated objects are shown unless `onlyAnnotated` is set to `false`. Optional expressions `tileName`, `tileGroup`, `icon` and `info` say what a tile shows when the object has no annotation for it. The chart gives the controller read access to each type that is listed. See [values.yaml](charts/startpunkt/values.yaml) for all of it.
+
+A mapping that does not compile is not put to use, and the status of the `Startpunkt` resource says what is wrong with it. One that fails on a particular object skips that object and says so in the controller's log.
 
 ### Tags
 
