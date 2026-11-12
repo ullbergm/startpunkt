@@ -909,6 +909,21 @@ dialog::backdrop {
   font-size: 0.8rem;
 }
 
+/* The settings keep one height whatever the tab holds, so the box stays
+   where it is when the tab changes; the tab's content scrolls inside it. */
+.settings[open] {
+  display: flex;
+  flex-direction: column;
+  height: min(38rem, calc(100vh - 4rem));
+  overflow: hidden;
+}
+
+.settings [role='tabpanel'] {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .settings-header {
   position: sticky;
   top: 0;
