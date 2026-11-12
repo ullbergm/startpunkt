@@ -10,7 +10,11 @@ assignees: ""
 
 **Startpunkt version:**
 
-<!-- Please specify commit or tag version. -->
+<!-- The version in the footer of the page, or the image tag and chart version. -->
+
+**Environment:**
+
+<!-- Kubernetes distribution and version, the chart's mode (single or split), and which resource types the services come from (Ingress, Route, HTTPRoute, VirtualService, Application, a custom mapping). -->
 
 **Current behavior:**
 
@@ -22,14 +26,14 @@ assignees: ""
 
 **Steps to reproduce:**
 
-<!-- Explain the steps required to duplicate the issue, especially if you are able to provide a sample application. -->
+<!-- Explain the steps required to duplicate the issue. A manifest of a resource that shows the problem helps a lot. -->
 
-**Related code:**
+**Manifests, values and logs:**
 
-<!-- If you are able to illustrate the bug or feature request with an example, please provide it here. -->
+<!-- Manifests, chart values, or lines from the log of the pod (`kubectl logs`). Remove anything secret. -->
 
-```
-insert short code snippets here
+```yaml
+insert manifests, values or log lines here
 ```
 
 **Other information:**

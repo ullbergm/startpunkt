@@ -284,3 +284,41 @@ func TestIconsSplitLargeBatches(t *testing.T) {
 		t.Errorf("%d requests, the longest for %d icons", requests.Load(), longest.Load())
 	}
 }
+
+// When more icons have been asked for than are kept, the kept ones are
+// started over. An icon that was waiting for its batch at that moment and is
+// asked for again must not bring the process down, and both requests get
+// their answer.
+func TestIconsSurviveStartingOverWithABatchWaiting(t *testing.T) {
+	ts, hits, _ := iconService(t)
+	icons := &Icons{Source: ts.URL, MaxEntries: 2, BatchDelay: 100 * time.Millisecond}
+	h := (&Server{Store: store.New(), Icons: icons}).Handler()
+
+	var wg sync.WaitGroup
+	codes := make([]int, 4)
+	for n, path := range []string{
+		"/api/v1/icons/mdi/home.svg",
+		"/api/v1/icons/logos/kubernetes.svg",
+		"/api/v1/icons/logos/nothing.svg", // the third icon starts the kept ones over
+		"/api/v1/icons/mdi/home.svg",      // a second entry for an icon that already waits
+	} {
+		wg.Go(func() { codes[n] = get(t, h, path).Code })
+		time.Sleep(10 * time.Millisecond)
+	}
+	wg.Wait()
+
+	if codes[0] != http.StatusOK || codes[3] != http.StatusOK {
+		t.Errorf("both requests for the icon must be answered: %v", codes)
+	}
+	if codes[1] != http.StatusOK || codes[2] != http.StatusNotFound {
+		t.Errorf("the other icons: %v", codes)
+	}
+	if n := hits.Load(); n != 2 {
+		t.Errorf("the icon service was asked %d times for two sets", n)
+	}
+	// The process is still there, and the icon is kept.
+	time.Sleep(150 * time.Millisecond)
+	if rec := get(t, h, "/api/v1/icons/mdi/home.svg"); rec.Code != http.StatusOK {
+		t.Errorf("afterwards: %d", rec.Code)
+	}
+}

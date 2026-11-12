@@ -1,0 +1,41 @@
+# Demo content for the screenshots: the cluster "staging", served by a second
+# instance that reads only this namespace. Most of it also runs on "prod",
+# with the same name and group, so the page can combine the two.
+apiVersion: v1
+kind: Namespace
+metadata: {name: staging}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: grafana, namespace: staging}
+spec: {name: Grafana, group: Monitoring, icon: simple-icons:grafana, iconColor: "#f46800", url: "https://grafana.staging.example.com", info: Dashboards and metrics, location: 10}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: prometheus, namespace: staging}
+spec: {name: Prometheus, group: Monitoring, icon: simple-icons:prometheus, iconColor: "#e6522c", url: "https://prometheus.staging.example.com", info: Metrics and alerting rules, location: 20}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: argocd, namespace: staging}
+spec: {name: Argo CD, group: Infrastructure, icon: simple-icons:argo, iconColor: "#ef7b4d", url: "https://argocd.staging.example.com", info: GitOps deployments, location: 10}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: keycloak, namespace: staging}
+spec: {name: Keycloak, group: Infrastructure, icon: simple-icons:keycloak, url: "https://sso.staging.example.com", info: Single sign-on, location: 60}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: minio, namespace: staging}
+spec: {name: MinIO, group: Infrastructure, icon: simple-icons:minio, iconColor: "#c72e49", url: "https://s3.staging.example.com", info: Object storage, location: 70}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: gitea, namespace: staging}
+spec: {name: Gitea, group: Development, icon: simple-icons:gitea, iconColor: "#609926", url: "https://git.staging.example.com", info: Git repositories and pull requests, location: 10}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: harbor, namespace: staging}
+spec: {name: Harbor, group: Development, icon: simple-icons:harbor, iconColor: "#60b932", url: "https://registry.staging.example.com", info: Container registry}

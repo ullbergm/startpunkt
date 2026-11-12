@@ -1,75 +1,111 @@
-# Startpunkt Feature Screenshots
+# Startpunkt feature screenshots
 
-This directory contains screenshots showcasing Startpunkt's features and capabilities.
+Screenshots of Startpunkt 5 with demo content. They are taken by [hack/screenshots/run.sh](../../../hack/screenshots/run.sh), which runs two instances against a throwaway kind cluster.
 
-## Theme Options
+## Light theme
 
-### Light Theme
+![Light theme](01-light-theme.png)
 
-![Light Theme](01-theme-light.png)
+The light theme with the theme's own background. The colours of both themes come from the instance's `web.theme` settings, and each visitor chooses light, dark or automatic.
 
-The default light theme provides a clean, bright interface with excellent readability for daytime use.
+## Dark theme
 
-### Dark Theme
+![Dark theme](02-dark-theme.png)
 
-![Dark Theme](02-theme-dark.png)
+The dark theme. The favorites are in the row at the top, and the applications are listed by group below it. Backup server does not answer its availability probe and is marked Offline.
 
-The dark theme reduces eye strain in low-light environments while maintaining visual hierarchy and contrast.
+## Search
 
-## Background Styles
+![Search](03-search.png)
 
-### Solid Background
+Typing anywhere on the page opens the search with what was typed. A word finds the tiles with a name that has a word starting with it, and each result shows its cluster, group, description and whether it is an application or a bookmark. A query that starts with `?` goes to the configured search engine.
 
-![Solid Background](03-solid-background.png)
+## Favorites
 
-A simple solid color background for a minimalist, distraction-free experience.
+![Favorites](04-favorites.png)
 
-### Gradient Background
+The star on a tile puts it in the favorites row, which has no heading. The star shows when a tile is pointed at, and the arrows on a favorite move it; dragging one favorite onto another does the same.
 
-![Gradient Background](04-gradient.png)
+## Bookmarks
 
-Smooth gradient backgrounds add visual depth and modern aesthetics to the interface.
+![Bookmarks](05-bookmarks.png)
 
-### Time of Day Background
+`Bookmark` resources are listed on a tab of their own. All bookmark groups use the same number of columns, so their tiles line up under each other.
 
-![Time of Day Background](05-time-of-day.png)
+## Layout settings
 
-Dynamic backgrounds that automatically adjust based on the current time of day for a more immersive experience.
+![Layout settings](06-settings-layout.png)
 
-### Mesh Gradient
+The settings dialog has one tab per area. Layout sets the columns, spacing, compact tiles, boxes, the hover highlight, descriptions and how many lines they may take, tags, status indicators and whether unreachable applications are hidden. The layout and the background can be saved as named presets.
 
-![Mesh Gradient](06-mesh-gradient.png)
+## Background settings
 
-Advanced mesh gradient backgrounds create stunning, organic color transitions.
+![Background settings](07-settings-background.png)
 
-### Picture of the Day
+The background tab, here for a mesh gradient with five colours. Every background can be made more transparent, and the panel behind the content runs from solid white through none to solid black, with an adjustable blur.
 
-![Picture of the Day](07-picture-of-the-day.png)
+## Solid colour
 
-Daily rotating background images featuring curated photography or artwork.
+![Solid colour background](08-background-solid.png)
 
-### Geopattern Background
+A solid colour, here without a panel behind the content.
 
-![Geopattern Background](08-geopattern.png)
+## Gradient
 
-Unique geometric patterns generated dynamically for a distinctive visual identity.
+![Gradient background](09-background-gradient.png)
 
-## Layout & Features
+A gradient between two colours in one of six directions, with the light theme and a white panel.
 
-### Three Column Layout
+## Time of day
 
-![Three Column Layout](09-3-columns.png)
+![Time of day background](10-background-time-of-day.png)
 
-Flexible multi-column layout that efficiently organizes applications and bookmarks across the screen.
+A gradient that follows the time of day: deep blue at night, pink at sunrise, pastels in the morning, bright blue in the afternoon and gold at sunset. This one was taken in the early evening.
 
-### Create Application
+## Mesh gradient
 
-![Create Application](10-create-application.png)
+![Mesh gradient background](11-background-mesh.png)
 
-Intuitive interface for adding new applications to your Startpunkt dashboard.
+A mesh gradient made from five colours, at low, medium or high complexity. It can move slowly, unless the system asks for reduced motion.
 
-### Remote Instances
+## Pattern
 
-![Remote Instances](11-remote-instances.png)
+![Pattern background](12-background-pattern.png)
 
-Connect and manage multiple remote Kubernetes cluster instances from a single Startpunkt interface.
+A geometric pattern generated in the page from a piece of text and a colour. A different text gives a different pattern.
+
+## Compact layout
+
+![Compact layout](13-layout-compact.png)
+
+Three columns, tight spacing, compact tiles with a box around each and descriptions kept to one line. With columns on Auto, each list gets the number of columns that gives the fewest rows.
+
+## Several clusters
+
+![Several clusters](14-clusters.png)
+
+This instance follows a second one, "staging". The buttons above the tiles switch each cluster on and off. A service that runs on both clusters is one card with a pill per cluster, and each pill links to that cluster's instance and shows whether it answers: Prometheus answers on prod (filled dot) but not on staging (hollow dot). Groups can be collapsed.
+
+## A section per cluster
+
+![A section per cluster](15-cluster-sections.png)
+
+With "A section for each cluster" on, each cluster's tiles are listed under its name and nothing is combined.
+
+## Editing
+
+![Editing an application](16-edit-application.png)
+
+With an edit key configured, the lock in the corner unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button. A change is written to the resource in the cluster.
+
+## Unavailable services and tags
+
+![Unavailable services and tags](17-unavailable-and-tags.png)
+
+A service whose probe fails is dimmed and marked Offline in words, and on a combined card its pill gets a hollow dot. The page is opened at `/admin`, so the tiles tagged `admin` (Longhorn and Traefik) are shown next to the untagged ones, with their tags.
+
+## Phone
+
+![Phone](18-mobile.png)
+
+On a narrow screen the tiles are in one column. A touch screen gets a search button, and the stars and the arrows of the favorites are always shown.

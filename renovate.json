@@ -306,23 +306,6 @@
          ],
          "groupName": "all minor/patch version npm",
          "groupSlug": "all-npm-minor"
-      },
-      {
-         "matchUpdateTypes": [
-            "major",
-            "minor",
-            "patch"
-         ],
-         "groupName": "all Quarkus dependencies",
-         "groupSlug": "all-quarkus",
-         "semanticCommitType": "chore",
-         "semanticCommitScope": "quarkus",
-         "addLabels": [
-            "renovate/quarkus"
-         ],
-         "matchPackageNames": [
-            "/^io\\.quarkus/"
-         ]
       }
    ]
 }

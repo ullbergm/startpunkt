@@ -10,15 +10,13 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# Java files
-[*.java]
-indent_style = space
-indent_size = 4
+# Go files, as gofmt writes them
+[{*.go,go.mod}]
+indent_style = tab
 
-# XML files (pom.xml, etc.)
-[*.xml]
-indent_style = space
-indent_size = 2
+# Makefiles need tabs
+[Makefile]
+indent_style = tab
 
 # YAML files
 [*.{yml,yaml}]
@@ -35,8 +33,8 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
-# CSS/SCSS files
-[*.{css,scss}]
+# CSS files
+[*.css]
 indent_style = space
 indent_size = 2
 
@@ -48,11 +46,6 @@ trim_trailing_whitespace = false
 
 # Shell scripts
 [*.sh]
-indent_style = space
-indent_size = 2
-
-# Properties files
-[*.properties]
 indent_style = space
 indent_size = 2
 

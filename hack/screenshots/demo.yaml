@@ -1,0 +1,346 @@
+# Demo content for the screenshots: the cluster "prod". Ingresses for the
+# Media, Monitoring and Home groups, Application resources for the rest, and
+# bookmarks. Every address is under example.com.
+apiVersion: v1
+kind: Namespace
+metadata: {name: media}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: monitoring}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: home}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: platform}
+---
+apiVersion: v1
+kind: Namespace
+metadata: {name: startpunkt}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin
+  namespace: media
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Jellyfin
+    startpunkt.ullberg.us/group: Media
+    startpunkt.ullberg.us/icon: simple-icons:jellyfin
+    startpunkt.ullberg.us/iconColor: "#aa5cc3"
+    startpunkt.ullberg.us/info: Movies, series and music
+    startpunkt.ullberg.us/location: "10"
+spec:
+  tls: [{hosts: [jellyfin.example.com]}]
+  rules: [{host: jellyfin.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: jellyfin, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: immich
+  namespace: media
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Immich
+    startpunkt.ullberg.us/group: Media
+    startpunkt.ullberg.us/icon: simple-icons:immich
+    startpunkt.ullberg.us/info: Photo and video backup
+    startpunkt.ullberg.us/location: "20"
+spec:
+  tls: [{hosts: [photos.example.com]}]
+  rules: [{host: photos.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: immich, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr
+  namespace: media
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Sonarr
+    startpunkt.ullberg.us/group: Media
+    startpunkt.ullberg.us/icon: simple-icons:sonarr
+    startpunkt.ullberg.us/info: Series
+spec:
+  tls: [{hosts: [sonarr.example.com]}]
+  rules: [{host: sonarr.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: sonarr, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr
+  namespace: media
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Radarr
+    startpunkt.ullberg.us/group: Media
+    startpunkt.ullberg.us/icon: simple-icons:radarr
+    startpunkt.ullberg.us/info: Movies
+spec:
+  tls: [{hosts: [radarr.example.com]}]
+  rules: [{host: radarr.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: radarr, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Grafana
+    startpunkt.ullberg.us/group: Monitoring
+    startpunkt.ullberg.us/icon: simple-icons:grafana
+    startpunkt.ullberg.us/iconColor: "#f46800"
+    startpunkt.ullberg.us/info: Dashboards and metrics
+    startpunkt.ullberg.us/location: "10"
+spec:
+  tls: [{hosts: [grafana.example.com]}]
+  rules: [{host: grafana.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: grafana, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Prometheus
+    startpunkt.ullberg.us/group: Monitoring
+    startpunkt.ullberg.us/icon: simple-icons:prometheus
+    startpunkt.ullberg.us/iconColor: "#e6522c"
+    startpunkt.ullberg.us/info: Metrics and alerting rules
+    startpunkt.ullberg.us/location: "20"
+spec:
+  tls: [{hosts: [prometheus.example.com]}]
+  rules: [{host: prometheus.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: prometheus, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager
+  namespace: monitoring
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Alertmanager
+    startpunkt.ullberg.us/group: Monitoring
+    startpunkt.ullberg.us/icon: mdi:bell-alert
+    startpunkt.ullberg.us/info: Silences and alert routing
+    startpunkt.ullberg.us/location: "30"
+spec:
+  tls: [{hosts: [alertmanager.example.com]}]
+  rules: [{host: alertmanager.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: alertmanager, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-kuma
+  namespace: monitoring
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Uptime Kuma
+    startpunkt.ullberg.us/group: Monitoring
+    startpunkt.ullberg.us/icon: simple-icons:uptimekuma
+    startpunkt.ullberg.us/iconColor: "#5cdd8b"
+    startpunkt.ullberg.us/info: Status page
+    startpunkt.ullberg.us/location: "40"
+spec:
+  tls: [{hosts: [status.example.com]}]
+  rules: [{host: status.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: uptime-kuma, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: home-assistant
+  namespace: home
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Home Assistant
+    startpunkt.ullberg.us/group: Home
+    startpunkt.ullberg.us/icon: simple-icons:homeassistant
+    startpunkt.ullberg.us/iconColor: "#18bcf2"
+    startpunkt.ullberg.us/info: Lights, heating and sensors
+    startpunkt.ullberg.us/location: "10"
+spec:
+  tls: [{hosts: [ha.example.com]}]
+  rules: [{host: ha.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: home-assistant, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: node-red
+  namespace: home
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Node-RED
+    startpunkt.ullberg.us/group: Home
+    startpunkt.ullberg.us/icon: simple-icons:nodered
+    startpunkt.ullberg.us/iconColor: "#8f0000"
+    startpunkt.ullberg.us/info: Automation flows
+spec:
+  tls: [{hosts: [nodered.example.com]}]
+  rules: [{host: nodered.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: node-red, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zigbee2mqtt
+  namespace: home
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Zigbee2MQTT
+    startpunkt.ullberg.us/group: Home
+    startpunkt.ullberg.us/icon: simple-icons:zigbee2mqtt
+    startpunkt.ullberg.us/info: Zigbee devices
+spec:
+  tls: [{hosts: [zigbee.example.com]}]
+  rules: [{host: zigbee.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: zigbee2mqtt, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frigate
+  namespace: home
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Frigate
+    startpunkt.ullberg.us/group: Home
+    startpunkt.ullberg.us/icon: simple-icons:frigate
+    startpunkt.ullberg.us/info: Cameras and recordings
+spec:
+  tls: [{hosts: [cameras.example.com]}]
+  rules: [{host: cameras.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: frigate, port: {number: 80}}}}]}}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mealie
+  namespace: home
+  annotations:
+    startpunkt.ullberg.us/enable: "true"
+    startpunkt.ullberg.us/appName: Mealie
+    startpunkt.ullberg.us/group: Home
+    startpunkt.ullberg.us/icon: simple-icons:mealie
+    startpunkt.ullberg.us/info: Recipes and meal plans
+spec:
+  tls: [{hosts: [recipes.example.com]}]
+  rules: [{host: recipes.example.com, http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: mealie, port: {number: 80}}}}]}}]
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: argocd, namespace: platform}
+spec: {name: Argo CD, group: Infrastructure, icon: simple-icons:argo, iconColor: "#ef7b4d", url: "https://argocd.example.com", info: GitOps deployments, location: 10}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: longhorn, namespace: platform}
+spec: {name: Longhorn, group: Infrastructure, icon: simple-icons:longhorn, iconColor: "#5f224a", url: "https://longhorn.example.com", info: Replicated block storage, tags: admin}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: traefik, namespace: platform}
+spec: {name: Traefik, group: Infrastructure, icon: simple-icons:traefikproxy, iconColor: "#24a1c1", url: "https://traefik.example.com", info: Ingress and certificates, tags: admin}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: gitea, namespace: platform}
+spec: {name: Gitea, group: Development, icon: simple-icons:gitea, iconColor: "#609926", url: "https://git.example.com", info: Git repositories and pull requests, location: 10}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: harbor, namespace: platform}
+spec: {name: Harbor, group: Development, icon: simple-icons:harbor, iconColor: "#60b932", url: "https://registry.example.com", info: Container registry}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: jenkins, namespace: platform}
+spec: {name: Jenkins, group: Development, icon: simple-icons:jenkins, iconColor: "#d24939", url: "https://ci.example.com", info: Builds}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: coder, namespace: platform}
+spec: {name: Coder, group: Development, icon: simple-icons:coder, url: "https://coder.example.com", info: Development environments in the browser}
+# The rest live in the namespace the page edits.
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: nas, namespace: startpunkt}
+spec: {name: NAS, group: Infrastructure, icon: simple-icons:truenas, iconColor: "#0095d5", url: "https://nas.example.com", info: Network storage, location: 20}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: proxmox, namespace: startpunkt}
+spec: {name: Proxmox, group: Infrastructure, icon: simple-icons:proxmox, iconColor: "#e57000", url: "https://pve.example.com:8006", info: Virtual machines, location: 30}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: router, namespace: startpunkt}
+spec: {name: Router, group: Infrastructure, icon: simple-icons:opnsense, iconColor: "#d94f00", url: "https://router.example.com", info: Firewall and DNS, location: 40}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Application
+metadata: {name: backup, namespace: startpunkt}
+spec: {name: Backup server, group: Infrastructure, icon: mdi:backup-restore, url: "https://backup.example.com", info: Nightly snapshots, location: 50}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: kubernetes-docs, namespace: startpunkt}
+spec: {name: Kubernetes, group: Reference, icon: simple-icons:kubernetes, url: "https://kubernetes.io/docs/", info: Documentation}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: helm-docs, namespace: startpunkt}
+spec: {name: Helm, group: Reference, icon: simple-icons:helm, url: "https://helm.sh/docs/", info: Charts and commands}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: go-docs, namespace: startpunkt}
+spec: {name: Go, group: Reference, icon: simple-icons:go, url: "https://go.dev/doc/", info: Language and standard library}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: mdn, namespace: startpunkt}
+spec: {name: MDN, group: Reference, icon: simple-icons:mdnwebdocs, url: "https://developer.mozilla.org/", info: Web platform}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: github, namespace: startpunkt}
+spec: {name: GitHub, group: Community, icon: simple-icons:github, url: "https://github.com/", targetBlank: true}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: hacker-news, namespace: startpunkt}
+spec: {name: Hacker News, group: Community, icon: simple-icons:ycombinator, url: "https://news.ycombinator.com/", targetBlank: true}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: selfhosted, namespace: startpunkt}
+spec: {name: r/selfhosted, group: Community, icon: simple-icons:reddit, url: "https://www.reddit.com/r/selfhosted/", targetBlank: true}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: awesome-selfhosted, namespace: startpunkt}
+spec: {name: Awesome Selfhosted, group: Community, icon: mdi:star-circle, url: "https://awesome-selfhosted.net/", targetBlank: true}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: iconify, namespace: startpunkt}
+spec: {name: Iconify, group: Tools, icon: simple-icons:iconify, url: "https://icon-sets.iconify.design/", info: Icon names}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: regex101, namespace: startpunkt}
+spec: {name: regex101, group: Tools, icon: mdi:regex, url: "https://regex101.com/", info: Regular expressions}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: crontab-guru, namespace: startpunkt}
+spec: {name: crontab guru, group: Tools, icon: mdi:clock-outline, url: "https://crontab.guru/", info: Cron schedules}
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: cyberchef, namespace: startpunkt}
+spec: {name: CyberChef, group: Tools, icon: mdi:chef-hat, url: "https://gchq.github.io/CyberChef/", info: "Encode, decode and convert"}

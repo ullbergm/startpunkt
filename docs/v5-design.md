@@ -1,8 +1,8 @@
 # Startpunkt v5 design
 
-Status: accepted. This document describes a ground-up rewrite developed on the `v5` branch. It does not reuse 4.x code or keep 4.x design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
+Status: implemented and released as 5.0.0. This document describes the ground-up rewrite that replaced 4.x, and is kept up to date as the design of the current code. It does not reuse 4.x code or keep 4.x design choices, with one fixed requirement: the start page is still populated from Kubernetes resources (Startpunkt custom resources, annotated Ingresses, Routes, HTTPRoutes, VirtualServices).
 
-Version names in this document: "4.x" is the current Quarkus-based Startpunkt and "v5" is the rewrite. The API path `/api/v1` and the custom resource version `v1` are versioned on their own and are unrelated to the product version.
+Version names in this document: "4.x" is the Quarkus-based Startpunkt that came before, whose code is in the history of the repository up to the tag `v4.8.0`, and "v5" is the rewrite. What may come next is in the [roadmap](roadmap.md). The API path `/api/v1` and the custom resource version `v1` are versioned on their own and are unrelated to the product version.
 
 ## Summary
 
@@ -11,7 +11,7 @@ Startpunkt v5 is a small controller that keeps one in-memory model of its own cl
 - One Go binary with the frontend embedded. It runs as a single process, or split into roles that each do one job.
 - One normalized store fed by Kubernetes informers, with one read path out of it.
 - A REST snapshot plus a Server-Sent Events (SSE) change stream instead of GraphQL.
-- Built-in source adapters for the natively supported resource types, with user-defined mappings for other types as a later addition.
+- Built-in source adapters for the natively supported resource types, and user-defined mappings, written as CEL expressions, for other types.
 - Multi-cluster by federation: each instance is authoritative for its own cluster, and a hub subscribes to other instances through the same API the browser uses.
 - Open for reading by default. Editing is unlocked in the UI with an API key.
 
@@ -156,12 +156,12 @@ sources:
 ```
 
 - The mapping only has to say what is particular to the type: the address. Everything else is shared with the built-in annotated sources. The `startpunkt.ullberg.us` annotations name the tile, group it, show or hide it, and adjust the address, and `onlyAnnotated` means the same. The first sketch of this had expressions calling an `annotation()` function for each field; reusing the annotation handling made that unnecessary, and a mapping is usually one line.
-- `url` gives a string or a list of strings. Each is an address with its scheme, or a bare host, to which the protocol, `port` and `rootPath` annotations apply as for a built-in source. Only `http` and `https` addresses are accepted.
+- `url` gives a string or a list of strings. Each is an address with its scheme, or a bare host, optionally with a path. To a bare host the `protocol`, `port` and `rootPath` annotations apply as for a built-in source; to an address with its scheme only `rootPath` does. Only `http` and `https` addresses are accepted.
 - `tileName`, `tileGroup`, `icon` and `info` are optional expressions for what a tile shows when the object has no annotation for it.
 - Expressions see the object as `object`, the standard CEL functions, the string extensions, and `hostFromRule` and `hostsFromRule` for routing rules. An expression has a cost limit, so one that does far more work than a single object warrants is stopped.
 - A mapping names the plural resource, not the kind: that is what is watched, and it needs no lookup.
 - A mapping that fails to compile is rejected with the expression and the error. From a `Startpunkt` resource that means the settings are not applied and the status says why; from the environment the process does not start.
-- A mapping that fails on a specific object is logged with the object reference and skips that object only. An object that is not going to be shown is not evaluated.
+- A mapping that fails on a specific object is logged with the object reference and skips that object only. An object without the `enable` annotation, under `onlyAnnotated`, is not evaluated.
 - A resource type that has a built-in source cannot be mapped, also while that source is turned off.
 - The chart grants `get`, `list` and `watch` on each mapped type.
 
@@ -208,8 +208,8 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 
 | Endpoint | Access | Purpose |
 | --- | --- | --- |
-| `GET /state` | Open | Full snapshot: tiles, clusters with their connection state, UI configuration (title, theme, default language, search engine), and whether editing is available. Supports `ETag`. |
-| `GET /events` | Open | SSE stream. Sends a full snapshot on every connect, then `tile.upsert`, `tile.delete` and `cluster.status` events. |
+| `GET /state` | Open | Full snapshot: tiles, clusters with their connection state, UI configuration (title, theme, default language, search engine, the GitHub link, whether every cluster is shown from the start), and whether editing is available and in which namespace new resources go. Supports `ETag`. |
+| `GET /events` | Open | SSE stream. Sends a full `snapshot` on every connect, then `tile.upsert`, `tile.delete`, `cluster.status`, `cluster.delete` and, when the settings of the page change, `config` events. A comment line every 15 seconds keeps proxies from closing an idle stream. |
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
 | `POST /applications`, `GET`/`PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, read, update and delete Application resources on the local cluster. Same for `/bookmarks`. Reading returns the spec as it is stored, which the editor needs because a tile does not carry all of it: `urlFrom` and `rootPath` are resolved into the tile's address. |
 | `GET /version` | Open | The running version and, when update checking is on, the newer release if there is one. |
@@ -229,12 +229,12 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 - Reading is open by default. Anyone who can reach the page sees the tiles, and there are no user accounts.
 - Personal preferences (favorites, layout, background, collapsed groups, cluster filter) can be changed by anyone. They are stored in that browser only and never reach the server.
 - Editing applications and bookmarks requires an edit key. The operator supplies the key from a Kubernetes Secret.
-- When no edit key is configured, editing is disabled: the write endpoints reject every request and the UI shows no unlock button.
+- When no edit key is configured, editing is disabled: the write endpoints do not exist, so a request to one is answered with 404, and the UI shows no unlock button.
 - When a key is configured, the UI shows an unlock button. It prompts for the key, checks it against `GET /unlock`, and stores it in `localStorage`. While unlocked, tiles with `editable: true` show edit and delete controls, and the UI can create new applications and bookmarks. A lock action removes the stored key.
 - The key is sent as `Authorization: Bearer <key>` on write requests. The server compares it in constant time and rate-limits failed attempts. The limit is for the whole process, not per client, because behind a proxy a client's address is whatever the request claims: after ten wrong keys in a row every attempt is refused until one is earned back, six seconds each. Someone who keeps guessing can keep editing locked, and no more than that.
 - Only the controller can write to the cluster. In split mode the `api` role checks the key and hands the request to the controller over the internal address, and the controller checks the key again, since anything inside the cluster can reach it. Both get the key from the same Secret.
 - What is written is validated first: the spec is decoded strictly against the resource's fields, required fields have to be there, and an address has to be `http` or `https`. A namespace has to be one the instance reads.
-- A new resource is created in the namespace the instance is configured with, the release's own by default, under a name derived from the tile's name.
+- A new resource is created in the namespace the instance is configured with, the release's own by default, under a name derived from the tile's name. A request to the API may name another namespace that the instance reads, and a name.
 - The key is never part of the `Startpunkt` resource or the configuration file. It has to be at least 16 characters long.
 - The key is a shared secret, not a per-user identity. Anyone who has it can edit, and changes are not attributed to a person.
 - A key in `localStorage` can be read by any script running on the page's origin. The UI therefore loads no third-party scripts, and all tile content is rendered as text.
@@ -264,7 +264,7 @@ Each instance is fully authoritative for its own cluster. A hub is another clien
 - For each remote, the hub opens `GET /api/v1/events`, receives the snapshot, and applies events to its own store under that cluster's key.
 - The cluster key is the name in the hub's own configuration, not the name the remote reports. Names must be unique within a hub, because they are part of the tile id.
 - A remote needs no configuration to be federated and does not know it is being consumed.
-- If a stream drops, the hub keeps the last known tiles, marks the cluster as stale with a last-seen time, and reconnects with backoff. The snapshot sent on reconnect replaces that cluster's tiles, which resynchronises it. The UI shows a stale cluster as unreachable instead of dropping its tiles.
+- If a stream drops, the hub keeps the last known tiles, marks the cluster as stale, and reconnects with backoff. The snapshot sent on reconnect replaces that cluster's tiles, which resynchronises it. The UI shows a stale cluster as unreachable instead of dropping its tiles.
 - Remote tiles are read-only on the hub, whether or not the hub is unlocked. The UI links to the owning instance for editing. The hub holds no edit keys for remotes.
 - A hub does not re-export tiles it received from remotes when it is itself consumed by another instance, which prevents loops and duplicate tiles. This is done on the receiving side: a hub takes from a remote only the tiles of the clusters that the remote marks as its own.
 - The hub always initiates the connection. A push mode, where a remote the hub cannot reach sends its state to an ingest endpoint on the hub, is a possible later addition. The store is keyed by cluster and fed by events either way, so adding it does not change the model.
@@ -275,7 +275,7 @@ The same service is often deployed to several clusters with the same name, group
 
 - Tiles are never merged or deduplicated by name. Two tiles are the same only when their `id` matches, and the id includes the cluster.
 - Everything that refers to a tile uses the id: favorites, ordering, and edit and delete requests.
-- Spotlight search results show the cluster next to the name, and the cluster name is searchable, so "grafana prod" finds one tile.
+- Spotlight search results name the cluster when more than one is shown, and the cluster name is searchable, so "grafana prod" finds one tile.
 - The cluster filter is a personal preference. With more than one cluster, the page has one button per cluster above the tiles. A click shows that cluster alone, a second click on it shows all again, and a click with Shift, Ctrl or Command held adds or removes one. The settings have a checkbox per cluster for the same. A cluster that is not connected is marked on its button. A visitor who has made no choice sees the local cluster only, and the buttons of the other clusters are there to switch them on. The `web.showAllClusters` setting makes every cluster shown from the start instead. A choice the visitor has made about a cluster, either way, is kept.
 
 Two layouts are offered as a personal preference.
@@ -293,9 +293,9 @@ Group only: groups contain tiles from all visible clusters. Each card shows a pi
 ```
 
 - Tiles are combined when their name, group and kind match.
-- Every cluster has a colour of its own, taken from a fixed set by its place in the list of clusters, the local one first. The colour is on the cluster's pills and on its button above the tiles, always next to its name.
+- Every cluster has a colour of its own, taken from a fixed set of eight by its place in the list of clusters: the local one first, then the others by name. The colour is on the cluster's pills and on its button above the tiles, always next to its name.
 - The card shows one pill per cluster. Each pill is a link to that cluster's URL and carries that cluster's availability indicator, so every instance is one click away and its state is visible without expanding anything.
-- Activating the card body opens the local cluster's tile when there is one, otherwise the tile of the first cluster in the hub's configured order. The icon and description are taken from the same tile.
+- Activating the card body opens the local cluster's tile when there is one, otherwise the tile of the first cluster in that list. The icon and description are taken from the same tile.
 - Combining is display only. The store, the API and the stored preferences still hold separate tiles.
 - The favorite control on a combined card applies to the whole card: it adds or removes every member tile, and the card counts as a favorite when any member is one. With combining off, favorites are per tile.
 - Edit and delete controls on a combined card act on the local cluster's tile only, since remote tiles are read-only.
@@ -315,8 +315,8 @@ cluster B: informers ─> store ─> prober ─┤                              
 - The page shows the last known tiles while the stream is down and, once it has been down for five seconds, says that it is reconnecting. Shorter drops are not announced: a server restart, a proxy reload or a laptop waking up are over before anyone needs to know. The browser reconnects a dropped stream on its own; when the server answers with an error instead, which a browser treats as final, the page opens a new stream with backoff.
 - Browsers allow about six HTTP/1.1 connections per host, and each open tab holds one for the stream. Serving the page over HTTP/2 removes that limit.
 - Icons without a colour of their own and group headings are drawn in the theme's secondary colour (`bodyColor`), names in `textPrimaryColor`, descriptions in `textAccentColor`, both in upper case, so that the three stand apart. A line under each group heading separates the groups. Keyboard focus is always shown, by an outline on the tile's link, whether or not the hover highlight is on. Content starts at the top of each tile, so icons and names line up across a row whatever the length of the descriptions.
-- Themes are CSS custom properties, with a light and a dark palette supplied by configuration. A palette has the five colour names of 4.x (`bodyBgColor`, `bodyColor`, `emphasisColor`, `textPrimaryColor`, `textAccentColor`), so an existing theme carries over; surfaces and borders are derived from them in the stylesheet. The visitor chooses light, dark, or to follow the system.
-- Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences. Whatever is read from storage is checked value by value and replaced by its default when it does not fit, so data from an older version or edited by hand cannot break the page.
+- Themes are CSS custom properties, with a light and a dark palette supplied by configuration. A palette has the five colour names of 4.x (`bodyBgColor`, `bodyColor`, `emphasisColor`, `textPrimaryColor`, `textAccentColor`), so an existing theme carries over; surfaces and borders are derived from them in the stylesheet. The visitor chooses light, dark, or auto. Auto follows the system only where no panel is shown behind the content; with a panel, which the default background has, the panel decides, as described under backgrounds below.
+- Per-user state lives in `localStorage` behind one typed preferences module. The edit key is stored separately from preferences, and so is a copy of the colours last used, which the script that paints the first frame reads. Whatever is read from storage is checked value by value and replaced by its default when it does not fit, so data from an older version or edited by hand cannot break the page.
 - Applications and bookmarks are on two tabs at the top right of the content, above the favorites. The page opens on the applications, or on the bookmarks when there are no applications. A kind with nothing to show has no tab, and with only one kind there are no tabs at all.
 - Until the first snapshot arrives the page shows placeholders in the shape of its content, and says in words that it is loading.
 - With columns on "auto", each list gets the number of columns that needs the fewest rows, up to five, and among those the smallest, so rows come out even. Bookmark groups all use the columns of the largest group, so that their tiles line up under each other. A fixed number applies to every list. Neither exceeds what the window has room for, and a narrow screen fits what it can.
@@ -334,7 +334,7 @@ cluster B: informers ─> store ─> prober ─┤                              
 - The page is in the right colours from its first frame. A small script, loaded as a file because the Content-Security-Policy allows no inline script, applies the colours the application last used before anything is drawn; a first visit starts dark.
 - A corner at the top right links to the project on GitHub, unless it is turned off. When a newer release exists the corner is shown either way, in another colour, named for the update and linking to the release.
 - Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, and the "what's new" dialog.
-- Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons are images served by the instance itself.
+- Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons named from an Iconify set are images served by the instance itself; an icon given as an address is loaded from that address.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 
 ## Configuration
@@ -347,7 +347,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 | `Remote` | One federated instance: its URL and what to take from it. The resource's name is the cluster name its tiles get. | The instance in the same namespace. |
 
 - The controller watches both and applies a change without a restart. A new title or theme reaches open pages over the stream they already hold. A remote that is added is followed, and one that is deleted is dropped together with its tiles.
-- Settings that decide how the cluster is read, the sources, the namespaces, probing and the cluster's name, make the controller read the cluster again: its tiles are cleared and rebuilt, and the instance is not ready for the moment that takes.
+- Settings that decide how the cluster is read, the sources, the namespaces, probing, status writes and the cluster's name, make the controller read the cluster again: its tiles are cleared and rebuilt, and the instance is not ready for the moment that takes.
 - A setting that is left out keeps its default. The definitions are generated from the Go types in `api/v1`, which are also the sections of the configuration file, so there is one definition of every setting.
 - What the schema can check is refused when the resource is applied. What it cannot, such as a search engine address that is not http, is reported in the `Startpunkt` resource's status as the `Configured` condition, and the instance carries on with the last valid settings.
 - Only the controller has access to the cluster. In split mode it passes the settings the `api` role needs, those of the page, the icon source and the remotes, over an internal stream that is not routed from outside the cluster. Request headers of remotes are never in a resource or on that stream, because they may be secrets: they reach the pods that use them through the environment, by the remote's name.
@@ -356,7 +356,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 
 ### Environment and file
 
-Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles and `custom`), `availability`, `federation.remotes`, `web` (title, theme, default language, search engine, update check), `editing` (reference to the edit key), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `server` and `log`. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
+Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles and `custom`), `availability`, `status`, `icons`, `federation.remotes`, `web` (title, theme, default language, search engine, update check, GitHub link, whether every cluster is shown from the start), `editing` (the edit key and the namespace for new resources), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `resources` (which `Startpunkt` resource to read), `server` and `log`. The file is the one named by `-config` or `STARTPUNKT_CONFIG`, or `/etc/startpunkt/config.yaml` when it exists, and a key it does not know is an error. Where several say something about a setting, the `Startpunkt` resource wins over the environment, which wins over the file. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
 
 ## Deployment
 
@@ -365,13 +365,13 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC. An optional Secret for the edit key comes with editing. A metrics endpoint with a ServiceMonitor is not built; 4.x had one, and it is listed in the migration notes as gone.
 - No admission or conversion webhooks, so no certificates to manage.
 - The `Application` and `Bookmark` definitions are templates of the chart, so that an upgrade of the chart upgrades them. `crds.install` leaves them out, for running next to a 4.x installation. The `Startpunkt` and `Remote` definitions are in the chart's `crds` directory instead, because the release creates a `Startpunkt` resource and Helm needs its definition to exist before that. All resource names derive from the release name and namespace.
-- Every process is stateless and logs to standard output. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
+- Every process is stateless and writes its log, as text or JSON, to standard output; messages of the Kubernetes client library go to standard error in that library's own format. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Probing then runs once per replica; leader election for the prober and for status writes is a later optimisation.
 
 ## Testing
 
 - Unit tests for each built-in adapter against fixture objects, including the annotation and tag rules.
 - Controller tests against the fake clients of client-go: create resources, assert on the store and the event stream, including running against definitions where `v1` is not served. `envtest` was the plan; the fakes turned out to cover the controller's logic without needing an API server binary on every machine that runs the tests.
-- What only a real API server can show is tested on a throwaway kind cluster by `hack/test-cutover.sh`: reading and writing through each deprecated version, the 4.x definitions, the cutover, pruning and status writes, and the chart itself. CI runs it.
+- What only a real API server can show is tested on a throwaway kind cluster by `hack/test-cutover.sh`: reading and writing through each deprecated version, the 4.x definitions, the cutover, pruning and status writes, and the chart itself. It is run by hand with `make test-cutover`; CI does not run it yet.
 - API tests for the edit key: missing, wrong and valid keys, and editing disabled when no key is configured.
 - Federation tests with two in-process instances, covering disconnect, stale marking and resynchronisation.
 - Frontend component tests with Vitest and Testing Library.
@@ -430,7 +430,7 @@ The chart's own definitions carry `helm.sh/resource-policy: keep` from the start
 - Settings are custom resources, `Startpunkt` and `Remote`, applied without a restart. The environment holds what a process needs to start and is the fallback when the resources are not there.
 - Single store with snapshot plus SSE; no GraphQL.
 - Every SSE connection starts with a full snapshot; no event replay.
-- Built-in sources are plain Go adapters. CEL mappings for user-defined sources come later.
+- Built-in sources are plain Go adapters. Other resource types are added by the operator as CEL mappings.
 - No conversion webhook. Older CRD versions are served with `conversion: None` and a shared schema.
 - Status is written only on change.
 - v5 can run next to 4.x on one cluster: it falls back to `v1alpha4` when `v1` is not served, and the chart can skip installing the CRDs.
