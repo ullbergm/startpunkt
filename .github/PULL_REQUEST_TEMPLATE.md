@@ -35,6 +35,13 @@ Issue Number: N/A
 
 <!-- If this does introduce a breaking change, please describe the impact and migration path for existing applications below. -->
 
+## Checklist
+
+- [ ] The title is a [conventional commit](https://www.conventionalcommits.org), such as `fix(web): keep focus on the tile after editing`. It becomes the changelog entry and decides the next version.
+- [ ] `make check` passes.
+- [ ] `make crds` was run and its result committed, if the types in `api/v1` changed.
+- [ ] The documentation and the chart's `values.yaml` describe the change, if it adds or changes a setting or something a visitor sees.
+
 ## Other information
 
 <!-- Any other information that is important to this PR, such as screenshots of how the component looks before and after the change. -->

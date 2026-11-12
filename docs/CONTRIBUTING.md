@@ -5,7 +5,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 
 ## Development environment setup
 
-You need Go and Node.js with npm. Helm is needed for the chart checks, and Docker and kind for the test of the move from 4.x.
+You need Go (the version in `go.mod` or newer) and Node.js 26 with npm. Helm is needed for the chart checks, and Docker, kind and kubectl for the test of the move from 4.x and for retaking the screenshots.
 
 1. Clone the repo
 
@@ -26,11 +26,11 @@ You need Go and Node.js with npm. Helm is needed for the chart checks, and Docke
 
    ```sh
    cd web
-   npm install
+   npm ci
    npm run dev
    ```
 
-   Before you send a change, run the checks:
+   Before you send a change, run the checks, and format Go code with `gofmt`:
 
    ```sh
    make check
@@ -38,7 +38,9 @@ You need Go and Node.js with npm. Helm is needed for the chart checks, and Docke
 
    After changing the types in `api/v1`, regenerate the custom resource definitions with `make crds` and commit the result.
 
-The layout of the code and the rules it follows are in [AGENTS.md](../AGENTS.md), and the design with its reasons in [v5-design.md](v5-design.md).
+   When a change alters how the page looks, retake the pictures in `docs/images` with `hack/screenshots/run.sh`.
+
+The layout of the code and the rules it follows are in [AGENTS.md](../AGENTS.md), with more for the page in [web/AGENTS.md](../web/AGENTS.md) and for the chart in [charts/startpunkt/AGENTS.md](../charts/startpunkt/AGENTS.md). The design with its reasons is in [v5-design.md](v5-design.md), and ideas that are waiting for someone in the [roadmap](roadmap.md).
 
 **Note on Package Manager:** This project uses **npm**. It maintains only `package-lock.json`, not pnpm or yarn lockfiles.
 

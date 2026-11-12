@@ -37,6 +37,7 @@
 - [API](#api)
 - [Upgrading from 4.x](#upgrading-from-4x)
 - [Development](#development)
+  - [Built with](#built-with)
 - [Support](#support)
 - [Contributing](#contributing)
 - [Security](#security)
@@ -49,15 +50,20 @@
 
 - **Automatic.** Services appear on the page when they are deployed to the cluster and disappear when they are removed. The page updates while it is open.
 - **Reads what you already have.** Kubernetes Ingresses, OpenShift Routes, Gateway API HTTPRoutes and Istio VirtualServices, published with an annotation, and `Application` and `Bookmark` resources for everything else. Other resource types, such as a Traefik IngressRoute, can be added with one expression.
-- **Availability.** Each service is probed from inside the cluster, and the page shows which ones do not answer.
+- **Availability.** Each application is probed from inside the cluster, and the page shows which ones do not answer.
 - **Several clusters.** One instance can show the services of other instances next to its own, and combines a service that runs on several clusters into one card.
 - **Search.** Start typing anywhere on the page to find a service, or search the web with a `?` in front.
+- **Tags.** One instance serves several views: the path of the address chooses which tagged services are shown.
 - **Yours to arrange.** Favorites, columns, spacing, backgrounds, themes and saved presets, per browser.
 - **Editing, if you want it.** With an edit key configured, applications and bookmarks can be added, changed and deleted from the page.
 - **GitOps ready.** Services, bookmarks and the settings of the instance are Kubernetes resources. A change to the settings is applied without a restart.
-- **Small.** One static binary in a distroless image. No database, no third-party scripts on the page.
-- **Accessible.** Semantic HTML, full keyboard navigation, visible focus, a high contrast mode and adjustable text size.
+- **Small.** One static binary in a distroless image for amd64 and arm64. No database, and no third-party scripts on the page.
+- **Private by default.** The page loads nothing from other hosts but pictures: icons are fetched and served by the instance, and the font is part of the page.
+- **Accessible.** Semantic HTML, full keyboard navigation, visible focus, a high contrast mode, adjustable text size, and respect for reduced motion.
 - **Internationalized.** English and Swedish are included.
+- **Installable.** The page has a web app manifest, so a browser can add it to a home screen or open it in a window of its own.
+
+There are pictures of most of this in the [gallery](docs/images/features/README.md).
 
 ## Getting started
 
@@ -100,13 +106,13 @@ An Ingress, Route, HTTPRoute or VirtualService is shown when it carries the anno
 | --- | --- |
 | `startpunkt.ullberg.us/enable` | `"true"` to show the object, `"false"` to hide it |
 | `startpunkt.ullberg.us/appName` | Name of the tile. Defaults to the object's name. |
-| `startpunkt.ullberg.us/group` | Group the tile is listed under. Defaults to the namespace. |
+| `startpunkt.ullberg.us/group` | Group the tile is listed under. Defaults to the namespace. Group names are shown in lower case, so `Media` and `media` are one group. |
 | `startpunkt.ullberg.us/icon` | An [Iconify](https://icon-sets.iconify.design/) icon such as `mdi:home`, or the URL of a picture |
 | `startpunkt.ullberg.us/iconColor` | Colour of the icon, for example `red` or `#e95678` |
 | `startpunkt.ullberg.us/info` | Description shown under the name |
 | `startpunkt.ullberg.us/location` | Sort position within the group. Lower comes first; the default is 1000. |
 | `startpunkt.ullberg.us/url` | Use this address instead of the one the object describes |
-| `startpunkt.ullberg.us/protocol` | `http` or `https`, when the object does not say |
+| `startpunkt.ullberg.us/protocol` | `http` or `https`. Replaces what the object says about it. |
 | `startpunkt.ullberg.us/port` | Port to add to the address |
 | `startpunkt.ullberg.us/rootPath` | Path to add to the address |
 | `startpunkt.ullberg.us/targetBlank` | `"true"` to open the link in a new tab |
@@ -149,7 +155,7 @@ spec:
   info: Network storage
 ```
 
-`spec` takes the same fields as the annotations: `name`, `group`, `icon`, `iconColor`, `url`, `info`, `targetBlank`, `location`, `rootPath`, `tags`, and `enabled` to hide the tile without deleting the resource.
+`spec` takes `name`, `group`, `icon`, `iconColor`, `url`, `info`, `targetBlank`, `location`, `rootPath` and `tags`, which mean what the annotations of the same name mean, and `enabled` to hide the tile without deleting the resource. There is no `port` or `protocol`: they are part of the `url`.
 
 Instead of a fixed `url`, `urlFrom` reads the address from a field of another object, and follows it when that object changes:
 
@@ -164,7 +170,7 @@ spec:
     urlTemplate: "https://{0}:8443/"
 ```
 
-`apiGroup` names the API group of an object outside the core group, `namespace` defaults to the Application's own, and without `urlTemplate` the value is used as it is. When both `urlFrom` and `url` are set, `url` is used while the reference cannot be resolved. The controller needs to be allowed to read the referenced type; grant it with `rbac.extraRules` in the chart's values.
+`apiGroup` names the API group of an object outside the core group, `namespace` defaults to the Application's own, and without `urlTemplate` the value is used as it is. `property` is a path of field names and list positions, such as `status.addresses[0].value`. When both `urlFrom` and `url` are set, `url` is used while the reference cannot be resolved. The controller needs to be allowed to read the referenced type; grant it with `rbac.extraRules` in the chart's values.
 
 The controller writes what it found to the resource's status:
 
@@ -195,7 +201,7 @@ spec:
   url: https://kubernetes.io/docs/
 ```
 
-`name`, `group` and `url` are required; `icon`, `info`, `targetBlank` and `location` are optional.
+`name`, `group` and `url` are required; `icon`, `info`, `targetBlank` and `location` are optional. Bookmarks are not probed and have no tags.
 
 ### Other resource types
 
@@ -212,11 +218,11 @@ sources:
       url: "object.spec.routes.map(r, hostFromRule(r.match))"
 ```
 
-The expressions are [CEL](https://cel.dev), with the object as `object`. `url` gives a string or a list of strings, each an address with its scheme or a bare host name, and there is one tile for each. `hostFromRule` and `hostsFromRule` take the host names out of a routing rule such as ``Host(`a.example.com`) && PathPrefix(`/x`)``.
+The expressions are [CEL](https://cel.dev), with the object as `object`. `url` gives a string or a list of strings, each an address with its scheme or a bare host name, and there is one tile for each. Only `http` and `https` addresses are accepted. `hostFromRule` and `hostsFromRule` take the host names out of a routing rule such as ``Host(`a.example.com`) && PathPrefix(`/x`)``.
 
 As with the other sources, only annotated objects are shown unless `onlyAnnotated` is set to `false`. Optional expressions `tileName`, `tileGroup`, `icon` and `info` say what a tile shows when the object has no annotation for it. The chart gives the controller read access to each type that is listed. See [values.yaml](charts/startpunkt/values.yaml) for all of it.
 
-A mapping that does not compile is not put to use, and the status of the `Startpunkt` resource says what is wrong with it. One that fails on a particular object skips that object and says so in the controller's log.
+A mapping that does not compile makes the settings invalid: none of the change is applied, the instance carries on with the last valid settings, and the status of the `Startpunkt` resource says what is wrong. One that fails on a particular object skips that object and says so in the controller's log.
 
 ### Tags
 
@@ -234,7 +240,7 @@ helm upgrade startpunkt oci://ghcr.io/ullbergm/charts/startpunkt --namespace sta
   --set editing.enabled=true --set editing.existingSecret=startpunkt-edit-key
 ```
 
-The page then has a lock in its corner. Whoever enters the key there gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a button to add new ones. New resources are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it.
+The page then has a lock in its corner. Whoever enters the key there gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a button to add new ones. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. The button adds the kind of the tab that is open. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it.
 
 Things to know before turning it on:
 
@@ -242,7 +248,7 @@ Things to know before turning it on:
 - The browser keeps the key until the page is locked again.
 - The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
 - Only `http` and `https` addresses are accepted.
-- Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone.
+- Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone, also with the right key.
 
 ## Configuration
 
@@ -270,11 +276,13 @@ The sections of the settings, all of which are documented with their defaults in
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
 
+A change to how the cluster is read, which is the `cluster`, `namespaceSelector`, `sources`, `availability` and `status` sections, makes the instance read the cluster again. It reports itself as not ready for the moment that takes, and open pages are filled anew.
+
 Startpunkt needs to read the resources it shows and nothing else. The chart creates a ClusterRole with `get`, `list` and `watch` on the enabled sources, and permission to write the status of its own resource types.
 
 ## Several clusters on one page
 
-An instance can show the tiles of other Startpunkt instances next to its own. Each of them is a `Remote` resource in the instance's namespace, or an entry under `federation.remotes` in the chart's values:
+An instance can show the tiles of other Startpunkt instances next to its own. Each of them is a `Remote` resource in the instance's namespace. The chart creates one for each entry under `federation.remotes` in its values, and you can add your own:
 
 ```yaml
 apiVersion: startpunkt.ullberg.us/v1
@@ -300,15 +308,31 @@ NAME   URL                              CONNECTED   TILES   AGE
 prod   https://start.prod.example.com   True        42      3d
 ```
 
-On the page, each cluster has a button that switches its tiles on and off. A new visitor sees the local cluster only, unless `web.showAllClusters` is set. A service that exists on several clusters is one card with a link per cluster; a preference lists each cluster in a section of its own instead. While a remote cannot be reached its last known tiles stay on the page, and the page says so.
+<p align="center"><img src="docs/images/features/14-clusters.png" alt="Two clusters on one page, with a card for each service and a link for each cluster it runs on" width="80%"/></p>
+
+On the page, each cluster has a button above the tiles. A click shows that cluster alone and a second click shows all of them again; with Shift, Ctrl or Command held, a click adds or removes one cluster. The settings have a checkbox for each cluster as well. A new visitor sees the local cluster only, unless `web.showAllClusters` is set. A service that exists on several clusters is one card with a link per cluster; a preference lists each cluster in a section of its own instead. While a remote cannot be reached its last known tiles stay on the page, and the page says so.
 
 Tiles are never passed on a second time: an instance takes from a remote only what that remote reads from its own cluster.
 
 ## The page
 
-- **Search**: start typing, or press `/` or `Ctrl+K`. A word finds the services whose name has a word that starts with it. `?` in front searches the web.
-- **Favorites**: the star on a tile puts it in a row at the top, which can be reordered.
-- **Settings**, bottom right: theme, language, number of columns, spacing, what a tile shows, the background (the Bing picture of the day, a colour, gradients, a pattern or a picture of your own), which clusters to show, text size and contrast. They are kept in the browser. Layout and background can be saved as named presets.
+<p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>
+
+- **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. A word finds the services whose name has a word that starts with it, accents aside, and a further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
+- **Favorites**: the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
+- **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.
+- **Settings**, bottom right, kept in the browser:
+
+  | Tab | What it holds |
+  | --- | --- |
+  | Appearance | Light, dark or automatic theme, language, a handwritten typeface |
+  | Layout | Columns (automatic, or one to six), spacing, compact tiles, a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, hiding applications that do not answer, and presets |
+  | Background | The Bing picture of the day, the theme's colour, a colour of your own, a gradient, a gradient that follows the time of day, a mesh gradient that can move, a picture by its address, or a generated pattern; with opacity, blur, and a panel behind the content that keeps text readable |
+  | Clusters | Which clusters to show, whether a service on several clusters is one card, and a section for each cluster instead |
+  | Accessibility | Text size from 85% to 150%, high contrast, and the list of keyboard shortcuts |
+
+  A preset is a named copy of the layout and the background. Up to twenty can be saved.
+- **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version and, unless the check is turned off, says when a newer release exists.
 
 ## Deployment modes
 
@@ -317,7 +341,7 @@ The chart's `mode` chooses between two ways of running the same image:
 - `single`, the default: one Deployment watches the cluster and serves the page.
 - `split`: three Deployments. `controller` watches the cluster and is the only one with Kubernetes credentials. `api` serves the tiles from the controller's state, and `web` serves the page. Only `api` and `web` are reachable from outside, and they scale without adding load on the Kubernetes API.
 
-Every process is stateless, so more than one replica of each is safe.
+Every process is stateless, so more than one replica of each is safe. Each replica that watches the cluster probes the applications on its own, so replicas of `single`, or of `controller`, multiply the probes.
 
 ## API
 
@@ -325,12 +349,20 @@ The page uses a small HTTP API, and so can anything else:
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET /api/v1/state` | Every tile, the clusters with their connection state, and the settings of the page |
+| `GET /api/v1/state` | Every tile, the clusters with their connection state, and the settings of the page. Answers with an `ETag`. |
 | `GET /api/v1/events` | The same as a server-sent event stream: a snapshot, then every change as it happens |
 | `GET /api/v1/version` | The running version, and a newer release when there is one |
-| `GET /healthz`, `GET /readyz` | Liveness and readiness |
+| `GET /api/v1/icons/{set}/{name}.svg` | An [Iconify](https://icon-sets.iconify.design/) icon, in the colour given as `?color=` |
+| `GET /api/v1/background` | Address, title and copyright of the Bing picture of the day |
+| `GET /healthz`, `GET /readyz` | Liveness and readiness. An instance is ready when it has read its cluster. |
 
-With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`.
+```shell
+curl -s https://start.example.com/api/v1/state | jq '.tiles[] | {name, url, available}'
+```
+
+With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
+
+The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 
 ## Upgrading from 4.x
 
@@ -348,7 +380,23 @@ make crds           # regenerate the custom resource definitions after changing 
 make test-cutover   # the move from 4.x to v5 on a throwaway kind cluster
 ```
 
-The backend is Go and the page is Preact with TypeScript, built with Vite. To work on the page against a running instance, start `npm run dev` in `web/`.
+To work on the page, run the binary, which listens on port 8080, and start `npm run dev` in `web/`. The development server reloads on every change and passes `/api` on to the binary.
+
+The rules the code follows are in [AGENTS.md](AGENTS.md), with more for the page in [web/AGENTS.md](web/AGENTS.md) and for the chart in [charts/startpunkt/AGENTS.md](charts/startpunkt/AGENTS.md). What may come next is in the [roadmap](docs/roadmap.md).
+
+### Built with
+
+| Part | Technology |
+| --- | --- |
+| Server | [Go](https://go.dev), with the standard library's HTTP server and structured logging |
+| Kubernetes | [client-go](https://github.com/kubernetes/client-go) dynamic informers and API discovery. Resource definitions are generated from Go types with [controller-gen](https://book.kubebuilder.io/reference/controller-gen). |
+| Custom mappings | [CEL](https://cel.dev), with [cel-go](https://github.com/google/cel-go) |
+| Live updates | Server-sent events, between the page and the server and between instances |
+| Page | [Preact](https://preactjs.com) with [signals](https://preactjs.com/guide/v10/signals/) and [TypeScript](https://www.typescriptlang.org), built with [Vite](https://vite.dev) and embedded in the binary |
+| Icons | [Iconify](https://iconify.design), fetched and cached by the server |
+| Tests | Go's `testing` package with the client-go fake clients, [Vitest](https://vitest.dev) with [Testing Library](https://testing-library.com), and a [kind](https://kind.sigs.k8s.io) cluster for the move from 4.x |
+| Packaging | A [distroless](https://github.com/GoogleContainerTools/distroless) image for amd64 and arm64, and a [Helm](https://helm.sh) chart published as an OCI artifact |
+| Releases | GitHub Actions, [release-please](https://github.com/googleapis/release-please) and [Renovate](https://docs.renovatebot.com) |
 
 ## Support
 

@@ -1,24 +1,23 @@
-# Object Tag Filtering
+# Tag filtering
 
-This feature allows filtering applications based on tags. You can filter applications by passing tags as URL parameters, showing only applications that match the specified tags or applications with no tags.
+Tags decide which tiles a visitor sees, by the address they open. One instance can then serve several views: one for everyone, one for administrators, one for developers.
 
-## URL-Based Filtering
+## The rule
 
-You can filter applications by adding tags directly to the URL path:
+- A tile without tags is always shown.
+- A tile with tags is shown when at least one of its tags is in the path of the address.
 
-```url
-https://your-startpunkt-instance.com/admin
-https://your-startpunkt-instance.com/admin,dev
-https://your-startpunkt-instance.com/users
-```
+| Address | Shown |
+| --- | --- |
+| `https://start.example.com/` | Untagged tiles only |
+| `https://start.example.com/admin` | Untagged tiles, and tiles tagged `admin` |
+| `https://start.example.com/admin,dev` | Untagged tiles, and tiles tagged `admin` or `dev` |
 
-If no tags are specified in the URL, only applications without tags will be shown.
+The first segment of the path is the filter. Tags are separated by commas and compared without regard to case.
 
-## Kubernetes Resource Annotation
+## Tagging a tile
 
-Add the `startpunkt.ullberg.us/tags` annotation to your Kubernetes resources to specify which tag(s) the application should be associated with:
-
-### Example: Admin-tagged application
+On an annotated resource, such as an Ingress, a Route, an HTTPRoute or a VirtualService, tags are a comma-separated annotation:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -26,74 +25,33 @@ kind: Ingress
 metadata:
   name: admin-dashboard
   annotations:
-    startpunkt.ullberg.us/tags: "admin"
     startpunkt.ullberg.us/enable: "true"
-spec:
-  # ... ingress spec
-```
-
-### Example: Multi-tagged application
-
-```yaml
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: dev-tool
-  annotations:
     startpunkt.ullberg.us/tags: "admin,dev"
-    startpunkt.ullberg.us/enable: "true"
 spec:
-  # ... route spec
+  # ...
 ```
 
-### Example: Untagged application (no tag filter)
+On an `Application`, they are a field of the spec, in the same form:
 
 ```yaml
-apiVersion: apps/v1
+apiVersion: startpunkt.ullberg.us/v1
 kind: Application
 metadata:
-  name: common-app
-  annotations:
-    startpunkt.ullberg.us/enable: "true"
-    # No tags annotation - will be shown when no tags are filtered or with any tag filter
+  name: registry
+  namespace: startpunkt
 spec:
-  # ... application spec
+  name: Registry
+  group: Infrastructure
+  url: https://registry.example.com
+  tags: "admin"
 ```
 
-## Behavior
+Bookmarks have no tags and are always shown.
 
-- **No tags in URL**: Shows only applications without tags
-- **Tags specified in URL (e.g., `/admin`)**: Shows applications that either:
-  - Have matching tag(s) in the `startpunkt.ullberg.us/tags` annotation
-  - Have no tags annotation (untagged applications are always included when tags are specified)
-- **Multiple tags in URL (e.g., `/admin,dev`)**: Shows applications that have any of the specified tags, plus all untagged applications
+## Not access control
 
-## Filtering Logic
+Tags keep the page tidy. They do not hide anything from anyone: the instance sends every tile to every browser, the page applies the filter, and any visitor can open any path. To restrict who can see a service, protect the service itself, and put an authenticating proxy in front of Startpunkt if the list of services is sensitive.
 
-**When no tags are specified in the URL:**
+## Several clusters
 
-- Only applications without the `startpunkt.ullberg.us/tags` annotation (or with empty tags) are displayed
-
-**When tags are specified in the URL:**
-
-- An application will be displayed if:
-  1. The application has one or more matching tags, OR
-  2. The application has no tags annotation (untagged applications are always included when filtering by tags)
-
-This approach ensures that untagged applications are always accessible, either by browsing with no tags specified or when filtering by any specific tags.
-
-## Use Cases
-
-1. **Admin View**: `/admin`
-   - Shows applications tagged with "admin" and all untagged applications
-
-2. **Developer View**: `/dev`
-   - Shows applications tagged with "dev" and all untagged applications
-
-3. **Multi-tag View**: `/admin,dev`
-   - Shows applications tagged with "admin" OR "dev" and all untagged applications
-
-4. **Default View**: `/` (root path)
-   - Shows only untagged applications
-
-This approach allows flexible filtering of applications based on URL parameters while maintaining a single deployment and ensuring untagged applications remain accessible.
+A [remote](../README.md#several-clusters-on-one-page) can be limited by tag as well, with `include.tags` and `exclude.tags` on the `Remote` resource. That filter is applied by the instance, so tiles it leaves out never reach the browser.

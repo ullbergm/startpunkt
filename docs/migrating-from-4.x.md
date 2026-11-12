@@ -8,7 +8,7 @@ The short version:
 2. Install v5 [next to 4.x](#trying-v5-next-to-4x) and compare the two pages.
 3. [Switch over](#switching-over), which takes care not to lose the custom resource definitions.
 
-If your 4.x installation uses the image tag `latest`, pin it to a 4.x version before v5 is released. The tag moves to v5 with the release, and a 4.x installation cannot run the v5 image.
+If your 4.x installation uses the image tag `latest`, pin it to a 4.x version such as `4.8.0`. Since the release of 5.0.0 the tag points at v5, and a 4.x installation cannot run the v5 image.
 
 ## What is different
 

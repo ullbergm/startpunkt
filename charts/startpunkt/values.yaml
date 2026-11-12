@@ -69,7 +69,8 @@ config:
     searchEngine: https://www.google.com/search?q=
     # STARTPUNKT_WEB_CHECKFORUPDATES. Ask GitHub a few times a day whether a
     # newer release exists, and say so in the footer of the page. The request
-    # is made by the api pods and does not say which version is running.
+    # is made by the pods that serve the API, not by the browser, and does
+    # not say which version is running.
     checkForUpdates: true
     # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
     # project on GitHub. When an update is available the corner is shown
@@ -214,7 +215,8 @@ availability:
   # seen.
   insecureSkipVerify: false
 
-# Icons named like "mdi:home" come from an Iconify API. The api pods fetch
+# Icons named like "mdi:home" come from an Iconify API. The pods that serve
+# the API (the only pod in single mode, the api pods in split mode) fetch
 # each icon once, a whole icon set's worth per request, and keep it; browsers
 # load icons from the instance itself.
 icons:
