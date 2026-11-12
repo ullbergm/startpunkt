@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.0.1](https://github.com/ullbergm/startpunkt/compare/v5.0.0...v5.0.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **api:** settle every waiting icon exactly once ([#955](https://github.com/ullbergm/startpunkt/issues/955)) ([70dadf1](https://github.com/ullbergm/startpunkt/commit/70dadf17b4d5c33c29dbaa1e327ee2ba68c5287c))
+* **web:** keep the settings dialog one height across tabs ([#957](https://github.com/ullbergm/startpunkt/issues/957)) ([7dc7faf](https://github.com/ullbergm/startpunkt/commit/7dc7faf8d7a800856bb753614f3e4c183394b951))
+
 ## [5.0.0](https://github.com/ullbergm/startpunkt/compare/v4.8.0...v5.0.0) (2026-11-12)
 
 
