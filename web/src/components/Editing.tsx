@@ -57,6 +57,9 @@ export function Unlock({ onClose, fetcher }: { onClose: () => void; fetcher?: ty
       </header>
       <form class="settings-body" onSubmit={submit}>
         <p class="help">{t('unlock.help')}</p>
+        {/* A password manager files a password under a user name. There is
+            none to type, so it is given one to file the key under. */}
+        <input type="text" name="username" autocomplete="username" value="startpunkt" readOnly hidden />
         <label class="field field-wide">
           <span>{t('unlock.key')}</span>
           <input

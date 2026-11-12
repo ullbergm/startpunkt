@@ -1146,12 +1146,18 @@ legend {
   color: var(--error);
 }
 
+/* The buttons stay in view while a long form scrolls behind them. */
 .form-actions {
+  position: sticky;
+  bottom: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin: 1rem -1rem -1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
 }
 
 .form-spacer {
