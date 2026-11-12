@@ -68,18 +68,22 @@ Please try to create bug reports that are:
 
 ## Release Process
 
-A release is a tag. Pushing a tag such as `v5.1.0` runs the Release workflow, which
+Releases are prepared by [release-please](https://github.com/googleapis/release-please). Every push to `main` updates a release pull request, which holds the changelog and the next version, worked out from the commits since the last release: a `fix` raises the patch version, a `feat` the minor version and a breaking change (`!`) the major version.
+
+Merging the release pull request creates the tag and the GitHub release. The Release workflow then
 
 - runs the checks,
 - builds the image for amd64 and arm64 and pushes it to `ghcr.io/ullbergm/startpunkt`,
-- packages the chart with the tag's version and pushes it to `oci://ghcr.io/ullbergm/charts/startpunkt`,
-- creates the GitHub release, with notes generated from the pull requests merged since the last one.
+- packages the chart with the version of the release and pushes it to `oci://ghcr.io/ullbergm/charts/startpunkt`,
+- attaches the chart to the GitHub release.
 
-A tag with a suffix, such as `v5.1.0-rc.1`, becomes a pre-release and leaves the `latest` tag of the image where it is.
+A pre-release is made by hand: pushing a tag with a suffix, such as `v5.1.0-rc.1`, publishes that version and leaves the `latest` tag of the image where it is.
 
-Only maintainers with write access can push tags.
+Between releases, every push to `main` publishes the image with the tag `main`.
 
-**Pull request titles** end up in the release notes, so write them as [conventional commits](https://www.conventionalcommits.org): `type(scope): description`, for example
+Only maintainers with write access can merge the release pull request or push tags.
+
+**Pull request titles** end up in the changelog and decide the next version, so write them as [conventional commits](https://www.conventionalcommits.org): `type(scope): description`, for example
 
 - `feat(api): add theme customization endpoint`
 - `fix(ui): correct bookmark sorting order`

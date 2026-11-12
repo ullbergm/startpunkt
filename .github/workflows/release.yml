@@ -1,33 +1,72 @@
 name: Release
 
-# A tag like v5.1.0 publishes that version: the image, the chart and a
-# GitHub release. A tag with a suffix, like v5.1.0-rc.1, is a pre-release
-# and does not move the "latest" and major tags.
+# Every push to main updates the release pull request, which holds the
+# changelog and the next version. Merging that pull request creates the tag
+# and the GitHub release, and this same run then publishes the image and the
+# chart. A tag made with the workflow's own token does not start another
+# workflow, which is why publishing is not a workflow of its own.
+#
+# A tag pushed by hand is published too. That is the way to make a
+# pre-release: a tag with a suffix, like v5.1.0-rc.1, does not move the
+# "latest" and major tags.
 on:
   push:
+    branches: [main]
     tags:
       - "v*"
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: false
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
   CHARTS: oci://ghcr.io/${{ github.repository_owner }}/charts
 
 jobs:
-  release:
-    if: github.repository == 'ullbergm/startpunkt'
+  release-please:
+    name: Release pull request
+    if: github.repository == 'ullbergm/startpunkt' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish
+    needs: release-please
+    # The job above is skipped for a tag pushed by hand, so its result is not
+    # required, only that it did not fail.
+    if: >-
+      !cancelled() && !failure() &&
+      github.repository == 'ullbergm/startpunkt' &&
+      (startsWith(github.ref, 'refs/tags/v') || needs.release-please.outputs.release_created == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name || github.ref_name }}
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          ref: ${{ env.TAG }}
 
       - name: Version
         id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-go@v7
         with:
@@ -56,9 +95,9 @@ jobs:
         with:
           images: ${{ env.IMAGE }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+            type=semver,pattern={{major}},value=${{ env.TAG }}
           flavor: |
             latest=auto
 
@@ -81,11 +120,17 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
           helm push "startpunkt-${{ steps.version.outputs.version }}.tgz" "$CHARTS"
 
+      # The release already exists when it comes from the release pull
+      # request. A tag pushed by hand gets its release here.
       - name: GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          prerelease=
-          case "$GITHUB_REF_NAME" in *-*) prerelease=--prerelease ;; esac
-          gh release create "$GITHUB_REF_NAME" "startpunkt-${{ steps.version.outputs.version }}.tgz" \
-            --generate-notes $prerelease
+          chart="startpunkt-${{ steps.version.outputs.version }}.tgz"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$chart" --clobber
+          else
+            prerelease=
+            case "$TAG" in *-*) prerelease=--prerelease ;; esac
+            gh release create "$TAG" "$chart" --generate-notes $prerelease
+          fi

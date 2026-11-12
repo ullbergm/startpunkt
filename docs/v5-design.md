@@ -453,7 +453,7 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
 6. Editing: edit key, unlock flow, write endpoints and editors in the UI. Done, after federation and packaging.
 7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done.
-8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart from a tag.
+8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart when the release pull request is merged.
 9. User-defined CEL mappings. Done.
 
 Added along the way: configuration through the `Startpunkt` and `Remote` resources, built after federation. Its definitions are in the chart's `crds` directory and are generated with `make crds`.
