@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"sync"
 	"syscall"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/ullbergm/startpunkt/internal/api"
 	"github.com/ullbergm/startpunkt/internal/config"
+	"github.com/ullbergm/startpunkt/internal/edit"
 	"github.com/ullbergm/startpunkt/internal/follow"
 	"github.com/ullbergm/startpunkt/internal/kube"
 	"github.com/ullbergm/startpunkt/internal/probe"
@@ -121,6 +123,14 @@ func run() error {
 	// there by the one that follows the remotes when that is another.
 	var remoteStatus func([]follow.RemoteReport)
 	var reportRemotes func(context.Context, []follow.RemoteReport) error
+	// Editing is on when there is a key. The resources are written by the
+	// process that has access to the cluster; the one a browser talks to
+	// hands the requests on when that is another.
+	var editor edit.Editor
+	editNamespace := cfg.Editing.Namespace
+	if editNamespace == "" {
+		editNamespace = ownNamespace()
+	}
 	switch role {
 	case roleAll, roleController:
 		handler.Store = store.New()
@@ -151,6 +161,13 @@ func run() error {
 			}).Run(ctx)
 		}
 		go watchCluster(ctx, holder, handler.Store, dynamicClient, discoveryClient, log)
+		editor = &kube.Editor{
+			Dynamic: dynamicClient, Discovery: discoveryClient, Namespace: editNamespace,
+			Allowed: func(namespace string) bool {
+				selector := holder.Get().NamespaceSelector
+				return selector.Any || slices.Contains(selector.MatchNames, namespace)
+			},
+		}
 		if role == roleController {
 			// Only here: in this role the process is not reachable from
 			// outside the cluster. The api role reads the settings from
@@ -158,6 +175,9 @@ func run() error {
 			internal := http.NewServeMux()
 			internal.Handle(settings.SharedPath, settings.Handler(holder))
 			internal.Handle(follow.ReportPath, follow.ReportHandler(remoteStatus))
+			if cfg.Editing.Key != "" {
+				internal.Handle(edit.InternalPrefix+"/", edit.Internal(&edit.Handler{Editor: editor, Key: cfg.Editing.Key}))
+			}
 			handler.Internal = internal
 		} else if remoteStatus != nil {
 			reportRemotes = func(_ context.Context, reports []follow.RemoteReport) error {
@@ -173,6 +193,7 @@ func run() error {
 		go (&follow.Follower{URL: cfg.Upstream.URL, Store: handler.Store, Log: log}).Run(ctx)
 		go settings.Follow(ctx, cfg.Upstream.URL, cfg, holder, log)
 		reportRemotes = follow.PostReports(cfg.Upstream.URL)
+		editor = edit.NewForwarder(cfg.Upstream.URL, cfg.Editing.Key)
 	case roleWeb:
 	default:
 		return fmt.Errorf("unknown role %q", role)
@@ -182,6 +203,11 @@ func run() error {
 		// the remotes next to their own, and follow the list of remotes as
 		// it changes.
 		go followRemotes(ctx, holder, handler.Store, reportRemotes, log)
+		if cfg.Editing.Key != "" {
+			handler.Edit = (&edit.Handler{Editor: editor, Key: cfg.Editing.Key}).Routes
+			handler.Editing = api.Editing{Available: true, Namespace: editNamespace}
+			log.Info("editing is on", "namespace", editNamespace)
+		}
 		// Only these roles fetch pictures and icons and look for updates.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 		handler.Icons = &api.Icons{SourceFunc: func() string { return holder.Get().Icons.Source }, UserAgent: "startpunkt"}

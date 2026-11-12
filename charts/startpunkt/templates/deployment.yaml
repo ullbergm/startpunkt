@@ -132,6 +132,17 @@ spec:
               value: {{ toJson . | quote }}
             {{- end }}
             {{- end }}
+            {{- if and $.Values.editing.enabled (ne $role "web") }}
+            # The controller writes the resources and checks the key too:
+            # anything in the cluster can reach it.
+            - name: STARTPUNKT_EDITING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.editing.existingSecret | default (printf "%s-edit-key" (include "startpunkt.fullname" $)) }}
+                  key: {{ if $.Values.editing.existingSecret }}{{ $.Values.editing.existingSecretKey }}{{ else }}key{{ end }}
+            - name: STARTPUNKT_EDITING_NAMESPACE
+              value: {{ $.Values.editing.namespace | default $.Release.Namespace | quote }}
+            {{- end }}
             {{- with $.Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

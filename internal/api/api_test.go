@@ -244,3 +244,44 @@ func TestEventStreamHeartbeat(t *testing.T) {
 		}
 	}
 }
+
+func TestEditingIsOffUnlessConfigured(t *testing.T) {
+	s := store.New()
+	off := httptest.NewServer((&Server{Store: s}).Handler())
+	defer off.Close()
+	on := httptest.NewServer((&Server{
+		Store:   s,
+		Editing: Editing{Available: true, Namespace: "home"},
+		Edit: func(mux *http.ServeMux) {
+			mux.HandleFunc("GET /api/v1/unlock", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) })
+		},
+	}).Handler())
+	defer on.Close()
+
+	editing := func(base string) map[string]any {
+		resp, err := http.Get(base + "/api/v1/state")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		var doc map[string]any
+		if err := json.NewDecoder(resp.Body).Decode(&doc); err != nil {
+			t.Fatal(err)
+		}
+		return doc["editing"].(map[string]any)
+	}
+	status := func(base string) int {
+		resp, err := http.Get(base + "/api/v1/unlock")
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+	if e := editing(off.URL); e["available"] != false || e["namespace"] != nil || status(off.URL) != http.StatusNotFound {
+		t.Errorf("without a key: editing %v, unlock %d", e, status(off.URL))
+	}
+	if e := editing(on.URL); e["available"] != true || e["namespace"] != "home" || status(on.URL) != http.StatusNoContent {
+		t.Errorf("with a key: editing %v, unlock %d", e, status(on.URL))
+	}
+}

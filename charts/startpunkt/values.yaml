@@ -224,6 +224,29 @@ status:
   # empty status; the controller notices and stops trying.
   enabled: true
 
+# Changing Applications and Bookmarks from the page. Off by default: the page
+# then only shows what is in the cluster.
+#
+# With editing on, the page has a lock in its corner. Whoever enters the edit
+# key there can create, change and delete Application and Bookmark resources.
+# The key is one shared secret, not a login: everyone who has it can edit, and
+# changes are not attributed to a person. The controller is granted create,
+# update and delete on the two resource types.
+editing:
+  enabled: false
+  # The key, at least 16 characters. The chart puts it in a Secret. Leave it
+  # empty and name a Secret of your own below to keep the key out of the
+  # values.
+  key: ""
+  # A Secret in the release's namespace that holds the key, and the name of
+  # the entry in it.
+  existingSecret: ""
+  existingSecretKey: key
+  # STARTPUNKT_EDITING_NAMESPACE. Where the page creates resources. Empty
+  # means the release's namespace. With namespaceSelector.matchNames it has to
+  # be one of the namespaces that are read.
+  namespace: ""
+
 # Extra environment variables for every container.
 extraEnv: []
 

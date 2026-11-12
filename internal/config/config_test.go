@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -328,5 +329,46 @@ func TestWithResources(t *testing.T) {
 	}
 	if _, err := base.WithResources(nil, []Remote{{Name: "local", URL: "http://x"}}); err == nil {
 		t.Error("a remote named like this cluster must be refused")
+	}
+}
+
+func TestEditKey(t *testing.T) {
+	cfg, err := Load("", false, env(nil))
+	if err != nil || cfg.Editing.Key != "" {
+		t.Fatalf("without a key editing is off: %q, %v", cfg.Editing.Key, err)
+	}
+	cfg, err = Load("", false, env(map[string]string{"STARTPUNKT_EDITING_KEY": "a key that is long enough", "STARTPUNKT_EDITING_NAMESPACE": "tiles"}))
+	if err != nil || cfg.Editing.Key != "a key that is long enough" || cfg.Editing.Namespace != "tiles" {
+		t.Errorf("from the environment: %+v, %v", cfg.Editing, err)
+	}
+
+	// From a file, as a mounted Secret gives it, without the line break.
+	path := filepath.Join(t.TempDir(), "key")
+	if err := os.WriteFile(path, []byte("a key from a mounted secret\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err = Load("", false, env(map[string]string{"STARTPUNKT_EDITING_KEYFILE": path}))
+	if err != nil || cfg.Editing.Key != "a key from a mounted secret" {
+		t.Errorf("from a file: %q, %v", cfg.Editing.Key, err)
+	}
+	if _, err := Load("", false, env(map[string]string{"STARTPUNKT_EDITING_KEYFILE": path + ".missing"})); err == nil {
+		t.Error("a key file that is not there must be an error, not editing without a key")
+	}
+
+	// A short key is refused, and the message does not repeat it.
+	_, err = Load("", false, env(map[string]string{"STARTPUNKT_EDITING_KEY": "hunter2"}))
+	if err == nil || strings.Contains(err.Error(), "hunter2") {
+		t.Errorf("short key: %v", err)
+	}
+
+	// The key never leaves with the configuration, and settings from a
+	// resource cannot set or clear it.
+	cfg, _ = Load("", false, env(map[string]string{"STARTPUNKT_EDITING_KEY": "a key that is long enough"}))
+	if data, _ := json.Marshal(cfg); strings.Contains(string(data), "long enough") {
+		t.Errorf("the key is in the written configuration: %s", data)
+	}
+	with, err := cfg.WithResources([]byte(`{"web":{"title":"x"}}`), nil)
+	if err != nil || with.Editing.Key != cfg.Editing.Key {
+		t.Errorf("after applying a resource: %q, %v", with.Editing.Key, err)
 	}
 }

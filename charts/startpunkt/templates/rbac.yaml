@@ -15,6 +15,12 @@ rules:
     resources: {{ toJson . }}
     verbs: {{ toJson $read }}
   {{- end }}
+  {{- if .Values.editing.enabled }}
+  # Editing from the page.
+  - apiGroups: [startpunkt.ullberg.us]
+    resources: [applications, bookmarks]
+    verbs: [create, update, delete]
+  {{- end }}
   {{- if and .Values.status.enabled .Values.sources.application.enabled }}
   - apiGroups: [startpunkt.ullberg.us]
     resources: [applications/status]

@@ -1,3 +1,14 @@
 {{- if and (eq .Values.mode "split") .Values.route.enabled (not .Values.route.host) }}
 {{- fail "route.host is required when mode=split, because the /api Route and the page Route must share a host." }}
 {{- end }}
+{{- if .Values.editing.enabled }}
+{{- if and (not .Values.editing.key) (not .Values.editing.existingSecret) }}
+{{- fail "editing.enabled needs an edit key: set editing.key, or editing.existingSecret to a Secret that holds it." }}
+{{- end }}
+{{- if and .Values.editing.key .Values.editing.existingSecret }}
+{{- fail "set editing.key or editing.existingSecret, not both." }}
+{{- end }}
+{{- if and .Values.editing.key (lt (len .Values.editing.key) 16) }}
+{{- fail "editing.key must be at least 16 characters long." }}
+{{- end }}
+{{- end }}

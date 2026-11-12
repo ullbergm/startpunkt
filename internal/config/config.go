@@ -63,8 +63,28 @@ type Config struct {
 	Server            Server            `json:"server"`
 	Upstream          Upstream          `json:"upstream"`
 	Web               Web               `json:"web"`
+	Editing           Editing           `json:"editing"`
 	Log               Log               `json:"log"`
 }
+
+// Editing configures changing Applications and Bookmarks from the page. It
+// belongs to the process: the key is a secret and is never read from a
+// resource.
+type Editing struct {
+	// Key is the edit key. Without one, editing is off. It comes from the
+	// environment only, as STARTPUNKT_EDITING_KEY or, for a mounted Secret,
+	// as the path of a file in STARTPUNKT_EDITING_KEYFILE. It is not read
+	// from the configuration file and is left out wherever the
+	// configuration is written.
+	Key string `json:"-"`
+	// Namespace is where the page creates resources. Empty means the
+	// namespace the process runs in. Environment:
+	// STARTPUNKT_EDITING_NAMESPACE.
+	Namespace string `json:"namespace"`
+}
+
+// MinEditKeyLength is the shortest edit key that is accepted.
+const MinEditKeyLength = 16
 
 // Resources says which Startpunkt resource holds this instance's settings.
 // It belongs to the process, like the listen address: it cannot itself come
@@ -205,6 +225,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"UPSTREAM_URL":                           &c.Upstream.URL,
 		"RESOURCES_NAME":                         &c.Resources.Name,
 		"RESOURCES_NAMESPACE":                    &c.Resources.Namespace,
+		"EDITING_NAMESPACE":                      &c.Editing.Namespace,
 		"ICONS_SOURCE":                           &c.Icons.Source,
 		"WEB_TITLE":                              &c.Web.Title,
 		"WEB_DEFAULTLANGUAGE":                    &c.Web.DefaultLanguage,
@@ -257,6 +278,16 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 			return fmt.Errorf("%sAVAILABILITY_CONCURRENCY: %q is not a number", EnvPrefix, v)
 		}
 		c.Availability.Concurrency = parsed
+	}
+	if v := getenv(EnvPrefix + "EDITING_KEY"); v != "" {
+		c.Editing.Key = v
+	} else if path := getenv(EnvPrefix + "EDITING_KEYFILE"); path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("%sEDITING_KEYFILE: %w", EnvPrefix, err)
+		}
+		// A file usually ends with a line break that is not part of the key.
+		c.Editing.Key = strings.TrimSpace(string(data))
 	}
 	if v := getenv(EnvPrefix + "FEDERATION_REMOTES"); v != "" {
 		var remotes []Remote
@@ -316,6 +347,10 @@ func (c Config) Validate() error {
 	if strings.ContainsAny(name, "/ \t\n") {
 		// The name is one segment of the slash-separated tile id.
 		return fmt.Errorf("cluster.name %q must not contain slashes or whitespace", name)
+	}
+	if key := c.Editing.Key; key != "" && len(key) < MinEditKeyLength {
+		// The message must not repeat the key.
+		return fmt.Errorf("the edit key must be at least %d characters long", MinEditKeyLength)
 	}
 	if !c.NamespaceSelector.Any && len(c.NamespaceSelector.MatchNames) == 0 {
 		return errors.New("namespaceSelector.matchNames must list a namespace when namespaceSelector.any is false")
@@ -426,7 +461,7 @@ func (c Config) WithResources(spec []byte, remotes []Remote) (Config, error) {
 			return c, fmt.Errorf("reading the settings: %w", err)
 		}
 		// Only the sections of the resource may come from it.
-		out.Server, out.Upstream, out.Log, out.Federation, out.Resources = c.Server, c.Upstream, c.Log, c.Federation, c.Resources
+		out.Server, out.Upstream, out.Log, out.Federation, out.Resources, out.Editing = c.Server, c.Upstream, c.Log, c.Federation, c.Resources, c.Editing
 	}
 	if remotes != nil {
 		headers := map[string]map[string]string{}

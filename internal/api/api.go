@@ -62,6 +62,9 @@ type Palette struct {
 // Editing tells the frontend whether an edit key can unlock editing.
 type Editing struct {
 	Available bool `json:"available"`
+	// Namespace is where a resource is created unless another is given.
+	// Empty while editing is not available.
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // TileDelete is the payload of a tile.delete event.
@@ -108,6 +111,10 @@ type Server struct {
 	// Icons serves Iconify icons from this instance. Nil turns the endpoint
 	// off.
 	Icons *Icons
+	// Edit registers the endpoints that change resources, and Editing is
+	// what the frontend is told about them. Nil means editing is off.
+	Edit    func(mux *http.ServeMux)
+	Editing Editing
 	// Assets is the built frontend, with index.html at its root.
 	Assets fs.FS
 	// Heartbeat overrides DefaultHeartbeat.
@@ -128,6 +135,9 @@ func (s *Server) Handler() http.Handler {
 		}
 		if s.Icons != nil {
 			mux.Handle("GET /api/v1/icons/{prefix}/{file}", s.Icons)
+		}
+		if s.Edit != nil {
+			s.Edit(mux)
 		}
 	}
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
@@ -158,8 +168,15 @@ func (s *Server) state(snap store.Snapshot) State {
 		Tiles:         snap.Tiles,
 		Clusters:      snap.Clusters,
 		Config:        s.ui(),
-		Editing:       Editing{Available: false},
+		Editing:       s.editing(),
 	}
+}
+
+func (s *Server) editing() Editing {
+	if s.Edit == nil {
+		return Editing{}
+	}
+	return s.Editing
 }
 
 func (s *Server) ui() UIConfig {
