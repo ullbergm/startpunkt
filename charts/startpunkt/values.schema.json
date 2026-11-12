@@ -1,0 +1,397 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "single",
+        "split"
+      ]
+    },
+    "crds": {
+      "type": "object",
+      "properties": {
+        "install": {
+          "type": "boolean"
+        },
+        "keep": {
+          "type": "boolean"
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[^/\\s]+$"
+            }
+          }
+        },
+        "log": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ]
+            },
+            "format": {
+              "enum": [
+                "json",
+                "text"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "application": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bookmark": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "classNames": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "includeUnclassified": {
+              "type": "boolean"
+            }
+          }
+        },
+        "httpRoute": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "defaultProtocol": {
+              "enum": [
+                "http",
+                "https"
+              ]
+            }
+          }
+        },
+        "virtualService": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "onlyAnnotated": {
+              "type": "boolean"
+            },
+            "defaultProtocol": {
+              "enum": [
+                "http",
+                "https"
+              ]
+            }
+          }
+        },
+        "custom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "version",
+              "resource",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "apiGroup": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "resource": {
+                "type": "string"
+              },
+              "defaultProtocol": {
+                "type": "string",
+                "enum": [
+                  "http",
+                  "https"
+                ]
+              },
+              "url": {
+                "type": "string"
+              },
+              "tileName": {
+                "type": "string"
+              },
+              "tileGroup": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "info": {
+                "type": "string"
+              },
+              "onlyAnnotated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "namespaceSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "any": {
+          "type": "boolean"
+        },
+        "matchNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "interval": {
+          "type": "string",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+        },
+        "timeout": {
+          "type": "string",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+        },
+        "initialBackoff": {
+          "type": "string",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+        },
+        "maxBackoff": {
+          "type": "string",
+          "pattern": "^([0-9]+(\\.[0-9]+)?(ms|s|m|h))+$"
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "insecureSkipVerify": {
+          "type": "boolean"
+        }
+      }
+    },
+    "editing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "key": {
+          "type": "string"
+        },
+        "existingSecret": {
+          "type": "string"
+        },
+        "existingSecretKey": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "federation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "remotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[^/\\s]+$"
+              },
+              "url": {
+                "type": "string",
+                "pattern": "^https?://"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "include": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "kinds": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "application",
+                        "bookmark"
+                      ]
+                    }
+                  }
+                }
+              },
+              "exclude": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "kinds": {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "application",
+                        "bookmark"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^https?://"
+        }
+      }
+    },
+    "customResources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

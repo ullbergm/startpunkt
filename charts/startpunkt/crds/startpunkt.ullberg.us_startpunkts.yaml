@@ -1,0 +1,432 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.23.0
+  name: startpunkts.startpunkt.ullberg.us
+spec:
+  group: startpunkt.ullberg.us
+  names:
+    kind: Startpunkt
+    listKind: StartpunktList
+    plural: startpunkts
+    singular: startpunkt
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Configured")].status
+      name: Configured
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Configured")].reason
+      name: Reason
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Startpunkt holds the settings of one Startpunkt instance. The instance
+          reads the resource of its own name in its own namespace, applies changes
+          without a restart, and reports in the status whether the settings are in
+          use.
+
+          A setting that is left out keeps its default.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              StartpunktSpec is the settings of an instance. The sections are those of
+              the configuration file.
+            properties:
+              availability:
+                description: Probing of the tiles' URLs.
+                properties:
+                  concurrency:
+                    description: Concurrency is the number of probes that may run
+                      at once.
+                    type: integer
+                  enabled:
+                    description: |-
+                      Enabled turns probing on. When it is off, tiles carry no
+                      availability at all.
+                    type: boolean
+                  initialBackoff:
+                    description: |-
+                      InitialBackoff is the wait after a first failure. It doubles with
+                      each further failure up to MaxBackoff.
+                    type: string
+                  insecureSkipVerify:
+                    description: |-
+                      InsecureSkipVerify accepts any TLS certificate. Use it when the
+                      applications use certificates the controller cannot verify.
+                    type: boolean
+                  interval:
+                    description: Interval is the time between probes of a URL that
+                      answers.
+                    type: string
+                  maxBackoff:
+                    type: string
+                  timeout:
+                    description: Timeout bounds a single probe.
+                    type: string
+                type: object
+              cluster:
+                description: The cluster this instance runs in.
+                properties:
+                  name:
+                    description: |-
+                      Name identifies this instance's tiles. It is part of every tile id.
+                      Environment: STARTPUNKT_CLUSTER_NAME.
+                    type: string
+                type: object
+              icons:
+                description: Where icons come from.
+                properties:
+                  source:
+                    description: |-
+                      Source is the base URL of the Iconify API that icons are fetched
+                      from, once each. The default is the public one. Point it at an
+                      Iconify API of your own to depend on nothing outside the cluster.
+                      Environment: STARTPUNKT_ICONS_SOURCE.
+                    type: string
+                type: object
+              namespaceSelector:
+                description: Which namespaces resources are read from.
+                properties:
+                  any:
+                    description: |-
+                      Any reads every namespace. It must be false for MatchNames to apply.
+                      Environment: STARTPUNKT_NAMESPACESELECTOR_ANY.
+                    type: boolean
+                  matchNames:
+                    description: |-
+                      MatchNames lists the namespaces to read when Any is false.
+                      Environment: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES, comma-separated.
+                    items:
+                      type: string
+                    type: array
+                type: object
+              sources:
+                description: The resource types tiles are built from.
+                properties:
+                  application:
+                    description: Source turns a source on or off.
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
+                  bookmark:
+                    description: Source turns a source on or off.
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
+                  custom:
+                    description: |-
+                      Custom adds resource types that have no source of their own. In the
+                      environment the list is JSON, in STARTPUNKT_SOURCES_CUSTOM.
+                    items:
+                      description: |-
+                        CustomSource makes tiles from a resource type that Startpunkt has no
+                        source for, such as a Traefik IngressRoute. An expression says where an
+                        object is served; everything else works as for the built-in sources: the
+                        startpunkt.ullberg.us annotations name the tile, group it and can hide
+                        it.
+
+                        Expressions are written in CEL. The object is available as "object".
+                      properties:
+                        apiGroup:
+                          description: APIGroup of the resource type, empty for the
+                            core group.
+                          type: string
+                        defaultProtocol:
+                          description: |-
+                            DefaultProtocol is http or https, used for a host that the url
+                            expression returns without a scheme, unless the object sets the
+                            protocol annotation. The default is http.
+                          enum:
+                          - http
+                          - https
+                          type: string
+                        icon:
+                          type: string
+                        info:
+                          type: string
+                        name:
+                          description: Name of the mapping, for messages. Unique among
+                            the custom sources.
+                          minLength: 1
+                          type: string
+                        onlyAnnotated:
+                          description: |-
+                            OnlyAnnotated limits the source to objects annotated with
+                            startpunkt.ullberg.us/enable: "true". It is on unless set to false.
+                          type: boolean
+                        resource:
+                          description: |-
+                            Resource is the plural, lower-case name of the resource type, as in
+                            "kubectl get <resource>", for example ingressroutes. The type has to
+                            be namespaced.
+                          minLength: 1
+                          type: string
+                        tileGroup:
+                          type: string
+                        tileName:
+                          description: |-
+                            TileName, TileGroup, Icon and Info are expressions for what the tile
+                            shows when the object has no annotation for it. Without them the
+                            name is the object's name and the group its namespace.
+                          type: string
+                        url:
+                          description: |-
+                            URL is an expression for where the object is served: a string or a
+                            list of strings, each an address with its scheme or a bare host
+                            name. One tile is made for each.
+                          minLength: 1
+                          type: string
+                        version:
+                          description: Version of the resource type to read, for example
+                            v1alpha1.
+                          minLength: 1
+                          type: string
+                      required:
+                      - name
+                      - resource
+                      - url
+                      - version
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - name
+                    x-kubernetes-list-type: map
+                  httpRoute:
+                    description: |-
+                      RoutedSource is a source whose objects do not say whether they are served
+                      over TLS.
+                    properties:
+                      defaultProtocol:
+                        description: |-
+                          DefaultProtocol is http or https. It is used when an object does not
+                          set the protocol annotation.
+                        type: string
+                      enabled:
+                        type: boolean
+                      onlyAnnotated:
+                        description: |-
+                          OnlyAnnotated limits the source to objects annotated with
+                          startpunkt.ullberg.us/enable: "true".
+                        type: boolean
+                    type: object
+                  ingress:
+                    description: IngressSource configures the Ingress source.
+                    properties:
+                      classNames:
+                        description: |-
+                          ClassNames limits the source to these ingress classes; empty means
+                          all. In the environment the list is comma-separated.
+                        items:
+                          type: string
+                        type: array
+                      enabled:
+                        type: boolean
+                      includeUnclassified:
+                        description: |-
+                          IncludeUnclassified keeps Ingresses without a class when ClassNames
+                          is set.
+                        type: boolean
+                      onlyAnnotated:
+                        description: |-
+                          OnlyAnnotated limits the source to objects annotated with
+                          startpunkt.ullberg.us/enable: "true".
+                        type: boolean
+                    type: object
+                  route:
+                    description: Annotated is a source whose objects are published
+                      with annotations.
+                    properties:
+                      enabled:
+                        type: boolean
+                      onlyAnnotated:
+                        description: |-
+                          OnlyAnnotated limits the source to objects annotated with
+                          startpunkt.ullberg.us/enable: "true".
+                        type: boolean
+                    type: object
+                  virtualService:
+                    description: |-
+                      RoutedSource is a source whose objects do not say whether they are served
+                      over TLS.
+                    properties:
+                      defaultProtocol:
+                        description: |-
+                          DefaultProtocol is http or https. It is used when an object does not
+                          set the protocol annotation.
+                        type: string
+                      enabled:
+                        type: boolean
+                      onlyAnnotated:
+                        description: |-
+                          OnlyAnnotated limits the source to objects annotated with
+                          startpunkt.ullberg.us/enable: "true".
+                        type: boolean
+                    type: object
+                type: object
+              status:
+                description: What is written back to the cluster.
+                properties:
+                  enabled:
+                    description: |-
+                      Enabled writes the resolved URL, the availability and conditions to
+                      the status of Application resources.
+                      Environment: STARTPUNKT_STATUS_ENABLED.
+                    type: boolean
+                type: object
+              web:
+                description: Settings of the page.
+                properties:
+                  checkForUpdates:
+                    description: |-
+                      CheckForUpdates asks GitHub now and then whether a newer release of
+                      Startpunkt exists, and tells visitors in the footer when one does.
+                    type: boolean
+                  defaultLanguage:
+                    description: |-
+                      DefaultLanguage is used for a visitor who has not chosen a language
+                      and whose browser asks for none that is available, for example en-US.
+                    type: string
+                  githubLink:
+                    description: |-
+                      GitHubLink shows a corner on the page that links to the project. When
+                      an update is available the corner is shown regardless.
+                    type: boolean
+                  searchEngine:
+                    description: |-
+                      SearchEngine is the URL a web search from the search box is sent to,
+                      with the query appended.
+                    type: string
+                  showAllClusters:
+                    description: |-
+                      ShowAllClusters makes a visitor who has not chosen see the tiles of
+                      every cluster. Without it they see this cluster's only, and switch
+                      others on themselves.
+                    type: boolean
+                  theme:
+                    description: Theme holds the colours of the light and the dark
+                      appearance.
+                    properties:
+                      dark:
+                        description: Palette has the colour names of 4.x, so an existing
+                          theme carries over.
+                        properties:
+                          bodyBgColor:
+                            description: BodyBgColor is the page background.
+                            type: string
+                          bodyColor:
+                            description: |-
+                              BodyColor is group headings, icons without a colour of their own, and
+                              other secondary text.
+                            type: string
+                          emphasisColor:
+                            description: EmphasisColor is headings and other prominent
+                              text.
+                            type: string
+                          textAccentColor:
+                            description: TextAccentColor is descriptions, focus rings
+                              and highlights.
+                            type: string
+                          textPrimaryColor:
+                            description: TextPrimaryColor is tile names.
+                            type: string
+                        type: object
+                      light:
+                        description: Palette has the colour names of 4.x, so an existing
+                          theme carries over.
+                        properties:
+                          bodyBgColor:
+                            description: BodyBgColor is the page background.
+                            type: string
+                          bodyColor:
+                            description: |-
+                              BodyColor is group headings, icons without a colour of their own, and
+                              other secondary text.
+                            type: string
+                          emphasisColor:
+                            description: EmphasisColor is headings and other prominent
+                              text.
+                            type: string
+                          textAccentColor:
+                            description: TextAccentColor is descriptions, focus rings
+                              and highlights.
+                            type: string
+                          textPrimaryColor:
+                            description: TextPrimaryColor is tile names.
+                            type: string
+                        type: object
+                    type: object
+                  title:
+                    description: Title of the page.
+                    type: string
+                type: object
+            type: object
+          status:
+            description: StartpunktStatus is written by the instance.
+            properties:
+              conditions:
+                description: |-
+                  Configured is true when the spec is valid and in use. When it is
+                  false the instance keeps running with the last valid settings, and
+                  the message says what is wrong.
+                items:
+                  description: Condition has the fields of the standard Kubernetes
+                    condition.
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                    message:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              observedGeneration:
+                description: The generation of the spec the conditions are about.
+                format: int64
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

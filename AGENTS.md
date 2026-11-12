@@ -1,12 +1,16 @@
 # Agents Guide
 
-- Read `.github/copilot-instructions.md` before making changes; it captures the project-specific rules and workflows.
-- Backend work happens in the Quarkus service under `src/main/java/us/ullberg/startpunkt`; frontend lives in `src/main/webui` with Preact + Vite.
-- Run `./mvnw quarkus:dev` for local development or `./mvnw verify` before opening a PR to execute Java, Quarkus, Jest, Spotless, Checkstyle, and dependency checks (requires Git Bash terminal).
-- Frontend-only iterations can use `npm run dev` / `npm test` inside `src/main/webui`, but commit with the Maven verify passing.
-- To run specific frontend tests, use `npx jest --testPathPatterns=<TestFileName>` (e.g., `npx jest --testPathPatterns=SpotlightSearch.test`).
-- Mock Kubernetes tests require registering CRDs via Fabric8 helpers (see `ApplicationResourceTest`); do not point tests at a real cluster.
-- Keep JSON contracts (`groups[].applications[]`, bookmark payloads, theme palettes) in sync between GraphQL resources and SPA components when editing APIs.
-- Avoid committing generated artifacts under `target/`, `src/main/webui/node_modules/`.
-- When adding config knobs, wire them through `application.yaml`, the corresponding `@ConfigProperty`, GraphQL exposure if needed, and document defaults for operators.
-- `docs/todo.md` contains a list of changes to be implemented.
+This branch holds Startpunkt v5, a rewrite in Go. The design, the decisions behind it and the milestones are in `docs/v5-design.md`; read it before making changes.
+
+- The 4.x implementation (Quarkus and Preact) is not on this branch. Read it from `main` when its behaviour is the reference, for example `git show main:src/main/java/us/ullberg/startpunkt/objects/kubernetes/IngressApplicationWrapper.java`.
+- Layout: `cmd/startpunkt` (entry point and roles), `api/v1` (custom resource types), `hack/` (generation of the definitions, the cutover test), `internal/` (tile model, store, source adapters, controller, HTTP API, follower, config), `web/` (Preact, signals, TypeScript, Vite), `charts/startpunkt` (Helm chart).
+- One binary runs every role: `all`, `controller`, `api` and `web`. Keep a feature working both in one process and split across roles.
+- Backend checks: `go vet ./...` and `go test -race ./...`.
+- Frontend checks, in `web/`: `npm run check`, `npm test`, `npm run build`. Use npm, not another package manager.
+- `web/dist` is embedded in the binary. Build the frontend before `go build` when the page is needed; Go tests do not need it.
+- Tests never point at a real cluster. Use the fake clients (see `internal/kube/controller_test.go`).
+- The tile JSON under `/api/v1` is a versioned contract shared by the browser and by other Startpunkt processes. Change `internal/tile`, `internal/api` and `web/src/types.ts` together.
+- Settings are defined once, as Go types in `api/v1`. They are the spec of the `Startpunkt` resource and the sections of the configuration file, and each also has an environment variable (`STARTPUNKT_*`). After changing those types, or the `Application` and `Bookmark` types, run `make crds` and commit the result. Document new settings in the chart's `values.yaml`.
+- The page loads no third-party scripts and renders tile content as text. Keep the Content-Security-Policy in `internal/api` strict.
+- Accessibility: semantic HTML, keyboard reachable controls, visible focus, ARIA names on interactive elements, and never colour as the only signal.
+- Commits follow Conventional Commits (`type(scope): description`).

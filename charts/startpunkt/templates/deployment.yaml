@@ -1,0 +1,191 @@
+{{- range $role := splitList " " (include "startpunkt.roles" .) }}
+{{- $ctx := dict "root" $ "role" $role }}
+{{- $kube := include "startpunkt.usesKubernetes" $role }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "startpunkt.roleName" $ctx }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "startpunkt.labels" $ctx | nindent 4 }}
+spec:
+  replicas: {{ index $.Values.replicas $role }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      {{- include "startpunkt.selectorLabels" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "startpunkt.labels" $ctx | nindent 8 }}
+        {{- with $.Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $.Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "startpunkt.fullname" $ }}
+      automountServiceAccountToken: {{ if $kube }}true{{ else }}false{{ end }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: startpunkt
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - {{ $role }}
+          env:
+            - name: STARTPUNKT_LOG_LEVEL
+              value: {{ $.Values.config.log.level | quote }}
+            - name: STARTPUNKT_LOG_FORMAT
+              value: {{ $.Values.config.log.format | quote }}
+            {{- if and $kube $.Values.customResources.enabled }}
+            # Which Startpunkt resource holds this instance's settings.
+            - name: STARTPUNKT_RESOURCES_NAME
+              value: {{ include "startpunkt.fullname" $ }}
+            - name: STARTPUNKT_RESOURCES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- end }}
+            {{- if eq $role "api" }}
+            - name: STARTPUNKT_UPSTREAM_URL
+              value: "http://{{ include "startpunkt.roleName" (dict "root" $ "role" "controller") }}:{{ $.Values.service.port }}"
+            {{- end }}
+            {{- if not $.Values.customResources.enabled }}
+            {{- if $kube }}
+            - name: STARTPUNKT_CLUSTER_NAME
+              value: {{ $.Values.config.cluster.name | quote }}
+            - name: STARTPUNKT_NAMESPACESELECTOR_ANY
+              value: {{ $.Values.namespaceSelector.any | quote }}
+            {{- with $.Values.namespaceSelector.matchNames }}
+            - name: STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES
+              value: {{ join "," . | quote }}
+            {{- end }}
+            {{- range $setting, $value := $.Values.availability }}
+            - name: STARTPUNKT_AVAILABILITY_{{ upper $setting }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: STARTPUNKT_STATUS_ENABLED
+              value: {{ $.Values.status.enabled | quote }}
+            {{- with $.Values.sources.custom }}
+            - name: STARTPUNKT_SOURCES_CUSTOM
+              value: {{ toJson . | quote }}
+            {{- end }}
+            {{- range $name, $source := omit $.Values.sources "custom" }}
+            {{- range $setting, $value := $source }}
+            {{- if kindIs "slice" $value }}
+            {{- if $value }}
+            - name: STARTPUNKT_SOURCES_{{ upper $name }}_{{ upper $setting }}
+              value: {{ join "," $value | quote }}
+            {{- end }}
+            {{- else }}
+            - name: STARTPUNKT_SOURCES_{{ upper $name }}_{{ upper $setting }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- if ne $role "web" }}
+            - name: STARTPUNKT_WEB_TITLE
+              value: {{ $.Values.config.web.title | quote }}
+            - name: STARTPUNKT_WEB_DEFAULTLANGUAGE
+              value: {{ $.Values.config.web.defaultLanguage | quote }}
+            - name: STARTPUNKT_WEB_SEARCHENGINE
+              value: {{ $.Values.config.web.searchEngine | quote }}
+            - name: STARTPUNKT_WEB_CHECKFORUPDATES
+              value: {{ $.Values.config.web.checkForUpdates | quote }}
+            - name: STARTPUNKT_WEB_GITHUBLINK
+              value: {{ $.Values.config.web.githubLink | quote }}
+            - name: STARTPUNKT_WEB_SHOWALLCLUSTERS
+              value: {{ $.Values.config.web.showAllClusters | quote }}
+            {{- range $mode, $palette := $.Values.config.web.theme }}
+            {{- range $name, $color := $palette }}
+            - name: STARTPUNKT_WEB_THEME_{{ upper $mode }}_{{ upper $name }}
+              value: {{ $color | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- if and (ne $role "web") (ne $role "controller") }}
+            - name: STARTPUNKT_ICONS_SOURCE
+              value: {{ $.Values.icons.source | quote }}
+            {{- end }}
+            {{- if and (ne $role "web") (ne $role "controller") $.Values.federation.remotes }}
+            - name: STARTPUNKT_FEDERATION_REMOTES
+              value: {{ toJson $.Values.federation.remotes | quote }}
+            {{- end }}
+            {{- else if and (ne $role "web") (ne $role "controller") }}
+            {{- /* Headers of remotes may be secrets, so they are not put in
+                   the Remote resources. They reach the pods that use them
+                   here, by the name of the remote. */}}
+            {{- $withHeaders := list }}
+            {{- range $.Values.federation.remotes }}
+            {{- if .headers }}
+            {{- $withHeaders = append $withHeaders (dict "name" .name "url" .url "headers" .headers) }}
+            {{- end }}
+            {{- end }}
+            {{- with $withHeaders }}
+            - name: STARTPUNKT_FEDERATION_REMOTES
+              value: {{ toJson . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- if and $.Values.editing.enabled (ne $role "web") }}
+            # The controller writes the resources and checks the key too:
+            # anything in the cluster can reach it.
+            - name: STARTPUNKT_EDITING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.editing.existingSecret | default (printf "%s-edit-key" (include "startpunkt.fullname" $)) }}
+                  key: {{ if $.Values.editing.existingSecret }}{{ $.Values.editing.existingSecretKey }}{{ else }}key{{ end }}
+            - name: STARTPUNKT_EDITING_NAMESPACE
+              value: {{ $.Values.editing.namespace | default $.Release.Namespace | quote }}
+            {{- end }}
+            {{- with $.Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 1
+            failureThreshold: 30
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          {{- with index $.Values.resources $role }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

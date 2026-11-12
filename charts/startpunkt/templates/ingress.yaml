@@ -1,0 +1,43 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "startpunkt.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.ingress.tlsSecretName }}
+  tls:
+    - hosts:
+        - {{ $.Values.ingress.host | quote }}
+      secretName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          {{- if eq .Values.mode "split" }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "startpunkt.servingRole" (dict "root" . "part" "api") }}
+                port:
+                  name: http
+          {{- end }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "startpunkt.servingRole" (dict "root" . "part" "web") }}
+                port:
+                  name: http
+{{- end }}

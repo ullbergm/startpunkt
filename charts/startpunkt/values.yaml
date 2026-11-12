@@ -1,0 +1,361 @@
+# Overrides the chart name used in resource names and labels.
+nameOverride: ""
+# Overrides the full name that every resource name starts with. By default it
+# is derived from the release name, so two releases never share a name.
+fullnameOverride: ""
+
+# Where the settings below are kept.
+#   true:  in a Startpunkt resource, and one Remote resource per remote, that
+#          this chart creates from the values. The instance watches them, so
+#          a change takes effect without restarting pods, and whether the
+#          settings are in use shows in the Startpunkt resource's status.
+#          Needs the definitions in this chart's crds directory, which Helm
+#          installs with the release unless told to skip them. Helm does not
+#          update them on an upgrade; apply the files of that directory
+#          after upgrading the chart.
+#   false: in environment variables on the pods. Nothing is read from the
+#          cluster for configuration and a change restarts the pods.
+customResources:
+  enabled: true
+
+# How Startpunkt is deployed. Both modes run the same image.
+#   single: one Deployment that watches the cluster and serves the API and the
+#           page.
+#   split:  three Deployments. "controller" watches the cluster and is the
+#           only one with Kubernetes credentials. "api" serves the API from
+#           the controller's state. "web" serves the page. The Ingress or
+#           Route sends /api to "api" and everything else to "web".
+mode: single
+
+image:
+  repository: ghcr.io/ullbergm/startpunkt
+  # Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+crds:
+  # Install the Application and Bookmark custom resource definitions, and
+  # upgrade them with the chart. They serve v1 and, deprecated, the versions
+  # v1alpha1 to v1alpha4 of Startpunkt 4.x.
+  #
+  # Set this to false to try v5 next to a 4.x release on the same cluster.
+  # The 4.x release owns the definitions then; v5 reads the v1alpha4 version
+  # they serve, and writes no status. The documentation describes how to hand
+  # the definitions over when 4.x is retired.
+  install: true
+  # Leave the definitions in the cluster when the release is uninstalled.
+  # Deleting a definition deletes every Application or Bookmark in the
+  # cluster, so they are kept unless this is turned off. Helm and Argo CD
+  # are both told to keep them.
+  keep: true
+
+# Settings of the process. Each one is passed as the environment variable
+# named in its comment.
+config:
+  cluster:
+    # STARTPUNKT_CLUSTER_NAME. Identifies this instance's tiles. It is part
+    # of every tile id and must not contain slashes or whitespace.
+    name: local
+  web:
+    # STARTPUNKT_WEB_TITLE. Title of the page.
+    title: Startpunkt
+    # STARTPUNKT_WEB_DEFAULTLANGUAGE. Language for a visitor who has not
+    # chosen one and whose browser asks for none that is available. The
+    # page ships with en-US and sv-SE.
+    defaultLanguage: en-US
+    # STARTPUNKT_WEB_SEARCHENGINE. Where a web search from the search box
+    # goes; the query is appended.
+    searchEngine: https://www.google.com/search?q=
+    # STARTPUNKT_WEB_CHECKFORUPDATES. Ask GitHub a few times a day whether a
+    # newer release exists, and say so in the footer of the page. The request
+    # is made by the api pods and does not say which version is running.
+    checkForUpdates: true
+    # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
+    # project on GitHub. When an update is available the corner is shown
+    # either way, in another colour and linking to the releases.
+    githubLink: true
+    # STARTPUNKT_WEB_SHOWALLCLUSTERS. With remotes configured, whether a
+    # visitor who has not chosen sees the tiles of every cluster. By default
+    # they see this cluster's only and switch the others on themselves.
+    showAllClusters: false
+    # Colours of the light and the dark appearance, as hex values, passed as
+    # STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<NAME>. The names are those of 4.x,
+    # so an existing theme can be copied over.
+    #   bodyBgColor       page background
+    #   bodyColor         group headings, icons without a colour of their own,
+    #                     and other secondary text
+    #   emphasisColor     headings and other prominent text
+    #   textPrimaryColor  tile names
+    #   textAccentColor   descriptions, focus rings and highlights
+    theme:
+      light:
+        bodyBgColor: "#F8F6F1"
+        bodyColor: "#696969"
+        emphasisColor: "#000000"
+        textPrimaryColor: "#4C432E"
+        textAccentColor: "#AA9A73"
+      dark:
+        bodyBgColor: "#232530"
+        bodyColor: "#696969"
+        emphasisColor: "#FAB795"
+        textPrimaryColor: "#FAB795"
+        textAccentColor: "#E95678"
+  log:
+    # STARTPUNKT_LOG_LEVEL: debug, info, warn or error.
+    level: info
+    # STARTPUNKT_LOG_FORMAT: json or text.
+    format: json
+
+# Which namespaces resources are read from.
+namespaceSelector:
+  # STARTPUNKT_NAMESPACESELECTOR_ANY. Read every namespace.
+  any: true
+  # STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES. The namespaces to read when any
+  # is false.
+  matchNames: []
+
+# The resource types tiles are built from. A type that the cluster does not
+# have is skipped, and picked up when it appears.
+#
+# onlyAnnotated limits a source to objects annotated with
+# startpunkt.ullberg.us/enable: "true". With onlyAnnotated off, every object
+# of the type is shown unless it is annotated with enable: "false".
+#
+# Each setting is passed as STARTPUNKT_SOURCES_<SOURCE>_<SETTING>, for example
+# STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED. Turning a source off also removes
+# its RBAC rule.
+sources:
+  # Application custom resources (startpunkt.ullberg.us).
+  application:
+    enabled: true
+  # Bookmark custom resources (startpunkt.ullberg.us).
+  bookmark:
+    enabled: true
+  # OpenShift Routes.
+  route:
+    enabled: true
+    onlyAnnotated: true
+  # Kubernetes Ingresses. One tile per host in the rules.
+  ingress:
+    enabled: true
+    onlyAnnotated: true
+    # Limit to these ingress classes. Empty means every class.
+    classNames: []
+    # Keep Ingresses without a class when classNames is set.
+    includeUnclassified: true
+  # Gateway API HTTPRoutes. One tile per hostname.
+  httpRoute:
+    enabled: true
+    onlyAnnotated: true
+    # URL scheme when the object does not set the protocol annotation: http
+    # or https. The route itself does not say which one the Gateway serves.
+    defaultProtocol: http
+  # Istio VirtualServices. One tile per host.
+  virtualService:
+    enabled: true
+    onlyAnnotated: true
+    defaultProtocol: http
+  # Resource types that have no source of their own, such as a Traefik
+  # IngressRoute. An expression says where an object is served, and the
+  # startpunkt.ullberg.us annotations do the rest, as for the sources above:
+  # they name the tile, group it, and show or hide it. The chart grants the
+  # controller get, list and watch on each type listed here.
+  #
+  # Expressions are written in CEL (https://cel.dev). The object is available
+  # as "object". Besides the standard functions and the string extensions
+  # there are hostFromRule and hostsFromRule, which take the host names out of
+  # a routing rule such as "Host(`a.example.com`) && PathPrefix(`/x`)".
+  #
+  #   custom:
+  #     - name: traefik            # for messages; unique
+  #       apiGroup: traefik.io     # empty for the core group
+  #       version: v1alpha1
+  #       resource: ingressroutes  # plural, as in "kubectl get ingressroutes"
+  #       onlyAnnotated: true      # the default; false shows every object
+  #       defaultProtocol: https   # for hosts without a scheme; default http
+  #       # Where the object is served: a string or a list of strings, each
+  #       # an address with its scheme or a bare host. One tile for each.
+  #       url: "object.spec.routes.map(r, hostFromRule(r.match))"
+  #       # Optional. What the tile shows when the object has no annotation
+  #       # for it. Without them: the object's name and its namespace.
+  #       tileName: "object.metadata.name"
+  #       tileGroup: "object.metadata.namespace"
+  #       icon: "'mdi:router'"
+  #       info: "'Served by Traefik'"
+  #
+  # A mapping whose expressions do not compile is refused as a whole, with
+  # the reason in the status of the Startpunkt resource. One that fails on a
+  # particular object skips that object and says so in the controller's log.
+  #
+  # In the environment the list is JSON: STARTPUNKT_SOURCES_CUSTOM.
+  custom: []
+
+# Probing of the tiles' URLs, done by the controller from inside the cluster.
+# An answer below 500, including a redirect or a 404, counts as available, and
+# so does a server whose certificate cannot be verified. A 5xx answer or none
+# counts as unavailable. Redirects are not followed.
+# Each setting is passed as STARTPUNKT_AVAILABILITY_<SETTING>.
+availability:
+  enabled: true
+  # Time between probes of a URL that answers.
+  interval: 60s
+  # Limit for a single probe.
+  timeout: 5s
+  # Wait after a first failure. It doubles with each further failure up to
+  # maxBackoff, and a success goes back to interval.
+  initialBackoff: 5s
+  maxBackoff: 5m
+  # Probes that may run at once.
+  concurrency: 8
+  # Accept any TLS certificate and go on to send the request. Without it, a
+  # certificate that cannot be verified already counts as available, but the
+  # request is not sent, so a 5xx answer behind such a certificate is not
+  # seen.
+  insecureSkipVerify: false
+
+# Icons named like "mdi:home" come from an Iconify API. The api pods fetch
+# each icon once, a whole icon set's worth per request, and keep it; browsers
+# load icons from the instance itself.
+icons:
+  # STARTPUNKT_ICONS_SOURCE. The public Iconify API by default. Set it to an
+  # Iconify API you host yourself to depend on nothing outside the cluster.
+  source: https://api.iconify.design
+
+# Other Startpunkt instances whose tiles are shown next to this one's.
+federation:
+  # STARTPUNKT_FEDERATION_REMOTES, as JSON. This instance subscribes to each
+  # remote; the remotes need no configuration. A remote's tiles appear under
+  # the name given here, which is part of their ids: keep it unique and do
+  # not change it. Headers are optional, for a remote behind an
+  # authenticating proxy; they end up in the pod's environment, so put
+  # secrets in extraEnv from a Secret instead.
+  #
+  # include and exclude choose what is taken from a remote. Without include
+  # everything is taken; exclude leaves tiles out, also among the included.
+  # Within one of them, every field that is given has to match:
+  #   names   patterns for the name, "*" for any text; case is ignored
+  #   groups  patterns for the group
+  #   tags    tiles that carry at least one of these tags
+  #   kinds   application, bookmark
+  #
+  #   remotes:
+  #     - name: prod
+  #       url: https://start.prod.example.com
+  #       include:
+  #         kinds: [application]
+  #         groups: [media, "home*"]
+  #       exclude:
+  #         names: [plex]
+  #         tags: [private]
+  remotes: []
+
+status:
+  # STARTPUNKT_STATUS_ENABLED. Write the resolved URL, the availability and
+  # conditions to the status of Application resources, and grant the
+  # controller patch on applications/status. Next to a 4.x installation the
+  # API server drops these fields, because the 4.x definitions declare an
+  # empty status; the controller notices and stops trying.
+  enabled: true
+
+# Changing Applications and Bookmarks from the page. Off by default: the page
+# then only shows what is in the cluster.
+#
+# With editing on, the page has a lock in its corner. Whoever enters the edit
+# key there can create, change and delete Application and Bookmark resources.
+# The key is one shared secret, not a login: everyone who has it can edit, and
+# changes are not attributed to a person. The controller is granted create,
+# update and delete on the two resource types.
+editing:
+  enabled: false
+  # The key, at least 16 characters. The chart puts it in a Secret. Leave it
+  # empty and name a Secret of your own below to keep the key out of the
+  # values.
+  key: ""
+  # A Secret in the release's namespace that holds the key, and the name of
+  # the entry in it.
+  existingSecret: ""
+  existingSecretKey: key
+  # STARTPUNKT_EDITING_NAMESPACE. Where the page creates resources. Empty
+  # means the release's namespace. With namespaceSelector.matchNames it has to
+  # be one of the namespaces that are read.
+  namespace: ""
+
+# Extra environment variables for every container.
+extraEnv: []
+
+# Replicas per Deployment. "all" is used in single mode, the others in split
+# mode. Every process is stateless, so more than one replica of each is safe.
+replicas:
+  all: 1
+  controller: 1
+  api: 1
+  web: 1
+
+# Resources per Deployment, keyed like replicas. Example:
+#   resources:
+#     all:
+#       requests: {cpu: 10m, memory: 32Mi}
+#       limits: {memory: 128Mi}
+resources: {}
+
+serviceAccount:
+  annotations: {}
+
+rbac:
+  # Create the ClusterRole and ClusterRoleBinding that let the controller
+  # read the resources tiles are built from.
+  create: true
+  # Additional rules for the ClusterRole. An Application's urlFrom can read
+  # its URL from any object, and the controller needs get, list and watch on
+  # that object's type. The enabled sources are covered already. Example:
+  #   extraRules:
+  #     - apiGroups: [""]
+  #       resources: [configmaps]
+  #       verbs: [get, list, watch]
+  extraRules: []
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: startpunkt.example.com
+  # Name of a TLS secret for the host. Empty means no TLS section.
+  tlsSecretName: ""
+
+# OpenShift Route. In split mode two Routes are created on the same host, one
+# for /api and one for everything else.
+route:
+  enabled: false
+  # Empty lets the router generate a host. In split mode a host is required,
+  # because both Routes must share it.
+  host: ""
+  annotations: {}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+podAnnotations: {}
+podLabels: {}
+
+# The image runs as a non-root user and writes nothing to disk. No user id is
+# set here, so OpenShift can assign one.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,21 @@
+{{- /*
+The Application and Bookmark definitions. They are templates rather than
+files in the crds directory so that an upgrade of the chart upgrades them,
+and so that they can be left out next to a 4.x release, which brings its
+own. The files themselves are generated; see `make crds`.
+*/ -}}
+{{- if .Values.crds.install }}
+{{- range $path, $_ := .Files.Glob "files/crds/*.yaml" }}
+{{- $crd := $.Files.Get $path | fromYaml }}
+{{- $annotations := dict }}
+{{- if $.Values.crds.keep }}
+{{- /* Deleting a definition deletes every resource of its kind. */ -}}
+{{- $_ := set $annotations "helm.sh/resource-policy" "keep" }}
+{{- /* The same for a release that Argo CD deploys. */ -}}
+{{- $_ := set $annotations "argocd.argoproj.io/sync-options" "Delete=false" }}
+{{- end }}
+{{- $metadata := dict "name" $crd.metadata.name "labels" (include "startpunkt.commonLabels" $ | fromYaml) "annotations" (merge $annotations ($crd.metadata.annotations | default dict)) }}
+---
+{{ toYaml (merge (dict "metadata" $metadata) $crd) }}
+{{- end }}
+{{- end }}

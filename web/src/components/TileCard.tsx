@@ -1,0 +1,178 @@
+import { canEdit, editTarget, targetOf } from '../editing';
+import type { Card } from '../cards';
+import { clusterColors } from '../clusters';
+import { t } from '../i18n';
+import { prefs, toggleFavorite } from '../prefs';
+import type { Tile } from '../types';
+import { safeHref } from '../url';
+import { FitText } from './FitText';
+import { Icon } from './Icons';
+import { TileIcon } from './TileIcon';
+
+// The controls that move a favorite, for those who do not drag.
+export interface Reorder {
+  first: boolean;
+  last: boolean;
+  onMove: (delta: -1 | 1) => void;
+}
+
+// One cluster of a card. On a card that stands for several clusters each
+// pill is a link to that cluster's instance of the service and says, in its
+// name and with a mark, whether that instance answers.
+function Pill({ tile, link }: { tile: Tile; link: boolean }) {
+  const state =
+    tile.available === true ? 'available' : tile.available === false ? 'unavailable' : 'unknown';
+  const label = t(`pill.${state}`, { name: tile.name, cluster: tile.cluster });
+  const body = (
+    <>
+      {/* Filled or hollow, so that the state is not told by colour alone. */}
+      {state !== 'unknown' && (
+        <span class={`pill-mark pill-${state}`} aria-hidden="true">
+          {state === 'available' ? '●' : '○'}
+        </span>
+      )}
+      {tile.cluster}
+    </>
+  );
+  const href = link ? safeHref(tile.url) : null;
+  // The cluster's own colour, the same as on its button above the tiles.
+  const style = { '--cluster': clusterColors.value[tile.cluster] ?? 'currentColor' };
+  return href ? (
+    <a
+      class="pill"
+      style={style}
+      href={href}
+      aria-label={label}
+      title={label}
+      target={tile.targetBlank ? '_blank' : undefined}
+      rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+    >
+      {body}
+    </a>
+  ) : (
+    <span class="pill" style={style} aria-label={label} title={label}>
+      {body}
+    </span>
+  );
+}
+
+export function TileCard({
+  card,
+  iconColor,
+  reorder,
+  showCluster = false,
+}: {
+  card: Card;
+  iconColor: string;
+  reorder?: Reorder;
+  // Name the clusters on the card, when tiles of several clusters are shown.
+  showCluster?: boolean;
+}) {
+  const { layout, favorites } = prefs.value;
+  const tile = card.primary;
+  const combined = card.members.length > 1;
+  const href = safeHref(tile.url);
+  // Only a probe that failed marks a card, and a combined card only when
+  // every one of its clusters failed: the pills tell them apart.
+  const unavailable = card.members.every((member) => member.available === false);
+  const ids = card.members.map((member) => member.id);
+  // A combined card is a favorite when any of its tiles is, and the star
+  // adds or removes all of them.
+  const favorite = ids.some((id) => favorites.includes(id));
+  const editable = canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
+  const body = (
+    <>
+      <TileIcon tile={tile} color={iconColor} />
+      <span class="tile-text">
+        <span class="tile-name">{tile.name}</span>
+        {layout.showDescription && tile.info && (
+          <FitText class="tile-info" text={tile.info} lines={layout.descriptionLines} />
+        )}
+        {layout.showTags && tile.tags.length > 0 && (
+          <span class="tile-tags" aria-label={t('tile.tags', { tags: tile.tags.join(', ') })}>
+            {tile.tags.map((tag) => (
+              <span class="tile-tag" key={tag}>
+                {tag}
+              </span>
+            ))}
+          </span>
+        )}
+        {/* Said in words, not only by dimming, and part of the link's name. */}
+        {unavailable && layout.showStatus && <span class="tile-badge">{t('tile.offline')}</span>}
+      </span>
+    </>
+  );
+  return (
+    <div class={unavailable && layout.showStatus ? 'tile tile-unavailable' : 'tile'}>
+      <div class="tile-main">
+        {href ? (
+          <a
+            class="tile-link"
+            href={href}
+            target={tile.targetBlank ? '_blank' : undefined}
+            rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+          >
+            {body}
+          </a>
+        ) : (
+          <div class="tile-link tile-disabled" title={t('tile.noLink')}>
+            {body}
+          </div>
+        )}
+        {/* Next to the card's link, not inside it: a link in a link is not
+            valid, and each cluster has to be reachable on its own. */}
+        {showCluster && (
+          <span class="tile-pills">
+            {card.members.map((member) => (
+              <Pill key={member.id} tile={member} link={combined} />
+            ))}
+          </span>
+        )}
+      </div>
+      {reorder && (
+        <span class="tile-move">
+          <button
+            type="button"
+            aria-label={t('favorites.moveEarlier', { name: tile.name })}
+            disabled={reorder.first}
+            onClick={() => reorder.onMove(-1)}
+          >
+            <Icon name="left" size={16} />
+          </button>
+          <button
+            type="button"
+            aria-label={t('favorites.moveLater', { name: tile.name })}
+            disabled={reorder.last}
+            onClick={() => reorder.onMove(1)}
+          >
+            <Icon name="right" size={16} />
+          </button>
+        </span>
+      )}
+      {/* While the page is unlocked, a tile that is an Application or a
+          Bookmark of this cluster can be changed. On a combined card that
+          is the local cluster's tile. */}
+      {editable && (
+        <button
+          type="button"
+          class="tile-edit"
+          aria-label={t('edit.change', { name: tile.name })}
+          onClick={() => (editTarget.value = editable)}
+        >
+          <Icon name="edit" size={16} />
+        </button>
+      )}
+      {/* Next to the link, not inside it: a button in a link is not valid
+          and cannot be reached separately with the keyboard. */}
+      <button
+        type="button"
+        class="tile-favorite"
+        aria-pressed={favorite}
+        aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', { name: tile.name })}
+        onClick={() => toggleFavorite(ids)}
+      >
+        <Icon name={favorite ? 'star' : 'starOutline'} size={18} />
+      </button>
+    </div>
+  );
+}

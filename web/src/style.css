@@ -1,0 +1,1199 @@
+/* Colours come from the server's theme and are set on the root element as
+   --bg, --muted, --text, --primary and --accent. Everything else is derived
+   from those here, so a theme only ever has to name five colours. The values
+   below are the default light theme, used until the server has answered. */
+:root {
+  color-scheme: light;
+  --bg: #f8f6f1;
+  --muted: #696969;
+  --text: #000000;
+  --primary: #4c432e;
+  --accent: #aa9a73;
+  --error: #b3261e;
+  --surface: color-mix(in srgb, var(--bg) 92%, var(--text));
+  --border: color-mix(in srgb, var(--bg) 78%, var(--text));
+  --radius: 10px;
+  --gap: 0.75rem;
+  --tile-min: 240px;
+  --tile-pad: 0.45rem;
+  --columns: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+/* The default dark theme, for the time before the server has answered. The
+   page is dark from its first frame: see public/boot.js. */
+:root[data-mode='dark'] {
+  color-scheme: dark;
+  --bg: #232530;
+  --muted: #696969;
+  --text: #fab795;
+  --primary: #fab795;
+  --accent: #e95678;
+  --error: #ffb4ab;
+}
+
+:root[data-spacing='tight'] {
+  --gap: 0.4rem;
+}
+
+:root[data-spacing='relaxed'] {
+  --gap: 1.25rem;
+}
+
+:root[data-compact='true'] {
+  --tile-min: 180px;
+  --tile-pad: 0.25rem;
+}
+
+/* High contrast: secondary text and borders take the full text colour. */
+:root[data-contrast='high'] {
+  --muted: var(--text);
+  --border: var(--text);
+  --accent: var(--text);
+  --surface: var(--bg);
+}
+
+/* The handwritten typeface is part of the bundle; nothing is fetched from
+   a font service. It is only downloaded when it is switched on. */
+:root[data-font='handwritten'] {
+  font-family: 'Caveat', cursive;
+  font-size-adjust: 0.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The page colour is on the root element only. On the body it would be
+   painted over the background picture, which sits behind the content. */
+html {
+  background: var(--bg);
+}
+
+/* A column as tall as the window, so that the footer sits at its bottom
+   when the content is short. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+}
+
+.icon {
+  flex: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-position: center;
+  background-size: cover;
+}
+
+.background-pattern {
+  background-position: center;
+  background-repeat: repeat;
+  background-size: auto;
+}
+
+.background-animated {
+  background-size: 200% 200%;
+}
+
+@keyframes mesh-drift {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  12% {
+    background-position: 85% 15%;
+  }
+  28% {
+    background-position: 92% 72%;
+  }
+  45% {
+    background-position: 23% 88%;
+  }
+  62% {
+    background-position: 8% 45%;
+  }
+  78% {
+    background-position: 67% 12%;
+  }
+  92% {
+    background-position: 18% 65%;
+  }
+}
+
+/* Only for visitors whose system does not ask for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .background-animated {
+    animation: mesh-drift 40s ease-in-out infinite;
+  }
+}
+
+.background-credit {
+  position: fixed;
+  left: 0.5rem;
+  bottom: 0.25rem;
+  margin: 0;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  color: var(--text);
+  font-size: 0.7rem;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-header,
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* The logo and the title, centred. */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding-top: 1rem;
+}
+
+.logo {
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+}
+
+/* The corner that links to the project. It turns to the accent colour and
+   points at the releases when a newer one exists. */
+.github-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  color: #fff;
+}
+
+.github-corner svg {
+  display: block;
+  fill: #151513;
+}
+
+.github-corner.has-update {
+  color: #ff9f1a;
+}
+
+.corner-actions {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 5;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.corner-actions .icon-button {
+  padding: 0.55rem;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+}
+
+/* Only where there is no keyboard to start typing on. */
+.touch-only {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-only {
+    display: inline-grid;
+  }
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+h2 {
+  margin: 2rem 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+/* The heading of a cluster's section carries the cluster's colour, as its
+   button does. */
+.cluster-heading::before {
+  content: '';
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  background: var(--cluster);
+}
+
+/* A line under each group heading separates the groups. */
+h3 {
+  margin: 0.8rem 0 0.4rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+main {
+  width: 100%;
+  padding-bottom: 1rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Frosted glass: what shows through the panel is blurred. */
+:root[data-overlay='true'][data-overlay-blur='true'] main {
+  -webkit-backdrop-filter: blur(var(--overlay-blur, 3px));
+  backdrop-filter: blur(var(--overlay-blur, 3px));
+}
+
+/* A translucent panel behind the content, for busy backgrounds. */
+:root[data-overlay='true'] main {
+  margin-top: 0.6rem;
+  padding-top: 0.25rem;
+  border-radius: var(--radius);
+  background: var(--overlay);
+}
+
+/* The logo and the title have no panel: they sit straight on the
+   background. On anything but the plain theme background they are nearly
+   white with a strong shadow, which stays readable on any picture. The
+   footer is treated the same way. */
+:root:not([data-background='theme']) .page-header h1,
+:root:not([data-background='theme']) .page-footer,
+:root:not([data-background='theme']) .page-footer a {
+  color: rgb(255 255 255 / 92%);
+}
+
+:root:not([data-background='theme']) .page-header h1 {
+  text-shadow:
+    0 2px 4px rgb(0 0 0 / 85%),
+    0 4px 14px rgb(0 0 0 / 70%),
+    0 0 28px rgb(0 0 0 / 45%);
+}
+
+:root:not([data-background='theme']) .page-header .logo {
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%));
+}
+
+:root:not([data-background='theme']) .page-footer {
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 85%),
+    0 2px 8px rgb(0 0 0 / 65%);
+}
+
+.page-footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto auto 0;
+  padding: 0.75rem 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.page-footer p {
+  margin: 0.2rem 0;
+}
+
+.page-footer a {
+  color: inherit;
+}
+
+.page-footer .update {
+  font-weight: 600;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.4rem;
+}
+
+kbd {
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem 0.15rem 0;
+  border: 0;
+  background: none;
+  /* The same colour as the icons. */
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.group-toggle[aria-expanded='false'] .icon {
+  transform: rotate(-90deg);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each list says how many columns it wants in --columns. On a narrow screen
+   that is ignored and the list fits what it can. */
+@media (min-width: 640px) {
+  .tiles {
+    grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr));
+  }
+
+  /* The favorites: rows as wide as their tiles need, centred. */
+  .tiles-centred {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tiles-centred > li {
+    flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+    min-width: 0;
+  }
+}
+
+.favorites {
+  margin: 0.8rem 0 0.4rem;
+}
+
+.skeleton {
+  display: block;
+  border-radius: var(--radius);
+  background: var(--border);
+  opacity: 0.6;
+}
+
+.skeleton-tab {
+  width: 6.5rem;
+  height: 2rem;
+  margin: 0 0 0.4rem 0.4rem;
+}
+
+.skeleton-heading {
+  width: 9rem;
+  height: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.skeleton-tile {
+  height: calc(40px + 2 * var(--tile-pad));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Marking the tile under the pointer is a preference. Keyboard focus is
+   always shown, by the outline on the link itself. */
+:root[data-hover='true'] .tile:hover {
+  border-color: var(--accent);
+}
+
+/* Without boxes a tile has no border or surface of its own. */
+:root[data-boxes='false'] .tile {
+  border-color: transparent;
+  background: none;
+}
+
+:root[data-boxes='false'][data-hover='true'] .tile:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+/* Content starts at the top of the tile. In a row of tiles with
+   descriptions of different lengths, icons and names then sit on one line
+   instead of each being centred in its own tile. */
+.tile-link {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: calc(40px + 2 * var(--tile-pad));
+  padding: var(--tile-pad);
+  padding-right: 2.25rem;
+  border-radius: var(--radius);
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile-disabled {
+  opacity: 0.6;
+}
+
+.tile-favorite {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+}
+
+/* Shown when the tile is pointed at, and whenever it has focus, so that it
+   is never an invisible stop for keyboard users. A favorite needs no mark
+   of its own: it is in the favorites row. Devices without hover always
+   show the star, since there is no other way to reach it. */
+.tile:hover .tile-favorite,
+.tile-favorite:focus-visible {
+  opacity: 1;
+}
+
+.tile-favorite[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+@media (hover: none) {
+  .tile-favorite {
+    opacity: 1;
+  }
+}
+
+.tile-move {
+  position: absolute;
+  right: 0.2rem;
+  bottom: 0.2rem;
+  display: flex;
+  gap: 0.1rem;
+  opacity: 0;
+}
+
+.tile:hover .tile-move,
+.tile-move:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tile-move {
+    opacity: 1;
+  }
+}
+
+.tile-move button {
+  display: grid;
+  place-items: center;
+  padding: 0.1rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+}
+
+li[draggable='true'] {
+  cursor: grab;
+}
+
+/* Where a dragged favorite would land. */
+.drop-target .tile {
+  outline: 3px dashed var(--accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.tile-unavailable .tile-icon,
+.tile-unavailable .tile-name,
+.tile-unavailable .tile-info {
+  opacity: 0.55;
+}
+
+/* The text of a description, inside .tile-info. It is sized by the page to
+   stay within its lines. */
+.fit {
+  display: block;
+}
+
+/* A description that does not fit its lines even at the smallest size. */
+.fit.fit-cut {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines);
+  line-clamp: var(--lines);
+}
+
+/* Under the text, so that it takes no width from the name and the
+   description. */
+.tile-badge {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--error);
+  border-radius: 999px;
+  color: var(--error);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tile-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+:root[data-compact='true'] .tile-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.tile-icon-fallback {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tile-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tile-name {
+  color: var(--primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* The link of a card, and under it the clusters the card stands for. */
+.tile-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tile-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  /* In line with the text: past the icon and the gap next to it. */
+  padding: 0 var(--tile-pad) var(--tile-pad) calc(var(--tile-pad) + 40px + 0.75rem);
+}
+
+:root[data-compact='true'] .tile-pills {
+  padding-left: calc(var(--tile-pad) + 28px + 0.75rem);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.45rem;
+  /* In the cluster's own colour, softened a little towards the text colour
+     so that it stays readable on the light and on the dark theme. */
+  border: 1px solid color-mix(in srgb, var(--cluster, var(--border)) 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cluster, transparent) 14%, transparent);
+  color: color-mix(in srgb, var(--cluster, var(--muted)) 78%, var(--text));
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+a.pill:hover {
+  border-color: var(--cluster, var(--accent));
+  background: color-mix(in srgb, var(--cluster, transparent) 28%, transparent);
+}
+
+.pill-mark {
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.pill-available {
+  color: #3fb950;
+}
+
+.pill-unavailable {
+  color: var(--error);
+}
+
+/* The row above the tiles: clusters to show on the left, tabs on the right. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar .tabs {
+  margin-top: 0;
+  border-bottom: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+.chip {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* A shown cluster is marked by weight and a solid border, a hidden one by a
+   dashed border and a line through its name. */
+.chip[aria-pressed='true'] {
+  border-color: var(--cluster, var(--accent));
+  background: color-mix(in srgb, var(--cluster, transparent) 16%, transparent);
+  color: color-mix(in srgb, var(--cluster, var(--text)) 78%, var(--text));
+  font-weight: 600;
+}
+
+.chip[aria-pressed='false'] {
+  border-style: dashed;
+  text-decoration: line-through;
+}
+
+.chip-warning {
+  margin-left: 0.3rem;
+  color: var(--error);
+  font-weight: 700;
+}
+
+.tile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.tile-tag {
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.tile-info {
+  color: var(--accent);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.notice {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+}
+
+.notice-error {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  color: var(--error);
+}
+
+.notice-error p {
+  margin: 0 0 0.5rem;
+}
+
+dialog {
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.spotlight {
+  margin-top: 12vh;
+}
+
+.spotlight-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.spotlight-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+.spotlight-results {
+  max-height: 50vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.spotlight-option .tile-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 0.8rem;
+}
+
+.spotlight-option .tile-tags {
+  flex: none;
+  margin-top: 0;
+}
+
+.spotlight-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+/* The active option is marked by a bar as well as by its background. */
+.spotlight-active {
+  background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.spotlight-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.spotlight-detail {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spotlight-badge {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.spotlight-status {
+  margin: 0;
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.settings-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.settings-header h2 {
+  margin: 0;
+}
+
+.settings-body {
+  padding: 0.5rem 1rem 1rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings .tabs {
+  padding: 0.5rem 1rem 0;
+}
+
+/* The tabs for applications and bookmarks sit at the top right. */
+main > .tabs,
+.skeleton-page > .tabs {
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.tabs button {
+  margin-bottom: -1px;
+  border-color: transparent;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  color: var(--muted);
+}
+
+/* The selected tab is marked by its border and weight as well as colour. */
+.tabs button[aria-selected='true'] {
+  border-color: var(--border);
+  border-bottom-color: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.field input[type='range'] {
+  flex: 1;
+  max-width: 14rem;
+  accent-color: var(--primary);
+}
+
+.field output {
+  min-width: 3rem;
+  text-align: right;
+}
+
+.field input[type='text'] {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.swatches {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.help {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.presets {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presets li {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.presets li button:first-child {
+  flex: 1;
+  text-align: left;
+}
+
+.presets button[aria-pressed='true'] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.preset-save {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.preset-save input {
+  flex: 1;
+  min-width: 0;
+}
+
+fieldset {
+  margin: 1rem 0 0;
+  padding: 0.25rem 1rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+legend {
+  padding: 0 0.4rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.field-check {
+  justify-content: flex-start;
+  gap: 0.6rem;
+}
+
+.field-wide {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+
+.field small {
+  display: block;
+  color: var(--muted);
+}
+
+.field select,
+.field input[type='url'] {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.field input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--primary);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepper output {
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+.settings-reset {
+  margin-top: 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .group-toggle .icon,
+  .tile-favorite {
+    transition:
+      transform 0.15s,
+      opacity 0.15s;
+  }
+}
+
+@media (forced-colors: active) {
+  .tile,
+  dialog {
+    border: 1px solid CanvasText;
+  }
+
+  .spotlight-active {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* The unlock dialog and the editors. */
+.editor {
+  width: min(32rem, calc(100vw - 2rem));
+}
+
+.editor .field input[type='text'],
+.editor .field input[type='url'],
+.editor .field input[type='number'],
+.editor .field input[type='password'] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.form-error {
+  margin: 0.8rem 0 0;
+  color: var(--error);
+}
+
+/* The buttons stay in view while a long form scrolls behind them. */
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem -1rem -1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.form-spacer {
+  flex: 1;
+}
+
+.button-primary {
+  font-weight: 600;
+}
+
+.button-danger {
+  color: var(--error);
+}
+
+/* The edit control of a tile sits under its star and behaves like it: shown
+   on hover and focus, and always where there is no hover. */
+.tile-edit {
+  position: absolute;
+  top: 1.7rem;
+  right: 0.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+}
+
+.tile:hover .tile-edit,
+.tile-edit:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tile-edit {
+    opacity: 1;
+  }
+}
