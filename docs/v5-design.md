@@ -442,7 +442,7 @@ The chart's own definitions carry `helm.sh/resource-policy: keep` from the start
 
 ## Milestones
 
-Order of the remaining work: federation is finished first, then release packaging (8). Editing (6) and user-defined mappings (9) come after that.
+All nine milestones are done. They were built in the order 1 to 5, 7, 8, 6, 9.
 
 Every milestone ends with an image that runs next to a 4.x installation on a real cluster, so each step is compared against 4.x on the same data.
 
