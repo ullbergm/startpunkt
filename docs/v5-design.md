@@ -204,7 +204,7 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 | `GET /state` | Open | Full snapshot: tiles, clusters with their connection state, UI configuration (title, theme, default language, search engine), and whether editing is available. Supports `ETag`. |
 | `GET /events` | Open | SSE stream. Sends a full snapshot on every connect, then `tile.upsert`, `tile.delete` and `cluster.status` events. |
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
-| `POST /applications`, `PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, update and delete Application resources on the local cluster. Same for `/bookmarks`. |
+| `POST /applications`, `GET`/`PUT`/`DELETE /applications/{namespace}/{name}` | Edit key | Create, read, update and delete Application resources on the local cluster. Same for `/bookmarks`. Reading returns the spec as it is stored, which the editor needs because a tile does not carry all of it: `urlFrom` and `rootPath` are resolved into the tile's address. |
 | `GET /version` | Open | The running version and, when update checking is on, the newer release if there is one. |
 | `GET /icons/{set}/{name}.svg` | Open | An Iconify icon, optionally in a given colour. The instance fetches each icon from the Iconify API once and keeps it in memory, a few at a time, so browsers never ask the icon service themselves. Icons of one set that are asked for within a moment of each other go out as one request, because the public API refuses a client that asks for icons one by one. The address of the Iconify API is a setting, so a self-hosted one can be used instead of the public one. An icon that does not exist is remembered as missing for an hour. |
 | `GET /background` | Open | Address, title and copyright of the Bing picture of the day. The lookup is server-side because of CORS and is kept for an hour; the browser loads the picture itself from Bing. The page sends the size of the screen, and the answer names the size of picture that suits it. Served by the roles a browser talks to. |
@@ -224,7 +224,11 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 - Editing applications and bookmarks requires an edit key. The operator supplies the key from a Kubernetes Secret.
 - When no edit key is configured, editing is disabled: the write endpoints reject every request and the UI shows no unlock button.
 - When a key is configured, the UI shows an unlock button. It prompts for the key, checks it against `GET /unlock`, and stores it in `localStorage`. While unlocked, tiles with `editable: true` show edit and delete controls, and the UI can create new applications and bookmarks. A lock action removes the stored key.
-- The key is sent as `Authorization: Bearer <key>` on write requests. The server compares it in constant time and rate-limits failed attempts.
+- The key is sent as `Authorization: Bearer <key>` on write requests. The server compares it in constant time and rate-limits failed attempts. The limit is for the whole process, not per client, because behind a proxy a client's address is whatever the request claims: after ten wrong keys in a row every attempt is refused until one is earned back, six seconds each. Someone who keeps guessing can keep editing locked, and no more than that.
+- Only the controller can write to the cluster. In split mode the `api` role checks the key and hands the request to the controller over the internal address, and the controller checks the key again, since anything inside the cluster can reach it. Both get the key from the same Secret.
+- What is written is validated first: the spec is decoded strictly against the resource's fields, required fields have to be there, and an address has to be `http` or `https`. A namespace has to be one the instance reads.
+- A new resource is created in the namespace the instance is configured with, the release's own by default, under a name derived from the tile's name.
+- The key is never part of the `Startpunkt` resource or the configuration file. It has to be at least 16 characters long.
 - The key is a shared secret, not a per-user identity. Anyone who has it can edit, and changes are not attributed to a person.
 - A key in `localStorage` can be read by any script running on the page's origin. The UI therefore loads no third-party scripts, and all tile content is rendered as text.
 - Operators who want to restrict reading put an authenticating proxy in front of the instance.
@@ -440,9 +444,9 @@ Every milestone ends with an image that runs next to a 4.x installation on a rea
 3. Live updates: UI driven by the event stream.
 4. Availability: prober and status writes. Status cannot be verified through `kubectl` until the cutover, because the 4.x definitions have an empty status schema.
 5. UI parity: spotlight search, favorites, layout and background preferences, themes, i18n, accessibility.
-6. Editing: edit key, unlock flow, write endpoints and editors in the UI.
+6. Editing: edit key, unlock flow, write endpoints and editors in the UI. Done, after federation and packaging.
 7. Federation: remote subscription, stale handling, cluster filter, cluster pill, both layouts and combined cards. Testing needs v5 on at least two clusters. Done.
-8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart from a tag. A release made now is one without editing.
+8. Release packaging: full chart with all CRD versions, the cutover procedure tested end to end, migration notes, documentation. Done, together with CI and a release workflow that publishes the image and the chart from a tag.
 9. User-defined CEL mappings. This can follow the first release.
 
 Added along the way: configuration through the `Startpunkt` and `Remote` resources, built after federation. Its definitions are in the chart's `crds` directory and are generated with `make crds`.

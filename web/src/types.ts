@@ -44,7 +44,8 @@ export interface ServerState {
   tiles: Tile[];
   clusters: Cluster[];
   config: UIConfig;
-  editing: { available: boolean };
+  // namespace is where a new resource is created.
+  editing: { available: boolean; namespace?: string };
 }
 
 export interface Palette {

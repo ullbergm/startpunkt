@@ -28,6 +28,7 @@
   - [Application resources](#application-resources)
   - [Bookmark resources](#bookmark-resources)
   - [Tags](#tags)
+- [Editing from the page](#editing-from-the-page)
 - [Configuration](#configuration)
 - [Several clusters on one page](#several-clusters-on-one-page)
 - [The page](#the-page)
@@ -51,6 +52,7 @@
 - **Several clusters.** One instance can show the services of other instances next to its own, and combines a service that runs on several clusters into one card.
 - **Search.** Start typing anywhere on the page to find a service, or search the web with a `?` in front.
 - **Yours to arrange.** Favorites, columns, spacing, backgrounds, themes and saved presets, per browser.
+- **Editing, if you want it.** With an edit key configured, applications and bookmarks can be added, changed and deleted from the page.
 - **GitOps ready.** Services, bookmarks and the settings of the instance are Kubernetes resources. A change to the settings is applied without a restart.
 - **Small.** One static binary in a distroless image. No database, no third-party scripts on the page.
 - **Accessible.** Semantic HTML, full keyboard navigation, visible focus, a high contrast mode and adjustable text size.
@@ -200,6 +202,26 @@ Tags choose what a visitor sees by the address they open. A tile without tags is
 
 Tags are a way to keep the page tidy, not access control: every visitor can open any path. See [object tag filtering](docs/object-tag-filtering.md).
 
+## Editing from the page
+
+By default the page only shows what is in the cluster. To let people add, change and delete `Application` and `Bookmark` resources from the page, give the instance an edit key:
+
+```shell
+kubectl -n startpunkt create secret generic startpunkt-edit-key --from-literal=key="$(openssl rand -base64 24)"
+helm upgrade startpunkt oci://ghcr.io/ullbergm/charts/startpunkt --namespace startpunkt --reuse-values \
+  --set editing.enabled=true --set editing.existingSecret=startpunkt-edit-key
+```
+
+The page then has a lock in its corner. Whoever enters the key there gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a button to add new ones. New resources are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it.
+
+Things to know before turning it on:
+
+- The key is one shared secret, not a login. Everyone who has it can edit, and changes are not attributed to a person. It has to be at least 16 characters long.
+- The browser keeps the key until the page is locked again.
+- The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
+- Only `http` and `https` addresses are accepted.
+- Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone.
+
 ## Configuration
 
 The settings of an instance are a `Startpunkt` resource, which the chart creates from its values. The instance watches it and applies a change without a restart, and reports in the resource's status whether the settings are valid and in use:
@@ -285,6 +307,8 @@ The page uses a small HTTP API, and so can anything else:
 | `GET /api/v1/events` | The same as a server-sent event stream: a snapshot, then every change as it happens |
 | `GET /api/v1/version` | The running version, and a newer release when there is one |
 | `GET /healthz`, `GET /readyz` | Liveness and readiness |
+
+With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`.
 
 ## Upgrading from 4.x
 

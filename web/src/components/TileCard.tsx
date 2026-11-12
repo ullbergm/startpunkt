@@ -1,3 +1,4 @@
+import { canEdit, editTarget, targetOf } from '../editing';
 import type { Card } from '../cards';
 import { clusterColors } from '../clusters';
 import { t } from '../i18n';
@@ -78,6 +79,7 @@ export function TileCard({
   // A combined card is a favorite when any of its tiles is, and the star
   // adds or removes all of them.
   const favorite = ids.some((id) => favorites.includes(id));
+  const editable = canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
   const body = (
     <>
       <TileIcon tile={tile} color={iconColor} />
@@ -146,6 +148,19 @@ export function TileCard({
             <Icon name="right" size={16} />
           </button>
         </span>
+      )}
+      {/* While the page is unlocked, a tile that is an Application or a
+          Bookmark of this cluster can be changed. On a combined card that
+          is the local cluster's tile. */}
+      {editable && (
+        <button
+          type="button"
+          class="tile-edit"
+          aria-label={t('edit.change', { name: tile.name })}
+          onClick={() => (editTarget.value = editable)}
+        >
+          <Icon name="edit" size={16} />
+        </button>
       )}
       {/* Next to the link, not inside it: a button in a link is not valid
           and cannot be reached separately with the keyboard. */}

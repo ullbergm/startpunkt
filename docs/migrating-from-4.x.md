@@ -14,7 +14,6 @@ If your 4.x installation uses the image tag `latest`, pin it to a 4.x version be
 
 ### Not in v5
 
-- **Editing on the page.** 4.x could create, change and delete Applications and Bookmarks from the page. v5.0 shows what is in the cluster and does not change it. Manage the resources with `kubectl` or from Git. Editing is planned to return, behind a key that has to be configured.
 - **Hajimari.** `hajimari.io` resources and annotations are not read, and there is no conversion for them. Recreate them as `Application` and `Bookmark` resources or as `startpunkt.ullberg.us` annotations.
 - **The GraphQL API and the WebSocket endpoint.** The API is now a snapshot at `/api/v1/state` and a server-sent event stream at `/api/v1/events`. See the README.
 - **Metrics.** There is no Prometheus endpoint and the chart has no ServiceMonitor.
@@ -24,6 +23,7 @@ If your 4.x installation uses the image tag `latest`, pin it to a 4.x version be
 
 ### Changed
 
+- **Editing on the page is off until you give the instance an edit key.** In 4.x anyone who could open the page could create, change and delete Applications and Bookmarks. In v5 that takes a key, which you configure and hand to the people who should edit. See "Editing from the page" in the README.
 - **Search** finds services by name: each word you type has to be the start of a word in the name. It no longer matches loosely or looks in descriptions. It opens when you start typing; there is no button for it on a device with a keyboard.
 - **Text size** is chosen from a few steps between 85% and 150%, not on a slider.
 - **Preferences are not carried over.** Favorites, layout, background and theme are stored in the browser under new names, so every visitor starts from the defaults.

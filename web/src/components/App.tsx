@@ -2,6 +2,7 @@ import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
 import { clusterColors, orderClusters } from '../clusters';
+import { canEdit, editTarget, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { clusterShown, prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
@@ -9,6 +10,7 @@ import { filterByTags, tagsFromPath } from '../tags';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { ClusterChips } from './ClusterChips';
+import { EditControls, Editor, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
 import { GitHubCorner } from './GitHubCorner';
@@ -37,13 +39,14 @@ export function App({
   const error = fatalError.value;
   const status = connection.value;
   const p = prefs.value;
-  const [dialog, setDialog] = useState<'search' | 'settings' | null>(null);
+  const [dialog, setDialog] = useState<'search' | 'settings' | 'unlock' | null>(null);
+  const editing: EditTarget | null = editTarget.value;
   const versionInfo = useVersion(fetchVersion);
   const update = availableUpdate(versionInfo);
   const [chosen, setChosen] = useState<Kind | null>(null);
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
-  dialogOpen.current = dialog !== null;
+  dialogOpen.current = dialog !== null || editing !== null;
 
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {
@@ -265,6 +268,13 @@ export function App({
         >
           <Icon name="search" />
         </button>
+        {state?.editing.available && (
+          <EditControls
+            isUnlocked={canEdit.value}
+            onUnlock={() => setDialog('unlock')}
+            onAdd={() => (editTarget.value = { kind: view })}
+          />
+        )}
         <button type="button" class="icon-button" aria-label={t('settings.open')} onClick={() => setDialog('settings')}>
           <Icon name="settings" />
         </button>
@@ -277,6 +287,16 @@ export function App({
           searchEngine={state.config.searchEngine}
           showCluster={showCluster}
           onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === 'unlock' && <Unlock onClose={() => setDialog(null)} />}
+      {editing && state && canEdit.value && (
+        <Editor
+          // A new dialog for each resource, so nothing of the last one is left.
+          key={`${editing.kind}/${editing.namespace ?? ''}/${editing.name ?? ''}`}
+          target={editing}
+          namespace={state.editing.namespace ?? ''}
+          onClose={() => (editTarget.value = null)}
         />
       )}
       {dialog === 'settings' && <Settings clusters={clusters} shownClusters={shownNames} onClose={() => setDialog(null)} />}

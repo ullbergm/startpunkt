@@ -11,7 +11,8 @@
 #      the old versions.
 #
 # It also checks that a release installed on its own leaves the definitions
-# behind when it is uninstalled.
+# behind when it is uninstalled, and that editing works through the chart,
+# with the key in a Secret and the roles in separate pods.
 #
 # Needs docker, kind, kubectl, helm and curl. Nothing outside the kind
 # cluster is touched: it has a kubeconfig of its own, so the current context
@@ -251,5 +252,38 @@ spec: {name: First, url: "http://first.example.invalid"}
 EOF
 forward_to fresh start-startpunkt
 eventually "a new release serves its first application" has_tiles "application First"
+
+step "editing from the page, with the roles in separate pods"
+EDIT_KEY=a-key-for-the-test-cluster
+h install edit charts/startpunkt -n editing --create-namespace "${values[@]}" \
+  --set mode=split --set crds.install=false \
+  --set editing.enabled=true --set editing.key="$EDIT_KEY" --wait --timeout 180s >/dev/null
+forward_to editing edit-startpunkt-api
+api() { # method path [body] -> prints the status
+  curl -sS -o "$work/answer" -w '%{http_code}' -X "$1" "http://127.0.0.1:$PORT/api/v1/$2" \
+    -H "Authorization: Bearer ${KEY-$EDIT_KEY}" ${3:+-H 'Content-Type: application/json' -d "$3"}
+}
+[ "$(KEY=not-the-key api GET unlock)" = 401 ] || fail "a wrong key was not refused"
+[ "$(KEY=not-the-key api POST applications '{"spec":{"name":"Intruder","url":"https://x.example.invalid"}}')" = 401 ] ||
+  fail "a write with a wrong key was not refused"
+[ "$(api GET unlock)" = 204 ] || fail "the key was not accepted: $(cat "$work/answer")"
+ok "the key is checked"
+[ "$(api POST applications '{"spec":{"name":"From the page","group":"Edited","url":"https://page.example.invalid"}}')" = 201 ] ||
+  fail "create: $(cat "$work/answer")"
+[ "$(k -n editing get applications.startpunkt.ullberg.us from-the-page -o jsonpath='{.spec.name}')" = "From the page" ] ||
+  fail "the application is not in the cluster"
+eventually "an application created through the api pod is shown" has_tiles $'application First\napplication From the page'
+[ "$(api PUT applications/editing/from-the-page '{"spec":{"name":"Renamed","url":"https://page.example.invalid"}}')" = 200 ] ||
+  fail "update: $(cat "$work/answer")"
+eventually "a change is shown" has_tiles $'application First\napplication Renamed'
+[ "$(api POST bookmarks '{"spec":{"name":"Bad","group":"g","url":"javascript:alert(1)"}}')" = 400 ] ||
+  fail "a link that is not http or https was accepted"
+[ "$(api DELETE applications/editing/from-the-page)" = 204 ] || fail "delete: $(cat "$work/answer")"
+eventually "a deletion is shown" has_tiles "application First"
+! k -n editing get applications.startpunkt.ullberg.us from-the-page >/dev/null 2>&1 || fail "the application was not deleted"
+# The release without editing has none of this.
+forward_to fresh start-startpunkt
+[ "$(api GET unlock)" = 404 ] || fail "a release without an edit key answers on the edit endpoints"
+ok "a release without an edit key has no edit endpoints"
 
 printf '\nAll checks passed.\n'

@@ -1123,3 +1123,71 @@ legend {
     outline: 2px solid Highlight;
   }
 }
+
+/* The unlock dialog and the editors. */
+.editor {
+  width: min(32rem, calc(100vw - 2rem));
+}
+
+.editor .field input[type='text'],
+.editor .field input[type='url'],
+.editor .field input[type='number'],
+.editor .field input[type='password'] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.form-error {
+  margin: 0.8rem 0 0;
+  color: var(--error);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.form-spacer {
+  flex: 1;
+}
+
+.button-primary {
+  font-weight: 600;
+}
+
+.button-danger {
+  color: var(--error);
+}
+
+/* The edit control of a tile sits under its star and behaves like it: shown
+   on hover and focus, and always where there is no hover. */
+.tile-edit {
+  position: absolute;
+  top: 1.7rem;
+  right: 0.2rem;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  opacity: 0;
+}
+
+.tile:hover .tile-edit,
+.tile-edit:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tile-edit {
+    opacity: 1;
+  }
+}
