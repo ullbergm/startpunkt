@@ -59,8 +59,16 @@ type Icons struct {
 	slots   chan struct{}
 	mu      sync.Mutex
 	entries map[string]*iconEntry
-	// waiting holds, per icon set, the names collected for the next batch.
-	waiting map[string][]string
+	// waiting holds, per icon set, what is collected for the next batch.
+	waiting map[string][]iconWait
+}
+
+// iconWait is one icon waiting for its batch. It holds the entry itself, not
+// only the name: when the kept icons are started over, the name no longer
+// leads to this entry, and whoever waits on it still has to be answered.
+type iconWait struct {
+	name  string
+	entry *iconEntry
 }
 
 type iconEntry struct {
@@ -90,7 +98,7 @@ func (i *Icons) init() {
 		}
 		i.slots = make(chan struct{}, i.Limit)
 		i.entries = map[string]*iconEntry{}
-		i.waiting = map[string][]string{}
+		i.waiting = map[string][]iconWait{}
 	})
 }
 
@@ -145,7 +153,8 @@ func (i *Icons) get(ctx context.Context, prefix, name string) ([]byte, error) {
 	if entry == nil {
 		if len(i.entries) >= i.MaxEntries {
 			// Far more icons than any start page has. Start over rather
-			// than grow without bound. Fetches under way still finish.
+			// than grow without bound. Fetches under way still finish,
+			// and what waits for a batch is still answered by it.
 			i.entries = map[string]*iconEntry{}
 		}
 		entry = &iconEntry{ready: make(chan struct{})}
@@ -154,7 +163,7 @@ func (i *Icons) get(ctx context.Context, prefix, name string) ([]byte, error) {
 		if len(i.waiting[prefix]) == 0 {
 			time.AfterFunc(i.BatchDelay, func() { i.send(prefix) })
 		}
-		i.waiting[prefix] = append(i.waiting[prefix], name)
+		i.waiting[prefix] = append(i.waiting[prefix], iconWait{name, entry})
 	}
 	i.mu.Unlock()
 
@@ -170,27 +179,31 @@ func (i *Icons) get(ctx context.Context, prefix, name string) ([]byte, error) {
 // It does not depend on any one request: several may be waiting.
 func (i *Icons) send(prefix string) {
 	i.mu.Lock()
-	names := i.waiting[prefix]
+	waiting := i.waiting[prefix]
 	delete(i.waiting, prefix)
-	entries := make(map[string]*iconEntry, len(names))
-	for _, name := range names {
-		entries[name] = i.entries[prefix+"/"+name]
-	}
 	i.mu.Unlock()
 
-	for start := 0; start < len(names); start += batchSize {
-		batch := names[start:min(start+batchSize, len(names))]
+	for start := 0; start < len(waiting); start += batchSize {
+		batch := waiting[start:min(start+batchSize, len(waiting))]
+		// A name is in a batch twice when the kept icons were started over
+		// between two requests for it. It is asked for once; each of the
+		// two entries is settled, and each exactly once.
+		names := make([]string, 0, len(batch))
+		seen := make(map[string]bool, len(batch))
+		for _, w := range batch {
+			if !seen[w.name] {
+				seen[w.name] = true
+				names = append(names, w.name)
+			}
+		}
 		i.slots <- struct{}{}
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		icons, retry, err := i.fetch(ctx, prefix, batch)
+		icons, retry, err := i.fetch(ctx, prefix, names)
 		cancel()
 		<-i.slots
-		for _, name := range batch {
-			entry := entries[name]
-			if entry == nil {
-				continue
-			}
-			switch svg, found := icons[name]; {
+		for _, w := range batch {
+			entry := w.entry
+			switch svg, found := icons[w.name]; {
 			case err != nil:
 				// Refused or unreachable: not held against the icon for
 				// long, but not asked again at once either.
