@@ -2,7 +2,7 @@
 
 # Frontend. The output is platform independent, so it is built once on the
 # build platform.
-FROM --platform=$BUILDPLATFORM docker.io/library/node:24-alpine AS web
+FROM --platform=$BUILDPLATFORM docker.io/library/node:26-alpine AS web
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
