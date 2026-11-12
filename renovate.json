@@ -34,7 +34,8 @@
          "matchUpdateTypes": [
             "major"
          ],
-         "commitMessagePrefix": "feat(go)!: "
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "go"
       },
       {
          "matchDatasources": [
@@ -67,7 +68,8 @@
          ],
          "groupName": "all major version npm",
          "groupSlug": "all-npm-major",
-         "commitMessagePrefix": "feat(js)!: "
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "js"
       },
       {
          "description": "Hold the Babel presets on 7.x. Babel 8 requires @babel/core ^8, but @preact/preset-vite (through 2.10.6) declares a hard \"@babel/core\": \"7.x\" peer, so Babel 8 cannot be installed here at all - npm install fails with ERESOLVE. Drop this rule once @preact/preset-vite supports Babel 8.",
@@ -109,7 +111,8 @@
          ],
          "groupName": "all major version docker containers",
          "groupSlug": "all-docker-major",
-         "commitMessagePrefix": "feat(container)!: "
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "container"
       },
       {
          "matchDatasources": [
@@ -140,7 +143,8 @@
          "matchUpdateTypes": [
             "major"
          ],
-         "commitMessagePrefix": "feat(github-release)!: "
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "github-release"
       },
       {
          "matchDatasources": [
@@ -171,7 +175,8 @@
          "matchUpdateTypes": [
             "major"
          ],
-         "commitMessagePrefix": "feat(github-action)!: "
+         "semanticCommitType": "feat",
+         "semanticCommitScope": "github-action"
       },
       {
          "matchManagers": [
