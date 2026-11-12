@@ -56,3 +56,38 @@ jobs:
       - run: helm lint charts/startpunkt
       - run: helm lint charts/startpunkt --set mode=split --set route.enabled=true --set route.host=start.example.com
       - run: helm lint charts/startpunkt --set customResources.enabled=false --set crds.install=false
+
+  image:
+    name: Image
+    runs-on: ubuntu-latest
+    # A pull request only builds the image. A push to main also publishes it
+    # with the tag "main", once the other jobs have passed.
+    needs: [backend, frontend, chart]
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ullbergm/startpunkt' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        if: env.PUSH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Version
+        id: version
+        run: echo "version=main-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      # The Dockerfile cross-compiles on the build platform, so no emulation
+      # is needed for the second architecture.
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ env.PUSH == 'true' }}
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          tags: ghcr.io/${{ github.repository }}:main
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
