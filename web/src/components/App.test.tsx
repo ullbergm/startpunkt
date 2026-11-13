@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { editMode } from '../editing';
+import { editMode, fixed } from '../editing';
 import { setLanguage } from '../i18n';
 import { prefs, reloadPrefs, updatePrefs } from '../prefs';
 import { GRACE_MS, reset } from '../state';
@@ -24,6 +24,7 @@ beforeEach(async () => {
   window.localStorage.clear();
   reloadPrefs();
   editMode.value = false;
+  fixed.value = null;
   await setLanguage('en-US');
 });
 afterEach(() => cleanup());
@@ -266,18 +267,19 @@ describe('App', () => {
     fireEvent.click(add);
 
     const favorites = await screen.findByRole('region', { name: 'Favorites' });
-    expect(within(favorites).getByRole('link', { name: /Plex/ })).toBeTruthy();
-    expect(within(favorites).queryByRole('link', { name: /Grafana/ })).toBeNull();
+    // While the page is being edited a tile is not a link, so the tiles
+    // are told by their names.
+    const names = (within: Element) => [...within.querySelectorAll('.tile-name')].map((name) => name.textContent);
+    expect(names(favorites)).toEqual(['Plex']);
     // It is shown once: not in its group any more.
     const applications = screen.getByRole('region', { name: 'Applications' });
-    expect(within(applications).queryByRole('link', { name: /Plex/ })).toBeNull();
-    expect(within(applications).getByRole('link', { name: /Grafana/ })).toBeTruthy();
-    expect(screen.getAllByRole('link', { name: /Plex/ })).toHaveLength(1);
+    expect(names(applications)).toEqual(['Grafana']);
+    expect(screen.queryAllByRole('link', { name: /Plex|Grafana/ })).toHaveLength(0);
     expect(prefs.value.favorites).toEqual(['c/apps/ns/Plex']);
 
     fireEvent.click(within(favorites).getByRole('button', { name: 'Remove Plex from favorites' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Favorites' })).toBeNull());
-    expect(within(screen.getByRole('region', { name: 'Applications' })).getByRole('link', { name: /Plex/ })).toBeTruthy();
+    expect(names(screen.getByRole('region', { name: 'Applications' }))).toContain('Plex');
   });
 
   it('gives each tab its own favorites row, below the tabs', async () => {
@@ -459,6 +461,18 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
     expect(controls()).toHaveLength(0);
+    // In it a tile is not a link: a click is about the tile, and says here
+    // that it cannot be changed, with the link it would otherwise be.
+    edit();
+    expect(screen.queryByRole('link', { name: /Wiki/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Wiki, cannot be changed here' }));
+    const notice = await screen.findByRole('dialog', { name: 'Wiki cannot be changed here' });
+    expect(within(notice).getByText('Editing is not turned on for this instance.')).toBeTruthy();
+    expect(within(notice).getByRole('link', { name: 'Open Wiki' }).getAttribute('href')).toBe('https://example.com');
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
+    expect(screen.getByRole('link', { name: /Wiki/ })).toBeTruthy();
     // Escape leaves it as well.
     edit();
     fireEvent.keyDown(document.body, { key: 'Escape' });
@@ -471,9 +485,7 @@ describe('App', () => {
     const three = () =>
       serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Beta' }), tile({ name: 'Gamma' })] });
     const order = () =>
-      within(screen.getByRole('region', { name: 'Favorites' }))
-        .getAllByRole('link')
-        .map((link) => link.querySelector('.tile-name')?.textContent);
+      [...screen.getByRole('region', { name: 'Favorites' }).querySelectorAll('.tile-name')].map((name) => name.textContent);
     beforeEach(() =>
       updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Gamma', 'c/apps/ns/Alpha', 'c/apps/ns/Beta'] })),
     );

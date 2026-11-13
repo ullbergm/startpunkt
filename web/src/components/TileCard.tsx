@@ -1,4 +1,5 @@
-import { canEdit, editMode, editTarget, targetOf } from '../editing';
+import { editMode, editTarget, fixed, targetOf, whyFixed } from '../editing';
+import { serverState } from '../state';
 import type { Card } from '../cards';
 import { clusterColors } from '../clusters';
 import { t } from '../i18n';
@@ -81,10 +82,14 @@ export function TileCard({
   const favorite = ids.some((id) => favorites.includes(id));
   // The controls of a tile are there only while the page is being edited.
   const arranging = editMode.value;
-  // With the edit key, a tile that is an Application or a Bookmark of this
-  // cluster can be changed. On a combined card that is the local cluster's
-  // tile.
-  const editable = arranging && canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
+  // On an instance with editing, a tile that is an Application or a
+  // Bookmark of this cluster can be changed. On a combined card that is the
+  // local cluster's tile. Whether the key has been given yet is not asked
+  // here: the page asks for it when such a tile is clicked.
+  const editable =
+    arranging && serverState.value?.editing.available === true
+      ? (card.members.map(targetOf).find((target) => target !== null) ?? null)
+      : null;
   const body = (
     <>
       <TileIcon tile={tile} color={iconColor} />
@@ -110,9 +115,10 @@ export function TileCard({
   return (
     <div class={unavailable && layout.showStatus ? 'tile tile-unavailable' : 'tile'}>
       <div class="tile-main">
+        {/* While the page is being edited no tile is a link: a click is
+            about the tile, not a way to the service. One that can be
+            changed opens its form, and any other says why it cannot. */}
         {editable ? (
-          // While the page is being edited, a tile that can be changed is
-          // one button: a click anywhere on it opens its form.
           <button
             type="button"
             class="tile-link tile-change"
@@ -122,6 +128,18 @@ export function TileCard({
             {body}
             <span class="tile-edit" aria-hidden="true">
               <Icon name="edit" size={16} />
+            </span>
+          </button>
+        ) : arranging ? (
+          <button
+            type="button"
+            class="tile-link tile-change"
+            aria-label={t('edit.fixed.label', { name: tile.name })}
+            onClick={() => (fixed.value = whyFixed(tile))}
+          >
+            {body}
+            <span class="tile-edit" aria-hidden="true">
+              <Icon name="locked" size={16} />
             </span>
           </button>
         ) : href ? (
@@ -143,7 +161,7 @@ export function TileCard({
         {showCluster && (
           <span class="tile-pills">
             {card.members.map((member) => (
-              <Pill key={member.id} tile={member} link={combined} />
+              <Pill key={member.id} tile={member} link={combined && !arranging} />
             ))}
           </span>
         )}

@@ -12,7 +12,7 @@ import {
   type Release,
 } from '../changelog';
 import { clusterColors, orderClusters } from '../clusters';
-import { canEdit, editMode, editTarget, type EditTarget } from '../editing';
+import { canEdit, editMode, editTarget, fixed, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { clusterShown, prefs, setServerDefaults } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
@@ -22,7 +22,7 @@ import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../t
 import { Background } from './Background';
 import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
-import { EditControls, Editor, Unlock } from './Editing';
+import { EditControls, Editor, Fixed, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
 import { Favorites, Section } from './Section';
@@ -92,7 +92,8 @@ export function App({
   const [chosen, setChosen] = useState<Kind | null>(null);
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
-  dialogOpen.current = dialog !== null || editing !== null;
+  const notice = fixed.value;
+  dialogOpen.current = dialog !== null || editing !== null || notice !== null;
 
   // The instance's defaults for the settings come with its configuration,
   // and may change while the page is open.
@@ -375,6 +376,16 @@ export function App({
           }}
         />
       )}
+      {/* A tile was clicked to change it, and the key has not been given:
+          it is asked for, and the form opens once it is there. */}
+      {editing && state && arranging && !canEdit.value && state.editing.available && (
+        <Unlock
+          onClose={() => {
+            if (!canEdit.value) editTarget.value = null;
+          }}
+        />
+      )}
+      {notice && <Fixed what={notice} onClose={() => (fixed.value = null)} />}
       {editing && state && arranging && canEdit.value && (
         <Editor
           // A new dialog for each resource, so nothing of the last one is left.

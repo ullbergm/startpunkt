@@ -14,11 +14,13 @@ import {
   validate,
   type EditKind,
   type EditTarget,
+  type Fixed as FixedTile,
   type FormValues,
   type Spec,
 } from '../editing';
 import { t, type MessageKey } from '../i18n';
 import { serverState } from '../state';
+import { safeHref } from '../url';
 import { ColorPicker, IconPicker, TagsInput } from './EditorFields';
 import { Icon } from './Icons';
 import { Modal } from './Modal';
@@ -395,6 +397,46 @@ export function Editor({
           </button>
         </div>
       </form>
+    </Modal>
+  );
+}
+
+// Says why a tile cannot be changed from this page, and where it can. It
+// also has the link the tile would be outside edit mode.
+export function Fixed({ what, onClose }: { what: FixedTile; onClose: () => void }) {
+  const { tile, reason } = what;
+  const title = t('edit.fixed.title', { name: tile.name });
+  const href = safeHref(tile.url);
+  return (
+    <Modal label={title} class="settings editor" onClose={onClose}>
+      <header class="settings-header">
+        <h2>{title}</h2>
+        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
+          <Icon name="close" />
+        </button>
+      </header>
+      <div class="settings-body">
+        <p>{t(`edit.fixed.${reason}`, { cluster: tile.cluster })}</p>
+        <p class="help">
+          {t('edit.fixed.from', {
+            type: tile.source.type,
+            namespace: tile.source.namespace,
+            name: tile.source.name,
+          })}
+        </p>
+        {href && (
+          <p class="changes-link">
+            <a
+              class="d-btn d-btn-outline d-btn-sm"
+              href={href}
+              target={tile.targetBlank ? '_blank' : undefined}
+              rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+            >
+              {t('edit.fixed.open', { name: tile.name })}
+            </a>
+          </p>
+        )}
+      </div>
     </Modal>
   );
 }

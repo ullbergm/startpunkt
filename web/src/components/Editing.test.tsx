@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { editKey, editMode, editTarget, reloadEditKey } from '../editing';
+import { editKey, editMode, editTarget, fixed, reloadEditKey } from '../editing';
 import { setLanguage } from '../i18n';
 import { reloadPrefs } from '../prefs';
 import { reset } from '../state';
@@ -30,6 +30,7 @@ beforeEach(async () => {
   reloadEditKey();
   editTarget.value = null;
   editMode.value = false;
+  fixed.value = null;
   await setLanguage('en-US');
 });
 afterEach(() => {
@@ -353,18 +354,30 @@ describe('the page', () => {
     expect(screen.queryByRole('button', { name: 'Unlock editing' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    // Locked: nothing to change.
-    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    // No tile is a link now. Only the Application of this cluster can be
+    // changed: not the Route, not the remote.
+    expect(screen.queryAllByRole('link', { name: /Grafana|Wiki|Plex/ })).toHaveLength(0);
+    expect(screen.getAllByRole('button', { name: /^Change / }).map((b) => b.getAttribute('aria-label'))).toEqual(['Change Grafana']);
+    // The others say why not, and where to go instead.
+    fireEvent.click(screen.getByRole('button', { name: 'Wiki, cannot be changed here' }));
+    let notice = await screen.findByRole('dialog', { name: 'Wiki cannot be changed here' });
+    expect(within(notice).getByText(/made from another resource in the cluster/)).toBeTruthy();
+    expect(within(notice).getByText('routes.route.openshift.io: wiki in the namespace home.')).toBeTruthy();
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Plex, cannot be changed here' }));
+    notice = await screen.findByRole('dialog', { name: 'Plex cannot be changed here' });
+    expect(within(notice).getByText(/belongs to the cluster prod/)).toBeTruthy();
+    expect(within(notice).getByRole('link', { name: 'Open Plex' })).toBeTruthy();
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Unlock editing' }));
+    // A click on the one that can be changed asks for the key first, and
+    // then opens its form.
+    fireEvent.click(screen.getByRole('button', { name: 'Change Grafana' }));
     type('Edit key', 'the right key');
     fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
-    const lockButton = await screen.findByRole('button', { name: 'Lock editing' });
-
-    // Only the Application of this cluster: not the Route, not the remote.
-    expect(screen.getAllByRole('button', { name: /^Change / }).map((b) => b.getAttribute('aria-label'))).toEqual(['Change Grafana']);
-    fireEvent.click(screen.getByRole('button', { name: 'Change Grafana' }));
     const dialog = await screen.findByRole('dialog', { name: 'Change application' });
+    const lockButton = screen.getByRole('button', { name: 'Lock editing' });
     await waitFor(() => expect((within(dialog).getByLabelText('Name') as HTMLInputElement).value).toBe('Grafana'));
     expect(calls.some(([url]) => url === '/api/v1/applications/home/grafana')).toBe(true);
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -374,10 +387,9 @@ describe('the page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     expect(await screen.findByRole('dialog', { name: 'Add an application' })).toBeTruthy();
 
-    // Locking takes all of it away again.
+    // Locking closes the form and forgets the key.
     fireEvent.click(lockButton);
-    await waitFor(() => expect(screen.queryByRole('button', { name: /^Change / })).toBeNull());
-    expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull());
     expect(window.localStorage.getItem('startpunkt.editKey')).toBeNull();
   });
 
@@ -403,12 +415,13 @@ describe('the page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
     // The whole tile is what is clicked to change it: it is a button in
     // place of its link, and every tile has its box. A tile that cannot be
-    // changed stays a link.
+    // changed is a button too, which says why.
     const change = screen.getByRole('button', { name: 'Change Grafana' });
     expect(change.textContent).toContain('Grafana');
     expect(change.closest('.tile')).not.toBeNull();
     expect(screen.queryByRole('link', { name: /Grafana/ })).toBeNull();
-    expect(screen.getByRole('link', { name: /Wiki/ })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /Wiki/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Wiki, cannot be changed here' })).toBeTruthy();
     await waitFor(() => expect(document.documentElement.dataset.boxes).toBe('true'));
     fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();

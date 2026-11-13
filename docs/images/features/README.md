@@ -24,7 +24,7 @@ Typing anywhere on the page opens the search with what was typed. A word finds t
 
 ![Favorites](04-favorites.png)
 
-The page is in edit mode here, which the pencil in the bottom right corner turns on and which shows the controls of the tiles. The star on a tile puts it in the favorites row, which has no heading, and the arrows on a favorite move it; dragging one favorite onto another does the same.
+The page is in edit mode here, which the pencil in the bottom right corner turns on and which shows the controls of the tiles. In edit mode a click on a tile opens its form, or says why it cannot be changed, in place of opening the service. The star on a tile puts it in the favorites row, which has no heading, and the arrows on a favorite move it; dragging one favorite onto another does the same.
 
 ## Bookmarks
 

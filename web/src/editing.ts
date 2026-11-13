@@ -101,6 +101,25 @@ export function targetOf(tile: Tile): EditTarget | null {
   return { kind, namespace: tile.source.namespace, name: tile.source.name };
 }
 
+// Why a tile cannot be changed from this page, for the tile that is clicked
+// while the page is being edited: the message and what goes into it.
+export interface Fixed {
+  tile: Tile;
+  reason: 'off' | 'remote' | 'deployed' | 'source';
+}
+export const fixed = signal<Fixed | null>(null);
+
+export function whyFixed(tile: Tile): Fixed {
+  const state = serverState.value;
+  const local = state?.clusters.find((cluster) => cluster.local)?.name;
+  if (state?.editing.available !== true) return { tile, reason: 'off' };
+  // A tile of another instance is that instance's to change.
+  if (local !== undefined && tile.cluster !== local) return { tile, reason: 'remote' };
+  // An Application or a Bookmark that is not editable is one that Argo CD
+  // or Helm deploys. Anything else is made from another kind of resource.
+  return { tile, reason: TYPES[tile.source.type] ? 'deployed' : 'source' };
+}
+
 // An error with a message that can be shown as it is.
 export class EditError extends Error {}
 
