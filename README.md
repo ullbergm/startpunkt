@@ -274,7 +274,7 @@ The sections of the settings, all of which are documented with their defaults in
 | `availability` | Probing of the services' addresses: interval, timeout, back-off |
 | `status` | Whether the status of `Application` resources is written |
 | `icons` | Where icons come from. The public Iconify API by default; point it at one you host to depend on nothing outside the cluster. |
-| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check, the link to GitHub, and the [default settings](#default-settings) of the page |
+| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check, and the [default settings](#default-settings) of the page |
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
 

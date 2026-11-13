@@ -7,7 +7,6 @@ export interface VersionInfo {
   latest?: string;
   updateAvailable: boolean;
   url?: string;
-  githubLink?: boolean;
 }
 
 const RELEASES = 'https://github.com/ullbergm/startpunkt/releases/';

@@ -73,10 +73,6 @@ config:
     # not say which version is running. When there is a newer release, its
     # changelog is read from raw.githubusercontent.com to show what changed.
     checkForUpdates: true
-    # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
-    # project on GitHub. When an update is available, a ribbon that names it
-    # is shown there instead, whether the corner is on or not.
-    githubLink: true
     # STARTPUNKT_WEB_SHOWALLCLUSTERS. With remotes configured, whether a
     # visitor who has not chosen sees the tiles of every cluster. By default
     # they see this cluster's only and switch the others on themselves.

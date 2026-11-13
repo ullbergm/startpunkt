@@ -58,8 +58,8 @@ html {
   background: var(--bg);
 }
 
-/* A column as tall as the window, so that the footer sits at its bottom
-   when the content is short. */
+/* A column as tall as the window. The footer follows the content directly,
+   so on a short page the rest of the window is left to the background. */
 #app {
   display: flex;
   flex-direction: column;
@@ -178,21 +178,6 @@ main {
   flex: none;
   width: 4rem;
   height: 4rem;
-}
-
-/* The corner that links to the project. It turns to the accent colour and
-   points at the releases when a newer one exists. */
-.github-corner {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 4;
-  color: #fff;
-}
-
-.github-corner svg {
-  display: block;
-  fill: #151513;
 }
 
 /* A newer release: a golden ribbon across the corner. The button is the
@@ -370,8 +355,9 @@ main:focus {
 .page-footer {
   width: 100%;
   max-width: 1200px;
-  margin: auto auto 0;
-  padding: 0.75rem 1rem;
+  /* Right under the content, not at the bottom of the window. */
+  margin: 0 auto;
+  padding: 0.5rem 1rem 0.75rem;
   color: var(--muted);
   font-size: 0.875rem;
   text-align: center;

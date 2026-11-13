@@ -25,12 +25,12 @@ import { ClusterChips } from './ClusterChips';
 import { EditControls, Editor, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
-import { GitHubCorner } from './GitHubCorner';
 import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
 import { Skeleton } from './Skeleton';
 import { Spotlight } from './Spotlight';
 import { Tabs } from './Tabs';
+import { UpdateRibbon } from './UpdateRibbon';
 
 type Kind = 'applications' | 'bookmarks';
 
@@ -251,7 +251,7 @@ export function App({
         {t('page.skipToContent')}
       </a>
       <Background background={p.background} />
-      {(versionInfo?.githubLink || update) && <GitHubCorner update={update} onUpdate={showUpdate} />}
+      {update && <UpdateRibbon update={update} onOpen={showUpdate} />}
       <header class="page-header">
         {/* Decorative: the heading next to it names the page. */}
         <img class="logo" src="/logo.svg" alt="" width="72" height="72" />

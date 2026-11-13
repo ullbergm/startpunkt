@@ -22,9 +22,6 @@ type VersionInfo struct {
 	UpdateAvailable bool `json:"updateAvailable"`
 	// URL is the page of the newer release.
 	URL string `json:"url,omitempty"`
-	// GitHubLink says whether the page shows the corner that links to the
-	// project. The corner is shown for an update either way.
-	GitHubLink bool `json:"githubLink"`
 }
 
 const (
@@ -43,11 +40,9 @@ type Updates struct {
 	Current string
 	// Check turns the lookup of newer releases on.
 	Check bool
-	// GitHubLink is passed on to the page.
-	GitHubLink bool
-	// Flags, when set, is asked for Check and GitHubLink in their place,
-	// for settings that can change while the process runs.
-	Flags func() (check, githubLink bool)
+	// Checking, when set, is asked in place of Check, for a setting that
+	// can change while the process runs.
+	Checking func() bool
 	// Source overrides the address the latest release is looked up at.
 	Source string
 	// Changelog is what changed in the running version and those before
@@ -71,12 +66,8 @@ type Updates struct {
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	check, githubLink := u.Check, u.GitHubLink
-	if u.Flags != nil {
-		check, githubLink = u.Flags()
-	}
-	info := VersionInfo{Version: u.Current, GitHubLink: githubLink}
-	if latest := u.newer(r.Context(), check); latest != "" {
+	info := VersionInfo{Version: u.Current}
+	if latest := u.newer(r.Context(), u.checking()); latest != "" {
 		info.Latest = latest
 		info.UpdateAvailable = true
 		info.URL = releasePages + "tag/" + latest
@@ -84,6 +75,14 @@ func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	_ = json.NewEncoder(w).Encode(info)
+}
+
+// checking reports whether newer releases are looked for.
+func (u *Updates) checking() bool {
+	if u.Checking != nil {
+		return u.Checking()
+	}
+	return u.Check
 }
 
 // newer returns the tag of the latest release when it is newer than the
