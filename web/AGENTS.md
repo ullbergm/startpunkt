@@ -25,6 +25,7 @@ What is only about the moment, such as which dialog is open or which tab is chos
 ## Preferences
 
 - Change preferences only through `updatePrefs(fn)`. It checks the result and stores it.
+- An instance can give the preferences a browser starts from (`config.defaultPreferences`, taken in by `setServerDefaults`). They go through `sanitize` like stored ones. `defaults()` is what the page has built in; `startingPrefs()` is what a browser without preferences gets, and what a reset goes back to.
 - A new preference is added in three places: the `Preferences` type, `defaults()`, and the matching `sanitize` function. Every value read from storage is checked on its own and replaced by its default when it does not fit; nothing from storage is trusted.
 - A preset holds `layout` and `background`, so a field added to either is part of presets without more work. The active preset is found by comparing JSON text, so `sanitize` must keep building its objects in a fixed order.
 - Theme and panel depend on each other. Change them with `setTheme` and `setPanel`, not directly.

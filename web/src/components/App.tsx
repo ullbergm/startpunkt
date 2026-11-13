@@ -14,7 +14,7 @@ import {
 import { clusterColors, orderClusters } from '../clusters';
 import { canEdit, editMode, editTarget, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
-import { clusterShown, prefs } from '../prefs';
+import { clusterShown, prefs, setServerDefaults } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
 import { PALETTES } from '../palettes';
@@ -93,6 +93,14 @@ export function App({
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
   dialogOpen.current = dialog !== null || editing !== null;
+
+  // The instance's defaults for the settings come with its configuration,
+  // and may change while the page is open.
+  const serverDefaults = state?.config.defaultPreferences;
+  const connected = state !== null;
+  useEffect(() => {
+    if (connected) setServerDefaults(serverDefaults);
+  }, [connected, JSON.stringify(serverDefaults ?? null)]);
 
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {

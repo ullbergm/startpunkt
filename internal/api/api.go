@@ -42,6 +42,27 @@ type UIConfig struct {
 	// cluster, or this one only.
 	ShowAllClusters bool  `json:"showAllClusters"`
 	Theme           Theme `json:"theme"`
+	// DefaultPreferences are the page's settings for a browser that has
+	// none of its own, in the form the page keeps them in.
+	DefaultPreferences RawJSON `json:"defaultPreferences,omitempty"`
+}
+
+// RawJSON is a JSON value that is passed on as it is. It is text, so that a
+// document holding one can be compared with another.
+type RawJSON string
+
+// MarshalJSON implements json.Marshaler.
+func (r RawJSON) MarshalJSON() ([]byte, error) {
+	if r == "" {
+		return []byte("null"), nil
+	}
+	return []byte(r), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (r *RawJSON) UnmarshalJSON(data []byte) error {
+	*r = RawJSON(data)
+	return nil
 }
 
 // Theme is the pair of palettes the page switches between.

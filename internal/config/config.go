@@ -4,6 +4,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -109,6 +110,10 @@ type Federation struct {
 	// list is JSON: STARTPUNKT_FEDERATION_REMOTES='[{"name":"prod","url":"https://start.prod.example.com"}]'.
 	Remotes []Remote `json:"remotes"`
 }
+
+// maxDefaultPreferences bounds web.defaultPreferences, which is part of the
+// document every browser is sent.
+const maxDefaultPreferences = 32 << 10
 
 // Remote is one other instance.
 type Remote struct {
@@ -300,6 +305,9 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		// A file usually ends with a line break that is not part of the key.
 		c.Editing.Key = strings.TrimSpace(string(data))
 	}
+	if v := getenv(EnvPrefix + "WEB_DEFAULTPREFERENCES"); v != "" {
+		c.Web.DefaultPreferences = json.RawMessage(v)
+	}
 	if v := getenv(EnvPrefix + "FEDERATION_REMOTES"); v != "" {
 		var remotes []Remote
 		if err := json.Unmarshal([]byte(v), &remotes); err != nil {
@@ -351,6 +359,18 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 
 // Validate reports the first setting that cannot be used.
 func (c Config) Validate() error {
+	if p := c.Web.DefaultPreferences; len(p) > 0 {
+		// What is in it is the page's to check. Here it only has to be
+		// something the page can read, and of a size worth sending to
+		// every browser.
+		var object map[string]json.RawMessage
+		if err := json.Unmarshal(p, &object); err != nil {
+			return fmt.Errorf("web.defaultPreferences must be an object: %w", err)
+		}
+		if len(p) > maxDefaultPreferences {
+			return fmt.Errorf("web.defaultPreferences is %d bytes; at most %d are allowed", len(p), maxDefaultPreferences)
+		}
+	}
 	name := c.Cluster.Name
 	if name == "" {
 		return errors.New("cluster.name must not be empty")
@@ -473,6 +493,10 @@ func (c Config) WithResources(spec []byte, remotes []Remote) (Config, error) {
 		}
 		// Decode a second time onto the current values, so that a field
 		// left out of a section that is present keeps its value too.
+		// The default preferences are raw JSON, which decoding writes
+		// into the memory it finds. Give it memory of its own, or the
+		// receiver's would be written over.
+		out.Web.DefaultPreferences = bytes.Clone(c.Web.DefaultPreferences)
 		if err := json.Unmarshal(spec, &out); err != nil {
 			return c, fmt.Errorf("reading the settings: %w", err)
 		}

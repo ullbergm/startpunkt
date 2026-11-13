@@ -274,13 +274,49 @@ The sections of the settings, all of which are documented with their defaults in
 | `availability` | Probing of the services' addresses: interval, timeout, back-off |
 | `status` | Whether the status of `Application` resources is written |
 | `icons` | Where icons come from. The public Iconify API by default; point it at one you host to depend on nothing outside the cluster. |
-| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check and the link to GitHub |
+| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check, the link to GitHub, and the [default settings](#default-settings) of the page |
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
 
 A change to how the cluster is read, which is the `cluster`, `namespaceSelector`, `sources`, `availability` and `status` sections, makes the instance read the cluster again. It reports itself as not ready for the moment that takes, and open pages are filled anew.
 
 Startpunkt needs to read the resources it shows and nothing else. The chart creates a ClusterRole with `get`, `list` and `watch` on the enabled sources, and permission to write the status of its own resource types.
+
+### Default settings
+
+The settings of the page belong to each browser. What a browser starts from, before its visitor has changed anything, can be set for the instance, and "Reset to defaults" in the settings dialog goes back to the same. Give them under `config.web.defaultPreferences` in the chart's values (or as JSON in `STARTPUNKT_WEB_DEFAULTPREFERENCES`), in the form the page keeps them in:
+
+```yaml
+config:
+  web:
+    defaultPreferences:
+      theme: dark                 # auto, light, dark
+      colors: ocean               # default, ocean, forest, sunset, rose, slate, sand, lavender, mint, ember, mono
+      handwrittenFont: false
+      layout:
+        columns: 4                # 0 for automatic, or 1 to 6
+        showBoxes: true
+        hoverEffect: true
+        showDescription: true
+        descriptionLines: 2       # 1 to 3, or 0 for no limit
+        showTags: false
+        showStatus: true
+        hideUnreachable: false
+        combine: true             # one card for a service on several clusters
+        byCluster: false          # a section for each cluster
+      background:
+        type: gradient            # pictureOfDay, theme, solid, gradient, timeGradient, meshGradient, image, geopattern
+        color: "#1b2a4e"
+        color2: "#5b2a86"
+        direction: to bottom right
+        overlayOpacity: 0.7       # the panel behind the content: -1 solid white, 0 none, 1 solid black
+        overlayBlur: 3
+      accessibility:
+        fontScale: 100            # 85, 100, 115, 130, 150
+        highContrast: false
+```
+
+Leave out what should stay as the page has it. The page checks each value and uses its own default for one that does not fit. A browser that has not stored anything follows these settings, also when they change later; one whose visitor has changed a setting, marked a favorite or collapsed a group keeps what it has until it is reset. Favorites, collapsed groups and saved presets are kept by a reset.
 
 ## Several clusters on one page
 
@@ -327,7 +363,7 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 - **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again.
 - **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
 - **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.
-- **Settings**, bottom right, kept in the browser:
+- **Settings**, bottom right, kept in the browser. What they start from can be set for the instance, see [Default settings](#default-settings):
 
   | Tab | What it holds |
   | --- | --- |

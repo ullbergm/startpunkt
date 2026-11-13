@@ -232,6 +232,18 @@ type Web struct {
 	ShowAllClusters bool `json:"showAllClusters"`
 	// Theme holds the colours of the light and the dark appearance.
 	Theme Theme `json:"theme"`
+	// DefaultPreferences are the settings of the page for a browser that
+	// has none of its own yet, and what "Reset to defaults" goes back to.
+	// They have the form the page keeps them in, for example
+	// {"theme": "dark", "layout": {"columns": 4, "showTags": true},
+	// "background": {"type": "gradient"}}. The page checks every value and
+	// uses its own default for one that does not fit or is left out.
+	// Environment: STARTPUNKT_WEB_DEFAULTPREFERENCES, as JSON.
+	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:validation:Type=object
+	// +kubebuilder:pruning:PreserveUnknownFields
+	DefaultPreferences json.RawMessage `json:"defaultPreferences,omitempty"`
 }
 
 // Theme is the pair of palettes the page switches between.

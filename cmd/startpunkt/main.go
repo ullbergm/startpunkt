@@ -270,7 +270,19 @@ func uiConfig(w config.Web) api.UIConfig {
 		SearchEngine:    w.SearchEngine,
 		ShowAllClusters: w.ShowAllClusters,
 		Theme:           api.Theme{Light: palette(w.Theme.Light), Dark: palette(w.Theme.Dark)},
+		// A null in the resource means none, as leaving it out does.
+		DefaultPreferences: preferences(w.DefaultPreferences),
 	}
+}
+
+// preferences returns the default preferences as they are passed to the
+// page, or nil when there are none.
+func preferences(raw json.RawMessage) api.RawJSON {
+	text := strings.TrimSpace(string(raw))
+	if text == "" || text == "null" || text == "{}" {
+		return ""
+	}
+	return api.RawJSON(text)
 }
 
 // ownNamespace is the namespace the process runs in, or "default" outside a

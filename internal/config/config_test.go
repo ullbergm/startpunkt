@@ -372,3 +372,48 @@ func TestEditKey(t *testing.T) {
 		t.Errorf("after applying a resource: %q, %v", with.Editing.Key, err)
 	}
 }
+
+func TestDefaultPreferences(t *testing.T) {
+	// From the environment, as JSON.
+	cfg, err := Load("", false, env(map[string]string{
+		"STARTPUNKT_WEB_DEFAULTPREFERENCES": `{"theme":"dark","layout":{"columns":4}}`,
+	}))
+	if err != nil || string(cfg.Web.DefaultPreferences) != `{"theme":"dark","layout":{"columns":4}}` {
+		t.Fatalf("from the environment: %s, %v", cfg.Web.DefaultPreferences, err)
+	}
+	// From the file, whatever fields the page knows.
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	data := "web:\n  defaultPreferences:\n    theme: light\n    background: {type: gradient, color: \"#112233\"}\n    somethingNew: true\n"
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err = Load(path, true, env(nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(cfg.Web.DefaultPreferences, &got); err != nil || got["theme"] != "light" || got["somethingNew"] != true {
+		t.Errorf("from the file: %s, %v", cfg.Web.DefaultPreferences, err)
+	}
+	// The resource replaces them as a whole.
+	merged, err := cfg.WithResources([]byte(`{"web": {"defaultPreferences": {"theme": "dark"}}}`), nil)
+	if err != nil || string(merged.Web.DefaultPreferences) != `{"theme": "dark"}` {
+		t.Errorf("from the resource: %s, %v", merged.Web.DefaultPreferences, err)
+	}
+	kept, err := cfg.WithResources([]byte(`{"web": {"title": "Other"}}`), nil)
+	if err != nil || string(kept.Web.DefaultPreferences) != string(cfg.Web.DefaultPreferences) {
+		t.Errorf("a resource without them: %s, %v", kept.Web.DefaultPreferences, err)
+	}
+	// Only an object, and not a large one.
+	for name, value := range map[string]string{
+		"a list":    `["dark"]`,
+		"text":      `"dark"`,
+		"not JSON":  `{theme: dark`,
+		"too large": `{"x":"` + strings.Repeat("a", 40<<10) + `"}`,
+	} {
+		if _, err := Load("", false, env(map[string]string{"STARTPUNKT_WEB_DEFAULTPREFERENCES": value})); err == nil ||
+			!strings.Contains(err.Error(), "defaultPreferences") {
+			t.Errorf("%s: got error %v", name, err)
+		}
+	}
+}

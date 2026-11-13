@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, setServerDefaults, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -205,5 +205,53 @@ describe('stored preferences', () => {
     expect(sanitize({ background: { overlayBlur: true } }).background.overlayBlur).toBe(3);
     expect(sanitize({ background: { overlayBlur: false } }).background.overlayBlur).toBe(0);
     expect(sanitize({ background: { overlayOpacity: -0.4 } }).background.overlayOpacity).toBe(-0.4);
+  });
+});
+
+describe('the defaults of the instance', () => {
+  const server = { theme: 'dark', colors: 'ocean', layout: { columns: 4, showTags: true }, background: { type: 'gradient', blur: 'a lot' } };
+
+  it('are what a browser without preferences starts from, and follows', () => {
+    reloadPrefs();
+    expect(prefs.value.theme).toBe('auto');
+    setServerDefaults(server);
+    expect(prefs.value).toMatchObject({ theme: 'dark', colors: 'ocean' });
+    expect(prefs.value.layout).toMatchObject({ columns: 4, showTags: true });
+    // What is left out, or does not fit, is the page's own default.
+    expect(prefs.value.layout.showDescription).toBe(defaults().layout.showDescription);
+    expect(prefs.value.background.type).toBe('gradient');
+    expect(prefs.value.background.blur).toBe(defaults().background.blur);
+    // Nothing was stored by that: the browser still has none of its own.
+    expect(window.localStorage.getItem('startpunkt.preferences')).toBeNull();
+    setServerDefaults({ ...server, theme: 'light' });
+    expect(prefs.value.theme).toBe('light');
+    // Without any, the page's own again.
+    setServerDefaults(undefined);
+    expect(prefs.value.theme).toBe('auto');
+  });
+
+  it('leave a browser alone that has preferences of its own', () => {
+    reloadPrefs();
+    updatePrefs((p) => ({ ...p, theme: 'light' }));
+    setServerDefaults(server);
+    expect(prefs.value.theme).toBe('light');
+    expect(prefs.value.layout.columns).toBe(defaults().layout.columns);
+  });
+
+  it('are what a reset goes back to, keeping what is content', () => {
+    reloadPrefs();
+    updatePrefs((p) => ({ ...p, theme: 'light', favorites: ['a'], layout: { ...p.layout, columns: 2 } }));
+    setServerDefaults({ ...server, favorites: ['from the server'] });
+    resetPrefs();
+    expect(prefs.value).toMatchObject({ theme: 'dark', colors: 'ocean', favorites: ['a'] });
+    expect(prefs.value.layout.columns).toBe(4);
+  });
+
+  it('are not trusted', () => {
+    reloadPrefs();
+    for (const odd of ['dark', 7, ['x'], { theme: 'neon', layout: 'wide', accessibility: { fontScale: 9000 } }]) {
+      setServerDefaults(odd);
+      expect(prefs.value).toEqual(defaults());
+    }
   });
 });

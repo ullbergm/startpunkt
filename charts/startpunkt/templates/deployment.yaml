@@ -106,6 +106,10 @@ spec:
               value: {{ $.Values.config.web.githubLink | quote }}
             - name: STARTPUNKT_WEB_SHOWALLCLUSTERS
               value: {{ $.Values.config.web.showAllClusters | quote }}
+            {{- with $.Values.config.web.defaultPreferences }}
+            - name: STARTPUNKT_WEB_DEFAULTPREFERENCES
+              value: {{ toJson . | quote }}
+            {{- end }}
             {{- range $mode, $palette := $.Values.config.web.theme }}
             {{- range $name, $color := $palette }}
             - name: STARTPUNKT_WEB_THEME_{{ upper $mode }}_{{ upper $name }}

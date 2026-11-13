@@ -894,6 +894,22 @@ describe('App', () => {
     });
   });
 
+  it("starts a new browser from the instance's settings, and follows them", async () => {
+    const state = serverState({ tiles: [tile({ name: 'Plex', tags: ['media'] })] });
+    renderWith({ ...state, config: { ...state.config, defaultPreferences: { layout: { showBoxes: true, hoverEffect: true } } } });
+    const root = document.documentElement;
+    await waitFor(() => expect(root.dataset.boxes).toBe('true'));
+    expect(root.dataset.hover).toBe('true');
+    act(() => FakeStream.last.emit('config', { ...state.config, defaultPreferences: { layout: { showBoxes: false } } }));
+    await waitFor(() => expect(root.dataset.boxes).toBe('false'));
+    // One that has chosen keeps its choice.
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, hoverEffect: true } })));
+    act(() => FakeStream.last.emit('config', { ...state.config, defaultPreferences: { layout: { hoverEffect: false, showBoxes: true } } }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(root.dataset.hover).toBe('true');
+    expect(root.dataset.boxes).toBe('false');
+  });
+
   it('follows a change of title and theme without a reload', async () => {
     updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
     renderWith(serverState());

@@ -274,17 +274,48 @@ export function sanitize(raw: unknown): Preferences {
   };
 }
 
+// What the instance wants a browser to start from, in place of the defaults
+// built into the page. It is checked like anything read from storage: what
+// does not fit, or is left out, is the page's own default.
+let fromServer: unknown;
+let fromServerText = 'null';
+
+// The preferences of a browser that has chosen nothing.
+export function startingPrefs(): Preferences {
+  return fromServer === undefined ? defaults() : sanitize(fromServer);
+}
+
+// Whether this browser has preferences of its own.
+function hasStored(): boolean {
+  try {
+    return window.localStorage.getItem(KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 function read(): Preferences {
   try {
     const stored = window.localStorage.getItem(KEY);
-    return stored ? sanitize(JSON.parse(stored)) : defaults();
+    return stored ? sanitize(JSON.parse(stored)) : startingPrefs();
   } catch {
     // Storage can be unavailable or hold something unreadable.
-    return defaults();
+    return startingPrefs();
   }
 }
 
 export const prefs = signal<Preferences>(read());
+
+// Takes the defaults of the instance, which arrive with its settings. A
+// browser that has stored nothing yet follows them, also when they change;
+// one that has keeps what it has until it is reset.
+export function setServerDefaults(raw: unknown): void {
+  const text = JSON.stringify(raw ?? null);
+  if (text === fromServerText) return;
+  fromServerText = text;
+  fromServer = raw ?? undefined;
+  if (!hasStored()) prefs.value = startingPrefs();
+}
 
 // Changes the preferences and stores them. The page works without storage;
 // the change then lasts until the page is closed.
@@ -327,8 +358,9 @@ export function setPanel(overlayOpacity: number): void {
 export function resetPrefs(): void {
   // Favorites, collapsed groups and saved presets are content, not
   // appearance. Keep them.
+  // What is gone back to is what the instance starts a browser with.
   updatePrefs((current) => ({
-    ...defaults(),
+    ...startingPrefs(),
     favorites: current.favorites,
     collapsed: current.collapsed,
     hiddenClusters: current.hiddenClusters,
@@ -441,7 +473,9 @@ export function activePreset(p: Preferences): string | null {
   return Object.keys(p.presets).find((name) => JSON.stringify(p.presets[name]) === now) ?? null;
 }
 
-// For tests.
+// For tests: starts over from storage, without defaults of an instance.
 export function reloadPrefs(): void {
+  fromServer = undefined;
+  fromServerText = 'null';
   prefs.value = read();
 }
