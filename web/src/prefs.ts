@@ -5,7 +5,6 @@ import { SCHEMES, type ColorScheme } from './palettes';
 // only and never reaches the server.
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
-export type Spacing = 'tight' | 'normal' | 'relaxed';
 export type BackgroundType =
   | 'theme'
   | 'solid'
@@ -38,8 +37,6 @@ export interface Preferences {
   layout: {
     // Number of columns, or 0 to fit as many as there is room for.
     columns: number;
-    spacing: Spacing;
-    compact: boolean;
     // A box around each tile. Without it tiles sit straight on the page.
     showBoxes: boolean;
     // Mark the tile the pointer is over.
@@ -136,8 +133,6 @@ export function defaults(): Preferences {
     shownClusters: [],
     layout: {
       columns: 0,
-      spacing: 'normal',
-      compact: false,
       showBoxes: false,
       hoverEffect: false,
       showDescription: true,
@@ -197,8 +192,6 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
       typeof columns === 'number' && Number.isInteger(columns) && columns >= 0 && columns <= MAX_COLUMNS
         ? columns
         : d.columns,
-    spacing: oneOf<Spacing>(layout.spacing, ['tight', 'normal', 'relaxed'], d.spacing),
-    compact: bool(layout.compact, d.compact),
     showBoxes: bool(layout.showBoxes, d.showBoxes),
     hoverEffect: bool(layout.hoverEffect, d.hoverEffect),
     showDescription: bool(layout.showDescription, d.showDescription),

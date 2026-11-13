@@ -21,7 +21,6 @@ import {
   type Background,
   type Complexity,
   type Preferences,
-  type Spacing,
   type ThemeMode,
 } from '../prefs';
 import { SCHEMES, type ColorScheme } from '../palettes';
@@ -108,6 +107,7 @@ function Range({
   max,
   step,
   format,
+  centred = false,
   onChange,
 }: {
   label: string;
@@ -117,8 +117,14 @@ function Range({
   max: number;
   step: number;
   format: (value: number) => string;
+  // The middle is where nothing is chosen, and the bar grows from there to
+  // either side.
+  centred?: boolean;
   onChange: (value: number) => void;
 }) {
+  // Where along the track something is, as the middle of the thumb there.
+  const at = (part: number) => `calc(0.5rem + (100% - 1rem) * ${part})`;
+  const part = (value - min) / (max - min);
   return (
     <label class="field">
       <span>
@@ -127,7 +133,8 @@ function Range({
       </span>
       <input
         type="range"
-        class="d-range d-range-primary d-range-xs"
+        class={centred ? 'range-centred' : 'd-range d-range-primary d-range-xs'}
+        style={centred ? { '--from': at(Math.min(part, 0.5)), '--to': at(Math.max(part, 0.5)) } : undefined}
         min={min}
         max={max}
         step={step}
@@ -257,7 +264,6 @@ function Presets({ p }: { p: Preferences }) {
 }
 
 function Layout({ p }: { p: Preferences }) {
-  const spacings: Spacing[] = ['tight', 'normal', 'relaxed'];
   return (
     <>
       <Select
@@ -269,13 +275,6 @@ function Layout({ p }: { p: Preferences }) {
         }))}
         onChange={(columns) => setLayout({ columns: Number(columns) })}
       />
-      <Select
-        label={t('settings.spacing')}
-        value={p.layout.spacing}
-        options={spacings.map((value) => ({ value, label: t(`settings.spacing.${value}` as MessageKey) }))}
-        onChange={(spacing) => setLayout({ spacing })}
-      />
-      <Check label={t('settings.compact')} checked={p.layout.compact} onChange={(compact) => setLayout({ compact })} />
       <Check
         label={t('settings.showBoxes')}
         checked={p.layout.showBoxes}
@@ -457,6 +456,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
             min={-1}
             max={1}
             step={0.05}
+            centred
             format={(value) =>
               value === 0
                 ? t('settings.background.overlay.off')

@@ -110,7 +110,7 @@ export function App({
   }, []);
   const mode = panelMode(p) ?? resolveMode(p.theme, systemDark);
   const palette = p.colors === 'default' ? state?.config.theme[mode] : PALETTES[p.colors][mode];
-  useEffect(() => applyAppearance(document.documentElement, mode, palette, p), [mode, palette, p]);
+  useEffect(() => applyAppearance(document.documentElement, mode, palette, p, arranging), [mode, palette, p, arranging]);
 
   const defaultLanguage = state?.config.defaultLanguage;
   useEffect(() => {

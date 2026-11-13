@@ -36,7 +36,7 @@ The page is in edit mode here, which the pencil in the bottom right corner turns
 
 ![Layout settings](06-settings-layout.png)
 
-The settings dialog has one tab per area. Layout sets the columns, spacing, compact tiles, boxes, the hover highlight, descriptions and how many lines they may take, tags, status indicators and whether unreachable applications are hidden. The layout and the background can be saved as named presets.
+The settings dialog has one tab per area. Layout sets the columns, boxes, the hover highlight, descriptions and how many lines they may take, tags, status indicators and whether unreachable applications are hidden. The layout and the background can be saved as named presets.
 
 ## Background settings
 
@@ -74,11 +74,11 @@ A mesh gradient made from five colours, at low, medium or high complexity. It ca
 
 A geometric pattern generated in the page from a piece of text and a colour. A different text gives a different pattern.
 
-## Compact layout
+## Columns and boxes
 
-![Compact layout](13-layout-compact.png)
+![Columns and boxes](13-layout-columns.png)
 
-Three columns, tight spacing, compact tiles with a box around each and descriptions kept to one line. With columns on Auto, each list gets the number of columns that gives the fewest rows.
+Three columns, a box around each tile and descriptions kept to one line. With columns on Auto, each list gets the number of columns that gives the fewest rows.
 
 ## Several clusters
 

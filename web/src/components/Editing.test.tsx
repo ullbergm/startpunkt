@@ -272,10 +272,21 @@ describe('the page', () => {
     show(state(true));
     await screen.findByRole('link', { name: /Grafana/ });
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    expect(document.documentElement.dataset.boxes).toBe('false');
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    expect(screen.getByRole('button', { name: 'Change Grafana' })).toBeTruthy();
+    // The whole tile is what is clicked to change it: it is a button in
+    // place of its link, and every tile has its box. A tile that cannot be
+    // changed stays a link.
+    const change = screen.getByRole('button', { name: 'Change Grafana' });
+    expect(change.textContent).toContain('Grafana');
+    expect(change.closest('.tile')).not.toBeNull();
+    expect(screen.queryByRole('link', { name: /Grafana/ })).toBeNull();
+    expect(screen.getByRole('link', { name: /Wiki/ })).toBeTruthy();
+    await waitFor(() => expect(document.documentElement.dataset.boxes).toBe('true'));
     fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    expect(screen.getByRole('link', { name: /Grafana/ })).toBeTruthy();
+    await waitFor(() => expect(document.documentElement.dataset.boxes).toBe('false'));
     expect(editKey.value).toBe('the right key');
   });
 });

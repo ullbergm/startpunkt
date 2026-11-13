@@ -74,8 +74,6 @@ describe('Settings', () => {
   it('changes and stores the layout', () => {
     open('Layout');
     select('Columns', '4');
-    select('Spacing', 'relaxed');
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Compact tiles' }));
     const boxes = screen.getByRole('checkbox', { name: 'Box around each tile' }) as HTMLInputElement;
     expect(boxes.checked).toBe(false);
     fireEvent.click(boxes);
@@ -88,8 +86,6 @@ describe('Settings', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'Hide unreachable applications' }));
     expect(prefs.value.layout).toMatchObject({
       columns: 4,
-      spacing: 'relaxed',
-      compact: true,
       showBoxes: true,
       hoverEffect: true,
       descriptionLines: 1,
@@ -220,10 +216,19 @@ describe('Background settings', () => {
     // The panel runs from white through none to black.
     const panelText = () => screen.getByRole('slider', { name: /Panel behind the content/ }).getAttribute('aria-valuetext');
     expect(panelText()).toBe('Off');
+    // Its bar starts in the middle and grows to the side the thumb is on.
+    const bar = () => {
+      const style = (screen.getByRole('slider', { name: /Panel behind the content/ }) as HTMLInputElement).style;
+      return [style.getPropertyValue('--from'), style.getPropertyValue('--to')];
+    };
+    const at = (part: number) => `calc(0.5rem + (100% - 1rem) * ${part})`;
+    expect(bar()).toEqual([at(0.5), at(0.5)]);
     slide(/Panel behind the content/, -0.4);
     expect(panelText()).toBe('White 40%');
+    expect(bar()).toEqual([at(0.3), at(0.5)]);
     slide(/Panel behind the content/, 0.7);
     expect(panelText()).toBe('Black 70%');
+    expect(bar()).toEqual([at(0.5), at(0.85)]);
     // The theme was on auto, so it is left alone.
     expect(prefs.value.theme).toBe('auto');
     expect(prefs.value.background.overlayOpacity).toBe(0.7);

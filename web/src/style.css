@@ -33,19 +33,6 @@
   --error: #ffb4ab;
 }
 
-:root[data-spacing='tight'] {
-  --gap: 0.4rem;
-}
-
-:root[data-spacing='relaxed'] {
-  --gap: 1.25rem;
-}
-
-:root[data-compact='true'] {
-  --tile-min: 180px;
-  --tile-pad: 0.25rem;
-}
-
 /* High contrast: secondary text and borders take the full text colour. */
 :root[data-contrast='high'] {
   --muted: var(--text);
@@ -661,11 +648,6 @@ li[draggable='true'] {
   object-fit: contain;
 }
 
-:root[data-compact='true'] .tile-icon {
-  width: 28px;
-  height: 28px;
-}
-
 .tile-icon-fallback {
   display: grid;
   place-items: center;
@@ -703,10 +685,6 @@ li[draggable='true'] {
   gap: 0.25rem;
   /* In line with the text: past the icon and the gap next to it. */
   padding: 0 var(--tile-pad) var(--tile-pad) calc(var(--tile-pad) + 40px + 0.75rem);
-}
-
-:root[data-compact='true'] .tile-pills {
-  padding-left: calc(var(--tile-pad) + 28px + 0.75rem);
 }
 
 .pill {
@@ -1090,8 +1068,10 @@ main > .tabs,
 }
 
 
+/* The value next to a slider has a width of its own, so that the slider
+   stays where it is whatever the value reads. */
 .field output {
-  min-width: 3rem;
+  width: 5.5rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -1124,9 +1104,65 @@ main > .tabs,
   min-width: 0;
 }
 
-.field .d-range {
+.field .d-range,
+.field .range-centred {
   flex: 0 1 12rem;
-  min-width: 7rem;
+  min-width: 6rem;
+}
+
+/* A slider whose middle means "none": the bar grows from the middle to the
+   side the thumb is on, and a mark shows where the middle is. --from and
+   --to are set on the element, as the ends of the bar. */
+.range-centred {
+  --track: color-mix(in srgb, var(--text) 18%, transparent);
+  height: 1.25rem;
+  margin: 0;
+  background: linear-gradient(var(--muted), var(--muted)) center / 2px 100% no-repeat;
+  appearance: none;
+  cursor: pointer;
+}
+
+.range-centred::-webkit-slider-runnable-track {
+  height: 0.4rem;
+  border-radius: 1rem;
+  background: linear-gradient(
+    to right,
+    var(--track) var(--from),
+    var(--primary) var(--from),
+    var(--primary) var(--to),
+    var(--track) var(--to)
+  );
+}
+
+.range-centred::-moz-range-track {
+  height: 0.4rem;
+  border-radius: 1rem;
+  background: linear-gradient(
+    to right,
+    var(--track) var(--from),
+    var(--primary) var(--from),
+    var(--primary) var(--to),
+    var(--track) var(--to)
+  );
+}
+
+.range-centred::-webkit-slider-thumb {
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.3rem;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--primary);
+  appearance: none;
+}
+
+.range-centred::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--primary);
 }
 
 .field .d-toggle,
@@ -1227,7 +1263,7 @@ dialog .d-btn:disabled {
 }
 
 .stepper output {
-  min-width: 3.5rem;
+  width: 3.5rem;
   text-align: center;
 }
 
@@ -1312,15 +1348,26 @@ dialog .d-btn:disabled {
   flex: 1;
 }
 
-/* The edit control of a tile sits under its star. */
-.tile-edit {
-  position: absolute;
-  top: 1.7rem;
-  right: 0.2rem;
-  display: grid;
-  place-items: center;
-  padding: 0.25rem;
+/* A tile that can be changed is a button while the page is being edited.
+   It looks like the link it stands in for, and carries a pencil under its
+   star to say what a click does. */
+.tile-change {
+  width: 100%;
   border: 0;
   background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tile-edit {
+  position: absolute;
+  top: 1.9rem;
+  right: 0.45rem;
+  display: grid;
   color: var(--muted);
+}
+
+.tile:has(.tile-change:hover) {
+  border-color: var(--accent);
 }

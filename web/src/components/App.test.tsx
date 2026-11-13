@@ -585,19 +585,21 @@ describe('App', () => {
     act(() =>
       updatePrefs((p) => ({
         ...p,
-        layout: { ...p.layout, columns: 3, spacing: 'tight', compact: true },
+        layout: { ...p.layout, columns: 3 },
         accessibility: { fontScale: 130, highContrast: true },
       })),
     );
     const root = document.documentElement;
-    await waitFor(() => expect(root.dataset.spacing).toBe('tight'));
+    await waitFor(() => expect(root.dataset.contrast).toBe('high'));
     expect(root.dataset.boxes).toBe('false'); // tiles have no box unless asked for
     expect(root.dataset.hover).toBe('false'); // nor a hover effect
     act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, hoverEffect: true } })));
     await waitFor(() => expect(root.dataset.hover).toBe('true'));
     act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, showBoxes: true } })));
     await waitFor(() => expect(root.dataset.boxes).toBe('true'));
-    expect(root.dataset.compact).toBe('true');
+    // Settings that are gone leave nothing on the document.
+    expect(root.dataset.compact).toBeUndefined();
+    expect(root.dataset.spacing).toBeUndefined();
     expect(root.dataset.contrast).toBe('high');
     expect(root.style.fontSize).toBe('130%');
   });

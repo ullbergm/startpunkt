@@ -149,9 +149,9 @@ await shot(page, f('12-background-pattern'));
 await close(page);
 
 page = await open(
-  dark({ type: 'theme' }, { layout: { columns: 3, spacing: 'tight', compact: true, showBoxes: true, descriptionLines: 1 } }),
+  dark({ type: 'theme' }, { layout: { columns: 3, showBoxes: true, descriptionLines: 1 } }),
 );
-await shot(page, f('13-layout-compact'));
+await shot(page, f('13-layout-columns'));
 await close(page);
 
 page = await open(dark(mesh, { ...bothClusters, collapsed: collapsed('home', 'media', 'infrastructure') }));

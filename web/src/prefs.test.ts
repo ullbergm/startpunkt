@@ -18,7 +18,7 @@ describe('sanitize', () => {
       theme: 'dark',
       language: 'sv-SE',
       favorites: ['a', 'a', 3, 'b'],
-      layout: { columns: 3, spacing: 'huge', compact: true, hideUnreachable: 'yes' },
+      layout: { columns: 3, spacing: 'huge', compact: true, showTags: true, hideUnreachable: 'yes' },
       background: { type: 'gradient', color: '#ABCDEF', color2: 'red', direction: 'sideways', imageUrl: 5 },
       accessibility: { fontScale: 115, highContrast: true },
       unknown: true,
@@ -29,7 +29,10 @@ describe('sanitize', () => {
     expect(sanitize({ colors: 'plaid' }).colors).toBe('default');
     expect(result.language).toBe('sv-SE');
     expect(result.favorites).toEqual(['a', 'b']);
-    expect(result.layout).toMatchObject({ columns: 3, spacing: 'normal', compact: true, hideUnreachable: false });
+    expect(result.layout).toMatchObject({ columns: 3, showTags: true, hideUnreachable: false });
+    // Spacing and compact tiles were settings once. What is stored of them is dropped.
+    expect(result.layout).not.toHaveProperty('spacing');
+    expect(result.layout).not.toHaveProperty('compact');
     expect(result.background).toMatchObject({
       type: 'gradient',
       color: '#ABCDEF',
@@ -181,13 +184,13 @@ describe('stored preferences', () => {
   it('keep presets valid whatever was stored', () => {
     const result = sanitize({
       presets: {
-        ' Evening ': { layout: { columns: 3, spacing: 'nope' }, background: { type: 'meshGradient', meshColors: ['#111111', 'x'] } },
+        ' Evening ': { layout: { columns: 3, showTags: 'nope' }, background: { type: 'meshGradient', meshColors: ['#111111', 'x'] } },
         '': { layout: {} },
         broken: 'not a preset',
       },
     });
     expect(Object.keys(result.presets).sort()).toEqual(['Evening', 'broken']);
-    expect(result.presets.Evening?.layout).toMatchObject({ columns: 3, spacing: 'normal' });
+    expect(result.presets.Evening?.layout).toMatchObject({ columns: 3, showTags: false });
     expect(result.presets.Evening?.background.meshColors[0]).toBe('#111111');
     expect(result.presets.Evening?.background.meshColors[1]).toBe(defaults().background.meshColors[1]);
     expect(result.presets.broken).toEqual({ layout: defaults().layout, background: defaults().background });

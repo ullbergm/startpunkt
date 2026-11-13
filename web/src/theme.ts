@@ -28,11 +28,18 @@ export function systemPrefersDark(): boolean {
 // Colours are set as custom properties through the style API, never as
 // style text, and the stylesheet derives everything else from them. The
 // rest are attributes the stylesheet selects on.
-export function applyAppearance(root: HTMLElement, mode: Mode, palette: Palette | undefined, p: Preferences): void {
+//
+// While the page is being edited every tile has its box, whatever the
+// preference says: the box is what is clicked to change the tile.
+export function applyAppearance(
+  root: HTMLElement,
+  mode: Mode,
+  palette: Palette | undefined,
+  p: Preferences,
+  editing = false,
+): void {
   root.dataset.mode = mode;
-  root.dataset.spacing = p.layout.spacing;
-  root.dataset.compact = String(p.layout.compact);
-  root.dataset.boxes = String(p.layout.showBoxes);
+  root.dataset.boxes = String(p.layout.showBoxes || editing);
   root.dataset.hover = String(p.layout.hoverEffect);
   root.dataset.contrast = p.accessibility.highContrast ? 'high' : 'normal';
   root.dataset.background = p.background.type;

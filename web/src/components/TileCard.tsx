@@ -81,6 +81,9 @@ export function TileCard({
   const favorite = ids.some((id) => favorites.includes(id));
   // The controls of a tile are there only while the page is being edited.
   const arranging = editMode.value;
+  // With the edit key, a tile that is an Application or a Bookmark of this
+  // cluster can be changed. On a combined card that is the local cluster's
+  // tile.
   const editable = arranging && canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
   const body = (
     <>
@@ -107,7 +110,21 @@ export function TileCard({
   return (
     <div class={unavailable && layout.showStatus ? 'tile tile-unavailable' : 'tile'}>
       <div class="tile-main">
-        {href ? (
+        {editable ? (
+          // While the page is being edited, a tile that can be changed is
+          // one button: a click anywhere on it opens its form.
+          <button
+            type="button"
+            class="tile-link tile-change"
+            aria-label={t('edit.change', { name: tile.name })}
+            onClick={() => (editTarget.value = editable)}
+          >
+            {body}
+            <span class="tile-edit" aria-hidden="true">
+              <Icon name="edit" size={16} />
+            </span>
+          </button>
+        ) : href ? (
           <a
             class="tile-link"
             href={href}
@@ -150,19 +167,6 @@ export function TileCard({
             <Icon name="right" size={16} />
           </button>
         </span>
-      )}
-      {/* With the edit key, a tile that is an Application or a Bookmark of
-          this cluster can be changed. On a combined card that
-          is the local cluster's tile. */}
-      {editable && (
-        <button
-          type="button"
-          class="tile-edit"
-          aria-label={t('edit.change', { name: tile.name })}
-          onClick={() => (editTarget.value = editable)}
-        >
-          <Icon name="edit" size={16} />
-        </button>
       )}
       {/* Next to the link, not inside it: a button in a link is not valid
           and cannot be reached separately with the keyboard. */}
