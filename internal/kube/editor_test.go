@@ -140,7 +140,7 @@ func TestEditorRefusals(t *testing.T) {
 	}
 }
 
-func TestEditorLeavesWhatArgoCDDeploys(t *testing.T) {
+func TestEditorLeavesWhatIsDeployed(t *testing.T) {
 	managed := app("v1", "home", "managed", "https://managed.example.com")
 	managed.SetAnnotations(map[string]string{"argocd.argoproj.io/tracking-id": "home:startpunkt.ullberg.us/Application:home/managed"})
 	c := newCluster(managed, app("v1", "home", "own", "https://own.example.com"))

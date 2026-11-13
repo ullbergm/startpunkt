@@ -96,7 +96,7 @@ With "A section for each cluster" on, each cluster's tiles are listed under its 
 
 ![Editing an application](16-edit-application.png)
 
-With an edit key configured, edit mode has a lock that unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button, unless Argo CD deploys them. A change is written to the resource in the cluster.
+With an edit key configured, edit mode has a lock that unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button, unless Argo CD or Helm deploys them. A change is written to the resource in the cluster.
 
 ## Unavailable services and tags
 
@@ -115,3 +115,9 @@ On a narrow screen the tiles are in one column. A touch screen gets a search but
 ![What's new](19-whats-new.png)
 
 The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the notice of a newer release lists what has changed since the running version.
+
+## Adding a tile
+
+![Adding a tile](20-add-tile.png)
+
+In edit mode with the edit key, the plus button opens a form for a new application or bookmark. It is created as a resource in the cluster.

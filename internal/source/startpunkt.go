@@ -28,21 +28,32 @@ func spec(obj *unstructured.Unstructured, out any) error {
 	return nil
 }
 
-// What Argo CD puts on the resources it deploys: an annotation that says
-// which application the resource belongs to, or with label tracking a label
-// that names the application. Label tracking uses app.kubernetes.io/instance
-// unless told otherwise, which Helm charts set as well, so that one says
-// nothing; the label of Argo CD's own name does.
-const (
-	argoTrackingAnnotation = "argocd.argoproj.io/tracking-id"
-	argoInstanceLabel      = "argocd.argoproj.io/instance"
+// What Argo CD and Helm put on the resources they deploy. Argo CD writes an
+// annotation that says which application the resource belongs to, or with
+// label tracking a label that names it. Helm marks what a release owns, and
+// charts label their resources with the release and with what manages them.
+// A resource made on the page, or by hand, carries none of these.
+var (
+	deployedAnnotations = []string{"argocd.argoproj.io/tracking-id", "meta.helm.sh/release-name"}
+	deployedLabels      = []string{"argocd.argoproj.io/instance", "app.kubernetes.io/instance", "app.kubernetes.io/managed-by"}
 )
 
-// ManagedByArgoCD reports whether Argo CD deploys the object. A change made
-// to such an object in the cluster is undone at the next sync, so the page
-// does not offer to make one.
-func ManagedByArgoCD(obj *unstructured.Unstructured) bool {
-	return obj.GetAnnotations()[argoTrackingAnnotation] != "" || obj.GetLabels()[argoInstanceLabel] != ""
+// Deployed reports whether the object is deployed by Argo CD or Helm. A
+// change made to such an object in the cluster is undone at the next sync
+// or upgrade, so the page does not offer to make one.
+func Deployed(obj *unstructured.Unstructured) bool {
+	annotations, labels := obj.GetAnnotations(), obj.GetLabels()
+	for _, name := range deployedAnnotations {
+		if annotations[name] != "" {
+			return true
+		}
+	}
+	for _, name := range deployedLabels {
+		if labels[name] != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // Application is the adapter for the Startpunkt Application resource.
@@ -109,7 +120,7 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        splitTags(tags),
-		Editable:    !ManagedByArgoCD(obj),
+		Editable:    !Deployed(obj),
 	}}, nil
 }
 
@@ -152,6 +163,6 @@ func (Bookmark) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, er
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        []string{},
-		Editable:    !ManagedByArgoCD(obj),
+		Editable:    !Deployed(obj),
 	}}, nil
 }

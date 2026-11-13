@@ -235,13 +235,14 @@ button.github-corner {
   box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
 }
 
-/* Only where there is no keyboard to start typing on. */
-.touch-only {
+/* Only where there is no keyboard to start typing on. Named together with
+   the button's own class, so that the button's display does not win. */
+.icon-button.touch-only {
   display: none;
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .touch-only {
+  .icon-button.touch-only {
     display: inline-grid;
   }
 }
@@ -1161,6 +1162,33 @@ legend {
 /* The unlock dialog and the editors. */
 .editor {
   width: min(32rem, calc(100vw - 2rem));
+}
+
+/* The settings dialog keeps one height for all its tabs. A dialog with a
+   single form or list is as tall as its content, up to the same limit, and
+   its body is what scrolls. */
+/* fit-content, not auto: a modal dialog is positioned with every inset at
+   zero, so an automatic height would stretch it to the limit. */
+.settings.editor[open] {
+  height: fit-content;
+  max-height: min(38rem, calc(100vh - 4rem));
+}
+
+.editor .settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* A form ends in its buttons, which stay at the bottom edge of the dialog
+   while the fields scroll: no padding under them for the fields to show
+   through. */
+.editor form.settings-body {
+  padding-bottom: 0;
+}
+
+.editor .form-actions {
+  margin-bottom: 0;
 }
 
 .editor .field input[type='text'],

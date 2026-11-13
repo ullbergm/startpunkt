@@ -167,7 +167,7 @@ func TestType(t *testing.T) {
 	}
 }
 
-func TestManagedByArgoCDIsNotEditable(t *testing.T) {
+func TestDeployedIsNotEditable(t *testing.T) {
 	const application = `
 apiVersion: startpunkt.ullberg.us/v1alpha4
 kind: Application
@@ -190,12 +190,14 @@ spec: {name: Docs, group: Reference, url: "https://example.com/docs"}
 		metadata string
 		editable bool
 	}{
-		"nothing from Argo CD":    {``, true},
-		"the tracking annotation": {`annotations: {argocd.argoproj.io/tracking-id: "home:startpunkt.ullberg.us/Application:default/grafana"}`, false},
-		"the label of Argo CD":    {`labels: {argocd.argoproj.io/instance: home}`, false},
-		// Helm charts set this one too, so it does not say who deploys.
-		"the common instance label":  {`labels: {app.kubernetes.io/instance: home}`, true},
-		"another Argo CD annotation": {`annotations: {argocd.argoproj.io/sync-wave: "1"}`, true},
+		"nothing at all":                {``, true},
+		"the tracking annotation":       {`annotations: {argocd.argoproj.io/tracking-id: "home:startpunkt.ullberg.us/Application:default/grafana"}`, false},
+		"the label of Argo CD":          {`labels: {argocd.argoproj.io/instance: home}`, false},
+		"the instance label of a chart": {`labels: {app.kubernetes.io/instance: home}`, false},
+		"the label of what manages it":  {`labels: {app.kubernetes.io/managed-by: Helm}`, false},
+		"the annotation of a release":   {`annotations: {meta.helm.sh/release-name: home}`, false},
+		"labels that say nothing":       {`labels: {app.kubernetes.io/name: grafana, team: home}`, true},
+		"another Argo CD annotation":    {`annotations: {argocd.argoproj.io/sync-wave: "1"}`, true},
 	} {
 		apps, err := Application{}.Tiles(object(t, fmt.Sprintf(application, c.metadata)), nil)
 		if err != nil || len(apps) != 1 || apps[0].Editable != c.editable {

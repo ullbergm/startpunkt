@@ -93,7 +93,7 @@ Applications and bookmarks are one type, `Tile`, with a `kind` field.
 | `cluster` | Name of the owning instance. |
 | `name`, `group`, `url`, `icon`, `iconColor`, `info`, `targetBlank`, `location`, `tags` | Display fields, matching the 4.x annotation and spec fields. |
 | `source` | Resource type and object reference the tile was derived from. |
-| `editable` | True when the tile is backed by a Startpunkt custom resource on the local cluster that Argo CD does not deploy. |
+| `editable` | True when the tile is backed by a Startpunkt custom resource on the local cluster that neither Argo CD nor Helm deploys. |
 | `available`, `lastProbe` | Set by the prober of the owning instance. Absent when probing is disabled. |
 
 ## Kubernetes integration
@@ -129,7 +129,7 @@ How each type becomes tiles:
 - With `onlyAnnotated` off, every object of the type is shown unless it is annotated `enable: "false"`.
 - Ingresses can be limited to a list of ingress classes, read from `spec.ingressClassName` or the older `kubernetes.io/ingress.class` annotation.
 - Tiles from annotated objects are not editable.
-- An `Application` or `Bookmark` that Argo CD deploys is not editable either: a change made in the cluster would be undone at the next sync. It is recognised by what Argo CD puts on the object, the annotation `argocd.argoproj.io/tracking-id` or the label `argocd.argoproj.io/instance`. The label `app.kubernetes.io/instance`, which Argo CD's label tracking uses unless configured otherwise, is not taken as a sign, because Helm charts set it too. The controller's editor checks the same thing before an update or a delete and answers 409, since the endpoints can be called without the page.
+- An `Application` or `Bookmark` that Argo CD or Helm deploys is not editable either: a change made in the cluster would be undone at the next sync or upgrade. It is recognised by what they put on the object: the annotations `argocd.argoproj.io/tracking-id` and `meta.helm.sh/release-name`, and the labels `argocd.argoproj.io/instance`, `app.kubernetes.io/instance` and `app.kubernetes.io/managed-by`. A resource made on the page or by hand carries none of them. The controller's editor checks the same thing before an update or a delete and answers 409, since the endpoints can be called without the page.
 
 Differences from 4.x, which are deliberate:
 

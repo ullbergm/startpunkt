@@ -240,13 +240,13 @@ helm upgrade startpunkt oci://ghcr.io/ullbergm/charts/startpunkt --namespace sta
   --set editing.enabled=true --set editing.existingSecret=startpunkt-edit-key
 ```
 
-While the page is being edited (the pencil in its corner), it then also has a lock and a button that adds a tile. Whoever enters the key gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a form for adding new ones, which asks whether it is an application or a bookmark. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it. For that reason a resource that Argo CD deploys is read-only on the page: one that carries the annotation `argocd.argoproj.io/tracking-id` or the label `argocd.argoproj.io/instance` has no edit control, and the API refuses to change or delete it.
+While the page is being edited (the pencil in its corner), it then also has a lock and a button that adds a tile. Whoever enters the key gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a form for adding new ones, which asks whether it is an application or a bookmark. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it. For that reason a resource that Argo CD or Helm deploys is read-only on the page: one that carries the annotation `argocd.argoproj.io/tracking-id` or `meta.helm.sh/release-name`, or the label `argocd.argoproj.io/instance`, `app.kubernetes.io/instance` or `app.kubernetes.io/managed-by`, has no edit control, and the API refuses to change or delete it.
 
 Things to know before turning it on:
 
 - The key is one shared secret, not a login. Everyone who has it can edit, and changes are not attributed to a person. It has to be at least 16 characters long.
 - The browser keeps the key until the page is locked again.
-- The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page. Argo CD installations that track resources by the label `app.kubernetes.io/instance` alone are not recognised, since Helm charts set that label too.
+- The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
 - Only `http` and `https` addresses are accepted.
 - Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone, also with the right key.
 
@@ -387,7 +387,7 @@ make crds           # regenerate the custom resource definitions after changing 
 make test-cutover   # the move from 4.x to v5 on a throwaway kind cluster
 ```
 
-To work on the page, run the binary, which listens on port 8080, and start `npm run dev` in `web/`. The development server reloads on every change and passes `/api` on to the binary.
+To work on the page, run the binary, which listens on port 8080, and start `npm run dev` in `web/`. The development server reloads on every change and passes `/api` on to the binary. To work on the page against an instance that is already running, in a cluster for example, name it in `STARTPUNKT_DEV_BACKEND`, in the environment or in `web/.env.local` (see `web/.env.example`), and no binary is needed.
 
 The rules the code follows are in [AGENTS.md](AGENTS.md), with more for the page in [web/AGENTS.md](web/AGENTS.md) and for the chart in [charts/startpunkt/AGENTS.md](charts/startpunkt/AGENTS.md). What may come next is in the [roadmap](docs/roadmap.md).
 
