@@ -132,6 +132,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		if s.Updates != nil {
 			mux.Handle("GET /api/v1/version", s.Updates)
+			mux.HandleFunc("GET /api/v1/changelog", s.Updates.ServeChangelog)
 		}
 		if s.Icons != nil {
 			mux.Handle("GET /api/v1/icons/{prefix}/{file}", s.Icons)

@@ -17,6 +17,7 @@ ARG VERSION=dev
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
+COPY changelog.go CHANGELOG.md ./
 COPY api/ api/
 COPY cmd/ cmd/
 COPY internal/ internal/

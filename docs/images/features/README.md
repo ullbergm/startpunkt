@@ -24,7 +24,7 @@ Typing anywhere on the page opens the search with what was typed. A word finds t
 
 ![Favorites](04-favorites.png)
 
-The star on a tile puts it in the favorites row, which has no heading. The star shows when a tile is pointed at, and the arrows on a favorite move it; dragging one favorite onto another does the same.
+The page is in edit mode here, which the pencil in the bottom right corner turns on and which shows the controls of the tiles. The star on a tile puts it in the favorites row, which has no heading, and the arrows on a favorite move it; dragging one favorite onto another does the same.
 
 ## Bookmarks
 
@@ -96,7 +96,7 @@ With "A section for each cluster" on, each cluster's tiles are listed under its 
 
 ![Editing an application](16-edit-application.png)
 
-With an edit key configured, the lock in the corner unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button. A change is written to the resource in the cluster.
+With an edit key configured, edit mode has a lock that unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button, unless Argo CD deploys them. A change is written to the resource in the cluster.
 
 ## Unavailable services and tags
 
@@ -108,4 +108,10 @@ A service whose probe fails is dimmed and marked Offline in words, and on a comb
 
 ![Phone](18-mobile.png)
 
-On a narrow screen the tiles are in one column. A touch screen gets a search button, and the stars and the arrows of the favorites are always shown.
+On a narrow screen the tiles are in one column. A touch screen gets a search button.
+
+## What's new
+
+![What's new](19-whats-new.png)
+
+The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the notice of a newer release lists what has changed since the running version.

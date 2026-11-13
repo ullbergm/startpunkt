@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { parseVersion, versionName } from '../changelog';
 import { t } from '../i18n';
 
 export interface VersionInfo {
@@ -39,17 +40,36 @@ export function availableUpdate(info: VersionInfo | null): { version: string; ur
 }
 
 // The line under the content: what is running, where it comes from, and a
-// notice when a newer release exists.
-export function Footer({ info }: { info: VersionInfo | null }) {
+// notice when a newer release exists. The version opens the list of what
+// changed in it, and the notice what has changed since.
+export function Footer({
+  info,
+  onChanges,
+  onUpdate,
+}: {
+  info: VersionInfo | null;
+  onChanges?: () => void;
+  onUpdate?: () => void;
+}) {
   const update = availableUpdate(info);
-  const version = info ? (/^\d/.test(info.version) ? `v${info.version}` : info.version) : '';
+  const version = info ? versionName(info.version) : '';
+  // A development build has no entry in the changelog.
+  const released = info !== null && parseVersion(info.version) !== null;
   return (
     <footer class="page-footer">
       <p>
         <a href="https://github.com/ullbergm/startpunkt" target="_blank" rel="noopener noreferrer">
           Startpunkt
         </a>
-        {version && ` ${version}`}, {t('footer.by')}{' '}
+        {version && ' '}
+        {version && released && onChanges ? (
+          <button type="button" class="link-button" title={t('changes.open', { version })} onClick={onChanges}>
+            {version}
+          </button>
+        ) : (
+          version
+        )}
+        , {t('footer.by')}{' '}
         <a href="https://ullberg.us" target="_blank" rel="noopener noreferrer">
           Magnus Ullberg
         </a>
@@ -57,9 +77,9 @@ export function Footer({ info }: { info: VersionInfo | null }) {
       </p>
       {update && (
         <p role="status">
-          <a class="update" href={update.url} target="_blank" rel="noopener noreferrer">
+          <button type="button" class="link-button update" onClick={onUpdate}>
             {t('footer.update', { version: update.version })}
-          </a>
+          </button>
         </p>
       )}
     </footer>

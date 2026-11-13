@@ -9,6 +9,7 @@ More specific guides: `web/AGENTS.md` for the page and `charts/startpunkt/AGENTS
 | Path | Holds |
 | --- | --- |
 | `cmd/startpunkt` | Entry point; wires the roles together |
+| `changelog.go` | Embeds `CHANGELOG.md`, which the page shows as what is new |
 | `api/v1` | Go types of the custom resources and of every setting |
 | `internal/tile` | The tile, which is the unit everything else passes around |
 | `internal/store` | The in-memory store, its diffs and its subscribers |

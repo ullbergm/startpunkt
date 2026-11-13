@@ -212,6 +212,14 @@ main {
   color: #ff9f1a;
 }
 
+/* With an update the corner is a button, which opens what has changed. */
+button.github-corner {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
 .corner-actions {
   position: fixed;
   right: 1rem;
@@ -340,6 +348,46 @@ main:focus {
 
 .page-footer .update {
   font-weight: 600;
+}
+
+/* A button that reads as part of the text around it. */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* The list of what changed in each release. */
+.changes h3 {
+  margin: 1rem 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.changes h3 small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.changes h4 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.changes ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.changes-link {
+  margin: 1rem 0 0;
+}
+
+.changes li {
+  margin: 0.15rem 0;
+  overflow-wrap: anywhere;
 }
 
 button,

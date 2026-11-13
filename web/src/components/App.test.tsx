@@ -909,6 +909,106 @@ describe('App', () => {
     expect(document.title).toBe('Renamed');
   });
 
+  describe('what has changed', () => {
+    const entry = (version: string) => ({
+      version,
+      date: '2026-11-13',
+      sections: [{ title: 'Features', changes: [`change in ${version}`] }],
+    });
+    // The server's two documents: the version, and the changelog.
+    const server = (version: Record<string, unknown>, releases: unknown[]) => {
+      const fetcher = vi.fn(async (url: string) =>
+        url === '/api/v1/version'
+          ? new Response(JSON.stringify(version), { status: 200 })
+          : new Response(JSON.stringify({ releases }), { status: 200 }),
+      );
+      return fetcher as unknown as typeof fetch;
+    };
+    const all = ['5.3.0', '5.2.0', '5.1.0', '5.0.0'].map(entry);
+    const show = (fetcher: typeof fetch) => {
+      render(<App open={openFake} fetchVersion={fetcher} />);
+      act(() => FakeStream.last.emit('snapshot', serverState({ tiles: [tile({ name: 'Plex' })] })));
+    };
+
+    it('says what is new on the first visit after an update, and only then', async () => {
+      window.localStorage.setItem('startpunkt.seenVersion', '5.0.0');
+      const fetcher = server({ version: '5.2.0', updateAvailable: false }, all.slice(1));
+      show(fetcher);
+      const dialog = await screen.findByRole('dialog', { name: "What's new" });
+      // What came after the version last seen, up to the one running.
+      expect(within(dialog).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+        'v5.2.0 2026-11-13',
+        'v5.1.0 2026-11-13',
+      ]);
+      expect(within(dialog).getByText('change in 5.2.0')).toBeTruthy();
+      expect(within(dialog).queryByText('change in 5.0.0')).toBeNull();
+      expect(window.localStorage.getItem('startpunkt.seenVersion')).toBe('5.2.0');
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+      cleanup();
+      show(fetcher);
+      await waitFor(() => expect(screen.getByRole('contentinfo').textContent).toContain('v5.2.0'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('says nothing to a browser that was never here, or after going back a version', async () => {
+      const fetcher = server({ version: '5.2.0', updateAvailable: false }, all.slice(1));
+      show(fetcher);
+      await waitFor(() => expect(window.localStorage.getItem('startpunkt.seenVersion')).toBe('5.2.0'));
+      expect(screen.queryByRole('dialog')).toBeNull();
+
+      cleanup();
+      show(server({ version: '5.1.0', updateAvailable: false }, all.slice(2)));
+      await waitFor(() => expect(window.localStorage.getItem('startpunkt.seenVersion')).toBe('5.1.0'));
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(fetcher).not.toHaveBeenCalledWith('/api/v1/changelog');
+    });
+
+    it('does not count a development build as a version', async () => {
+      window.localStorage.setItem('startpunkt.seenVersion', '5.0.0');
+      show(server({ version: 'dev', updateAvailable: false }, all));
+      await waitFor(() => expect(screen.getByRole('contentinfo').textContent).toContain('Startpunkt dev'));
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(window.localStorage.getItem('startpunkt.seenVersion')).toBe('5.0.0');
+    });
+
+    it('shows what has changed since the running version when the update notice is clicked', async () => {
+      window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
+      const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
+      show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all));
+      const footer = await screen.findByRole('contentinfo');
+      fireEvent.click(await within(footer).findByRole('button', { name: 'Update available: v5.3.0' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
+      await within(dialog).findByText('change in 5.3.0');
+      expect(within(dialog).getByText('change in 5.2.0')).toBeTruthy();
+      expect(within(dialog).queryByText('change in 5.1.0')).toBeNull();
+      expect(within(dialog).getByRole('link', { name: 'Open the release on GitHub' }).getAttribute('href')).toBe(url);
+    });
+
+    it('still links to the release when the changes are not known', async () => {
+      window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
+      const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
+      show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all.slice(2)));
+      // The corner at the top says the same and opens the same.
+      fireEvent.click((await screen.findAllByRole('button', { name: 'Update available: v5.3.0' }))[0]!);
+      const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
+      expect(await within(dialog).findByText('The list of changes is not available.')).toBeTruthy();
+      expect(within(dialog).getByRole('link', { name: 'Open the release on GitHub' })).toBeTruthy();
+    });
+
+    it('opens the changes of the running version from the footer', async () => {
+      window.localStorage.setItem('startpunkt.seenVersion', '5.2.0');
+      show(server({ version: '5.2.0', updateAvailable: false }, all));
+      fireEvent.click(await screen.findByRole('button', { name: 'v5.2.0' }));
+      const dialog = await screen.findByRole('dialog', { name: "What's new" });
+      await within(dialog).findByText('change in 5.2.0');
+      expect(within(dialog).getByText('change in 5.0.0')).toBeTruthy();
+      expect(within(dialog).queryByText('change in 5.3.0')).toBeNull();
+    });
+  });
+
   it('has a skip link to the content', () => {
     renderWith(serverState());
     const skip = screen.getByRole('link', { name: 'Skip to main content' });

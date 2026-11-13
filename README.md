@@ -335,6 +335,7 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 
   Up to twenty presets can be saved.
 - **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version and, unless the check is turned off, says when a newer release exists.
+- **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. The notice of a newer release opens a list of what has changed since the running version, with a link to the release.
 
 ## Deployment modes
 
@@ -354,6 +355,7 @@ The page uses a small HTTP API, and so can anything else:
 | `GET /api/v1/state` | Every tile, the clusters with their connection state, and the settings of the page. Answers with an `ETag`. |
 | `GET /api/v1/events` | The same as a server-sent event stream: a snapshot, then every change as it happens |
 | `GET /api/v1/version` | The running version, and a newer release when there is one |
+| `GET /api/v1/changelog` | What changed in each release, newest first: the running version and those before it, and the newer ones when the update check has found one |
 | `GET /api/v1/icons/{set}/{name}.svg` | An [Iconify](https://icon-sets.iconify.design/) icon, in the colour given as `?color=` |
 | `GET /api/v1/background` | Address, title and copyright of the Bing picture of the day |
 | `GET /healthz`, `GET /readyz` | Liveness and readiness. An instance is ready when it has read its cluster. |

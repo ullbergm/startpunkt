@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
+	startpunkt "github.com/ullbergm/startpunkt"
 	"github.com/ullbergm/startpunkt/internal/api"
 	"github.com/ullbergm/startpunkt/internal/config"
 	"github.com/ullbergm/startpunkt/internal/edit"
@@ -211,7 +212,7 @@ func run() error {
 		// Only these roles fetch pictures and icons and look for updates.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 		handler.Icons = &api.Icons{SourceFunc: func() string { return holder.Get().Icons.Source }, UserAgent: "startpunkt"}
-		handler.Updates = &api.Updates{Current: version, Flags: func() (bool, bool) {
+		handler.Updates = &api.Updates{Current: version, Changelog: api.ParseChangelog(startpunkt.Changelog), Flags: func() (bool, bool) {
 			web := holder.Get().Web
 			return web.CheckForUpdates, web.GitHubLink
 		}}
