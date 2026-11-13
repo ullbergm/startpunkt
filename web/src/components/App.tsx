@@ -1,6 +1,16 @@
 import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
+import {
+  fetchChangelog,
+  newerVersion,
+  parseVersion,
+  releasesBetween,
+  rememberVersion,
+  seenVersion,
+  versionName,
+  type Release,
+} from '../changelog';
 import { clusterColors, orderClusters } from '../clusters';
 import { canEdit, editMode, editTarget, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
@@ -10,6 +20,7 @@ import { filterByTags, tagsFromPath } from '../tags';
 import { PALETTES } from '../palettes';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
+import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
 import { EditControls, Editor, Unlock } from './Editing';
 import { Icon } from './Icons';
@@ -40,13 +51,44 @@ export function App({
   const error = fatalError.value;
   const status = connection.value;
   const p = prefs.value;
-  const [dialog, setDialog] = useState<'search' | 'settings' | 'unlock' | null>(null);
+  const [dialog, setDialog] = useState<'search' | 'settings' | 'unlock' | 'news' | 'update' | null>(null);
   const editing: EditTarget | null = editTarget.value;
   const arranging = editMode.value;
   // What to add once the key has been given, when adding is what asked for it.
   const [pendingAdd, setPendingAdd] = useState<EditTarget | null>(null);
   const versionInfo = useVersion(fetchVersion);
   const update = availableUpdate(versionInfo);
+  // The releases the open list of changes is about, or null while they are
+  // being asked for.
+  const [changes, setChanges] = useState<Release[] | null>(null);
+  const running = versionInfo?.version;
+  // The first visit after the instance was updated says what is new. A
+  // browser that was never here before is told nothing: all of it is new.
+  useEffect(() => {
+    if (!running || !parseVersion(running)) return;
+    const seen = seenVersion();
+    if (seen === running) return;
+    rememberVersion(running);
+    if (seen === null || !newerVersion(running, seen)) return;
+    let current = true;
+    void fetchChangelog(fetchVersion).then((all) => {
+      const news = releasesBetween(all, seen, running);
+      if (!current || news.length === 0) return;
+      setChanges(news);
+      // Not on top of something the visitor has opened in the meantime.
+      setDialog((open) => open ?? 'news');
+    });
+    return () => {
+      current = false;
+    };
+  }, [running]);
+  // Opens the list of changes on what the server knows between two versions.
+  const showChanges = (which: 'news' | 'update', after: string | null, upTo: string) => {
+    setChanges(null);
+    setDialog(which);
+    void fetchChangelog(fetchVersion).then((all) => setChanges(releasesBetween(all, after, upTo)));
+  };
+  const showUpdate = () => running && update && showChanges('update', running, update.version);
   const [chosen, setChosen] = useState<Kind | null>(null);
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
@@ -201,7 +243,7 @@ export function App({
         {t('page.skipToContent')}
       </a>
       <Background background={p.background} />
-      {(versionInfo?.githubLink || update) && <GitHubCorner update={update} />}
+      {(versionInfo?.githubLink || update) && <GitHubCorner update={update} onUpdate={showUpdate} />}
       <header class="page-header">
         {/* Decorative: the heading next to it names the page. */}
         <img class="logo" src="/logo.svg" alt="" width="72" height="72" />
@@ -259,7 +301,7 @@ export function App({
           ))
         )}
       </main>
-      <Footer info={versionInfo} />
+      <Footer info={versionInfo} onChanges={() => running && showChanges('news', null, running)} onUpdate={showUpdate} />
       {/* The page's own controls sit in the bottom right corner of the
           window, out of the way of the content. Search has no button on a
           device with a keyboard: it opens when you start typing. A touch
@@ -332,6 +374,23 @@ export function App({
           target={editing}
           namespace={state.editing.namespace ?? ''}
           onClose={() => (editTarget.value = null)}
+        />
+      )}
+      {dialog === 'news' && running && (
+        <Changes
+          title={t('changes.title')}
+          intro={t('changes.intro.news', { version: versionName(running) })}
+          releases={changes}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog === 'update' && running && update && (
+        <Changes
+          title={t('footer.update', { version: update.version })}
+          intro={t('changes.intro.update', { version: versionName(running) })}
+          releases={changes}
+          link={update.url}
+          onClose={() => setDialog(null)}
         />
       )}
       {dialog === 'settings' && <Settings clusters={clusters} shownClusters={shownNames} onClose={() => setDialog(null)} />}

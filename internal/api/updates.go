@@ -50,13 +50,24 @@ type Updates struct {
 	Flags func() (check, githubLink bool)
 	// Source overrides the address the latest release is looked up at.
 	Source string
-	Client *http.Client
+	// Changelog is what changed in the running version and those before
+	// it, newest first.
+	Changelog []Release
+	// ChangelogSource overrides the address the changes of a newer release
+	// are read from. With Source overridden and this left empty, they are
+	// not read at all.
+	ChangelogSource string
+	Client          *http.Client
 	// TTL overrides how long an answer is kept.
 	TTL time.Duration
 
 	mu      sync.Mutex
 	latest  string
 	expires time.Time
+	// ahead is what changed in the releases after the running version, up
+	// to latest, and aheadOf the release it was read for.
+	ahead   []Release
+	aheadOf string
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +97,9 @@ func (u *Updates) newer(ctx context.Context, check bool) string {
 	}
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	fetched := false
 	if time.Now().After(u.expires) {
+		fetched = true
 		ttl := u.TTL
 		if ttl <= 0 {
 			ttl = 6 * time.Hour
@@ -100,10 +113,25 @@ func (u *Updates) newer(ctx context.Context, check bool) string {
 		}
 		u.expires = time.Now().Add(ttl)
 	}
-	if NewerVersion(u.latest, u.Current) {
-		return u.latest
+	if !NewerVersion(u.latest, u.Current) {
+		return ""
 	}
-	return ""
+	// What changed since the running version is read once for each newer
+	// release. Not having it is no reason to keep quiet about the release,
+	// and it is asked for again when the release is next looked up.
+	if u.aheadOf != u.latest && fetched && (u.Source == "" || u.ChangelogSource != "") {
+		if ahead, err := u.changesUntil(ctx, u.latest); err == nil {
+			u.ahead, u.aheadOf = ahead, u.latest
+		}
+	}
+	return u.latest
+}
+
+func (u *Updates) client() *http.Client {
+	if u.Client != nil {
+		return u.Client
+	}
+	return &http.Client{}
 }
 
 func (u *Updates) fetch(ctx context.Context) (string, error) {
@@ -111,10 +139,7 @@ func (u *Updates) fetch(ctx context.Context) (string, error) {
 	if source == "" {
 		source = latestRelease
 	}
-	client := u.Client
-	if client == nil {
-		client = &http.Client{}
-	}
+	client := u.client()
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, source, nil)

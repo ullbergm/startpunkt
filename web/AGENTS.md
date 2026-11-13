@@ -28,7 +28,7 @@ What is only about the moment, such as which dialog is open or which tab is chos
 - A new preference is added in three places: the `Preferences` type, `defaults()`, and the matching `sanitize` function. Every value read from storage is checked on its own and replaced by its default when it does not fit; nothing from storage is trusted.
 - A preset holds `layout` and `background`, so a field added to either is part of presets without more work. The active preset is found by comparing JSON text, so `sanitize` must keep building its objects in a fixed order.
 - Theme and panel depend on each other. Change them with `setTheme` and `setPanel`, not directly.
-- `localStorage` has three keys: `startpunkt.preferences`, `startpunkt.editKey` and `startpunkt.appearance`, the last being a copy of the colours for `public/boot.js`. Every access is in a try/catch, and the page has to work without storage.
+- `localStorage` has four keys: `startpunkt.preferences`, `startpunkt.editKey`, `startpunkt.seenVersion` (the version the page was last opened with, in `changelog.ts`) and `startpunkt.appearance`, the last being a copy of the colours for `public/boot.js`. Every access is in a try/catch, and the page has to work without storage.
 
 ## Translations
 

@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/preact';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setLanguage } from '../i18n';
 import { Footer, useVersion } from './Footer';
@@ -6,13 +6,15 @@ import { GitHubCorner } from './GitHubCorner';
 import { availableUpdate } from './Footer';
 
 // The footer and the corner as the page wires them together.
+const onUpdate = vi.fn();
+const onChanges = vi.fn();
 function Wired({ fetcher }: { fetcher: typeof fetch }) {
   const info = useVersion(fetcher);
   const update = availableUpdate(info);
   return (
     <>
-      {(info?.githubLink || update) && <GitHubCorner update={update} />}
-      <Footer info={info} />
+      {(info?.githubLink || update) && <GitHubCorner update={update} onUpdate={onUpdate} />}
+      <Footer info={info} onChanges={onChanges} onUpdate={onUpdate} />
     </>
   );
 }
@@ -20,7 +22,11 @@ function Wired({ fetcher }: { fetcher: typeof fetch }) {
 const answer = (body: unknown, status = 200) =>
   vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
 
-beforeEach(() => setLanguage('en-US'));
+beforeEach(() => {
+  onUpdate.mockClear();
+  onChanges.mockClear();
+  return setLanguage('en-US');
+});
 afterEach(() => cleanup());
 
 describe('Footer', () => {
@@ -37,14 +43,19 @@ describe('Footer', () => {
     expect(author.getAttribute('href')).toBe('https://ullberg.us');
     expect(author.getAttribute('rel')).toBe('noopener noreferrer');
     expect(screen.queryByRole('status')).toBeNull();
+    // The version opens the list of what changed in it.
+    fireEvent.click(screen.getByRole('button', { name: 'v5.0.0' }));
+    expect(onChanges).toHaveBeenCalledTimes(1);
   });
 
   it('shows a development build as it is named', async () => {
     render(<Wired fetcher={answer({ version: 'dev', updateAvailable: false })} />);
     await waitFor(() => expect(screen.getByRole('contentinfo').textContent).toContain('Startpunkt dev, by'));
+    // It has no entry in the changelog, so there is nothing to open.
+    expect(within(screen.getByRole('contentinfo')).queryByRole('button')).toBeNull();
   });
 
-  it('says when a newer release exists and links to it', async () => {
+  it('says when a newer release exists and opens what has changed', async () => {
     render(
       <Wired
         fetcher={answer({
@@ -55,9 +66,9 @@ describe('Footer', () => {
         })}
       />,
     );
-    const link = within(await screen.findByRole('status')).getByRole('link', { name: 'Update available: v5.1.0' });
-    expect(link.getAttribute('href')).toBe('https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0');
-    expect(screen.getByRole('status')).toBeTruthy();
+    const notice = within(await screen.findByRole('status')).getByRole('button', { name: 'Update available: v5.1.0' });
+    fireEvent.click(notice);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 
   it('shows the GitHub corner when asked to, linking to the project', async () => {
@@ -87,17 +98,19 @@ describe('Footer', () => {
       />,
     );
     await screen.findByRole('status');
-    const corner = document.querySelector('.github-corner') as HTMLAnchorElement;
+    const corner = document.querySelector('.github-corner') as HTMLButtonElement;
+    expect(corner.tagName).toBe('BUTTON');
     expect(corner.className).toContain('has-update');
     expect(corner.getAttribute('aria-label')).toBe('Update available: v5.1.0');
-    expect(corner.getAttribute('href')).toBe('https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0');
+    fireEvent.click(corner);
+    expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 
   it('ignores an update whose link points somewhere else', async () => {
     const fetcher = answer({ version: '5.0.0', latest: 'v9', updateAvailable: true, url: 'https://evil.example/x' });
     render(<Wired fetcher={fetcher} />);
     await waitFor(() => expect(screen.getByRole('contentinfo').textContent).toContain('v5.0.0'));
-    expect(screen.queryByRole('link', { name: /Update available/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Update available/ })).toBeNull();
   });
 
   it('still shows the links when the version is not available', async () => {

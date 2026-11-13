@@ -30,7 +30,9 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 
 // Opens the page with the given preferences and waits until it is complete:
 // tiles drawn, every icon on screen loaded, fonts ready.
-async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false } = {}) {
+// seen is the version the browser last opened the page with: an older one
+// makes the page say what is new.
+async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null } = {}) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: scale,
@@ -41,11 +43,12 @@ async function open(prefs, { width = 1440, height = 900, path = '/', key = false
     locale: 'en-US',
   });
   await context.addInitScript(
-    ([p, k]) => {
+    ([p, k, v]) => {
       localStorage.setItem('startpunkt.preferences', JSON.stringify(p));
       if (k) localStorage.setItem('startpunkt.editKey', k);
+      if (v) localStorage.setItem('startpunkt.seenVersion', v);
     },
-    [prefs, key ? editKey : null],
+    [prefs, key ? editKey : null, seen],
   );
   const page = await context.newPage();
   await page.goto(base + path);
@@ -170,6 +173,12 @@ await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Change NAS' }).click();
 await page.waitForSelector('.editor input');
 await shot(page, f('16-edit-application'));
+await close(page);
+
+// The first visit after an update: what changed since the version last seen.
+page = await open(dark(mesh), { seen: '5.0.0' });
+await page.waitForSelector('.changes li');
+await shot(page, f('19-whats-new'));
 await close(page);
 
 // At /admin, the tiles tagged "admin" are shown too.

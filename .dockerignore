@@ -2,6 +2,8 @@
 *
 !go.mod
 !go.sum
+!changelog.go
+!CHANGELOG.md
 !api/
 !cmd/
 !internal/
