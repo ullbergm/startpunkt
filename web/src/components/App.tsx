@@ -22,7 +22,7 @@ import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../t
 import { Background } from './Background';
 import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
-import { EditControls, Editor, Fixed, Unlock } from './Editing';
+import { Editor, Fixed, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
 import { Favorites, Section } from './Section';
@@ -54,8 +54,6 @@ export function App({
   const [dialog, setDialog] = useState<'search' | 'settings' | 'unlock' | 'news' | 'update' | null>(null);
   const editing: EditTarget | null = editTarget.value;
   const arranging = editMode.value;
-  // What to add once the key has been given, when adding is what asked for it.
-  const [pendingAdd, setPendingAdd] = useState<EditTarget | null>(null);
   const versionInfo = useVersion(fetchVersion);
   const update = availableUpdate(versionInfo);
   // The releases the open list of changes is about, or null while they are
@@ -329,27 +327,30 @@ export function App({
         </button>
         {/* Tiles carry their controls only while the page is being edited.
             An instance with an edit key then also has a button that adds a
-            tile, and the lock. */}
-        {arranging && state?.editing.available && (
-          <EditControls
-            isUnlocked={canEdit.value}
-            onUnlock={() => setDialog('unlock')}
-            onAdd={() => {
-              if (canEdit.value) {
-                editTarget.value = { kind: view };
-              } else {
-                setPendingAdd({ kind: view });
-                setDialog('unlock');
-              }
-            }}
-          />
+            tile. */}
+        {arranging && canEdit.value && (
+          <button
+            type="button"
+            class="icon-button"
+            aria-label={t('edit.add')}
+            title={t('edit.add')}
+            onClick={() => (editTarget.value = { kind: view })}
+          >
+            <Icon name="plus" />
+          </button>
         )}
         <button
           type="button"
           class="icon-button"
           aria-label={t(arranging ? 'editMode.leave' : 'editMode.enter')}
           title={t(arranging ? 'editMode.leave' : 'editMode.enter')}
-          onClick={() => (editMode.value = !arranging)}
+          onClick={() => {
+            // On an instance with an edit key, editing the page takes the
+            // key. It is asked for unless this browser has it already.
+            if (arranging) editMode.value = false;
+            else if (state?.editing.available && !canEdit.value) setDialog('unlock');
+            else editMode.value = true;
+          }}
         >
           <Icon name={arranging ? 'check' : 'edit'} />
         </button>
@@ -371,17 +372,8 @@ export function App({
         <Unlock
           onClose={() => {
             setDialog(null);
-            if (pendingAdd && canEdit.value) editTarget.value = pendingAdd;
-            setPendingAdd(null);
-          }}
-        />
-      )}
-      {/* A tile was clicked to change it, and the key has not been given:
-          it is asked for, and the form opens once it is there. */}
-      {editing && state && arranging && !canEdit.value && state.editing.available && (
-        <Unlock
-          onClose={() => {
-            if (!canEdit.value) editTarget.value = null;
+            // With the key, the page is being edited. Without it, not.
+            if (canEdit.value) editMode.value = true;
           }}
         />
       )}

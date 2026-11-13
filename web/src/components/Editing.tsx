@@ -6,7 +6,6 @@ import {
   FIELDS,
   isAddress,
   loadResource,
-  lock,
   saveResource,
   toForm,
   toSpec,
@@ -438,36 +437,5 @@ export function Fixed({ what, onClose }: { what: FixedTile; onClose: () => void 
         )}
       </div>
     </Modal>
-  );
-}
-
-// What an instance with an edit key adds to the corner while the page is
-// being edited: the button that adds a tile, and the lock. Adding asks for
-// the key first when the page is locked.
-export function EditControls({
-  isUnlocked,
-  onUnlock,
-  onAdd,
-}: {
-  isUnlocked: boolean;
-  onUnlock: () => void;
-  onAdd: () => void;
-}) {
-  return (
-    <>
-      <button type="button" class="icon-button" aria-label={t('edit.add')} title={t('edit.add')} onClick={onAdd}>
-        <Icon name="plus" />
-      </button>
-      <button
-        type="button"
-        class="icon-button"
-        aria-label={t(isUnlocked ? 'unlock.lock' : 'unlock.open')}
-        title={t(isUnlocked ? 'unlock.lock' : 'unlock.open')}
-        aria-pressed={isUnlocked}
-        onClick={isUnlocked ? lock : onUnlock}
-      >
-        <Icon name={isUnlocked ? 'unlocked' : 'locked'} />
-      </button>
-    </>
   );
 }

@@ -96,7 +96,7 @@ With "A section for each cluster" on, each cluster's tiles are listed under its 
 
 ![Editing an application](16-edit-application.png)
 
-With an edit key configured, edit mode has a lock that unlocks the page. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button, unless Argo CD or Helm deploys them. A change is written to the resource in the cluster.
+With an edit key configured, the page asks for it when edit mode is entered, unless the browser has it already. `Application` and `Bookmark` resources of this cluster can then be changed, deleted, and added with the plus button, unless Argo CD or Helm deploys them. A change is written to the resource in the cluster.
 
 ## Unavailable services and tags
 
