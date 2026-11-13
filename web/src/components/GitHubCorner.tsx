@@ -3,9 +3,8 @@ import { t } from '../i18n';
 const PROJECT = 'https://github.com/ullbergm/startpunkt';
 
 // The corner at the top right that links to the project. When a newer
-// release exists it changes colour and opens the list of what has changed
-// instead, and says so in its name, so that the change is not carried by
-// colour alone.
+// release exists, a golden ribbon across the corner takes its place, says
+// which version there is, and opens the list of what has changed.
 export function GitHubCorner({
   update,
   onUpdate,
@@ -28,8 +27,11 @@ export function GitHubCorner({
     </svg>
   );
   return update ? (
-    <button type="button" class="github-corner has-update" aria-label={label} title={label} onClick={onUpdate}>
-      {mark}
+    // The button is the square the ribbon crosses; only the ribbon itself
+    // takes clicks, so that what is under the rest of the square stays
+    // reachable.
+    <button type="button" class="update-ribbon" aria-label={label} title={label} onClick={onUpdate}>
+      <span class="update-ribbon-band">{t('update.ribbon', { version: update.version })}</span>
     </button>
   ) : (
     <a class="github-corner" href={PROJECT} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>

@@ -114,10 +114,16 @@ On a narrow screen the tiles are in one column. A touch screen gets a search but
 
 ![What's new](19-whats-new.png)
 
-The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the corner at the top right, when it announces a newer release, lists what has changed since the running version.
+The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the ribbon that announces a newer release lists what has changed since the running version.
 
 ## Adding a tile
 
 ![Adding a tile](20-add-tile.png)
 
 In edit mode with the edit key, the plus button opens a form for a new application or bookmark. The form says what is wrong next to a field and whether something answers at the address. The group can be picked from those in use or typed, tags are pills, and the icon is found by searching the icon sets. What is saved is a resource in the cluster.
+
+## A newer release
+
+![A newer release](21-update-ribbon.png)
+
+When the instance has found a newer release, a golden ribbon across the top right corner names it. A click on it lists what has changed since the running version.

@@ -195,16 +195,67 @@ main {
   fill: #151513;
 }
 
-.github-corner.has-update {
-  color: #ff9f1a;
+/* A newer release: a golden ribbon across the corner. The button is the
+   square it crosses and lets clicks through; the band is what is clicked. */
+.update-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 4;
+  width: 9rem;
+  height: 9rem;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  pointer-events: none;
 }
 
-/* With an update the corner is a button, which opens what has changed. */
-button.github-corner {
-  padding: 0;
-  border: 0;
-  background: none;
+.update-ribbon-band {
+  position: absolute;
+  top: 1.9rem;
+  right: -3.1rem;
+  width: 13rem;
+  padding: 0.35rem 0;
+  transform: rotate(45deg);
+  background: linear-gradient(100deg, #b8860b 0%, #e6b422 22%, #fff1a8 48%, #f2c230 70%, #a9770a 100%);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 55%),
+    inset 0 -1px 0 rgb(0 0 0 / 20%);
+  color: #3a2800;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 45%);
+  white-space: nowrap;
   cursor: pointer;
+  pointer-events: auto;
+}
+
+.update-ribbon:hover .update-ribbon-band {
+  filter: brightness(1.08);
+}
+
+/* Focus is shown on the band, which is what the button looks like. */
+.update-ribbon:focus-visible {
+  outline: none;
+}
+
+.update-ribbon:focus-visible .update-ribbon-band {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .update-ribbon-band {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+    text-shadow: none;
+  }
 }
 
 .corner-actions {

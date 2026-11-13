@@ -128,6 +128,7 @@
   "footer.update": "Uppdatering tillgänglig: {version}",
   "settings.descriptionLines": "Rader i beskrivningen, som mest",
   "settings.descriptionLines.any": "Ingen gräns",
+  "update.ribbon": "{version} finns",
   "github.view": "Visa projektet på GitHub",
   "settings.clusters": "Kluster",
   "settings.clusters.help": "Visa program och bokmärken från de här klustren.",

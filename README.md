@@ -375,8 +375,8 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
   | Accessibility | Text size from 85% to 150%, high contrast, and the list of keyboard shortcuts |
 
   Up to twenty presets can be saved.
-- **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version. Unless the check is turned off, the corner at the top right changes colour and name when a newer release exists.
-- **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. The corner, when it announces a newer release, opens a list of what has changed since the running version, with a link to the release.
+- **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version. Unless the check is turned off, a golden ribbon across the top right corner names a newer release when one exists.
+- **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. That ribbon opens a list of what has changed since the running version, with a link to the release.
 
 ## Deployment modes
 

@@ -128,6 +128,7 @@
   "footer.update": "Update available: {version}",
   "settings.descriptionLines": "Description lines, at most",
   "settings.descriptionLines.any": "No limit",
+  "update.ribbon": "{version} available",
   "github.view": "View the project on GitHub",
   "settings.clusters": "Clusters",
   "settings.clusters.help": "Show the applications and bookmarks of these clusters.",

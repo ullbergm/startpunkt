@@ -67,7 +67,9 @@ describe('Footer', () => {
       />,
     );
     const notice = await screen.findByRole('button', { name: 'Update available: v5.1.0' });
-    expect(notice.className).toContain('github-corner');
+    // It is the ribbon across the corner, and reads as the version.
+    expect(notice.className).toBe('update-ribbon');
+    expect(notice.textContent).toBe('v5.1.0 available');
     const footer = screen.getByRole('contentinfo');
     expect(footer.textContent).not.toContain('Update available');
     expect(within(footer).queryByRole('status')).toBeNull();
@@ -89,7 +91,7 @@ describe('Footer', () => {
     expect(screen.queryByRole('link', { name: 'View the project on GitHub' })).toBeNull();
   });
 
-  it('turns the corner into an update notice, even when the corner is turned off', async () => {
+  it('puts the ribbon in place of the corner, even when the corner is turned off', async () => {
     render(
       <Wired
         fetcher={answer({
@@ -102,9 +104,9 @@ describe('Footer', () => {
       />,
     );
     await screen.findByRole('button', { name: 'Update available: v5.1.0' });
-    const corner = document.querySelector('.github-corner') as HTMLButtonElement;
+    expect(document.querySelector('.github-corner')).toBeNull();
+    const corner = document.querySelector('.update-ribbon') as HTMLButtonElement;
     expect(corner.tagName).toBe('BUTTON');
-    expect(corner.className).toContain('has-update');
     expect(corner.getAttribute('aria-label')).toBe('Update available: v5.1.0');
     fireEvent.click(corner);
     expect(onUpdate).toHaveBeenCalledTimes(1);

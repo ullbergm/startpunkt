@@ -32,7 +32,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 // tiles drawn, every icon on screen loaded, fonts ready.
 // seen is the version the browser last opened the page with: an older one
 // makes the page say what is new.
-async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null } = {}) {
+async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null, update = null } = {}) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: scale,
@@ -51,6 +51,16 @@ async function open(prefs, { width = 1440, height = 900, path = '/', key = false
     [prefs, key ? editKey : null, seen],
   );
   const page = await context.newPage();
+  // update is a version to announce as newer than the running one. The
+  // instances of the shots do not look for updates themselves.
+  if (update) {
+    await page.route('**/api/v1/version', async (route) => {
+      const answer = await (await route.fetch()).json();
+      await route.fulfill({
+        json: { ...answer, latest: update, updateAvailable: true, url: `https://github.com/ullbergm/startpunkt/releases/tag/${update}` },
+      });
+    });
+  }
   await page.goto(base + path);
   await page.waitForSelector('.tile');
   await page.mouse.move(width - 2, height / 2);
@@ -195,6 +205,12 @@ await close(page);
 page = await open(dark(mesh), { seen: '5.0.0' });
 await page.waitForSelector('.changes li');
 await shot(page, f('19-whats-new'));
+await close(page);
+
+// A newer release: the ribbon across the corner.
+page = await open(dark(mesh), { update: 'v5.8.0' });
+await page.waitForSelector('.update-ribbon');
+await shot(page, f('21-update-ribbon'), { clip: { x: 720, y: 0, width: 720, height: 300 } });
 await close(page);
 
 // At /admin, the tiles tagged "admin" are shown too.

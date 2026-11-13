@@ -68,14 +68,14 @@ config:
     # goes; the query is appended.
     searchEngine: https://www.google.com/search?q=
     # STARTPUNKT_WEB_CHECKFORUPDATES. Ask GitHub a few times a day whether a
-    # newer release exists, and say so in the corner of the page. The request
+    # newer release exists, and say so on a ribbon across the corner of the page. The request
     # is made by the pods that serve the API, not by the browser, and does
     # not say which version is running. When there is a newer release, its
     # changelog is read from raw.githubusercontent.com to show what changed.
     checkForUpdates: true
     # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
-    # project on GitHub. When an update is available the corner is shown
-    # either way, in another colour and linking to the releases.
+    # project on GitHub. When an update is available, a ribbon that names it
+    # is shown there instead, whether the corner is on or not.
     githubLink: true
     # STARTPUNKT_WEB_SHOWALLCLUSTERS. With remotes configured, whether a
     # visitor who has not chosen sees the tiles of every cluster. By default
