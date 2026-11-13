@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.3.0](https://github.com/ullbergm/startpunkt/compare/v5.2.0...v5.3.0) (2026-11-13)
+
+
+### Features
+
+* show what changed after an update and for a newer release ([#962](https://github.com/ullbergm/startpunkt/issues/962)) ([44b2993](https://github.com/ullbergm/startpunkt/commit/44b299379d51c09f6092e31edf869cbe037011d5))
+
 ## [5.2.0](https://github.com/ullbergm/startpunkt/compare/v5.1.0...v5.2.0) (2026-11-13)
 
 
