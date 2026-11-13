@@ -370,7 +370,7 @@ func followRemotes(
 				return follow.Selector{Names: s.Names, Groups: s.Groups, Tags: s.Tags, Kinds: s.Kinds}
 			}
 			remotes = append(remotes, follow.RemoteConfig{
-				Name: r.Name, URL: r.URL, Headers: r.Headers,
+				Name: r.Name, URL: r.URL, Headers: r.Headers, InsecureSkipVerify: r.InsecureSkipVerify,
 				Filter: follow.Filter{Include: selector(r.Include), Exclude: selector(r.Exclude)},
 			})
 		}

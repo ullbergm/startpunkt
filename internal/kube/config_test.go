@@ -179,6 +179,17 @@ func TestEnvironmentRemotesAreUsedUntilThereIsAResource(t *testing.T) {
 	if h := holder.Get().Federation.Remotes[0].Headers; h["X-Token"] != "abc" {
 		t.Errorf("headers = %v", h)
 	}
+	if holder.Get().Federation.Remotes[0].InsecureSkipVerify {
+		t.Error("certificates must be checked unless the remote says otherwise")
+	}
+	// The resource says whether the remote's certificate is checked.
+	insecure := remoteResource("legacy", "https://new.example.com", nil)
+	insecure.Object["spec"].(map[string]any)["insecureSkipVerify"] = true
+	insecure.SetResourceVersion("")
+	if _, err := client.Resource(remoteGVR).Namespace("home").Update(context.Background(), insecure, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "the setting of the resource", func() bool { return holder.Get().Federation.Remotes[0].InsecureSkipVerify })
 }
 
 func TestWithoutTheResourceTypesTheEnvironmentIsUsed(t *testing.T) {

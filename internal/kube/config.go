@@ -152,7 +152,7 @@ func (w *ConfigWatcher) apply(ctx context.Context, own, remoteStore cache.Store)
 			invalid = fmt.Errorf("remote %s: %w", u.GetName(), err)
 			continue
 		}
-		remote := config.Remote{Name: r.Name, URL: r.Spec.URL}
+		remote := config.Remote{Name: r.Name, URL: r.Spec.URL, InsecureSkipVerify: r.Spec.InsecureSkipVerify}
 		if r.Spec.Include != nil {
 			remote.Include = *r.Spec.Include
 		}

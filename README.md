@@ -292,6 +292,9 @@ metadata:
   namespace: startpunkt
 spec:
   url: https://start.prod.example.com
+  # Optional: accept a certificate that cannot be verified, such as a
+  # self-signed one.
+  insecureSkipVerify: false
   # Optional: take only some of the remote's tiles.
   include:
     kinds: [application]
