@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/ullbergm/startpunkt/compare/v5.1.0...v5.2.0) (2026-11-13)
+
+
+### Features
+
+* **web:** add an edit mode and leave what Argo CD deploys read-only ([#960](https://github.com/ullbergm/startpunkt/issues/960)) ([e3ac835](https://github.com/ullbergm/startpunkt/commit/e3ac83503f1841bd509662dacaaeafb0beb5435c))
+
 ## [5.1.0](https://github.com/ullbergm/startpunkt/compare/v5.0.1...v5.1.0) (2026-11-13)
 
 
