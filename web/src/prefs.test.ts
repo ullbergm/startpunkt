@@ -24,6 +24,9 @@ describe('sanitize', () => {
       unknown: true,
     });
     expect(result.theme).toBe('dark');
+    expect(result.colors).toBe('default');
+    expect(sanitize({ colors: 'mint' }).colors).toBe('mint');
+    expect(sanitize({ colors: 'plaid' }).colors).toBe('default');
     expect(result.language).toBe('sv-SE');
     expect(result.favorites).toEqual(['a', 'b']);
     expect(result.layout).toMatchObject({ columns: 3, spacing: 'normal', compact: true, hideUnreachable: false });

@@ -29,7 +29,7 @@ describe('Settings tabs', () => {
   it('shows one section at a time, starting with appearance', () => {
     open();
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['Appearance', 'Layout', 'Background', 'Accessibility']);
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['Appearance', 'Layout', 'Background', 'Presets', 'Accessibility']);
     expect(tabs[0]!.getAttribute('aria-selected')).toBe('true');
     expect(screen.getByRole('tabpanel', { name: 'Appearance' })).toBeTruthy();
     expect(screen.getByRole('combobox', { name: 'Theme' })).toBeTruthy();
@@ -56,7 +56,7 @@ describe('Settings tabs', () => {
     fireEvent.keyDown(list, { key: 'End' });
     expect(selected()?.textContent).toBe('Accessibility');
     // Only the selected tab is a Tab stop.
-    expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).toEqual([-1, -1, -1, 0]);
+    expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
   });
 });
 
@@ -128,10 +128,22 @@ describe('Settings', () => {
     expect(prefs.value.language).toBeNull();
   });
 
+  it('offers the colors of the server and ten schemes', () => {
+    open();
+    const colors = screen.getByLabelText('Colors') as HTMLSelectElement;
+    expect(colors.value).toBe('default');
+    expect(colors.options).toHaveLength(11);
+    select('Colors', 'forest');
+    expect(prefs.value.colors).toBe('forest');
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
+    expect(prefs.value.colors).toBe('default');
+  });
+
   it('resets appearance and keeps favorites and presets', () => {
     toggleFavorite(['a']);
     open('Layout');
     select('Columns', '2');
+    openTab('Presets');
     fireEvent.input(screen.getByRole('textbox', { name: 'Preset name' }), { target: { value: 'Two' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save current as preset' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
@@ -239,31 +251,35 @@ describe('Background settings', () => {
   });
 });
 
-describe('Layout presets', () => {
+describe('Presets', () => {
+  const use = () => screen.getByRole('button', { name: 'Use preset Evening' });
+
   it('saves, applies and deletes a preset of layout and background', () => {
-    open('Layout');
+    open('Presets');
     expect(screen.getByText('No presets saved yet.')).toBeTruthy();
     const save = screen.getByRole('button', { name: 'Save current as preset' }) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
 
+    openTab('Layout');
     select('Columns', '3');
     openTab('Background');
     select('Background type', 'timeGradient');
-    openTab('Layout');
+    openTab('Presets');
     fireEvent.input(screen.getByRole('textbox', { name: 'Preset name' }), { target: { value: ' Evening ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save current as preset' }));
 
-    const use = screen.getByRole('button', { name: 'Use preset Evening' });
-    expect(use.getAttribute('aria-pressed')).toBe('true');
+    expect(use().getAttribute('aria-pressed')).toBe('true');
     expect((screen.getByRole('textbox', { name: 'Preset name' }) as HTMLInputElement).value).toBe('');
 
     // Change away from it, then come back with one click.
+    openTab('Layout');
     select('Columns', '5');
-    expect(use.getAttribute('aria-pressed')).toBe('false');
     openTab('Background');
     select('Background type', 'solid');
-    openTab('Layout');
-    fireEvent.click(screen.getByRole('button', { name: 'Use preset Evening' }));
+    openTab('Presets');
+    expect(use().getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(use());
+    expect(use().getAttribute('aria-pressed')).toBe('true');
     expect(prefs.value.layout.columns).toBe(3);
     expect(prefs.value.background.type).toBe('timeGradient');
 
@@ -276,13 +292,17 @@ describe('Layout presets', () => {
   });
 
   it('saves with Enter and replaces a preset of the same name', () => {
-    open('Layout');
-    const name = screen.getByRole('textbox', { name: 'Preset name' });
-    fireEvent.input(name, { target: { value: 'Mine' } });
-    fireEvent.keyDown(name, { key: 'Enter' });
+    open('Presets');
+    const save = () => {
+      const name = screen.getByRole('textbox', { name: 'Preset name' });
+      fireEvent.input(name, { target: { value: 'Mine' } });
+      fireEvent.keyDown(name, { key: 'Enter' });
+    };
+    save();
+    openTab('Layout');
     select('Columns', '2');
-    fireEvent.input(name, { target: { value: 'Mine' } });
-    fireEvent.keyDown(name, { key: 'Enter' });
+    openTab('Presets');
+    save();
     expect(Object.keys(prefs.value.presets)).toEqual(['Mine']);
     expect(prefs.value.presets.Mine?.layout.columns).toBe(2);
   });

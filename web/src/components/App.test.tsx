@@ -533,6 +533,19 @@ describe('App', () => {
     expect(root.style.getPropertyValue('--accent')).toBe('#E95678');
   });
 
+  it('applies a chosen colour scheme in place of the theme of the server', async () => {
+    updatePrefs((p) => ({ ...p, colors: 'ocean', theme: 'dark', background: { ...p.background, type: 'theme' } }));
+    renderWith(serverState());
+    const root = document.documentElement;
+    await waitFor(() => expect(root.style.getPropertyValue('--bg')).toBe('#0F1B2A'));
+
+    act(() => updatePrefs((p) => ({ ...p, theme: 'light' })));
+    await waitFor(() => expect(root.style.getPropertyValue('--bg')).toBe('#F2F7FB'));
+
+    act(() => updatePrefs((p) => ({ ...p, colors: 'default' })));
+    await waitFor(() => expect(root.style.getPropertyValue('--bg')).toBe('#F8F6F1'));
+  });
+
   it('applies layout and accessibility preferences to the document', async () => {
     renderWith(serverState());
     act(() =>

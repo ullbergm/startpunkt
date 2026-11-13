@@ -24,6 +24,7 @@ import {
   type Spacing,
   type ThemeMode,
 } from '../prefs';
+import { SCHEMES, type ColorScheme } from '../palettes';
 import type { Cluster } from '../types';
 import { Icon } from './Icons';
 import { Modal } from './Modal';
@@ -160,6 +161,15 @@ function Appearance({ p }: { p: Preferences }) {
         options={themes.map((value) => ({ value, label: t(`settings.theme.${value}` as MessageKey) }))}
         onChange={setTheme}
       />
+      <Select<ColorScheme>
+        label={t('settings.colors')}
+        value={p.colors}
+        options={(['default', ...SCHEMES] as const).map((value) => ({
+          value,
+          label: t(`settings.colors.${value}` as MessageKey),
+        }))}
+        onChange={(colors) => updatePrefs((current) => ({ ...current, colors }))}
+      />
       <Select
         label={t('settings.language')}
         value={p.language ?? ''}
@@ -188,8 +198,7 @@ function Presets({ p }: { p: Preferences }) {
     setName('');
   };
   return (
-    <fieldset>
-      <legend>{t('settings.presets')}</legend>
+    <>
       <p class="help">{t('settings.presets.help')}</p>
       {names.length === 0 ? (
         <p class="help">{t('settings.presets.none')}</p>
@@ -233,7 +242,7 @@ function Presets({ p }: { p: Preferences }) {
           {t('settings.presets.save')}
         </button>
       </div>
-    </fieldset>
+    </>
   );
 }
 
@@ -294,7 +303,6 @@ function Layout({ p }: { p: Preferences }) {
         checked={p.layout.hideUnreachable}
         onChange={(hideUnreachable) => setLayout({ hideUnreachable })}
       />
-      <Presets p={p} />
     </>
   );
 }
@@ -508,7 +516,7 @@ function Accessibility({ p }: { p: Preferences }) {
   );
 }
 
-type Tab = 'appearance' | 'layout' | 'background' | 'clusters' | 'accessibility';
+type Tab = 'appearance' | 'layout' | 'background' | 'presets' | 'clusters' | 'accessibility';
 
 // Which clusters' tiles are shown. Offered when there is more than one.
 function Clusters({ p, clusters, shown }: { p: Preferences; clusters: Cluster[]; shown: string[] }) {
@@ -554,11 +562,12 @@ export function Settings({
   const p = prefs.value;
   const [tab, setTab] = useState<Tab>('appearance');
   // The clusters tab is there only when there is a choice to make.
-  const TABS: Tab[] = ['appearance', 'layout', 'background', ...(clusters.length > 1 ? (['clusters'] as const) : []), 'accessibility'];
+  const TABS: Tab[] = ['appearance', 'layout', 'background', 'presets', ...(clusters.length > 1 ? (['clusters'] as const) : []), 'accessibility'];
   const panels: Record<Tab, ComponentChildren> = {
     appearance: <Appearance p={p} />,
     layout: <Layout p={p} />,
     background: <BackgroundTab p={p} />,
+    presets: <Presets p={p} />,
     clusters: <Clusters p={p} clusters={clusters} shown={shownClusters} />,
     accessibility: <Accessibility p={p} />,
   };

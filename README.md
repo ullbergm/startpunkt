@@ -325,13 +325,14 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 
   | Tab | What it holds |
   | --- | --- |
-  | Appearance | Light, dark or automatic theme, language, a handwritten typeface |
-  | Layout | Columns (automatic, or one to six), spacing, compact tiles, a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, hiding applications that do not answer, and presets |
+  | Appearance | Light, dark or automatic theme, the colours (the instance's own, or one of ten schemes that each have a light and a dark palette), language, a handwritten typeface |
+  | Layout | Columns (automatic, or one to six), spacing, compact tiles, a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, and hiding applications that do not answer |
   | Background | The Bing picture of the day, the theme's colour, a colour of your own, a gradient, a gradient that follows the time of day, a mesh gradient that can move, a picture by its address, or a generated pattern; with opacity, blur, and a panel behind the content that keeps text readable |
+  | Presets | Named copies of the layout and the background, to save, apply and delete |
   | Clusters | Which clusters to show, whether a service on several clusters is one card, and a section for each cluster instead |
   | Accessibility | Text size from 85% to 150%, high contrast, and the list of keyboard shortcuts |
 
-  A preset is a named copy of the layout and the background. Up to twenty can be saved.
+  Up to twenty presets can be saved.
 - **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version and, unless the check is turned off, says when a newer release exists.
 
 ## Deployment modes
