@@ -53,9 +53,6 @@ async function open(prefs, { width = 1440, height = 900, path = '/', key = false
   const page = await context.newPage();
   await page.goto(base + path);
   await page.waitForSelector('.tile');
-  // The search button is meant for touch screens only, but the stylesheet
-  // shows it everywhere (.icon-button comes after .touch-only).
-  if (!mobile) await page.evaluate(() => document.querySelectorAll('.touch-only').forEach((e) => (e.style.display = 'none')));
   await page.mouse.move(width - 2, height / 2);
   await settle(page);
   return page;
@@ -173,6 +170,14 @@ await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Change NAS' }).click();
 await page.waitForSelector('.editor input');
 await shot(page, f('16-edit-application'));
+await close(page);
+
+// Adding a tile: the form asks which kind it is.
+page = await open(dark(mesh), { key: true });
+await page.getByRole('button', { name: 'Edit the page' }).click();
+await page.getByRole('button', { name: 'Add', exact: true }).click();
+await page.waitForSelector('.editor select');
+await shot(page, f('20-add-tile'));
 await close(page);
 
 // The first visit after an update: what changed since the version last seen.

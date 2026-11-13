@@ -167,12 +167,12 @@ func (e *Editor) Delete(ctx context.Context, kind, namespace, name string) error
 	return translate(client.Delete(ctx, name, metav1.DeleteOptions{Preconditions: &metav1.Preconditions{UID: &uid}}), name)
 }
 
-// changeable refuses a resource that Argo CD deploys. The page offers no
+// changeable refuses a resource that Argo CD or Helm deploys. The page offers no
 // change to one, since its tile is not editable, but the endpoints can be
 // called without the page.
 func changeable(obj *unstructured.Unstructured) error {
-	if source.ManagedByArgoCD(obj) {
-		return edit.Errorf(http.StatusConflict, "%q is deployed by Argo CD; change it where Argo CD reads it from", obj.GetName())
+	if source.Deployed(obj) {
+		return edit.Errorf(http.StatusConflict, "%q is deployed by Argo CD or Helm; change it where it is deployed from", obj.GetName())
 	}
 	return nil
 }
