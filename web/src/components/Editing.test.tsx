@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { editKey, editTarget, reloadEditKey } from '../editing';
+import { editKey, editMode, editTarget, reloadEditKey } from '../editing';
 import { setLanguage } from '../i18n';
 import { reloadPrefs } from '../prefs';
 import { reset } from '../state';
@@ -29,6 +29,7 @@ beforeEach(async () => {
   reloadPrefs();
   reloadEditKey();
   editTarget.value = null;
+  editMode.value = false;
   await setLanguage('en-US');
 });
 afterEach(() => {
@@ -86,6 +87,27 @@ describe('Editor', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(JSON.parse(calls[0]![1].body as string)).toEqual({
       spec: { name: 'Grafana', url: 'https://grafana.example.com', icon: 'mdi:chart-line', targetBlank: true },
+    });
+  });
+
+  it('lets a new one be of the other kind, keeping what was filled in', async () => {
+    const { fetcher, calls } = server({ 'POST /api/v1/bookmarks': () => json(201, {}) });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    type('Name', 'Docs');
+    type('Address', 'https://docs.example.com');
+    fireEvent.change(field('Kind'), { target: { value: 'bookmarks' } });
+    expect(await screen.findByRole('heading', { name: 'Add a bookmark' })).toBeTruthy();
+    // A bookmark has to name its group, and has no tags.
+    expect(field('Group').required).toBe(true);
+    expect(screen.queryByLabelText(/^Tags/)).toBeNull();
+    expect(field('Name').value).toBe('Docs');
+    type('Group', 'Reading');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(calls[0]![0]).toBe('/api/v1/bookmarks');
+    expect(JSON.parse(calls[0]![1].body as string)).toEqual({
+      spec: { name: 'Docs', url: 'https://docs.example.com', group: 'Reading' },
     });
   });
 
@@ -186,7 +208,9 @@ describe('the page', () => {
     editKey.value = 'left over from another time';
     show(state(false));
     await screen.findByRole('link', { name: /Grafana/ });
-    expect(screen.queryByRole('button', { name: /editing/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    expect(screen.queryByRole('button', { name: /ock editing$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
   });
 
@@ -198,9 +222,12 @@ describe('the page', () => {
     vi.stubGlobal('fetch', fetcher);
     show(state(true));
     await screen.findByRole('link', { name: /Grafana/ });
-    // Locked: nothing to change, nothing to add.
-    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    // The lock and the button that adds are part of editing the page.
+    expect(screen.queryByRole('button', { name: 'Unlock editing' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    // Locked: nothing to change.
+    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Unlock editing' }));
     type('Edit key', 'the right key');
@@ -225,5 +252,30 @@ describe('the page', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: /^Change / })).toBeNull());
     expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull();
     expect(window.localStorage.getItem('startpunkt.editKey')).toBeNull();
+  });
+
+  it('asks for the key when something is added on a locked page, and then goes on', async () => {
+    vi.stubGlobal('fetch', server({ 'GET /api/v1/unlock': () => new Response(null, { status: 204 }) }).fetcher);
+    show(state(true));
+    await screen.findByRole('link', { name: /Grafana/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    type('Edit key', 'the right key');
+    fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
+    expect(await screen.findByRole('dialog', { name: 'Add an application' })).toBeTruthy();
+  });
+
+  it('keeps the key but hides the controls when editing is left', async () => {
+    vi.stubGlobal('fetch', server({}).fetcher);
+    window.localStorage.setItem('startpunkt.editKey', 'the right key');
+    reloadEditKey();
+    show(state(true));
+    await screen.findByRole('link', { name: /Grafana/ });
+    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    expect(screen.getByRole('button', { name: 'Change Grafana' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
+    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    expect(editKey.value).toBe('the right key');
   });
 });

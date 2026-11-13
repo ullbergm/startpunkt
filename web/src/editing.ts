@@ -24,6 +24,12 @@ export const unlocked = computed(() => editKey.value !== null);
 // was on does not count.
 export const canEdit = computed(() => unlocked.value && serverState.value?.editing.available === true);
 
+// Whether the page is being arranged. Only then do tiles carry their
+// controls: the star, the buttons that move a favorite and, with the key,
+// the one that changes the resource. It lasts until the visitor leaves it
+// or the page is closed.
+export const editMode = signal(false);
+
 // For tests, which change storage behind the module's back.
 export function reloadEditKey(): void {
   editKey.value = stored();

@@ -16,7 +16,7 @@ State is module-level signals; components read `.value` while rendering.
 | --- | --- |
 | `state.ts` | `serverState`, `connection`, `fatalError`. Only `connect()` writes `serverState`, from the event stream. |
 | `prefs.ts` | `prefs`, everything the visitor has chosen |
-| `editing.ts` | `editKey`, `unlocked`, `canEdit`, `editTarget` |
+| `editing.ts` | `editKey`, `unlocked`, `canEdit`, `editMode`, `editTarget` |
 | `i18n.ts` | `language` |
 | `clusters.ts` | `clusterColors` |
 
@@ -42,7 +42,7 @@ What is only about the moment, such as which dialog is open or which tab is chos
 - One stylesheet, `src/style.css`. No CSS modules, no CSS-in-JS.
 - The palette from the server becomes five custom properties (`--bg`, `--muted`, `--text`, `--primary`, `--accent`); surfaces and borders are derived from them with `color-mix`. Preferences become `data-*` attributes on the root element, set in `theme.ts`.
 - Inline styles are style objects, never strings: the Content-Security-Policy refuses style attributes written as text.
-- A control that shows on hover also shows on `:focus-visible` and under `@media (hover: none)`. Motion is off under `prefers-reduced-motion`, and `forced-colors` has rules of its own.
+- A control that shows on hover also shows on `:focus-visible` and under `@media (hover: none)`. The controls of a tile are not such controls: they are rendered only while `editMode` is on, and are then always shown. Motion is off under `prefers-reduced-motion`, and `forced-colors` has rules of its own.
 - Below 640 pixels the grid ignores the chosen number of columns and fits what it can.
 
 ## Security
@@ -59,7 +59,7 @@ What is only about the moment, such as which dialog is open or which tab is chos
 
 - `src/testing.ts` has the fixtures. `openFake` and `FakeStream` stand in for the event stream: pass `open={openFake}` to `App` and send events with `FakeStream.last.emit('snapshot', …)` inside `act()`.
 - Two things about the fixtures that surprise: `serverState()` sets `showAllClusters: true`, where a real instance defaults to false, and `tile()` has a source type that is not editable, so a test of editing gives it `applications.startpunkt.ullberg.us`.
-- State is global, so reset it between tests: `reset()`, `localStorage.clear()`, `reloadPrefs()`, `reloadEditKey()`, `await setLanguage('en-US')` and `cleanup()`.
+- State is global, so reset it between tests: `reset()`, `localStorage.clear()`, `reloadPrefs()`, `reloadEditKey()`, `editMode.value = false`, `await setLanguage('en-US')` and `cleanup()`.
 - Components take what they would otherwise reach for, such as `open`, `fetcher`, `fetchVersion`, `navigate` and `now`, as properties, so that a test can supply them.
 
 ## Accessibility

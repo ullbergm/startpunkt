@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { editMode } from '../editing';
 import { setLanguage } from '../i18n';
 import { prefs, reloadPrefs, updatePrefs } from '../prefs';
 import { GRACE_MS, reset } from '../state';
@@ -14,11 +15,15 @@ function renderWith(state: ServerState) {
   return view;
 }
 
+// Most tests of the tiles' controls start with the page being edited.
+const edit = () => fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+
 beforeEach(async () => {
   reset();
   FakeStream.opened = [];
   window.localStorage.clear();
   reloadPrefs();
+  editMode.value = false;
   await setLanguage('en-US');
 });
 afterEach(() => cleanup());
@@ -255,6 +260,7 @@ describe('App', () => {
     renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' })] }));
     expect(screen.queryByRole('region', { name: 'Favorites' })).toBeNull();
 
+    edit();
     const add = await screen.findByRole('button', { name: 'Add Plex to favorites' });
     expect(add.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(add);
@@ -439,6 +445,28 @@ describe('App', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('shows the controls of the tiles only while the page is being edited', async () => {
+    updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Plex', 'c/apps/ns/Grafana'] }));
+    renderWith(serverState({ tiles: [tile({ name: 'Plex' }), tile({ name: 'Grafana' }), tile({ name: 'Wiki' })] }));
+    await screen.findByRole('link', { name: /Wiki/ });
+    const controls = () => screen.queryAllByRole('button', { name: /favorites|^Move / });
+    expect(controls()).toHaveLength(0);
+    // Without an edit key there is nothing to add or unlock.
+    edit();
+    expect(controls()).toHaveLength(3 + 4);
+    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /ock editing$/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
+    expect(controls()).toHaveLength(0);
+    // Escape leaves it as well.
+    edit();
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    await waitFor(() => expect(controls()).toHaveLength(0));
+    expect(screen.getByRole('button', { name: 'Edit the page' })).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   describe('favorites order', () => {
     const three = () =>
       serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Beta' }), tile({ name: 'Gamma' })] });
@@ -459,6 +487,7 @@ describe('App', () => {
     it('changes with the move buttons and is announced and remembered', async () => {
       renderWith(three());
       await screen.findByRole('region', { name: 'Favorites' });
+      edit();
       expect((screen.getByRole('button', { name: 'Move Gamma earlier' }) as HTMLButtonElement).disabled).toBe(true);
       expect((screen.getByRole('button', { name: 'Move Beta later' }) as HTMLButtonElement).disabled).toBe(true);
 
@@ -478,6 +507,8 @@ describe('App', () => {
       renderWith(three());
       const region = await screen.findByRole('region', { name: 'Favorites' });
       const items = () => within(region).getAllByRole('listitem');
+      expect(items()[0]!.getAttribute('draggable')).toBe('false');
+      edit();
       expect(items()[0]!.getAttribute('draggable')).toBe('true');
 
       fireEvent.dragStart(items()[2]!); // Beta
@@ -493,6 +524,7 @@ describe('App', () => {
       renderWith(serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Gamma' })] }));
       await screen.findByRole('region', { name: 'Favorites' });
       expect(order()).toEqual(['Gamma', 'Alpha']);
+      edit();
       fireEvent.click(screen.getByRole('button', { name: 'Move Alpha earlier' }));
       await waitFor(() => expect(order()).toEqual(['Alpha', 'Gamma']));
       expect(prefs.value.favorites).toContain('c/apps/ns/Beta');
@@ -502,6 +534,8 @@ describe('App', () => {
       updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Alpha'] }));
       renderWith(three());
       const region = await screen.findByRole('region', { name: 'Favorites' });
+      edit();
+      expect(within(region).getByRole('button', { name: 'Remove Alpha from favorites' })).toBeTruthy();
       expect(within(region).queryByRole('button', { name: /Move/ })).toBeNull();
       expect(within(region).getByRole('listitem').getAttribute('draggable')).toBe('false');
     });
@@ -590,6 +624,7 @@ describe('App', () => {
     expect(await screen.findByRole('region', { name: 'Applications' })).toBeTruthy();
     act(() => updatePrefs((p) => ({ ...p, language: 'sv-SE' })));
     expect(await screen.findByRole('region', { name: 'Program' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Redigera sidan' }));
     expect(screen.getByRole('button', { name: 'Lägg till Plex bland favoriter' })).toBeTruthy();
     expect(document.documentElement.lang).toBe('sv-SE');
   });
@@ -699,6 +734,8 @@ describe('App', () => {
 
     it('makes a combined card a favorite as a whole', async () => {
       renderWith(two());
+      await screen.findAllByRole('link', { name: /Grafana/ });
+      edit();
       fireEvent.click(await screen.findByRole('button', { name: 'Add Grafana to favorites' }));
       expect(prefs.value.favorites.sort()).toEqual(['local/apps/ns/grafana', 'prod/apps/ns/grafana']);
       const favorites = await screen.findByRole('region', { name: 'Favorites' });
