@@ -128,6 +128,8 @@ func run() error {
 	// process that has access to the cluster; the one a browser talks to
 	// hands the requests on when that is another.
 	var editor edit.Editor
+	// check says whether something answers at an address, for the editor.
+	var check func(ctx context.Context, address string) (bool, error)
 	editNamespace := cfg.Editing.Namespace
 	if editNamespace == "" {
 		editNamespace = ownNamespace()
@@ -169,6 +171,12 @@ func run() error {
 				return selector.Any || slices.Contains(selector.MatchNames, namespace)
 			},
 		}
+		check = func(ctx context.Context, address string) (bool, error) {
+			a := holder.Get().Availability
+			return probe.Check(ctx, address, probe.Options{
+				Timeout: time.Duration(a.Timeout), InsecureSkipVerify: a.InsecureSkipVerify, UserAgent: "startpunkt/" + version,
+			}), nil
+		}
 		if role == roleController {
 			// Only here: in this role the process is not reachable from
 			// outside the cluster. The api role reads the settings from
@@ -177,7 +185,7 @@ func run() error {
 			internal.Handle(settings.SharedPath, settings.Handler(holder))
 			internal.Handle(follow.ReportPath, follow.ReportHandler(remoteStatus))
 			if cfg.Editing.Key != "" {
-				internal.Handle(edit.InternalPrefix+"/", edit.Internal(&edit.Handler{Editor: editor, Key: cfg.Editing.Key}))
+				internal.Handle(edit.InternalPrefix+"/", edit.Internal(&edit.Handler{Editor: editor, Check: check, Key: cfg.Editing.Key}))
 			}
 			handler.Internal = internal
 		} else if remoteStatus != nil {
@@ -194,7 +202,8 @@ func run() error {
 		go (&follow.Follower{URL: cfg.Upstream.URL, Store: handler.Store, Log: log}).Run(ctx)
 		go settings.Follow(ctx, cfg.Upstream.URL, cfg, holder, log)
 		reportRemotes = follow.PostReports(cfg.Upstream.URL)
-		editor = edit.NewForwarder(cfg.Upstream.URL, cfg.Editing.Key)
+		forwarder := edit.NewForwarder(cfg.Upstream.URL, cfg.Editing.Key)
+		editor, check = forwarder, forwarder.Check
 	case roleWeb:
 	default:
 		return fmt.Errorf("unknown role %q", role)
@@ -205,7 +214,7 @@ func run() error {
 		// it changes.
 		go followRemotes(ctx, holder, handler.Store, reportRemotes, log)
 		if cfg.Editing.Key != "" {
-			handler.Edit = (&edit.Handler{Editor: editor, Key: cfg.Editing.Key}).Routes
+			handler.Edit = (&edit.Handler{Editor: editor, Check: check, Key: cfg.Editing.Key}).Routes
 			handler.Editing = api.Editing{Available: true, Namespace: editNamespace}
 			log.Info("editing is on", "namespace", editNamespace)
 		}

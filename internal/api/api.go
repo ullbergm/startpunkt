@@ -136,6 +136,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		if s.Icons != nil {
 			mux.Handle("GET /api/v1/icons/{prefix}/{file}", s.Icons)
+			mux.HandleFunc("GET /api/v1/icons", s.Icons.ServeSearch)
 		}
 		if s.Edit != nil {
 			s.Edit(mux)

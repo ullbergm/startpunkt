@@ -177,6 +177,17 @@ page = await open(dark(mesh), { key: true });
 await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForSelector('.editor select');
+await page.getByLabel('Name', { exact: true }).fill('Paperless');
+await page.getByLabel('Address', { exact: true }).fill('https://paperless.example.com');
+await page.getByLabel(/^Group/).fill('home');
+await page.getByLabel('Tags', { exact: true }).fill('documents,');
+await page.getByLabel('Tags', { exact: true }).fill('scanner,');
+await page.getByRole('button', { name: 'Choose an icon' }).click();
+await page.getByRole('searchbox', { name: 'Search icons' }).fill('paper');
+await page.waitForSelector('.icon-results img');
+await page.waitForSelector('.address-up');
+await page.locator('.icon-search').scrollIntoViewIfNeeded();
+await settle(page);
 await shot(page, f('20-add-tile'));
 await close(page);
 

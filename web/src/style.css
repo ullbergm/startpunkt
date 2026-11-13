@@ -1294,6 +1294,148 @@ dialog .d-btn:disabled {
   vertical-align: middle;
 }
 
+/* What the editor says under a field: what is wrong with it, and whether
+   its address answers. Each has a mark as well as a colour. */
+/* A field that has to be filled in carries a star after its name. */
+.field-needed .field-name::after {
+  content: ' *';
+  color: var(--error);
+}
+
+.field .field-error,
+.field .address-check {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.field .field-error,
+.field .address-down {
+  color: var(--error);
+}
+
+.field .address-up {
+  color: #2e9e44;
+}
+
+/* Tags: pills and the field they are typed into, in one box. */
+.tags-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  height: auto;
+  min-height: calc(var(--size-field) * 10);
+  padding-block: 0.3rem;
+  cursor: text;
+}
+
+.tags-input input {
+  flex: 1;
+  min-width: 6rem;
+  border: 0;
+  outline: 0;
+  background: none;
+}
+
+.tag-pill {
+  gap: 0.15rem;
+  padding-right: 0.2rem;
+}
+
+.tag-pill button {
+  display: grid;
+  place-items: center;
+  padding: 0.1rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+}
+
+/* The colour of the icon: ready colours to pick from, each a round patch. */
+.color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.color-swatch {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--swatch);
+  /* The mark is read on any colour: white with a dark edge. */
+  color: #fff;
+  filter: none;
+}
+
+.color-swatch .icon {
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
+}
+
+.color-swatch[aria-pressed='true'] {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* The icon: how it looks, its name, and the search that finds one. */
+.icon-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.icon-picker-row .d-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.icon-preview {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-field);
+  background: var(--surface);
+}
+
+.icon-search {
+  margin-top: 0.4rem;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-box);
+  background: var(--surface);
+}
+
+.icon-search .d-input {
+  width: 100%;
+}
+
+.icon-search .help {
+  margin: 0.4rem 0 0;
+}
+
+.icon-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
+  gap: 0.25rem;
+  max-height: 11rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
 /* The unlock dialog and the editors. */
 .editor .settings-header {
   border-bottom: 1px solid var(--line);

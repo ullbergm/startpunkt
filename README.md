@@ -248,6 +248,8 @@ Things to know before turning it on:
 - The browser keeps the key until the page is locked again.
 - The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
 - Only `http` and `https` addresses are accepted.
+- The form checks what is typed and says what is wrong next to the field. It also asks the instance whether something answers at the address, and says so; an address that does not answer can be saved all the same. Whoever has the key can in this way learn whether an address answers from inside the cluster, which they could also learn by adding it as a tile.
+- The group is picked from those in use or typed, tags are entered as pills, the icon is found by searching the icon sets, and its colour is picked from a palette, the browser's colour picker, or typed.
 - Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone, also with the right key.
 
 ## Configuration
@@ -360,6 +362,7 @@ The page uses a small HTTP API, and so can anything else:
 | `GET /api/v1/version` | The running version, and a newer release when there is one |
 | `GET /api/v1/changelog` | What changed in each release, newest first: the running version and those before it, and the newer ones when the update check has found one |
 | `GET /api/v1/icons/{set}/{name}.svg` | An [Iconify](https://icon-sets.iconify.design/) icon, in the colour given as `?color=` |
+| `GET /api/v1/icons?query=` | The names of the icons that match a word, for the icon picker of the editor |
 | `GET /api/v1/background` | Address, title and copyright of the Bing picture of the day |
 | `GET /healthz`, `GET /readyz` | Liveness and readiness. An instance is ready when it has read its cluster. |
 
@@ -367,7 +370,7 @@ The page uses a small HTTP API, and so can anything else:
 curl -s https://start.example.com/api/v1/state | jq '.tiles[] | {name, url, available}'
 ```
 
-With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
+With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key and `POST /api/v1/check`, which says whether something answers at an address. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 

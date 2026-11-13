@@ -1,20 +1,25 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
+  checkAddress,
   deleteResource,
   EditError,
   FIELDS,
+  isAddress,
   loadResource,
   lock,
   saveResource,
   toForm,
   toSpec,
   unlock,
+  validate,
   type EditKind,
   type EditTarget,
   type FormValues,
   type Spec,
 } from '../editing';
 import { t, type MessageKey } from '../i18n';
+import { serverState } from '../state';
+import { ColorPicker, IconPicker, TagsInput } from './EditorFields';
 import { Icon } from './Icons';
 import { Modal } from './Modal';
 
@@ -142,15 +147,60 @@ export function Editor({
       setBusy(false);
     }
   };
+  // An address that is read from another object does not have to be given.
+  const urlFrom = base?.urlFrom as { kind?: string; name?: string } | undefined;
+  const problems = validate(kind, values, Boolean(urlFrom));
+  // A problem is said next to its field once the field has been left, or
+  // the form was sent with it.
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [sent, setSent] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
   const submit = (event: Event) => {
     event.preventDefault();
     if (base === null || busy) return;
+    const wrong = FIELDS[kind].find((field) => problems[field.name]);
+    if (wrong) {
+      setSent(true);
+      form.current?.querySelector<HTMLElement>(`[data-field="${wrong.name}"] input`)?.focus();
+      return;
+    }
     void run(() => saveResource({ ...target, kind }, toSpec(kind, base, values), fetcher));
   };
 
+  // Whether something answers at the address, asked a moment after it was
+  // last changed. It is said next to the field and never stops a save: a
+  // service may be down, or only reachable from elsewhere.
+  const address = String(values.url ?? '').trim();
+  const [reach, setReach] = useState<'checking' | 'up' | 'down' | null>(null);
+  useEffect(() => {
+    if (base === null || !isAddress(address)) {
+      setReach(null);
+      return;
+    }
+    let current = true;
+    setReach('checking');
+    const timer = setTimeout(() => {
+      void checkAddress(address, fetcher).then((answers) => {
+        if (current) setReach(answers === null ? null : answers ? 'up' : 'down');
+      });
+    }, 600);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [address, base === null]);
+
+  // What is already on the page, to pick from: the groups of this kind of
+  // tile, and the tags.
+  const tiles = serverState.value?.tiles ?? [];
+  const wanted = kind === 'applications' ? 'application' : 'bookmark';
+  const groups = [...new Set(tiles.filter((tile) => tile.kind === wanted).map((tile) => tile.group))].sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const tags = [...new Set(tiles.flatMap((tile) => tile.tags))].sort((a, b) => a.localeCompare(b));
+
   const title = t(`edit.${existing ? 'change' : 'add'}.${kind}` as MessageKey);
-  // An address that is read from another object does not have to be given.
-  const urlFrom = base?.urlFrom as { kind?: string; name?: string } | undefined;
+  const set = (name: string, value: string | boolean) => setValues({ ...values, [name]: value });
   return (
     <Modal label={title} class="settings editor" onClose={onClose}>
       <header class="settings-header">
@@ -159,7 +209,9 @@ export function Editor({
           <Icon name="close" />
         </button>
       </header>
-      <form class="settings-body" onSubmit={submit}>
+      {/* The form says itself what is wrong, next to the field, in place of
+          the browser's own bubbles. */}
+      <form ref={form} class="settings-body" noValidate onSubmit={submit}>
         <p class="help">
           {existing
             ? t('edit.where.existing', { namespace: target.namespace ?? '', name: target.name ?? '' })
@@ -193,30 +245,118 @@ export function Editor({
                     type="checkbox"
                     class="d-toggle d-toggle-primary"
                     checked={values[field.name] === true}
-                    onChange={(event) => setValues({ ...values, [field.name]: event.currentTarget.checked })}
+                    onChange={(event) => set(field.name, event.currentTarget.checked)}
                   />
                 </label>
               );
             }
+            const value = String(values[field.name] ?? '');
+            const wrong = (sent || touched[field.name]) && problems[field.name];
+            const required = field.required && !(field.name === 'url' && urlFrom);
+            const hintId = `edit-${field.name}-hint`;
+            const errorId = `edit-${field.name}-error`;
+            const described = [hint ? hintId : '', wrong ? errorId : ''].filter(Boolean).join(' ') || undefined;
+            const heading = (
+              <span class={required ? 'field-needed' : undefined}>
+                <span class="field-name">{label}</span>
+                {hint && <small id={hintId}>{hint}</small>}
+              </span>
+            );
+            const complaint = wrong && (
+              <small class="field-error" id={errorId}>
+                <Icon name="warning" size={14} /> {t(wrong)}
+              </small>
+            );
+            // Tags and the icon have more than one control, so their name is
+            // not a label around them: a click on it would go to the first.
+            if (field.name === 'tags') {
+              return (
+                <div class="field field-wide" data-field={field.name} key={field.name}>
+                  {heading}
+                  <TagsInput
+                    label={label}
+                    describedBy={described}
+                    value={value}
+                    suggestions={tags}
+                    onChange={(next) => set(field.name, next)}
+                  />
+                </div>
+              );
+            }
+            if (field.name === 'icon') {
+              return (
+                <div class="field field-wide" data-field={field.name} key={field.name}>
+                  {heading}
+                  <IconPicker
+                    label={label}
+                    describedBy={described}
+                    value={value}
+                    color={String(values.iconColor ?? '')}
+                    seed={String(values.name ?? '')}
+                    onChange={(next) => set(field.name, next)}
+                    fetcher={fetcher}
+                  />
+                </div>
+              );
+            }
+            if (field.name === 'iconColor') {
+              return (
+                <div class="field field-wide" data-field={field.name} key={field.name}>
+                  <label for={`edit-${field.name}`}>{heading}</label>
+                  <ColorPicker
+                    id={`edit-${field.name}`}
+                    label={label}
+                    describedBy={described}
+                    value={value}
+                    invalid={Boolean(wrong)}
+                    onChange={(next) => set(field.name, next)}
+                    onBlur={() => setTouched({ ...touched, [field.name]: true })}
+                  />
+                  {complaint}
+                </div>
+              );
+            }
+            // What is said about a field stands next to it, outside its
+            // label: the label is the field's name, and stays that.
             return (
-              <label class="field field-wide" key={field.name}>
-                <span>
-                  {label}
-                  {hint && <small>{hint}</small>}
-                </span>
+              <div class="field field-wide" data-field={field.name} key={field.name}>
+                <label for={`edit-${field.name}`}>{heading}</label>
                 <input
+                  id={`edit-${field.name}`}
                   // One of text, url and number, which the element's types
-                  // only accept one at a time.
-                  type={field.type as 'text'}
-                  class="d-input"
-                  value={String(values[field.name] ?? '')}
-                  required={field.required && !(field.name === 'url' && urlFrom)}
-                  onInput={(event) => setValues({ ...values, [field.name]: event.currentTarget.value })}
+                  // only accept one at a time. A number is typed as text, so
+                  // that what is not one can be said to be wrong.
+                  type={(field.type === 'number' ? 'text' : field.type) as 'text'}
+                  inputMode={field.type === 'number' ? 'numeric' : undefined}
+                  class={wrong ? 'd-input d-input-error' : 'd-input'}
+                  value={value}
+                  required={required}
+                  aria-invalid={wrong ? true : undefined}
+                  aria-describedby={described}
+                  // The groups in use are offered, and any other can be typed.
+                  list={field.name === 'group' ? 'editor-groups' : undefined}
+                  onInput={(event) => set(field.name, event.currentTarget.value)}
+                  onBlur={() => setTouched({ ...touched, [field.name]: true })}
                 />
+                {field.name === 'group' && (
+                  <datalist id="editor-groups">
+                    {groups.map((group) => (
+                      <option key={group} value={group} />
+                    ))}
+                  </datalist>
+                )}
+                {complaint}
+                {field.name === 'url' && !wrong && reach && (
+                  // In words and with a mark, not only in colour.
+                  <small class={`address-check address-${reach}`} role="status">
+                    {reach !== 'checking' && <Icon name={reach === 'up' ? 'check' : 'warning'} size={14} />}{' '}
+                    {t(`edit.check.${reach}`)}
+                  </small>
+                )}
                 {field.name === 'url' && urlFrom && (
                   <small>{t('edit.urlFrom', { kind: urlFrom.kind ?? '', name: urlFrom.name ?? '' })}</small>
                 )}
-              </label>
+              </div>
             );
           })}
         {problem && (

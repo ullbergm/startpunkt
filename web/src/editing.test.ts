@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  checkAddress,
   deleteResource,
   editKey,
   editTarget,
+  isAddress,
   loadResource,
   lock,
   reloadEditKey,
   saveResource,
+  searchIcons,
+  splitTags,
   targetOf,
   toForm,
   toSpec,
   unlock,
   unlocked,
+  validate,
 } from './editing';
 import { tile } from './testing';
 
@@ -151,5 +156,71 @@ describe('the form', () => {
     const spec = toSpec('applications', {}, { name: 'x', url: 'https://x.example.com', location: '7.9', targetBlank: true, enabled: false });
     expect(spec).toEqual({ name: 'x', url: 'https://x.example.com', location: 7, targetBlank: true, enabled: false });
     expect(toSpec('bookmarks', {}, { name: 'x', location: 'first' })).toEqual({ name: 'x' });
+  });
+});
+
+describe('what the form holds', () => {
+  const good = { name: 'Grafana', url: 'https://grafana.example.com', group: '', location: '', iconColor: '' };
+
+  it('is checked field by field', () => {
+    expect(validate('applications', good)).toEqual({});
+    expect(validate('applications', { ...good, name: ' ', url: '' })).toEqual({
+      name: 'edit.invalid.required',
+      url: 'edit.invalid.required',
+    });
+    expect(validate('applications', { ...good, url: 'grafana.example.com' }).url).toBe('edit.invalid.url');
+    expect(validate('applications', { ...good, url: 'javascript:alert(1)' }).url).toBe('edit.invalid.url');
+    expect(validate('applications', { ...good, location: '1.5' }).location).toBe('edit.invalid.number');
+    expect(validate('applications', { ...good, location: '-20' })).toEqual({});
+    expect(validate('applications', { ...good, iconColor: 'not a colour' }).iconColor).toBe('edit.invalid.color');
+    expect(validate('applications', { ...good, iconColor: '#1e90ff' })).toEqual({});
+  });
+
+  it('needs a group for a bookmark, and no address when it is read from elsewhere', () => {
+    expect(validate('bookmarks', good).group).toBe('edit.invalid.required');
+    expect(validate('bookmarks', { ...good, group: 'Reading' })).toEqual({});
+    expect(validate('applications', { ...good, url: '' }, true)).toEqual({});
+    // One that is given has to be an address all the same.
+    expect(validate('applications', { ...good, url: 'nope' }, true).url).toBe('edit.invalid.url');
+  });
+
+  it('knows an address from other text', () => {
+    expect(isAddress(' http://192.168.1.10:8080/login ')).toBe(true);
+    expect(isAddress('https://')).toBe(false);
+    expect(isAddress('ftp://example.com')).toBe(false);
+    expect(isAddress('')).toBe(false);
+  });
+
+  it('reads tags from a list separated by commas', () => {
+    expect(splitTags(' admin, media ,,admin, home lab ')).toEqual(['admin', 'media', 'home lab']);
+    expect(splitTags('')).toEqual([]);
+  });
+});
+
+describe('asking the server', () => {
+  it('whether an address answers, with the key', async () => {
+    window.localStorage.setItem('startpunkt.editKey', 'the key');
+    reloadEditKey();
+    const up = answer(200, { available: true });
+    expect(await checkAddress('https://x.example.com', up)).toBe(true);
+    const [url, init] = calls(up)[0] as [string, RequestInit & { headers: Record<string, string> }];
+    expect(url).toBe('/api/v1/check');
+    expect(init.method).toBe('POST');
+    expect(init.headers.Authorization).toBe('Bearer the key');
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://x.example.com' });
+    expect(await checkAddress('https://x.example.com', answer(200, { available: false }))).toBe(false);
+    // An answer that says nothing, an error, or no key: not known.
+    expect(await checkAddress('https://x.example.com', answer(200, { version: 'old' }))).toBeNull();
+    expect(await checkAddress('https://x.example.com', answer(404, { error: 'not found' }))).toBeNull();
+    lock();
+    expect(await checkAddress('https://x.example.com', up)).toBeNull();
+  });
+
+  it('for icons, keeping only what is an icon name', async () => {
+    const found = answer(200, { icons: ['mdi:home', 'simple-icons:grafana', 'bad name', 'x:<y>', 7] });
+    expect(await searchIcons('home page', found)).toEqual(['mdi:home', 'simple-icons:grafana']);
+    expect(calls(found)[0]![0]).toBe('/api/v1/icons?query=home%20page');
+    expect(await searchIcons('home', answer(502, { error: 'down' }))).toEqual([]);
+    expect(await searchIcons('home', answer(200, { icons: 'none' }))).toEqual([]);
   });
 });

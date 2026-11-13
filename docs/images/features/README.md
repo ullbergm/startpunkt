@@ -120,4 +120,4 @@ The first time the page is opened after the instance was updated, it lists what 
 
 ![Adding a tile](20-add-tile.png)
 
-In edit mode with the edit key, the plus button opens a form for a new application or bookmark. It is created as a resource in the cluster.
+In edit mode with the edit key, the plus button opens a form for a new application or bookmark. The form says what is wrong next to a field and whether something answers at the address. The group can be picked from those in use or typed, tags are pills, and the icon is found by searching the icon sets. What is saved is a resource in the cluster.

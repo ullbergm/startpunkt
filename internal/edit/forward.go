@@ -104,6 +104,32 @@ func (f *Forwarder) Delete(ctx context.Context, kind, namespace, name string) er
 	return err
 }
 
+// Check asks the controller whether something answers at an address. The
+// controller is the one that probes, with the instance's settings for it.
+func (f *Forwarder) Check(ctx context.Context, address string) (bool, error) {
+	data, err := json.Marshal(Checked{URL: address})
+	if err != nil {
+		return false, err
+	}
+	target := strings.TrimRight(f.Upstream, "/") + InternalPrefix + "/api/v1/check"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, target, bytes.NewReader(data))
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("Authorization", "Bearer "+f.Key)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := f.Client.Do(req)
+	if err != nil {
+		return false, Errorf(http.StatusBadGateway, "the controller cannot be reached; try again shortly")
+	}
+	defer resp.Body.Close()
+	var out Checked
+	if resp.StatusCode != http.StatusOK || json.NewDecoder(io.LimitReader(resp.Body, 8<<10)).Decode(&out) != nil {
+		return false, Errorf(http.StatusBadGateway, "the address could not be checked")
+	}
+	return out.Available, nil
+}
+
 // Internal returns the handler the controller serves under /internal/ for
 // Forwarders.
 func Internal(h *Handler) http.Handler {
