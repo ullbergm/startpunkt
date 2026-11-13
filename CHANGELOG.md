@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.0](https://github.com/ullbergm/startpunkt/compare/v5.5.0...v5.6.0) (2026-11-13)
+
+
+### Features
+
+* **web:** ask for the edit key when edit mode is entered ([#970](https://github.com/ullbergm/startpunkt/issues/970)) ([bb179a3](https://github.com/ullbergm/startpunkt/commit/bb179a3054335e92c8951364905c2efcaeefa775))
+
 ## [5.5.0](https://github.com/ullbergm/startpunkt/compare/v5.4.0...v5.5.0) (2026-11-13)
 
 
