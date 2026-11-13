@@ -11,7 +11,7 @@
   --accent: #aa9a73;
   --error: #b3261e;
   --surface: color-mix(in srgb, var(--bg) 92%, var(--text));
-  --border: color-mix(in srgb, var(--bg) 78%, var(--text));
+  --line: color-mix(in srgb, var(--bg) 78%, var(--text));
   --radius: 10px;
   --gap: 0.75rem;
   --tile-min: 240px;
@@ -49,7 +49,7 @@
 /* High contrast: secondary text and borders take the full text colour. */
 :root[data-contrast='high'] {
   --muted: var(--text);
-  --border: var(--text);
+  --line: var(--text);
   --accent: var(--text);
   --surface: var(--bg);
 }
@@ -275,7 +275,7 @@ h2 {
 h3 {
   margin: 0.8rem 0 0.4rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   font-size: 0.85rem;
 }
 
@@ -367,11 +367,6 @@ main:focus {
   font-size: 1.05rem;
 }
 
-.changes h3 small {
-  color: var(--muted);
-  font-weight: 400;
-}
-
 .changes h4 {
   margin: 0.5rem 0 0.25rem;
   font-size: 0.9rem;
@@ -391,24 +386,29 @@ main:focus {
   overflow-wrap: anywhere;
 }
 
-button,
-select,
-input {
-  font: inherit;
-  color: inherit;
-}
+/* The plain look of the page's own buttons and fields. It is in the base
+   layer, below the component kit of the dialogs (see kit.css), so that a
+   control drawn by the kit is not also drawn by these. */
+@layer base {
+  button,
+  select,
+  input {
+    font: inherit;
+    color: inherit;
+  }
 
-button {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  cursor: pointer;
-}
+  button {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: pointer;
+  }
 
-button:disabled {
-  cursor: default;
-  opacity: 0.5;
+  button:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
 }
 
 a:focus-visible,
@@ -427,7 +427,7 @@ input:focus-visible {
 
 kbd {
   padding: 0 0.35rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.8rem;
@@ -487,7 +487,7 @@ kbd {
 .skeleton {
   display: block;
   border-radius: var(--radius);
-  background: var(--border);
+  background: var(--line);
   opacity: 0.6;
 }
 
@@ -523,7 +523,7 @@ kbd {
   position: relative;
   display: flex;
   height: 100%;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
 }
@@ -670,7 +670,7 @@ li[draggable='true'] {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   color: var(--muted);
   font-weight: 600;
 }
@@ -716,7 +716,7 @@ li[draggable='true'] {
   padding: 0 0.45rem;
   /* In the cluster's own colour, softened a little towards the text colour
      so that it stays readable on the light and on the dark theme. */
-  border: 1px solid color-mix(in srgb, var(--cluster, var(--border)) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cluster, var(--line)) 70%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--cluster, transparent) 14%, transparent);
   color: color-mix(in srgb, var(--cluster, var(--muted)) 78%, var(--text));
@@ -750,7 +750,7 @@ a.pill:hover {
   justify-content: space-between;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 
 .toolbar .tabs {
@@ -802,7 +802,7 @@ a.pill:hover {
 
 .tile-tag {
   padding: 0 0.4rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
   font-size: 0.7rem;
@@ -837,12 +837,49 @@ dialog {
   width: min(40rem, calc(100vw - 2rem));
   max-height: calc(100vh - 4rem);
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: 16px;
   background: var(--bg);
   color: var(--text);
+  box-shadow:
+    0 24px 60px rgb(0 0 0 / 35%),
+    0 2px 8px rgb(0 0 0 / 20%);
+
+  /* The colours and shapes of the component kit, taken from the page's own
+     palette so that a theme still only names five colours. --border is the
+     kit's name for the width of a border. */
+  --color-base-100: var(--bg);
+  --color-base-200: var(--surface);
+  --color-base-300: var(--line);
+  --color-base-content: var(--text);
+  --color-primary: var(--primary);
+  --color-primary-content: var(--bg);
+  --color-secondary: var(--accent);
+  --color-secondary-content: var(--bg);
+  --color-accent: var(--accent);
+  --color-accent-content: var(--bg);
+  --color-neutral: var(--text);
+  --color-neutral-content: var(--bg);
+  --color-info: var(--accent);
+  --color-info-content: var(--bg);
+  --color-success: var(--primary);
+  --color-success-content: var(--bg);
+  --color-warning: var(--accent);
+  --color-warning-content: var(--bg);
+  --color-error: var(--error);
+  --color-error-content: #fff;
+  --radius-selector: 1rem;
+  --radius-field: 0.6rem;
+  --radius-box: 0.9rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
 }
 
+/* Dimmed, not blurred: a change made in the settings shows on the page
+   behind them as it is made. */
 dialog::backdrop {
   background: rgb(0 0 0 / 45%);
 }
@@ -856,7 +893,7 @@ dialog::backdrop {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
   color: var(--muted);
 }
 
@@ -927,7 +964,7 @@ dialog::backdrop {
 .spotlight-status {
   margin: 0;
   padding: 0.4rem 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.8rem;
 }
@@ -947,34 +984,11 @@ dialog::backdrop {
   overflow-y: auto;
 }
 
-.settings-header {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.settings-header h2 {
-  margin: 0;
-}
-
-.settings-body {
-  padding: 0.5rem 1rem 1rem;
-}
-
 .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.settings .tabs {
-  padding: 0.5rem 1rem 0;
+  border-bottom: 1px solid var(--line);
 }
 
 /* The tabs for applications and bookmarks sit at the top right. */
@@ -995,151 +1009,10 @@ main > .tabs,
 
 /* The selected tab is marked by its border and weight as well as colour. */
 .tabs button[aria-selected='true'] {
-  border-color: var(--border);
+  border-color: var(--line);
   border-bottom-color: var(--bg);
   color: var(--text);
   font-weight: 600;
-}
-
-.field input[type='range'] {
-  flex: 1;
-  max-width: 14rem;
-  accent-color: var(--primary);
-}
-
-.field output {
-  min-width: 3rem;
-  text-align: right;
-}
-
-.field input[type='text'] {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-}
-
-.swatches {
-  display: inline-flex;
-  gap: 0.3rem;
-}
-
-.help {
-  margin: 0.6rem 0 0;
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-
-.presets {
-  margin: 0.6rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.presets li {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 0.3rem;
-}
-
-.presets li button:first-child {
-  flex: 1;
-  text-align: left;
-}
-
-.presets button[aria-pressed='true'] {
-  border-color: var(--accent);
-  font-weight: 600;
-}
-
-.preset-save {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-}
-
-.preset-save input {
-  flex: 1;
-  min-width: 0;
-}
-
-fieldset {
-  margin: 1rem 0 0;
-  padding: 0.25rem 1rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-legend {
-  padding: 0 0.4rem;
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.6rem;
-}
-
-.field-check {
-  justify-content: flex-start;
-  gap: 0.6rem;
-}
-
-.field-wide {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.3rem;
-}
-
-.field small {
-  display: block;
-  color: var(--muted);
-}
-
-.field select,
-.field input[type='url'] {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-}
-
-.field input[type='checkbox'] {
-  width: 1.1rem;
-  height: 1.1rem;
-  accent-color: var(--primary);
-}
-
-.stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.stepper output {
-  min-width: 3.5rem;
-  text-align: center;
-}
-
-.shortcuts {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.3rem 1rem;
-  margin: 0.9rem 0 0;
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-
-.shortcuts dd {
-  margin: 0;
-}
-
-.settings-reset {
-  margin-top: 1rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1159,7 +1032,237 @@ legend {
   }
 }
 
+/* What is inside the settings and the other dialogs. The controls are
+   drawn by the component kit; this is how they are laid out. */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 0.9rem 1.25rem;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.settings .d-tabs {
+  flex: none;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+
+/* The selected tab is marked by its line and weight as well as colour. */
+.settings .d-tab-active {
+  font-weight: 600;
+}
+
+.settings-body {
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+/* One setting: its name on the left and its control on the right. */
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0;
+}
+
+.field + .field {
+  border-top: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+
+
+.field small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.field .d-select {
+  width: auto;
+  min-width: 9rem;
+  max-width: 55%;
+}
+
+
+.field output {
+  min-width: 3rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A field with a line of its own for what is typed into it. */
+.field-wide {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+
+.field-wide .d-input,
+.field-wide .d-select {
+  width: 100%;
+  max-width: none;
+}
+
+/* A tab of the kit is a button underneath: without the box the page gives
+   its own buttons. */
+.settings .d-tab {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.field > span:first-child {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.field .d-range {
+  flex: 0 1 12rem;
+  min-width: 7rem;
+}
+
+.field .d-toggle,
+.field .d-select,
+.field .swatch,
+.field output {
+  flex: none;
+}
+
+/* Fields that are typed into follow each other without a line between. */
+.field-wide,
+.field-wide + .field {
+  border-top: 0;
+}
+
+.field-wide {
+  padding: 0.5rem 0 0.25rem;
+}
+
+/* A button of the kit that cannot be used is dimmed by the kit alone, not
+   once more by the page's own rule for buttons. */
+dialog .d-btn:disabled {
+  opacity: 1;
+}
+
+/* A colour, shown as a round patch of it. */
+.swatch {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.swatches {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
+.help {
+  margin: 0.6rem 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.presets {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presets li {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.presets li button:first-child {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.preset-save {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.preset-save .d-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepper output {
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.shortcuts dd {
+  margin: 0;
+}
+
+.settings-reset {
+  margin-top: 1.25rem;
+}
+
+.form-error {
+  margin: 0.8rem 0 0;
+}
+
+.changes h3 small {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
 /* The unlock dialog and the editors. */
+.editor .settings-header {
+  border-bottom: 1px solid var(--line);
+}
+
 .editor {
   width: min(32rem, calc(100vw - 2rem));
 }
@@ -1191,23 +1294,6 @@ legend {
   margin-bottom: 0;
 }
 
-.editor .field input[type='text'],
-.editor .field input[type='url'],
-.editor .field input[type='number'],
-.editor .field input[type='password'] {
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: inherit;
-  font: inherit;
-}
-
-.form-error {
-  margin: 0.8rem 0 0;
-  color: var(--error);
-}
-
 /* The buttons stay in view while a long form scrolls behind them. */
 .form-actions {
   position: sticky;
@@ -1216,22 +1302,14 @@ legend {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin: 1rem -1rem -1rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--border);
+  margin: 1rem -1.25rem -1.25rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--line);
   background: var(--bg);
 }
 
 .form-spacer {
   flex: 1;
-}
-
-.button-primary {
-  font-weight: 600;
-}
-
-.button-danger {
-  color: var(--error);
 }
 
 /* The edit control of a tile sits under its star. */

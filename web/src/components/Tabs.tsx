@@ -8,12 +8,15 @@ export function Tabs<T extends string>({
   tabs,
   selected,
   onSelect,
+  kit = false,
 }: {
   id: string;
   label: string;
   tabs: { key: T; label: string }[];
   selected: T;
   onSelect: (key: T) => void;
+  // Drawn with the component kit of the dialogs, not as the page's own tabs.
+  kit?: boolean;
 }) {
   const move = (key: T) => {
     onSelect(key);
@@ -38,11 +41,12 @@ export function Tabs<T extends string>({
     }
   };
   return (
-    <div class="tabs" role="tablist" aria-label={label} onKeyDown={onKeyDown}>
+    <div class={kit ? 'd-tabs d-tabs-border' : 'tabs'} role="tablist" aria-label={label} onKeyDown={onKeyDown}>
       {tabs.map((tab) => (
         <button
           key={tab.key}
           type="button"
+          class={kit ? (tab.key === selected ? 'd-tab d-tab-active' : 'd-tab') : undefined}
           role="tab"
           id={`${id}-tab-${tab.key}`}
           aria-selected={tab.key === selected}

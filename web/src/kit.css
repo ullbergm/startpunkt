@@ -1,0 +1,18 @@
+/* The controls of the dialogs come from daisyUI, a set of component classes
+   for Tailwind CSS. Both are tools of the build: what reaches the browser is
+   a plain stylesheet, with nothing added at run time.
+
+   Only the theme and the utilities of Tailwind are taken. Its reset is left
+   out, so that the page outside the dialogs looks as it did. Every daisyUI
+   class carries the prefix "d-", which keeps it apart from the page's own
+   class names, and only the components named here are built. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@plugin 'daisyui' {
+  themes: false;
+  prefix: 'd-';
+  logs: false;
+  include: button, input, select, toggle, checkbox, radio, range, tab, fieldset, label, alert, badge, kbd, join;
+}

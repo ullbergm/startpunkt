@@ -34,7 +34,7 @@ More specific guides: `web/AGENTS.md` for the page and `charts/startpunkt/AGENTS
 - The page loads no third-party scripts and renders tile content as text. Keep the Content-Security-Policy in `internal/api` strict.
 - Whatever comes from a cluster resource or a remote is untrusted: addresses are `http` or `https`, and nothing from a probed service's answer is exposed.
 - Accessibility: semantic HTML, keyboard reachable controls, visible focus, ARIA names on interactive elements, and never colour as the only signal.
-- No new dependency without a reason that the standard library does not answer. The server has four direct dependencies and the page three.
+- No new dependency without a reason that the standard library does not answer. The server has four direct dependencies and the page three at run time. Tailwind CSS and daisyUI are tools of the page's build, like Vite: they draw the controls of the dialogs and add nothing that runs in the browser.
 
 ## Checks
 

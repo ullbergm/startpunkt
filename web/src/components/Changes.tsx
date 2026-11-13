@@ -25,7 +25,7 @@ export function Changes({
     <Modal label={title} class="settings editor changes" onClose={onClose}>
       <header class="settings-header">
         <h2>{title}</h2>
-        <button type="button" class="icon-button" aria-label={t('settings.close')} onClick={onClose}>
+        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
           <Icon name="close" />
         </button>
       </header>
@@ -37,7 +37,7 @@ export function Changes({
           <section key={release.version} aria-label={versionName(release.version)}>
             <h3>
               {versionName(release.version)}
-              {release.date && <small> {release.date}</small>}
+              {release.date && <small class="d-badge d-badge-ghost d-badge-sm"> {release.date}</small>}
             </h3>
             {release.sections.map((section, index) => (
               <div key={index}>
@@ -53,7 +53,7 @@ export function Changes({
         ))}
         {link && (
           <p class="changes-link">
-            <a href={link} target="_blank" rel="noopener noreferrer">
+            <a class="d-btn d-btn-outline d-btn-sm" href={link} target="_blank" rel="noopener noreferrer">
               {t('changes.release')}
             </a>
           </p>

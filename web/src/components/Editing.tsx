@@ -52,7 +52,7 @@ export function Unlock({ onClose, fetcher }: { onClose: () => void; fetcher?: ty
     <Modal label={t('unlock.title')} class="settings editor" onClose={onClose}>
       <header class="settings-header">
         <h2>{t('unlock.title')}</h2>
-        <button type="button" class="icon-button" aria-label={t('settings.close')} onClick={onClose}>
+        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
           <Icon name="close" />
         </button>
       </header>
@@ -65,6 +65,7 @@ export function Unlock({ onClose, fetcher }: { onClose: () => void; fetcher?: ty
           <span>{t('unlock.key')}</span>
           <input
             type="password"
+            class="d-input"
             value={key}
             // A password manager may offer it, as it would a password.
             autocomplete="current-password"
@@ -73,12 +74,12 @@ export function Unlock({ onClose, fetcher }: { onClose: () => void; fetcher?: ty
           />
         </label>
         {problem && (
-          <p class="form-error" role="alert">
+          <p class="d-alert d-alert-error d-alert-soft form-error" role="alert">
             {problem}
           </p>
         )}
         <div class="form-actions">
-          <button type="submit" class="button-primary" disabled={busy || key === ''}>
+          <button type="submit" class="d-btn d-btn-primary" disabled={busy || key === ''}>
             {t('unlock.submit')}
           </button>
         </div>
@@ -154,7 +155,7 @@ export function Editor({
     <Modal label={title} class="settings editor" onClose={onClose}>
       <header class="settings-header">
         <h2>{title}</h2>
-        <button type="button" class="icon-button" aria-label={t('settings.close')} onClick={onClose}>
+        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
           <Icon name="close" />
         </button>
       </header>
@@ -168,7 +169,7 @@ export function Editor({
         {!existing && (
           <label class="field field-wide">
             <span>{t('edit.kind')}</span>
-            <select value={kind} onChange={(event) => setKind(event.currentTarget.value as EditKind)}>
+            <select class="d-select" value={kind} onChange={(event) => setKind(event.currentTarget.value as EditKind)}>
               <option value="applications">{t('edit.kind.applications')}</option>
               <option value="bookmarks">{t('edit.kind.bookmarks')}</option>
             </select>
@@ -183,16 +184,17 @@ export function Editor({
             const hint = explained ? t(`edit.help.${field.name}` as MessageKey) : null;
             if (field.type === 'check') {
               return (
-                <label class="field field-check" key={field.name}>
-                  <input
-                    type="checkbox"
-                    checked={values[field.name] === true}
-                    onChange={(event) => setValues({ ...values, [field.name]: event.currentTarget.checked })}
-                  />
+                <label class="field" key={field.name}>
                   <span>
                     {label}
                     {hint && <small>{hint}</small>}
                   </span>
+                  <input
+                    type="checkbox"
+                    class="d-toggle d-toggle-primary"
+                    checked={values[field.name] === true}
+                    onChange={(event) => setValues({ ...values, [field.name]: event.currentTarget.checked })}
+                  />
                 </label>
               );
             }
@@ -206,6 +208,7 @@ export function Editor({
                   // One of text, url and number, which the element's types
                   // only accept one at a time.
                   type={field.type as 'text'}
+                  class="d-input"
                   value={String(values[field.name] ?? '')}
                   required={field.required && !(field.name === 'url' && urlFrom)}
                   onInput={(event) => setValues({ ...values, [field.name]: event.currentTarget.value })}
@@ -217,7 +220,7 @@ export function Editor({
             );
           })}
         {problem && (
-          <p class="form-error" role="alert">
+          <p class="d-alert d-alert-error d-alert-soft form-error" role="alert">
             {problem}
           </p>
         )}
@@ -228,26 +231,26 @@ export function Editor({
                 <span>{t('edit.delete.confirm')}</span>
                 <button
                   type="button"
-                  class="button-danger"
+                  class="d-btn d-btn-error"
                   disabled={busy}
                   onClick={() => void run(() => deleteResource(target, fetcher))}
                 >
                   {t('edit.delete.yes')}
                 </button>
-                <button type="button" onClick={() => setConfirming(false)}>
+                <button type="button" class="d-btn d-btn-ghost" onClick={() => setConfirming(false)}>
                   {t('edit.delete.no')}
                 </button>
               </>
             ) : (
-              <button type="button" class="button-danger" disabled={busy} onClick={() => setConfirming(true)}>
+              <button type="button" class="d-btn d-btn-error d-btn-outline" disabled={busy} onClick={() => setConfirming(true)}>
                 {t('edit.delete')}
               </button>
             ))}
           <span class="form-spacer" />
-          <button type="button" onClick={onClose}>
+          <button type="button" class="d-btn d-btn-ghost" onClick={onClose}>
             {t('edit.cancel')}
           </button>
-          <button type="submit" class="button-primary" disabled={busy || base === null}>
+          <button type="submit" class="d-btn d-btn-primary" disabled={busy || base === null}>
             {t('edit.save')}
           </button>
         </div>

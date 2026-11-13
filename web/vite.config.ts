@@ -1,11 +1,12 @@
 import preact from '@preact/preset-vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 
 // The build output is embedded in the Go binary (see embed.go). The files in
 // public/ are copied into it, which keeps the placeholder that lets the Go
 // code compile before the frontend has been built.
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [preact(), tailwindcss()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
