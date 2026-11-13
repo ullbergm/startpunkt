@@ -121,6 +121,9 @@ type Remote struct {
 	// Headers are sent with the request, for a remote behind an
 	// authenticating proxy.
 	Headers map[string]string `json:"headers,omitempty"`
+	// InsecureSkipVerify accepts any TLS certificate from the remote, for
+	// one whose certificate cannot be verified here.
+	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
 	// Include, when set, limits what is taken from the remote to the tiles
 	// it describes. Exclude leaves tiles out, also among the included.
 	Include Selector `json:"include,omitempty"`

@@ -37,6 +37,9 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   url: {{ .url | quote }}
+  {{- if .insecureSkipVerify }}
+  insecureSkipVerify: true
+  {{- end }}
   {{- with .include }}
   include:
     {{- toYaml . | nindent 4 }}

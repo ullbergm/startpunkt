@@ -204,7 +204,7 @@ func TestWebSettings(t *testing.T) {
 
 func TestFederationRemotes(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	data := "federation:\n  remotes:\n    - name: prod\n      url: https://start.prod.example.com\n      headers: {X-Token: abc}\n"
+	data := "federation:\n  remotes:\n    - name: prod\n      url: https://start.prod.example.com\n      headers: {X-Token: abc}\n      insecureSkipVerify: true\n"
 	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +212,7 @@ func TestFederationRemotes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r := cfg.Federation.Remotes; len(r) != 1 || r[0].Name != "prod" || r[0].URL != "https://start.prod.example.com" || r[0].Headers["X-Token"] != "abc" {
+	if r := cfg.Federation.Remotes; len(r) != 1 || r[0].Name != "prod" || r[0].URL != "https://start.prod.example.com" || r[0].Headers["X-Token"] != "abc" || !r[0].InsecureSkipVerify {
 		t.Errorf("from file: %+v", r)
 	}
 

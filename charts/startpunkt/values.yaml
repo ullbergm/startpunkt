@@ -234,6 +234,11 @@ federation:
   # authenticating proxy; they end up in the pod's environment, so put
   # secrets in extraEnv from a Secret instead.
   #
+  # insecureSkipVerify: true accepts any TLS certificate from that remote,
+  # for one whose certificate this instance cannot verify, such as a
+  # self-signed one. The connection is then not protected against someone
+  # in between.
+  #
   # include and exclude choose what is taken from a remote. Without include
   # everything is taken; exclude leaves tiles out, also among the included.
   # Within one of them, every field that is given has to match:
@@ -245,6 +250,7 @@ federation:
   #   remotes:
   #     - name: prod
   #       url: https://start.prod.example.com
+  #       insecureSkipVerify: false
   #       include:
   #         kinds: [application]
   #         groups: [media, "home*"]

@@ -7,6 +7,7 @@ package follow
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,6 +37,9 @@ type Follower struct {
 	// Headers are sent with the request, for a remote that sits behind an
 	// authenticating proxy.
 	Headers map[string]string
+	// InsecureSkipVerify accepts any TLS certificate from the upstream. It
+	// has no effect when Client is set.
+	InsecureSkipVerify bool
 	// Filter chooses which of a remote's tiles are taken over.
 	Filter Filter
 	Client *http.Client
@@ -69,7 +73,7 @@ func (f *Follower) Run(ctx context.Context) {
 		f.Log = slog.Default()
 	}
 	if f.Client == nil {
-		f.Client = newClient()
+		f.Client = newClient(f.InsecureSkipVerify)
 	}
 	if f.IdleTimeout <= 0 {
 		f.IdleTimeout = 3 * api.DefaultHeartbeat
@@ -122,8 +126,9 @@ func (f *Follower) Run(ctx context.Context) {
 // attempt, and the default dial timeout would then delay the reconnect by
 // half a minute after the upstream is back. There is no overall timeout,
 // because the response is an endless stream.
-func newClient() *http.Client {
+func newClient(insecureSkipVerify bool) *http.Client {
 	return &http.Client{Transport: &http.Transport{
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: insecureSkipVerify}, //nolint:gosec // opt-in setting of a remote
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&net.Dialer{Timeout: 3 * time.Second}).DialContext,
 		TLSHandshakeTimeout:   5 * time.Second,

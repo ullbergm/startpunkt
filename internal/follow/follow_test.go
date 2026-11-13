@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -296,3 +297,32 @@ func TestTwoRemotesDoNotDisturbEachOther(t *testing.T) {
 }
 
 func testLogger() *slog.Logger { return slog.Default() }
+
+func TestRemoteCertificateIsCheckedUnlessToldNotTo(t *testing.T) {
+	_, handler := remoteInstance()
+	// A certificate that nothing here trusts, like a self-signed one.
+	ts := httptest.NewTLSServer(handler)
+	defer ts.Close()
+	follow := func(insecure bool) (*store.Store, *Follower, context.CancelFunc) {
+		hub := store.New()
+		hub.SetCluster(store.Cluster{Name: "local", Local: true, State: store.StateConnected})
+		ctx, cancel := context.WithCancel(context.Background())
+		f := &Follower{
+			URL: ts.URL, Remote: "prod", Store: hub, InsecureSkipVerify: insecure,
+			IdleTimeout: time.Second, MinBackoff: 5 * time.Millisecond, MaxBackoff: 20 * time.Millisecond,
+		}
+		go f.Run(ctx)
+		return hub, f, cancel
+	}
+
+	hub, strict, cancel := follow(false)
+	defer cancel()
+	eventually(t, "the refusal", func() bool { return strings.Contains(strict.Problem(), "certificate") })
+	if _, ok := find(hub, "prod/apps/ns/grafana"); ok {
+		t.Error("tiles were taken from a remote whose certificate does not verify")
+	}
+
+	hub, _, cancel = follow(true)
+	defer cancel()
+	eventually(t, "the remote's tile", func() bool { _, ok := find(hub, "prod/apps/ns/grafana"); return ok })
+}

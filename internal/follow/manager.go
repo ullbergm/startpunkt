@@ -14,7 +14,9 @@ type RemoteConfig struct {
 	Name    string
 	URL     string
 	Headers map[string]string
-	Filter  Filter
+	// InsecureSkipVerify accepts any TLS certificate from the remote.
+	InsecureSkipVerify bool
+	Filter             Filter
 }
 
 // Manager runs one follower per configured remote and keeps that set in
@@ -70,7 +72,10 @@ func (m *Manager) Sync(ctx context.Context, remotes []RemoteConfig) {
 		if _, ok := m.running[name]; ok {
 			continue
 		}
-		f := &Follower{URL: r.URL, Remote: r.Name, Headers: r.Headers, Filter: r.Filter, Store: m.Store, Log: m.Log}
+		f := &Follower{
+			URL: r.URL, Remote: r.Name, Headers: r.Headers, InsecureSkipVerify: r.InsecureSkipVerify,
+			Filter: r.Filter, Store: m.Store, Log: m.Log,
+		}
 		followCtx, cancel := context.WithCancel(ctx)
 		done := make(chan struct{})
 		start := m.Start

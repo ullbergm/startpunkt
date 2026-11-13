@@ -133,6 +133,12 @@ type RemoteSpec struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Pattern=`^https?://`
 	URL string `json:"url"`
+	// Accept any TLS certificate from the remote. Use it for a remote
+	// whose certificate this instance cannot verify, such as a self-signed
+	// one. The connection is then open to whoever can put themselves
+	// between the two.
+	// +optional
+	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
 	// When set, only the tiles it describes are taken.
 	// +optional
 	Include *Selector `json:"include,omitempty"`

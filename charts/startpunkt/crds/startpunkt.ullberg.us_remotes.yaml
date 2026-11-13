@@ -111,6 +111,13 @@ spec:
                       type: string
                     type: array
                 type: object
+              insecureSkipVerify:
+                description: |-
+                  Accept any TLS certificate from the remote. Use it for a remote
+                  whose certificate this instance cannot verify, such as a self-signed
+                  one. The connection is then open to whoever can put themselves
+                  between the two.
+                type: boolean
               url:
                 description: The base URL of the remote, as a browser would open it.
                 pattern: ^https?://
