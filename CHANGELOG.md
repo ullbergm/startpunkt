@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/ullbergm/startpunkt/compare/v5.0.1...v5.1.0) (2026-11-13)
+
+
+### Features
+
+* **web:** add colour schemes and give presets a tab of their own ([#958](https://github.com/ullbergm/startpunkt/issues/958)) ([49ec96b](https://github.com/ullbergm/startpunkt/commit/49ec96b67f77803d9e612ddb10c0979b22c9fe66))
+
 ## [5.0.1](https://github.com/ullbergm/startpunkt/compare/v5.0.0...v5.0.1) (2026-11-12)
 
 
