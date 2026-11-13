@@ -1,4 +1,5 @@
 import { signal } from '@preact/signals';
+import { SCHEMES, type ColorScheme } from './palettes';
 
 // Everything a visitor can change for themselves. It lives in this browser
 // only and never reaches the server.
@@ -19,6 +20,8 @@ export type Direction = 'to bottom' | 'to top' | 'to right' | 'to left' | 'to bo
 
 export interface Preferences {
   theme: ThemeMode;
+  // The colours: the server's, or one of the schemes in palettes.ts.
+  colors: ColorScheme;
   // A language tag, or null to follow the browser and the server's default.
   language: string | null;
   // Tile ids, in the order the favorites are shown. An id includes the
@@ -125,6 +128,7 @@ export const DIRECTIONS: Direction[] = [
 export function defaults(): Preferences {
   return {
     theme: 'auto',
+    colors: 'default',
     language: null,
     favorites: [],
     collapsed: [],
@@ -260,6 +264,7 @@ export function sanitize(raw: unknown): Preferences {
   const accessibility = record(r.accessibility);
   return {
     theme: oneOf<ThemeMode>(r.theme, ['auto', 'light', 'dark'], d.theme),
+    colors: oneOf<ColorScheme>(r.colors, ['default', ...SCHEMES], d.colors),
     language: typeof r.language === 'string' && r.language !== '' ? r.language : null,
     favorites: strings(r.favorites),
     collapsed: strings(r.collapsed),

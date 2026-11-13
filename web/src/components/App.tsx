@@ -7,6 +7,7 @@ import { chooseLanguage, setLanguage, t } from '../i18n';
 import { clusterShown, prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
+import { PALETTES } from '../palettes';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
 import { Background } from './Background';
 import { ClusterChips } from './ClusterChips';
@@ -63,7 +64,7 @@ export function App({
     return () => query.removeEventListener('change', listener);
   }, []);
   const mode = panelMode(p) ?? resolveMode(p.theme, systemDark);
-  const palette = state?.config.theme[mode];
+  const palette = p.colors === 'default' ? state?.config.theme[mode] : PALETTES[p.colors][mode];
   useEffect(() => applyAppearance(document.documentElement, mode, palette, p), [mode, palette, p]);
 
   const defaultLanguage = state?.config.defaultLanguage;
