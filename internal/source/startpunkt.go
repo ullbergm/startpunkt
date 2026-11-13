@@ -28,6 +28,23 @@ func spec(obj *unstructured.Unstructured, out any) error {
 	return nil
 }
 
+// What Argo CD puts on the resources it deploys: an annotation that says
+// which application the resource belongs to, or with label tracking a label
+// that names the application. Label tracking uses app.kubernetes.io/instance
+// unless told otherwise, which Helm charts set as well, so that one says
+// nothing; the label of Argo CD's own name does.
+const (
+	argoTrackingAnnotation = "argocd.argoproj.io/tracking-id"
+	argoInstanceLabel      = "argocd.argoproj.io/instance"
+)
+
+// ManagedByArgoCD reports whether Argo CD deploys the object. A change made
+// to such an object in the cluster is undone at the next sync, so the page
+// does not offer to make one.
+func ManagedByArgoCD(obj *unstructured.Unstructured) bool {
+	return obj.GetAnnotations()[argoTrackingAnnotation] != "" || obj.GetLabels()[argoInstanceLabel] != ""
+}
+
 // Application is the adapter for the Startpunkt Application resource.
 type Application struct{}
 
@@ -92,7 +109,7 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        splitTags(tags),
-		Editable:    true,
+		Editable:    !ManagedByArgoCD(obj),
 	}}, nil
 }
 
@@ -135,6 +152,6 @@ func (Bookmark) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, er
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        []string{},
-		Editable:    true,
+		Editable:    !ManagedByArgoCD(obj),
 	}}, nil
 }

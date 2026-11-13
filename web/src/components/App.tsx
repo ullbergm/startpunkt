@@ -2,7 +2,7 @@ import { Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { groupCards, toCards } from '../cards';
 import { clusterColors, orderClusters } from '../clusters';
-import { canEdit, editTarget, type EditTarget } from '../editing';
+import { canEdit, editMode, editTarget, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
 import { clusterShown, prefs } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
@@ -42,6 +42,9 @@ export function App({
   const p = prefs.value;
   const [dialog, setDialog] = useState<'search' | 'settings' | 'unlock' | null>(null);
   const editing: EditTarget | null = editTarget.value;
+  const arranging = editMode.value;
+  // What to add once the key has been given, when adding is what asked for it.
+  const [pendingAdd, setPendingAdd] = useState<EditTarget | null>(null);
   const versionInfo = useVersion(fetchVersion);
   const update = availableUpdate(versionInfo);
   const [chosen, setChosen] = useState<Kind | null>(null);
@@ -77,6 +80,10 @@ export function App({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (dialogOpen.current) return;
+      if (event.key === 'Escape' && editMode.value) {
+        editMode.value = false;
+        return;
+      }
       const modified = event.ctrlKey || event.metaKey || event.altKey;
       if (event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
@@ -269,13 +276,32 @@ export function App({
         >
           <Icon name="search" />
         </button>
-        {state?.editing.available && (
+        {/* Tiles carry their controls only while the page is being edited.
+            An instance with an edit key then also has a button that adds a
+            tile, and the lock. */}
+        {arranging && state?.editing.available && (
           <EditControls
             isUnlocked={canEdit.value}
             onUnlock={() => setDialog('unlock')}
-            onAdd={() => (editTarget.value = { kind: view })}
+            onAdd={() => {
+              if (canEdit.value) {
+                editTarget.value = { kind: view };
+              } else {
+                setPendingAdd({ kind: view });
+                setDialog('unlock');
+              }
+            }}
           />
         )}
+        <button
+          type="button"
+          class="icon-button"
+          aria-label={t(arranging ? 'editMode.leave' : 'editMode.enter')}
+          title={t(arranging ? 'editMode.leave' : 'editMode.enter')}
+          onClick={() => (editMode.value = !arranging)}
+        >
+          <Icon name={arranging ? 'check' : 'edit'} />
+        </button>
         <button type="button" class="icon-button" aria-label={t('settings.open')} onClick={() => setDialog('settings')}>
           <Icon name="settings" />
         </button>
@@ -290,8 +316,16 @@ export function App({
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog === 'unlock' && <Unlock onClose={() => setDialog(null)} />}
-      {editing && state && canEdit.value && (
+      {dialog === 'unlock' && (
+        <Unlock
+          onClose={() => {
+            setDialog(null);
+            if (pendingAdd && canEdit.value) editTarget.value = pendingAdd;
+            setPendingAdd(null);
+          }}
+        />
+      )}
+      {editing && state && arranging && canEdit.value && (
         <Editor
           // A new dialog for each resource, so nothing of the last one is left.
           key={`${editing.kind}/${editing.namespace ?? ''}/${editing.name ?? ''}`}

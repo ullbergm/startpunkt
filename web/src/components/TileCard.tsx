@@ -1,4 +1,4 @@
-import { canEdit, editTarget, targetOf } from '../editing';
+import { canEdit, editMode, editTarget, targetOf } from '../editing';
 import type { Card } from '../cards';
 import { clusterColors } from '../clusters';
 import { t } from '../i18n';
@@ -79,7 +79,9 @@ export function TileCard({
   // A combined card is a favorite when any of its tiles is, and the star
   // adds or removes all of them.
   const favorite = ids.some((id) => favorites.includes(id));
-  const editable = canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
+  // The controls of a tile are there only while the page is being edited.
+  const arranging = editMode.value;
+  const editable = arranging && canEdit.value ? (card.members.map(targetOf).find((target) => target !== null) ?? null) : null;
   const body = (
     <>
       <TileIcon tile={tile} color={iconColor} />
@@ -129,7 +131,7 @@ export function TileCard({
           </span>
         )}
       </div>
-      {reorder && (
+      {arranging && reorder && (
         <span class="tile-move">
           <button
             type="button"
@@ -149,8 +151,8 @@ export function TileCard({
           </button>
         </span>
       )}
-      {/* While the page is unlocked, a tile that is an Application or a
-          Bookmark of this cluster can be changed. On a combined card that
+      {/* With the edit key, a tile that is an Application or a Bookmark of
+          this cluster can be changed. On a combined card that
           is the local cluster's tile. */}
       {editable && (
         <button
@@ -164,15 +166,17 @@ export function TileCard({
       )}
       {/* Next to the link, not inside it: a button in a link is not valid
           and cannot be reached separately with the keyboard. */}
-      <button
-        type="button"
-        class="tile-favorite"
-        aria-pressed={favorite}
-        aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', { name: tile.name })}
-        onClick={() => toggleFavorite(ids)}
-      >
-        <Icon name={favorite ? 'star' : 'starOutline'} size={18} />
-      </button>
+      {arranging && (
+        <button
+          type="button"
+          class="tile-favorite"
+          aria-pressed={favorite}
+          aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', { name: tile.name })}
+          onClick={() => toggleFavorite(ids)}
+        >
+          <Icon name={favorite ? 'star' : 'starOutline'} size={18} />
+        </button>
+      )}
     </div>
   );
 }

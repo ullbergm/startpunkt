@@ -27,7 +27,7 @@ If your 4.x installation uses the image tag `latest`, pin it to a 4.x version su
 - **Search** finds services by name: each word you type has to be the start of a word in the name. It no longer matches loosely or looks in descriptions. It opens when you start typing; there is no button for it on a device with a keyboard.
 - **Text size** is chosen from a few steps between 85% and 150%, not on a slider.
 - **Preferences are not carried over.** Favorites, layout, background and theme are stored in the browser under new names, so every visitor starts from the defaults.
-- **Favorites** are a row at the top of each tab, without a heading.
+- **Favorites** are a row at the top of each tab, without a heading. The star that makes a tile a favorite, and the buttons that move one, show only in edit mode, which the pencil in the bottom right corner turns on.
 - **Several clusters.** A visitor who has made no choice sees the local cluster only and switches the others on with the buttons above the tiles. Set `web.showAllClusters` to show every cluster from the start.
 - **Health checks** are at `/healthz` and `/readyz` instead of `/q/health/*`. The chart sets them up.
 

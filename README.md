@@ -240,13 +240,13 @@ helm upgrade startpunkt oci://ghcr.io/ullbergm/charts/startpunkt --namespace sta
   --set editing.enabled=true --set editing.existingSecret=startpunkt-edit-key
 ```
 
-The page then has a lock in its corner. Whoever enters the key there gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a button to add new ones. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. The button adds the kind of the tab that is open. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it.
+While the page is being edited (the pencil in its corner), it then also has a lock and a button that adds a tile. Whoever enters the key gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a form for adding new ones, which asks whether it is an application or a bookmark. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it. For that reason a resource that Argo CD deploys is read-only on the page: one that carries the annotation `argocd.argoproj.io/tracking-id` or the label `argocd.argoproj.io/instance` has no edit control, and the API refuses to change or delete it.
 
 Things to know before turning it on:
 
 - The key is one shared secret, not a login. Everyone who has it can edit, and changes are not attributed to a person. It has to be at least 16 characters long.
 - The browser keeps the key until the page is locked again.
-- The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
+- The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page. Argo CD installations that track resources by the label `app.kubernetes.io/instance` alone are not recognised, since Helm charts set that label too.
 - Only `http` and `https` addresses are accepted.
 - Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone, also with the right key.
 
@@ -319,7 +319,8 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 <p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>
 
 - **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. A word finds the services whose name has a word that starts with it, accents aside, and a further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
-- **Favorites**: the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
+- **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again.
+- **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
 - **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.
 - **Settings**, bottom right, kept in the browser:
 

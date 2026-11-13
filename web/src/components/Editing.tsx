@@ -9,6 +9,7 @@ import {
   toForm,
   toSpec,
   unlock,
+  type EditKind,
   type EditTarget,
   type FormValues,
   type Spec,
@@ -100,8 +101,14 @@ export function Editor({
   fetcher?: typeof fetch;
 }) {
   const existing = Boolean(target.name);
+  // A new resource is of the kind it was opened for until another is
+  // chosen. What was filled in stays, where the other kind has the field.
+  const [kind, setKind] = useState<EditKind>(target.kind);
   const [base, setBase] = useState<Spec | null>(existing ? null : {});
-  const [values, setValues] = useState<FormValues>(() => toForm(target.kind, {}));
+  const [values, setValues] = useState<FormValues>(() => ({
+    ...toForm('applications', {}),
+    ...toForm('bookmarks', {}),
+  }));
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -137,10 +144,10 @@ export function Editor({
   const submit = (event: Event) => {
     event.preventDefault();
     if (base === null || busy) return;
-    void run(() => saveResource(target, toSpec(target.kind, base, values), fetcher));
+    void run(() => saveResource({ ...target, kind }, toSpec(kind, base, values), fetcher));
   };
 
-  const title = t(`edit.${existing ? 'change' : 'add'}.${target.kind}` as MessageKey);
+  const title = t(`edit.${existing ? 'change' : 'add'}.${kind}` as MessageKey);
   // An address that is read from another object does not have to be given.
   const urlFrom = base?.urlFrom as { kind?: string; name?: string } | undefined;
   return (
@@ -158,8 +165,17 @@ export function Editor({
             : t('edit.where.new', { namespace })}
         </p>
         {base === null && !problem && <p role="status">{t('edit.loading')}</p>}
+        {!existing && (
+          <label class="field field-wide">
+            <span>{t('edit.kind')}</span>
+            <select value={kind} onChange={(event) => setKind(event.currentTarget.value as EditKind)}>
+              <option value="applications">{t('edit.kind.applications')}</option>
+              <option value="bookmarks">{t('edit.kind.bookmarks')}</option>
+            </select>
+          </label>
+        )}
         {base !== null &&
-          FIELDS[target.kind].map((field) => {
+          FIELDS[kind].map((field) => {
             const label = t(`edit.field.${field.name}` as MessageKey);
             // A bookmark has to name its group, so the hint about the
             // default is for applications only.
@@ -240,8 +256,9 @@ export function Editor({
   );
 }
 
-// The lock in the corner of the page, and next to it the button that adds a
-// tile while the page is unlocked.
+// What an instance with an edit key adds to the corner while the page is
+// being edited: the button that adds a tile, and the lock. Adding asks for
+// the key first when the page is locked.
 export function EditControls({
   isUnlocked,
   onUnlock,
@@ -253,11 +270,9 @@ export function EditControls({
 }) {
   return (
     <>
-      {isUnlocked && (
-        <button type="button" class="icon-button" aria-label={t('edit.add')} title={t('edit.add')} onClick={onAdd}>
-          <Icon name="plus" />
-        </button>
-      )}
+      <button type="button" class="icon-button" aria-label={t('edit.add')} title={t('edit.add')} onClick={onAdd}>
+        <Icon name="plus" />
+      </button>
       <button
         type="button"
         class="icon-button"

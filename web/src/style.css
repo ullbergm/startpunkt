@@ -527,26 +527,12 @@ kbd {
   border: 0;
   background: none;
   color: var(--muted);
-  opacity: 0;
 }
 
-/* Shown when the tile is pointed at, and whenever it has focus, so that it
-   is never an invisible stop for keyboard users. A favorite needs no mark
-   of its own: it is in the favorites row. Devices without hover always
-   show the star, since there is no other way to reach it. */
-.tile:hover .tile-favorite,
-.tile-favorite:focus-visible {
-  opacity: 1;
-}
-
+/* The controls of a tile exist only while the page is being edited, and
+   are then shown on every tile. */
 .tile-favorite[aria-pressed='true'] {
   color: var(--accent);
-}
-
-@media (hover: none) {
-  .tile-favorite {
-    opacity: 1;
-  }
 }
 
 .tile-move {
@@ -555,18 +541,6 @@ kbd {
   bottom: 0.2rem;
   display: flex;
   gap: 0.1rem;
-  opacity: 0;
-}
-
-.tile:hover .tile-move,
-.tile-move:focus-within {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .tile-move {
-    opacity: 1;
-  }
 }
 
 .tile-move button {
@@ -1120,11 +1094,8 @@ legend {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .group-toggle .icon,
-  .tile-favorite {
-    transition:
-      transform 0.15s,
-      opacity 0.15s;
+  .group-toggle .icon {
+    transition: transform 0.15s;
   }
 }
 
@@ -1187,8 +1158,7 @@ legend {
   color: var(--error);
 }
 
-/* The edit control of a tile sits under its star and behaves like it: shown
-   on hover and focus, and always where there is no hover. */
+/* The edit control of a tile sits under its star. */
 .tile-edit {
   position: absolute;
   top: 1.7rem;
@@ -1199,16 +1169,4 @@ legend {
   border: 0;
   background: none;
   color: var(--muted);
-  opacity: 0;
-}
-
-.tile:hover .tile-edit,
-.tile-edit:focus-visible {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .tile-edit {
-    opacity: 1;
-  }
 }

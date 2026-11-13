@@ -1,6 +1,7 @@
 package source
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -163,5 +164,46 @@ func TestAppendRootPath(t *testing.T) {
 func TestType(t *testing.T) {
 	if got := Type(Application{}); got != "applications.startpunkt.ullberg.us" {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestManagedByArgoCDIsNotEditable(t *testing.T) {
+	const application = `
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Application
+metadata:
+  name: grafana
+  namespace: default
+  %s
+spec: {name: Grafana, url: "https://grafana.example.com"}
+`
+	const bookmark = `
+apiVersion: startpunkt.ullberg.us/v1alpha4
+kind: Bookmark
+metadata:
+  name: docs
+  namespace: default
+  %s
+spec: {name: Docs, group: Reference, url: "https://example.com/docs"}
+`
+	for name, c := range map[string]struct {
+		metadata string
+		editable bool
+	}{
+		"nothing from Argo CD":    {``, true},
+		"the tracking annotation": {`annotations: {argocd.argoproj.io/tracking-id: "home:startpunkt.ullberg.us/Application:default/grafana"}`, false},
+		"the label of Argo CD":    {`labels: {argocd.argoproj.io/instance: home}`, false},
+		// Helm charts set this one too, so it does not say who deploys.
+		"the common instance label":  {`labels: {app.kubernetes.io/instance: home}`, true},
+		"another Argo CD annotation": {`annotations: {argocd.argoproj.io/sync-wave: "1"}`, true},
+	} {
+		apps, err := Application{}.Tiles(object(t, fmt.Sprintf(application, c.metadata)), nil)
+		if err != nil || len(apps) != 1 || apps[0].Editable != c.editable {
+			t.Errorf("application with %s: %+v, %v, want editable %v", name, apps, err, c.editable)
+		}
+		marks, err := Bookmark{}.Tiles(object(t, fmt.Sprintf(bookmark, c.metadata)), nil)
+		if err != nil || len(marks) != 1 || marks[0].Editable != c.editable {
+			t.Errorf("bookmark with %s: %+v, %v, want editable %v", name, marks, err, c.editable)
+		}
 	}
 }

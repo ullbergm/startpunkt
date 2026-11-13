@@ -1,6 +1,7 @@
 import type { Card, CardGroup } from '../cards';
 import { t } from '../i18n';
 import { useEffect, useState } from 'preact/hooks';
+import { editMode } from '../editing';
 import { columnsThatFit, MAX_AUTO_COLUMNS, optimalColumns } from '../columns';
 import { moveFavorite, prefs, toggleCollapsed } from '../prefs';
 import { Icon } from './Icons';
@@ -51,9 +52,10 @@ function Tiles({
   );
 }
 
-// The favorites, in the visitor's own order. A favorite is moved by
-// dragging it onto another one, or with the buttons on its tile, which do
-// the same from the keyboard. Each move is announced.
+// The favorites, in the visitor's own order. While the page is being
+// edited a favorite is moved by dragging it onto another one, or with the
+// buttons on its tile, which do the same from the keyboard. Each move is
+// announced.
 //
 // The row has no heading of its own. It is as wide as its favorites need,
 // and a row that is not full is centred.
@@ -71,6 +73,7 @@ export function Favorites({
   const [over, setOver] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
   if (cards.length === 0) return null;
+  const movable = editMode.value && cards.length > 1;
 
   // The place of a card among the stored favorites is that of the first of
   // its tiles that is one.
@@ -94,7 +97,7 @@ export function Favorites({
           <li
             key={card.key}
             class={over === card.key && dragged !== card.key ? 'drop-target' : undefined}
-            draggable={cards.length > 1}
+            draggable={movable}
             onDragStart={(event) => {
               setDragged(card.key);
               event.dataTransfer?.setData('text/plain', card.primary.name);
@@ -123,7 +126,7 @@ export function Favorites({
               iconColor={iconColor}
               showCluster={showCluster}
               reorder={
-                cards.length > 1
+                movable
                   ? { first: index === 0, last: index === cards.length - 1, onMove: (delta) => move(card, index + delta) }
                   : undefined
               }

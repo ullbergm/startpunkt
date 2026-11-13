@@ -140,6 +140,34 @@ func TestEditorRefusals(t *testing.T) {
 	}
 }
 
+func TestEditorLeavesWhatArgoCDDeploys(t *testing.T) {
+	managed := app("v1", "home", "managed", "https://managed.example.com")
+	managed.SetAnnotations(map[string]string{"argocd.argoproj.io/tracking-id": "home:startpunkt.ullberg.us/Application:home/managed"})
+	c := newCluster(managed, app("v1", "home", "own", "https://own.example.com"))
+	c.serve("v1")
+	e := editorFor(c)
+	ctx := context.Background()
+	spec := json.RawMessage(`{"name":"changed","url":"https://changed.example.com"}`)
+
+	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "managed", Spec: spec}); statusOf(err) != http.StatusConflict {
+		t.Errorf("update: %v, want a conflict", err)
+	}
+	if err := e.Delete(ctx, edit.Applications, "home", "managed"); statusOf(err) != http.StatusConflict {
+		t.Errorf("delete: %v, want a conflict", err)
+	}
+	// It can still be read, and is as it was.
+	if r, err := e.Get(ctx, edit.Applications, "home", "managed"); err != nil || !strings.Contains(string(r.Spec), "managed.example.com") {
+		t.Errorf("after the refusals: %+v, %v", r, err)
+	}
+	// What nobody else deploys is changed and deleted as before.
+	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "own", Spec: spec}); err != nil {
+		t.Errorf("update of an unmanaged resource: %v", err)
+	}
+	if err := e.Delete(ctx, edit.Applications, "home", "own"); err != nil {
+		t.Errorf("delete of an unmanaged resource: %v", err)
+	}
+}
+
 func TestEditorNextToFourX(t *testing.T) {
 	c := newCluster()
 	// Only the definitions of 4.x.

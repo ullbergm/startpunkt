@@ -109,7 +109,7 @@ await shot(page, f('03-search'));
 await close(page);
 
 page = await open(dark({ type: 'theme' }));
-await page.locator('.favorites .tile').nth(1).hover();
+await page.getByRole('button', { name: 'Edit the page' }).click();
 await shot(page, f('04-favorites'), { clip: { x: 0, y: 0, width: 1440, height: 420 } });
 await close(page);
 
@@ -166,6 +166,7 @@ await shot(page, f('15-cluster-sections'));
 await close(page);
 
 page = await open(dark(mesh), { key: true });
+await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Change NAS' }).click();
 await page.waitForSelector('.editor input');
 await shot(page, f('16-edit-application'));

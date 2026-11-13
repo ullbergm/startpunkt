@@ -14,6 +14,7 @@ import (
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 	"github.com/ullbergm/startpunkt/internal/edit"
+	"github.com/ullbergm/startpunkt/internal/source"
 )
 
 // Editor writes Application and Bookmark resources to the cluster. It
@@ -134,6 +135,9 @@ func (e *Editor) Update(ctx context.Context, kind string, r edit.Resource) (edit
 	if err != nil {
 		return edit.Resource{}, translate(err, r.Name)
 	}
+	if err := changeable(obj); err != nil {
+		return edit.Resource{}, err
+	}
 	obj.Object["spec"] = spec
 	// The update carries the version that was read, so a change made by
 	// someone else in between is not overwritten.
@@ -150,7 +154,27 @@ func (e *Editor) Delete(ctx context.Context, kind, namespace, name string) error
 	if err != nil {
 		return err
 	}
-	return translate(client.Delete(ctx, name, metav1.DeleteOptions{}), name)
+	obj, err := client.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return translate(err, name)
+	}
+	if err := changeable(obj); err != nil {
+		return err
+	}
+	// Only the object that was looked at: one that was replaced in between
+	// by another of the same name is left alone.
+	uid := obj.GetUID()
+	return translate(client.Delete(ctx, name, metav1.DeleteOptions{Preconditions: &metav1.Preconditions{UID: &uid}}), name)
+}
+
+// changeable refuses a resource that Argo CD deploys. The page offers no
+// change to one, since its tile is not editable, but the endpoints can be
+// called without the page.
+func changeable(obj *unstructured.Unstructured) error {
+	if source.ManagedByArgoCD(obj) {
+		return edit.Errorf(http.StatusConflict, "%q is deployed by Argo CD; change it where Argo CD reads it from", obj.GetName())
+	}
+	return nil
 }
 
 func resource(obj *unstructured.Unstructured) (edit.Resource, error) {
