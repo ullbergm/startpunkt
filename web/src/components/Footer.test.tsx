@@ -33,8 +33,10 @@ describe('Footer', () => {
   it('names the version and links to the project and its author', async () => {
     const fetcher = answer({ version: '5.0.0', updateAvailable: false });
     render(<Wired fetcher={fetcher} />);
-    const footer = screen.getByRole('contentinfo');
-    await waitFor(() => expect(footer.textContent).toContain('Startpunkt v5.0.0, by Magnus Ullberg.'));
+    // Not before the instance has answered: it may have turned the footer off.
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    const footer = await screen.findByRole('contentinfo');
+    expect(footer.textContent).toContain('Startpunkt v5.0.0, by Magnus Ullberg.');
     expect(fetcher).toHaveBeenCalledWith('/api/v1/version');
     expect(screen.getByRole('link', { name: 'Startpunkt' }).getAttribute('href')).toBe(
       'https://github.com/ullbergm/startpunkt',
@@ -75,6 +77,24 @@ describe('Footer', () => {
     expect(within(footer).queryByRole('status')).toBeNull();
     fireEvent.click(notice);
     expect(onUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no footer when the instance turns it off, and still announces a newer release', async () => {
+    const fetcher = answer({
+      version: '5.0.0',
+      githubLink: false,
+      latest: 'v5.1.0',
+      updateAvailable: true,
+      url: 'https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0',
+    });
+    render(<Wired fetcher={fetcher} />);
+    expect(await screen.findByRole('button', { name: 'Update available: v5.1.0' })).toBeTruthy();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Startpunkt' })).toBeNull();
+    cleanup();
+    // On, or not said: it is there.
+    render(<Wired fetcher={answer({ version: '5.0.0', githubLink: true, updateAvailable: false })} />);
+    expect(await screen.findByRole('contentinfo')).toBeTruthy();
   });
 
   it('has nothing in the corner while there is no newer release', async () => {

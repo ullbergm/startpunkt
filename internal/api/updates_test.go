@@ -64,9 +64,9 @@ func TestVersionEndpoint(t *testing.T) {
 
 	serve := func(u *Updates) http.Handler { return (&Server{Store: store.New(), Updates: u}).Handler() }
 
-	h := serve(&Updates{Current: "5.0.0", Check: true, Source: github.URL})
+	h := serve(&Updates{Current: "5.0.0", Check: true, GitHubLink: true, Source: github.URL})
 	info := versionInfo(t, h)
-	if info.Version != "5.0.0" || !info.UpdateAvailable || info.Latest != "v5.1.0" ||
+	if info.Version != "5.0.0" || !info.GitHubLink || !info.UpdateAvailable || info.Latest != "v5.1.0" ||
 		info.URL != "https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0" {
 		t.Errorf("info = %+v", info)
 	}
@@ -101,6 +101,17 @@ func TestVersionEndpoint(t *testing.T) {
 	github.Close()
 	if info := versionInfo(t, serve(&Updates{Current: "5.0.0", Check: true, Source: github.URL, TTL: time.Millisecond})); info.UpdateAvailable || info.Version != "5.0.0" {
 		t.Errorf("unreachable: %+v", info)
+	}
+
+	// The setting for the footer can change while the process runs.
+	link := true
+	changing := serve(&Updates{Current: "5.0.0", Flags: func() (bool, bool) { return false, link }})
+	if !versionInfo(t, changing).GitHubLink {
+		t.Error("the footer is on")
+	}
+	link = false
+	if versionInfo(t, changing).GitHubLink {
+		t.Error("the footer was turned off")
 	}
 
 	if rec := get(t, (&Server{Store: store.New()}).Handler(), "/api/v1/version"); rec.Code != http.StatusNotFound {

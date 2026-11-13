@@ -102,6 +102,8 @@ spec:
               value: {{ $.Values.config.web.searchEngine | quote }}
             - name: STARTPUNKT_WEB_CHECKFORUPDATES
               value: {{ $.Values.config.web.checkForUpdates | quote }}
+            - name: STARTPUNKT_WEB_GITHUBLINK
+              value: {{ $.Values.config.web.githubLink | quote }}
             - name: STARTPUNKT_WEB_SHOWALLCLUSTERS
               value: {{ $.Values.config.web.showAllClusters | quote }}
             {{- with $.Values.config.web.defaultPreferences }}

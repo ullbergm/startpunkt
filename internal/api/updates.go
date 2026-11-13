@@ -22,6 +22,9 @@ type VersionInfo struct {
 	UpdateAvailable bool `json:"updateAvailable"`
 	// URL is the page of the newer release.
 	URL string `json:"url,omitempty"`
+	// GitHubLink says whether the page shows its footer, which names the
+	// version and links to the project on GitHub.
+	GitHubLink bool `json:"githubLink"`
 }
 
 const (
@@ -40,9 +43,11 @@ type Updates struct {
 	Current string
 	// Check turns the lookup of newer releases on.
 	Check bool
-	// Checking, when set, is asked in place of Check, for a setting that
-	// can change while the process runs.
-	Checking func() bool
+	// GitHubLink is passed on to the page.
+	GitHubLink bool
+	// Flags, when set, is asked for Check and GitHubLink in their place,
+	// for settings that can change while the process runs.
+	Flags func() (check, githubLink bool)
 	// Source overrides the address the latest release is looked up at.
 	Source string
 	// Changelog is what changed in the running version and those before
@@ -66,7 +71,10 @@ type Updates struct {
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	info := VersionInfo{Version: u.Current}
+	info := VersionInfo{Version: u.Current, GitHubLink: u.GitHubLink}
+	if u.Flags != nil {
+		_, info.GitHubLink = u.Flags()
+	}
 	if latest := u.newer(r.Context(), u.checking()); latest != "" {
 		info.Latest = latest
 		info.UpdateAvailable = true
@@ -79,8 +87,9 @@ func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // checking reports whether newer releases are looked for.
 func (u *Updates) checking() bool {
-	if u.Checking != nil {
-		return u.Checking()
+	if u.Flags != nil {
+		check, _ := u.Flags()
+		return check
 	}
 	return u.Check
 }

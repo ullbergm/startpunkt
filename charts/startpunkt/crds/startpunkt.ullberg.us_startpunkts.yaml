@@ -326,11 +326,8 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   githubLink:
                     description: |-
-                      GitHubLink has no effect. It turned a corner on the page on that
-                      linked to the project, which the page no longer has. The setting is
-                      still accepted, so that a configuration that names it keeps working.
-
-                      Deprecated: remove it from your configuration.
+                      GitHubLink shows the footer of the page, which names the running
+                      version and links to the project on GitHub and to its author.
                     type: boolean
                   searchEngine:
                     description: |-

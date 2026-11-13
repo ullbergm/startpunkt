@@ -61,7 +61,7 @@ If your 4.x installation uses the image tag `latest`, pin it to a 4.x version su
 | `availability.ignoreCertificates` | `availability.insecureSkipVerify` |
 | `availability.initialDelayMs`, `maxDelayMs` | `availability.initialBackoff`, `availability.maxBackoff` (durations) |
 | `web.title`, `web.searchEngine`, `web.checkForUpdates`, `web.theme` | The same names under `config.web` |
-| `web.githubLink.enabled` | Not available. The page has no corner that links to the project; the footer links to it. `config.web.githubLink` is accepted and has no effect. |
+| `web.githubLink.enabled` | `config.web.githubLink`. It shows the footer, which links to the project; the page has no corner for that any more. |
 
 The values of the 4.x chart (`startpunkt.image`, `startpunkt.deployment`, `startpunkt.ingress` and so on) have no counterpart of the same shape. Start from the v5 chart's [values.yaml](../charts/startpunkt/values.yaml), which documents every setting.
 

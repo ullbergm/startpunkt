@@ -7,22 +7,27 @@ export interface VersionInfo {
   latest?: string;
   updateAvailable: boolean;
   url?: string;
+  // Whether the footer is shown.
+  githubLink?: boolean;
 }
 
 const RELEASES = 'https://github.com/ullbergm/startpunkt/releases/';
 
 // Asks the server which version is running and whether a newer one exists.
 // The server does the looking; the page only ever asks its own server.
-export function useVersion(fetcher: typeof fetch = fetch): VersionInfo | null {
-  const [info, setInfo] = useState<VersionInfo | null>(null);
+//
+// The answer is undefined until the server has been asked, and null when it
+// had nothing to say.
+export function useVersion(fetcher: typeof fetch = fetch): VersionInfo | null | undefined {
+  const [info, setInfo] = useState<VersionInfo | null | undefined>(undefined);
   useEffect(() => {
     let current = true;
     fetcher('/api/v1/version')
       .then((response) => (response.ok ? (response.json() as Promise<VersionInfo>) : null))
       .then((found) => {
-        if (current && found && typeof found.version === 'string') setInfo(found);
+        if (current) setInfo(found && typeof found.version === 'string' ? found : null);
       })
-      .catch(() => undefined);
+      .catch(() => current && setInfo(null));
     return () => {
       current = false;
     };
@@ -32,7 +37,7 @@ export function useVersion(fetcher: typeof fetch = fetch): VersionInfo | null {
 
 // The newer release, when there is one and its link points at the project's
 // release pages. Any other link is ignored.
-export function availableUpdate(info: VersionInfo | null): { version: string; url: string } | undefined {
+export function availableUpdate(info: VersionInfo | null | undefined): { version: string; url: string } | undefined {
   return info?.updateAvailable && info.latest && info.url?.startsWith(RELEASES)
     ? { version: info.latest, url: info.url }
     : undefined;
@@ -41,7 +46,11 @@ export function availableUpdate(info: VersionInfo | null): { version: string; ur
 // The line under the content: what is running and where it comes from. The
 // version opens the list of what changed in it. A newer release is not
 // announced here: the corner at the top of the page does that.
-export function Footer({ info, onChanges }: { info: VersionInfo | null; onChanges?: () => void }) {
+//
+// The instance can turn the footer off. It is not drawn before the instance
+// has been asked, so that it does not show for a moment where it is off.
+export function Footer({ info, onChanges }: { info: VersionInfo | null | undefined; onChanges?: () => void }) {
+  if (info === undefined || info?.githubLink === false) return null;
   const version = info ? versionName(info.version) : '';
   // A development build has no entry in the changelog.
   const released = info !== null && parseVersion(info.version) !== null;

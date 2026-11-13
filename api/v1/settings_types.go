@@ -223,11 +223,8 @@ type Web struct {
 	// CheckForUpdates asks GitHub now and then whether a newer release of
 	// Startpunkt exists, and tells visitors in the corner of the page when one does.
 	CheckForUpdates bool `json:"checkForUpdates"`
-	// GitHubLink has no effect. It turned a corner on the page on that
-	// linked to the project, which the page no longer has. The setting is
-	// still accepted, so that a configuration that names it keeps working.
-	//
-	// Deprecated: remove it from your configuration.
+	// GitHubLink shows the footer of the page, which names the running
+	// version and links to the project on GitHub and to its author.
 	GitHubLink bool `json:"githubLink"`
 	// ShowAllClusters makes a visitor who has not chosen see the tiles of
 	// every cluster. Without it they see this cluster's only, and switch

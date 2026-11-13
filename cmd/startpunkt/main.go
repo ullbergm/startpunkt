@@ -221,8 +221,9 @@ func run() error {
 		// Only these roles fetch pictures and icons and look for updates.
 		handler.Background = &api.Background{UserAgent: "startpunkt/" + version}
 		handler.Icons = &api.Icons{SourceFunc: func() string { return holder.Get().Icons.Source }, UserAgent: "startpunkt"}
-		handler.Updates = &api.Updates{Current: version, Changelog: api.ParseChangelog(startpunkt.Changelog), Checking: func() bool {
-			return holder.Get().Web.CheckForUpdates
+		handler.Updates = &api.Updates{Current: version, Changelog: api.ParseChangelog(startpunkt.Changelog), Flags: func() (bool, bool) {
+			web := holder.Get().Web
+			return web.CheckForUpdates, web.GitHubLink
 		}}
 	}
 	if role == roleAll || role == roleWeb {
