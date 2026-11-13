@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.5.0](https://github.com/ullbergm/startpunkt/compare/v5.4.0...v5.5.0) (2026-11-13)
+
+
+### Features
+
+* check what is typed into the editor and say whether the address answers ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* let the instance set the page's default settings ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** announce a newer release on a ribbon across the corner, and not in the footer ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** centre the slider of the panel behind the content ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** draw the controls of the dialogs with daisyUI ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** drop the spacing and compact tiles settings ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** in edit mode, box every tile and make a click open its form or say why it cannot be changed ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** pick groups, tags, icons and colours in the editor ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** put the footer right under the content ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+* **web:** remove the corner that linked to GitHub; web.githubLink now shows or hides the footer ([dc97788](https://github.com/ullbergm/startpunkt/commit/dc977885d06756da079fda77d621a25e4196db31))
+
 ## [5.4.0](https://github.com/ullbergm/startpunkt/compare/v5.3.0...v5.4.0) (2026-11-13)
 
 
