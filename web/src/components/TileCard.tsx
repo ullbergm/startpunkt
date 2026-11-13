@@ -84,8 +84,8 @@ export function TileCard({
   const arranging = editMode.value;
   // On an instance with editing, a tile that is an Application or a
   // Bookmark of this cluster can be changed. On a combined card that is the
-  // local cluster's tile. Whether the key has been given yet is not asked
-  // here: the page asks for it when such a tile is clicked.
+  // local cluster's tile. The key has been given: on such an instance the
+  // page is not edited without it.
   const editable =
     arranging && serverState.value?.editing.available === true
       ? (card.members.map(targetOf).find((target) => target !== null) ?? null)

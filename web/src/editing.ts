@@ -25,10 +25,11 @@ export const unlocked = computed(() => editKey.value !== null);
 // was on does not count.
 export const canEdit = computed(() => unlocked.value && serverState.value?.editing.available === true);
 
-// Whether the page is being arranged. Only then do tiles carry their
-// controls: the star, the buttons that move a favorite and, with the key,
-// the one that changes the resource. It lasts until the visitor leaves it
-// or the page is closed.
+// Whether the page is being edited. Only then do tiles carry their
+// controls: the star, the buttons that move a favorite, and what changes
+// the resource. On an instance with an edit key it is entered with the key
+// and not without. It lasts until the visitor leaves it or the page is
+// closed.
 export const editMode = signal(false);
 
 // For tests, which change storage behind the module's back.
@@ -49,9 +50,12 @@ function remember(key: string | null): void {
   }
 }
 
+// Forgets the key. On an instance with an edit key, editing the page takes
+// the key, so the page is no longer being edited either.
 export function lock(): void {
   remember(null);
   editTarget.value = null;
+  editMode.value = false;
 }
 
 export type UnlockResult = 'ok' | 'wrong' | 'limited' | 'failed';

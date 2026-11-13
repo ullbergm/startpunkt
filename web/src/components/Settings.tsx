@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
+import { lock, unlocked } from '../editing';
 import { languages, t, type MessageKey } from '../i18n';
 import {
   activePreset,
@@ -609,6 +610,14 @@ export function Settings({
           <button type="button" class="d-btn d-btn-outline d-btn-sm settings-reset" onClick={resetPrefs}>
             {t('settings.reset')}
           </button>
+          {/* The edit key stays in this browser once it was given, so that
+              editing the page does not ask for it every time. This is
+              where it is taken out again. */}
+          {unlocked.value && (
+            <button type="button" class="d-btn d-btn-outline d-btn-sm settings-reset" onClick={lock}>
+              {t('settings.forgetKey')}
+            </button>
+          )}
         </form>
       </div>
     </Modal>

@@ -331,18 +331,21 @@ describe('the page', () => {
     act(() => FakeStream.last.emit('snapshot', s));
   };
 
-  it('has no lock when the instance has no edit key', async () => {
+  it('asks for nothing when the instance has no edit key', async () => {
     vi.stubGlobal('fetch', server({}).fetcher);
     editKey.value = 'left over from another time';
     show(state(false));
     await screen.findByRole('link', { name: /Grafana/ });
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    expect(screen.queryByRole('button', { name: /ock editing$/ })).toBeNull();
+    // Favorites can be arranged; there is nothing to add or change.
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Done editing' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add Grafana to favorites' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
   });
 
-  it('unlocks with the key, and then offers to change what can be changed', async () => {
+  it('takes the key to edit the page, and then offers to change what can be changed', async () => {
     const { fetcher, calls } = server({
       'GET /api/v1/unlock': () => new Response(null, { status: 204 }),
       'GET /api/v1/applications/home/grafana': () => json(200, { namespace: 'home', name: 'grafana', spec: { name: 'Grafana', url: 'https://g.example.com' } }),
@@ -350,10 +353,23 @@ describe('the page', () => {
     vi.stubGlobal('fetch', fetcher);
     show(state(true));
     await screen.findByRole('link', { name: /Grafana/ });
-    // The lock and the button that adds are part of editing the page.
-    expect(screen.queryByRole('button', { name: 'Unlock editing' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
+    // Editing asks for the key. Without it the page is not being edited.
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    const ask = await screen.findByRole('dialog', { name: 'Unlock editing' });
+    expect(screen.queryByRole('button', { name: 'Done editing' })).toBeNull();
+    fireEvent.click(within(ask).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByRole('button', { name: 'Edit the page' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Grafana/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /favorites/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    type('Edit key', 'the right key');
+    fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
+    await screen.findByRole('button', { name: 'Done editing' });
+    // There is no lock to click: the key was the way in.
+    expect(screen.queryByRole('button', { name: /ock editing$/ })).toBeNull();
+
     // No tile is a link now. Only the Application of this cluster can be
     // changed: not the Route, not the remote.
     expect(screen.queryAllByRole('link', { name: /Grafana|Wiki|Plex/ })).toHaveLength(0);
@@ -371,13 +387,8 @@ describe('the page', () => {
     fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
-    // A click on the one that can be changed asks for the key first, and
-    // then opens its form.
     fireEvent.click(screen.getByRole('button', { name: 'Change Grafana' }));
-    type('Edit key', 'the right key');
-    fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
     const dialog = await screen.findByRole('dialog', { name: 'Change application' });
-    const lockButton = screen.getByRole('button', { name: 'Lock editing' });
     await waitFor(() => expect((within(dialog).getByLabelText('Name') as HTMLInputElement).value).toBe('Grafana'));
     expect(calls.some(([url]) => url === '/api/v1/applications/home/grafana')).toBe(true);
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -385,23 +396,35 @@ describe('the page', () => {
 
     // Adding opens an empty form for the kind that is shown.
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    expect(await screen.findByRole('dialog', { name: 'Add an application' })).toBeTruthy();
+    const adding = await screen.findByRole('dialog', { name: 'Add an application' });
+    fireEvent.click(within(adding).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
-    // Locking closes the form and forgets the key.
-    fireEvent.click(lockButton);
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull());
+    // The key stays in the browser, so the next time nothing is asked.
+    fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Done editing' })).toBeTruthy();
+
+    // Until it is taken out again in the settings, which also ends editing.
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Forget the edit key' }));
     expect(window.localStorage.getItem('startpunkt.editKey')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Forget the edit key' })).toBeNull();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit the page' })).toBeTruthy());
+    expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
   });
 
-  it('asks for the key when something is added on a locked page, and then goes on', async () => {
-    vi.stubGlobal('fetch', server({ 'GET /api/v1/unlock': () => new Response(null, { status: 204 }) }).fetcher);
+  it('does not let the page be edited with a wrong key', async () => {
+    vi.stubGlobal('fetch', server({ 'GET /api/v1/unlock': () => json(401, { error: 'no' }) }).fetcher);
     show(state(true));
     await screen.findByRole('link', { name: /Grafana/ });
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    type('Edit key', 'the right key');
+    type('Edit key', 'a guess');
     fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
-    expect(await screen.findByRole('dialog', { name: 'Add an application' })).toBeTruthy();
+    expect((await screen.findByRole('alert')).textContent).toBe('That is not the edit key.');
+    expect(screen.queryByRole('button', { name: 'Done editing' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /favorites/ })).toBeNull();
   });
 
   it('keeps the key but hides the controls when editing is left', async () => {

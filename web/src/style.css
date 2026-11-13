@@ -1316,6 +1316,7 @@ dialog .d-btn:disabled {
 
 .settings-reset {
   margin-top: 1.25rem;
+  margin-right: 0.5rem;
 }
 
 .form-error {
