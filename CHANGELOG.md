@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.4.0](https://github.com/ullbergm/startpunkt/compare/v5.3.0...v5.4.0) (2026-11-13)
+
+
+### Features
+
+* **federation:** add insecureSkipVerify to a remote ([#964](https://github.com/ullbergm/startpunkt/issues/964)) ([e2c7fba](https://github.com/ullbergm/startpunkt/commit/e2c7fba4c267bc5def12e35bd5128e3e50b28d12))
+
+
+### Bug Fixes
+
+* lay out the form dialogs properly and leave what Helm deploys read-only ([#966](https://github.com/ullbergm/startpunkt/issues/966)) ([e5b5a6f](https://github.com/ullbergm/startpunkt/commit/e5b5a6f296e6dd348923a520201ba62732aed47e))
+
 ## [5.3.0](https://github.com/ullbergm/startpunkt/compare/v5.2.0...v5.3.0) (2026-11-13)
 
 
