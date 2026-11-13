@@ -68,19 +68,38 @@ config:
     # goes; the query is appended.
     searchEngine: https://www.google.com/search?q=
     # STARTPUNKT_WEB_CHECKFORUPDATES. Ask GitHub a few times a day whether a
-    # newer release exists, and say so in the footer of the page. The request
+    # newer release exists, and say so on a ribbon across the corner of the page. The request
     # is made by the pods that serve the API, not by the browser, and does
     # not say which version is running. When there is a newer release, its
     # changelog is read from raw.githubusercontent.com to show what changed.
     checkForUpdates: true
-    # STARTPUNKT_WEB_GITHUBLINK. Show a corner on the page that links to the
-    # project on GitHub. When an update is available the corner is shown
-    # either way, in another colour and linking to the releases.
+    # STARTPUNKT_WEB_GITHUBLINK. Show the footer of the page, which names the
+    # running version and links to the project on GitHub. A newer release is
+    # announced by the ribbon in the corner either way.
     githubLink: true
     # STARTPUNKT_WEB_SHOWALLCLUSTERS. With remotes configured, whether a
     # visitor who has not chosen sees the tiles of every cluster. By default
     # they see this cluster's only and switch the others on themselves.
     showAllClusters: false
+    # STARTPUNKT_WEB_DEFAULTPREFERENCES, as JSON. The settings of the page
+    # for a browser that has none of its own yet, and what "Reset to
+    # defaults" goes back to. Whatever a visitor can set in the settings
+    # dialog can be given here, in the form the page keeps it in (see
+    # "Default settings" in the README). A value that does not fit is
+    # replaced by the page's own default.
+    #
+    #   defaultPreferences:
+    #     theme: dark
+    #     colors: ocean
+    #     layout:
+    #       columns: 4
+    #       showBoxes: true
+    #       showTags: true
+    #     background:
+    #       type: gradient
+    #       color: "#1b2a4e"
+    #       color2: "#5b2a86"
+    defaultPreferences: {}
     # Colours of the light and the dark appearance, as hex values, passed as
     # STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<NAME>. The names are those of 4.x,
     # so an existing theme can be copied over.

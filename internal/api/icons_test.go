@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -320,5 +322,50 @@ func TestIconsSurviveStartingOverWithABatchWaiting(t *testing.T) {
 	time.Sleep(150 * time.Millisecond)
 	if rec := get(t, h, "/api/v1/icons/mdi/home.svg"); rec.Code != http.StatusOK {
 		t.Errorf("afterwards: %d", rec.Code)
+	}
+}
+
+func TestIconSearch(t *testing.T) {
+	var hits atomic.Int32
+	var failing atomic.Bool
+	service := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		if r.URL.Path != "/search" || failing.Load() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		// What is not an icon name is left out of the answer.
+		_ = json.NewEncoder(w).Encode(map[string]any{"icons": []string{
+			"mdi:" + r.URL.Query().Get("query"), "simple-icons:grafana", "no-colon", "bad:<script>", "UPPER:case",
+		}})
+	}))
+	defer service.Close()
+	h := (&Server{Store: store.New(), Icons: &Icons{Source: service.URL}}).Handler()
+	search := func(query string) (int, []string) {
+		rec := get(t, h, "/api/v1/icons?query="+query)
+		var doc IconSearch
+		_ = json.Unmarshal(rec.Body.Bytes(), &doc)
+		return rec.Code, doc.Icons
+	}
+	code, icons := search("Home")
+	if want := []string{"mdi:home", "simple-icons:grafana"}; code != http.StatusOK || !reflect.DeepEqual(icons, want) {
+		t.Errorf("%d %v, want %v", code, icons, want)
+	}
+	search("home")
+	if n := hits.Load(); n != 1 {
+		t.Errorf("the service was asked %d times for one query", n)
+	}
+	for _, query := range []string{"", "%20", strings.Repeat("a", 51)} {
+		if code, _ := search(query); code != http.StatusBadRequest {
+			t.Errorf("query %q: %d, want 400", query, code)
+		}
+	}
+	failing.Store(true)
+	if code, _ := search("other"); code != http.StatusBadGateway {
+		t.Errorf("a failing service: %d, want 502", code)
+	}
+	// Icons themselves are still served from the same place.
+	if rec := get(t, h, "/api/v1/icons/mdi/Home.svg"); rec.Code != http.StatusBadRequest {
+		t.Errorf("an icon name that is not one: %d", rec.Code)
 	}
 }

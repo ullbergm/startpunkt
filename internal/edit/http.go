@@ -1,6 +1,7 @@
 package edit
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
@@ -22,10 +23,15 @@ const MinKeyLength = 16
 //	GET    /api/v1/{kind}/{namespace}/{name}        read the spec
 //	PUT    /api/v1/{kind}/{namespace}/{name}        replace the spec
 //	DELETE /api/v1/{kind}/{namespace}/{name}        delete
+//	POST   /api/v1/check                            does an address answer?
 //
 // Every request needs the key as "Authorization: Bearer <key>".
 type Handler struct {
 	Editor Editor
+	// Check reports whether something answers at an address, for the
+	// editor to say so before the address is saved. Nil turns the endpoint
+	// off.
+	Check func(ctx context.Context, address string) (bool, error)
 	// Key is the edit key. The handler must not be used with an empty one.
 	Key string
 	// Failures is how many wrong keys are tolerated in a row before
@@ -60,6 +66,9 @@ func (h *Handler) Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/unlock", h.guard(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
+	if h.Check != nil {
+		mux.HandleFunc("POST /api/v1/check", h.guard(h.check))
+	}
 	for _, kind := range []string{Applications, Bookmarks} {
 		mux.HandleFunc("POST /api/v1/"+kind, h.guard(func(w http.ResponseWriter, r *http.Request) {
 			in, ok := body(w, r)
@@ -91,6 +100,30 @@ func (h *Handler) Routes(mux *http.ServeMux) {
 			w.WriteHeader(http.StatusNoContent)
 		}))
 	}
+}
+
+// Checked is the body and the answer of POST /api/v1/check. Whether the
+// address answers is all that is said about it: nothing of what it answered
+// is passed on.
+type Checked struct {
+	URL       string `json:"url,omitempty"`
+	Available bool   `json:"available"`
+}
+
+func (h *Handler) check(w http.ResponseWriter, r *http.Request) {
+	var in Checked
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8<<10)).Decode(&in); err != nil || !link(in.URL) {
+		writeError(w, http.StatusBadRequest, "url must be an http or https address")
+		return
+	}
+	available, err := h.Check(r.Context(), strings.TrimSpace(in.URL))
+	if err != nil {
+		code, message := status(err)
+		writeError(w, code, message)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(Checked{Available: available})
 }
 
 // guard lets a request through when it carries the key.

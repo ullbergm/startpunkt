@@ -280,6 +280,23 @@ func (p *Prober) probe(ctx context.Context, url string) (available bool, detail 
 	return resp.StatusCode < 500, resp.Status
 }
 
+// Check probes one address once, the way the prober does, and reports
+// whether something answers there. It is for an address that is not a tile
+// yet.
+func Check(ctx context.Context, url string, options Options) bool {
+	if !probeable(url) {
+		return false
+	}
+	if options.Timeout <= 0 {
+		options.Timeout = DefaultOptions().Timeout
+	}
+	p := &Prober{Options: options}
+	p.Client = p.newClient()
+	defer p.Client.CloseIdleConnections()
+	available, _ := p.probe(ctx, url)
+	return available
+}
+
 func (p *Prober) newClient() *http.Client {
 	return &http.Client{
 		// A redirect is an answer. Following it would probe some other

@@ -2,10 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setLanguage } from '../i18n';
 import { Footer, useVersion } from './Footer';
-import { GitHubCorner } from './GitHubCorner';
+import { UpdateRibbon } from './UpdateRibbon';
 import { availableUpdate } from './Footer';
 
-// The footer and the corner as the page wires them together.
+// The footer and the ribbon as the page wires them together.
 const onUpdate = vi.fn();
 const onChanges = vi.fn();
 function Wired({ fetcher }: { fetcher: typeof fetch }) {
@@ -13,8 +13,8 @@ function Wired({ fetcher }: { fetcher: typeof fetch }) {
   const update = availableUpdate(info);
   return (
     <>
-      {(info?.githubLink || update) && <GitHubCorner update={update} onUpdate={onUpdate} />}
-      <Footer info={info} onChanges={onChanges} onUpdate={onUpdate} />
+      {update && <UpdateRibbon update={update} onOpen={onUpdate} />}
+      <Footer info={info} onChanges={onChanges} />
     </>
   );
 }
@@ -33,8 +33,10 @@ describe('Footer', () => {
   it('names the version and links to the project and its author', async () => {
     const fetcher = answer({ version: '5.0.0', updateAvailable: false });
     render(<Wired fetcher={fetcher} />);
-    const footer = screen.getByRole('contentinfo');
-    await waitFor(() => expect(footer.textContent).toContain('Startpunkt v5.0.0, by Magnus Ullberg.'));
+    // Not before the instance has answered: it may have turned the footer off.
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    const footer = await screen.findByRole('contentinfo');
+    expect(footer.textContent).toContain('Startpunkt v5.0.0, by Magnus Ullberg.');
     expect(fetcher).toHaveBeenCalledWith('/api/v1/version');
     expect(screen.getByRole('link', { name: 'Startpunkt' }).getAttribute('href')).toBe(
       'https://github.com/ullbergm/startpunkt',
@@ -55,7 +57,7 @@ describe('Footer', () => {
     expect(within(screen.getByRole('contentinfo')).queryByRole('button')).toBeNull();
   });
 
-  it('says when a newer release exists and opens what has changed', async () => {
+  it('leaves a newer release to the corner, and says nothing of it in the footer', async () => {
     render(
       <Wired
         fetcher={answer({
@@ -66,44 +68,42 @@ describe('Footer', () => {
         })}
       />,
     );
-    const notice = within(await screen.findByRole('status')).getByRole('button', { name: 'Update available: v5.1.0' });
+    const notice = await screen.findByRole('button', { name: 'Update available: v5.1.0' });
+    // It is the ribbon across the corner, and reads as the version.
+    expect(notice.className).toBe('update-ribbon');
+    expect(notice.textContent).toBe('v5.1.0 available');
+    const footer = screen.getByRole('contentinfo');
+    expect(footer.textContent).not.toContain('Update available');
+    expect(within(footer).queryByRole('status')).toBeNull();
     fireEvent.click(notice);
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the GitHub corner when asked to, linking to the project', async () => {
-    render(<Wired fetcher={answer({ version: '5.0.0', updateAvailable: false, githubLink: true })} />);
-    const corner = await screen.findByRole('link', { name: 'View the project on GitHub' });
-    expect(corner.getAttribute('href')).toBe('https://github.com/ullbergm/startpunkt');
-    expect(corner.className).toBe('github-corner');
+  it('has no footer when the instance turns it off, and still announces a newer release', async () => {
+    const fetcher = answer({
+      version: '5.0.0',
+      githubLink: false,
+      latest: 'v5.1.0',
+      updateAvailable: true,
+      url: 'https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0',
+    });
+    render(<Wired fetcher={fetcher} />);
+    expect(await screen.findByRole('button', { name: 'Update available: v5.1.0' })).toBeTruthy();
+    expect(screen.queryByRole('contentinfo')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Startpunkt' })).toBeNull();
+    cleanup();
+    // On, or not said: it is there.
+    render(<Wired fetcher={answer({ version: '5.0.0', githubLink: true, updateAvailable: false })} />);
+    expect(await screen.findByRole('contentinfo')).toBeTruthy();
   });
 
-  it('hides the corner when it is turned off and there is no update', async () => {
-    const fetcher = answer({ version: '5.0.0', updateAvailable: false, githubLink: false });
+  it('has nothing in the corner while there is no newer release', async () => {
+    const fetcher = answer({ version: '5.0.0', updateAvailable: false });
     render(<Wired fetcher={fetcher} />);
     await waitFor(() => expect(screen.getByRole('contentinfo').textContent).toContain('v5.0.0'));
-    expect(screen.queryByRole('link', { name: 'View the project on GitHub' })).toBeNull();
-  });
-
-  it('turns the corner into an update notice, even when the corner is turned off', async () => {
-    render(
-      <Wired
-        fetcher={answer({
-          version: '5.0.0',
-          latest: 'v5.1.0',
-          updateAvailable: true,
-          githubLink: false,
-          url: 'https://github.com/ullbergm/startpunkt/releases/tag/v5.1.0',
-        })}
-      />,
-    );
-    await screen.findByRole('status');
-    const corner = document.querySelector('.github-corner') as HTMLButtonElement;
-    expect(corner.tagName).toBe('BUTTON');
-    expect(corner.className).toContain('has-update');
-    expect(corner.getAttribute('aria-label')).toBe('Update available: v5.1.0');
-    fireEvent.click(corner);
-    expect(onUpdate).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('.update-ribbon')).toBeNull();
+    // The project is still linked, from the footer.
+    expect(screen.getAllByRole('link', { name: 'Startpunkt' })).toHaveLength(1);
   });
 
   it('ignores an update whose link points somewhere else', async () => {

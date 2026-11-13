@@ -306,17 +306,28 @@ spec:
                   checkForUpdates:
                     description: |-
                       CheckForUpdates asks GitHub now and then whether a newer release of
-                      Startpunkt exists, and tells visitors in the footer when one does.
+                      Startpunkt exists, and tells visitors in the corner of the page when one does.
                     type: boolean
                   defaultLanguage:
                     description: |-
                       DefaultLanguage is used for a visitor who has not chosen a language
                       and whose browser asks for none that is available, for example en-US.
                     type: string
+                  defaultPreferences:
+                    description: |-
+                      DefaultPreferences are the settings of the page for a browser that
+                      has none of its own yet, and what "Reset to defaults" goes back to.
+                      They have the form the page keeps them in, for example
+                      {"theme": "dark", "layout": {"columns": 4, "showTags": true},
+                      "background": {"type": "gradient"}}. The page checks every value and
+                      uses its own default for one that does not fit or is left out.
+                      Environment: STARTPUNKT_WEB_DEFAULTPREFERENCES, as JSON.
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
                   githubLink:
                     description: |-
-                      GitHubLink shows a corner on the page that links to the project. When
-                      an update is available the corner is shown regardless.
+                      GitHubLink shows the footer of the page, which names the running
+                      version and links to the project on GitHub and to its author.
                     type: boolean
                   searchEngine:
                     description: |-

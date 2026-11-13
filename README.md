@@ -54,7 +54,7 @@
 - **Several clusters.** One instance can show the services of other instances next to its own, and combines a service that runs on several clusters into one card.
 - **Search.** Start typing anywhere on the page to find a service, or search the web with a `?` in front.
 - **Tags.** One instance serves several views: the path of the address chooses which tagged services are shown.
-- **Yours to arrange.** Favorites, columns, spacing, backgrounds, themes and saved presets, per browser.
+- **Yours to arrange.** Favorites, columns, backgrounds, themes and saved presets, per browser.
 - **Editing, if you want it.** With an edit key configured, applications and bookmarks can be added, changed and deleted from the page.
 - **GitOps ready.** Services, bookmarks and the settings of the instance are Kubernetes resources. A change to the settings is applied without a restart.
 - **Small.** One static binary in a distroless image for amd64 and arm64. No database, and no third-party scripts on the page.
@@ -240,7 +240,7 @@ helm upgrade startpunkt oci://ghcr.io/ullbergm/charts/startpunkt --namespace sta
   --set editing.enabled=true --set editing.existingSecret=startpunkt-edit-key
 ```
 
-While the page is being edited (the pencil in its corner), it then also has a lock and a button that adds a tile. Whoever enters the key gets an edit control on every tile that is an `Application` or a `Bookmark` of this cluster, and a form for adding new ones, which asks whether it is an application or a bookmark. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it. For that reason a resource that Argo CD or Helm deploys is read-only on the page: one that carries the annotation `argocd.argoproj.io/tracking-id` or `meta.helm.sh/release-name`, or the label `argocd.argoproj.io/instance`, `app.kubernetes.io/instance` or `app.kubernetes.io/managed-by`, has no edit control, and the API refuses to change or delete it.
+While the page is being edited (the pencil in its corner), it then also has a lock and a button that adds a tile. A click on a tile that is an `Application` or a `Bookmark` of this cluster asks for the key, if it has not been given, and opens the tile's form. The button that adds a tile opens a form for a new one, which asks whether it is an application or a bookmark. New resources that are added on the page are created in the release's namespace, or the one set as `editing.namespace`. A change is a change to the resource, so it shows for everyone, and a resource that is also managed from Git will be changed back by whatever manages it. For that reason a resource that Argo CD or Helm deploys is read-only on the page: one that carries the annotation `argocd.argoproj.io/tracking-id` or `meta.helm.sh/release-name`, or the label `argocd.argoproj.io/instance`, `app.kubernetes.io/instance` or `app.kubernetes.io/managed-by`, has no edit control, and the API refuses to change or delete it.
 
 Things to know before turning it on:
 
@@ -248,6 +248,8 @@ Things to know before turning it on:
 - The browser keeps the key until the page is locked again.
 - The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
 - Only `http` and `https` addresses are accepted.
+- The form checks what is typed and says what is wrong next to the field. It also asks the instance whether something answers at the address, and says so; an address that does not answer can be saved all the same. Whoever has the key can in this way learn whether an address answers from inside the cluster, which they could also learn by adding it as a tile.
+- The group is picked from those in use or typed, tags are entered as pills, the icon is found by searching the icon sets, and its colour is picked from a palette, the browser's colour picker, or typed.
 - Wrong keys are slowed down: after ten in a row, attempts are refused for a moment, for everyone, also with the right key.
 
 ## Configuration
@@ -272,13 +274,49 @@ The sections of the settings, all of which are documented with their defaults in
 | `availability` | Probing of the services' addresses: interval, timeout, back-off |
 | `status` | Whether the status of `Application` resources is written |
 | `icons` | Where icons come from. The public Iconify API by default; point it at one you host to depend on nothing outside the cluster. |
-| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check and the link to GitHub |
+| `web` | Title, default language, search engine, colours of the light and the dark theme, the update check, the footer with the link to GitHub, and the [default settings](#default-settings) of the page |
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
 
 A change to how the cluster is read, which is the `cluster`, `namespaceSelector`, `sources`, `availability` and `status` sections, makes the instance read the cluster again. It reports itself as not ready for the moment that takes, and open pages are filled anew.
 
 Startpunkt needs to read the resources it shows and nothing else. The chart creates a ClusterRole with `get`, `list` and `watch` on the enabled sources, and permission to write the status of its own resource types.
+
+### Default settings
+
+The settings of the page belong to each browser. What a browser starts from, before its visitor has changed anything, can be set for the instance, and "Reset to defaults" in the settings dialog goes back to the same. Give them under `config.web.defaultPreferences` in the chart's values (or as JSON in `STARTPUNKT_WEB_DEFAULTPREFERENCES`), in the form the page keeps them in:
+
+```yaml
+config:
+  web:
+    defaultPreferences:
+      theme: dark                 # auto, light, dark
+      colors: ocean               # default, ocean, forest, sunset, rose, slate, sand, lavender, mint, ember, mono
+      handwrittenFont: false
+      layout:
+        columns: 4                # 0 for automatic, or 1 to 6
+        showBoxes: true
+        hoverEffect: true
+        showDescription: true
+        descriptionLines: 2       # 1 to 3, or 0 for no limit
+        showTags: false
+        showStatus: true
+        hideUnreachable: false
+        combine: true             # one card for a service on several clusters
+        byCluster: false          # a section for each cluster
+      background:
+        type: gradient            # pictureOfDay, theme, solid, gradient, timeGradient, meshGradient, image, geopattern
+        color: "#1b2a4e"
+        color2: "#5b2a86"
+        direction: to bottom right
+        overlayOpacity: 0.7       # the panel behind the content: -1 solid white, 0 none, 1 solid black
+        overlayBlur: 3
+      accessibility:
+        fontScale: 100            # 85, 100, 115, 130, 150
+        highContrast: false
+```
+
+Leave out what should stay as the page has it. The page checks each value and uses its own default for one that does not fit. A browser that has not stored anything follows these settings, also when they change later; one whose visitor has changed a setting, marked a favorite or collapsed a group keeps what it has until it is reset. Favorites, collapsed groups and saved presets are kept by a reset.
 
 ## Several clusters on one page
 
@@ -322,23 +360,23 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 <p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>
 
 - **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. A word finds the services whose name has a word that starts with it, accents aside, and a further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
-- **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again.
+- **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again. In edit mode a click on a tile does not open the service: it opens the tile's form, or says why the tile cannot be changed from the page.
 - **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
 - **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.
-- **Settings**, bottom right, kept in the browser:
+- **Settings**, bottom right, kept in the browser. What they start from can be set for the instance, see [Default settings](#default-settings):
 
   | Tab | What it holds |
   | --- | --- |
   | Appearance | Light, dark or automatic theme, the colours (the instance's own, or one of ten schemes that each have a light and a dark palette), language, a handwritten typeface |
-  | Layout | Columns (automatic, or one to six), spacing, compact tiles, a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, and hiding applications that do not answer |
+  | Layout | Columns (automatic, or one to six), a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, and hiding applications that do not answer |
   | Background | The Bing picture of the day, the theme's colour, a colour of your own, a gradient, a gradient that follows the time of day, a mesh gradient that can move, a picture by its address, or a generated pattern; with opacity, blur, and a panel behind the content that keeps text readable |
   | Presets | Named copies of the layout and the background, to save, apply and delete |
   | Clusters | Which clusters to show, whether a service on several clusters is one card, and a section for each cluster instead |
   | Accessibility | Text size from 85% to 150%, high contrast, and the list of keyboard shortcuts |
 
   Up to twenty presets can be saved.
-- **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version and, unless the check is turned off, says when a newer release exists.
-- **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. The notice of a newer release opens a list of what has changed since the running version, with a link to the release.
+- **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version. Unless the check is turned off, a golden ribbon across the top right corner names a newer release when one exists.
+- **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. That ribbon opens a list of what has changed since the running version, with a link to the release.
 
 ## Deployment modes
 
@@ -360,6 +398,7 @@ The page uses a small HTTP API, and so can anything else:
 | `GET /api/v1/version` | The running version, and a newer release when there is one |
 | `GET /api/v1/changelog` | What changed in each release, newest first: the running version and those before it, and the newer ones when the update check has found one |
 | `GET /api/v1/icons/{set}/{name}.svg` | An [Iconify](https://icon-sets.iconify.design/) icon, in the colour given as `?color=` |
+| `GET /api/v1/icons?query=` | The names of the icons that match a word, for the icon picker of the editor |
 | `GET /api/v1/background` | Address, title and copyright of the Bing picture of the day |
 | `GET /healthz`, `GET /readyz` | Liveness and readiness. An instance is ready when it has read its cluster. |
 
@@ -367,7 +406,7 @@ The page uses a small HTTP API, and so can anything else:
 curl -s https://start.example.com/api/v1/state | jq '.tiles[] | {name, url, available}'
 ```
 
-With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
+With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key and `POST /api/v1/check`, which says whether something answers at an address. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 

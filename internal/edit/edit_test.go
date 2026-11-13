@@ -304,3 +304,49 @@ func TestForwarderReachesTheControllersEditor(t *testing.T) {
 		t.Errorf("unreachable: %v", err)
 	}
 }
+
+func TestCheckSaysOnlyWhetherAnAddressAnswers(t *testing.T) {
+	const key = "0123456789abcdef-check"
+	var asked []string
+	check := func(_ context.Context, address string) (bool, error) {
+		asked = append(asked, address)
+		return strings.Contains(address, "up."), nil
+	}
+	controller := http.NewServeMux()
+	controller.Handle(InternalPrefix+"/", Internal(&Handler{Editor: &memory{}, Check: check, Key: key}))
+	inside := httptest.NewServer(controller)
+	defer inside.Close()
+	// The process a browser talks to asks the controller.
+	ts := serve(t, &Handler{Editor: &memory{}, Check: NewForwarder(inside.URL, key).Check, Key: key})
+
+	for body, want := range map[string]string{
+		`{"url":"https://up.example.com"}`:     `{"available":true}`,
+		`{"url":" https://down.example.com "}`: `{"available":false}`,
+	} {
+		code, got, _ := call(t, http.MethodPost, ts.URL+"/api/v1/check", key, body)
+		if code != http.StatusOK || strings.TrimSpace(got) != want {
+			t.Errorf("%s: %d %s, want %s", body, code, got, want)
+		}
+	}
+	if want := []string{"https://up.example.com", "https://down.example.com"}; len(asked) != 2 || (asked[0] != want[0] && asked[0] != want[1]) {
+		t.Errorf("asked %v", asked)
+	}
+	// Not without the key, and not for what is not an http address.
+	if code, _, _ := call(t, http.MethodPost, ts.URL+"/api/v1/check", "", `{"url":"https://up.example.com"}`); code != http.StatusUnauthorized {
+		t.Errorf("without the key: %d", code)
+	}
+	before := len(asked)
+	for _, body := range []string{`{"url":"file:///etc/passwd"}`, `{"url":"javascript:alert(1)"}`, `{"url":""}`, `not json`} {
+		if code, _, _ := call(t, http.MethodPost, ts.URL+"/api/v1/check", key, body); code != http.StatusBadRequest {
+			t.Errorf("%s: %d, want 400", body, code)
+		}
+	}
+	if len(asked) != before {
+		t.Errorf("an address that is not http was probed: %v", asked[before:])
+	}
+	// The endpoint is not there when nothing can check.
+	plain := serve(t, &Handler{Editor: &memory{}, Key: key})
+	if code, _, _ := call(t, http.MethodPost, plain.URL+"/api/v1/check", key, `{"url":"https://up.example.com"}`); code == http.StatusOK {
+		t.Errorf("without a checker: %d", code)
+	}
+}

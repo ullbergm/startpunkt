@@ -1,4 +1,5 @@
 import { computed, signal } from '@preact/signals';
+import type { MessageKey } from './i18n';
 import { serverState } from './state';
 import type { Tile } from './types';
 
@@ -98,6 +99,25 @@ export function targetOf(tile: Tile): EditTarget | null {
   const kind = TYPES[tile.source.type];
   if (!tile.editable || !kind) return null;
   return { kind, namespace: tile.source.namespace, name: tile.source.name };
+}
+
+// Why a tile cannot be changed from this page, for the tile that is clicked
+// while the page is being edited: the message and what goes into it.
+export interface Fixed {
+  tile: Tile;
+  reason: 'off' | 'remote' | 'deployed' | 'source';
+}
+export const fixed = signal<Fixed | null>(null);
+
+export function whyFixed(tile: Tile): Fixed {
+  const state = serverState.value;
+  const local = state?.clusters.find((cluster) => cluster.local)?.name;
+  if (state?.editing.available !== true) return { tile, reason: 'off' };
+  // A tile of another instance is that instance's to change.
+  if (local !== undefined && tile.cluster !== local) return { tile, reason: 'remote' };
+  // An Application or a Bookmark that is not editable is one that Argo CD
+  // or Helm deploys. Anything else is made from another kind of resource.
+  return { tile, reason: TYPES[tile.source.type] ? 'deployed' : 'source' };
 }
 
 // An error with a message that can be shown as it is.
@@ -229,4 +249,90 @@ export function toSpec(kind: EditKind, base: Spec, values: FormValues): Spec {
     }
   }
   return spec;
+}
+
+// What is wrong with what the form holds, per field, as the key of the
+// message that says so. The server checks again when the form is sent; this
+// is to say it next to the field, before that.
+export type Problems = Record<string, MessageKey>;
+
+const WHOLE = /^-?\d+$/;
+const COLOUR = /^(?:#[0-9a-fA-F]{3,8}|[a-zA-Z]+)$/;
+
+// Whether text is an address a tile may link to: http or https, with a host.
+export function isAddress(text: string): boolean {
+  try {
+    const url = new URL(text.trim());
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname !== '';
+  } catch {
+    return false;
+  }
+}
+
+// urlOptional is for an application whose address is read from another
+// object: the one in the form is then only a fallback.
+export function validate(kind: EditKind, values: FormValues, urlOptional = false): Problems {
+  const problems: Problems = {};
+  const text = (name: string) => String(values[name] ?? '').trim();
+  for (const field of FIELDS[kind]) {
+    if (field.type === 'check') continue;
+    const value = text(field.name);
+    const required = field.required && !(field.name === 'url' && urlOptional);
+    if (value === '') {
+      if (required) problems[field.name] = 'edit.invalid.required';
+    } else if (field.type === 'url' && !isAddress(value)) {
+      problems[field.name] = 'edit.invalid.url';
+    } else if (field.type === 'number' && !WHOLE.test(value)) {
+      problems[field.name] = 'edit.invalid.number';
+    } else if (field.name === 'iconColor' && !COLOUR.test(value)) {
+      problems[field.name] = 'edit.invalid.color';
+    }
+  }
+  return problems;
+}
+
+// The tags of a field value, which is a list separated by commas.
+export function splitTags(value: string): string[] {
+  const tags: string[] = [];
+  for (const part of value.split(',')) {
+    const tag = part.trim();
+    if (tag !== '' && !tags.includes(tag)) tags.push(tag);
+  }
+  return tags;
+}
+
+// Asks the server whether something answers at an address. null means it
+// could not be asked, which says nothing about the address.
+export async function checkAddress(url: string, fetcher: typeof fetch = fetch): Promise<boolean | null> {
+  const key = editKey.value;
+  if (key === null) return null;
+  try {
+    const response = await fetcher('/api/v1/check', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    if (!response.ok) return null;
+    const answer = (await response.json()) as { available?: unknown };
+    return typeof answer.available === 'boolean' ? answer.available : null;
+  } catch {
+    return null;
+  }
+}
+
+const ICON_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// The names of icons that match a word, as "set:name". A failure is an
+// empty list.
+export async function searchIcons(query: string, fetcher: typeof fetch = fetch): Promise<string[]> {
+  try {
+    const response = await fetcher(`/api/v1/icons?query=${encodeURIComponent(query)}`);
+    if (!response.ok) return [];
+    const answer = (await response.json()) as { icons?: unknown };
+    return Array.isArray(answer.icons)
+      ? answer.icons.filter((name): name is string => typeof name === 'string' && ICON_NAME.test(name))
+      : [];
+  } catch {
+    return [];
+  }
 }

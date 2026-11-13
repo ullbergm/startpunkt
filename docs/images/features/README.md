@@ -24,7 +24,7 @@ Typing anywhere on the page opens the search with what was typed. A word finds t
 
 ![Favorites](04-favorites.png)
 
-The page is in edit mode here, which the pencil in the bottom right corner turns on and which shows the controls of the tiles. The star on a tile puts it in the favorites row, which has no heading, and the arrows on a favorite move it; dragging one favorite onto another does the same.
+The page is in edit mode here, which the pencil in the bottom right corner turns on and which shows the controls of the tiles. In edit mode a click on a tile opens its form, or says why it cannot be changed, in place of opening the service. The star on a tile puts it in the favorites row, which has no heading, and the arrows on a favorite move it; dragging one favorite onto another does the same.
 
 ## Bookmarks
 
@@ -36,7 +36,7 @@ The page is in edit mode here, which the pencil in the bottom right corner turns
 
 ![Layout settings](06-settings-layout.png)
 
-The settings dialog has one tab per area. Layout sets the columns, spacing, compact tiles, boxes, the hover highlight, descriptions and how many lines they may take, tags, status indicators and whether unreachable applications are hidden. The layout and the background can be saved as named presets.
+The settings dialog has one tab per area. Layout sets the columns, boxes, the hover highlight, descriptions and how many lines they may take, tags, status indicators and whether unreachable applications are hidden. The layout and the background can be saved as named presets.
 
 ## Background settings
 
@@ -74,11 +74,11 @@ A mesh gradient made from five colours, at low, medium or high complexity. It ca
 
 A geometric pattern generated in the page from a piece of text and a colour. A different text gives a different pattern.
 
-## Compact layout
+## Columns and boxes
 
-![Compact layout](13-layout-compact.png)
+![Columns and boxes](13-layout-columns.png)
 
-Three columns, tight spacing, compact tiles with a box around each and descriptions kept to one line. With columns on Auto, each list gets the number of columns that gives the fewest rows.
+Three columns, a box around each tile and descriptions kept to one line. With columns on Auto, each list gets the number of columns that gives the fewest rows.
 
 ## Several clusters
 
@@ -114,10 +114,16 @@ On a narrow screen the tiles are in one column. A touch screen gets a search but
 
 ![What's new](19-whats-new.png)
 
-The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the notice of a newer release lists what has changed since the running version.
+The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the ribbon that announces a newer release lists what has changed since the running version.
 
 ## Adding a tile
 
 ![Adding a tile](20-add-tile.png)
 
-In edit mode with the edit key, the plus button opens a form for a new application or bookmark. It is created as a resource in the cluster.
+In edit mode with the edit key, the plus button opens a form for a new application or bookmark. The form says what is wrong next to a field and whether something answers at the address. The group can be picked from those in use or typed, tags are pills, and the icon is found by searching the icon sets. What is saved is a resource in the cluster.
+
+## A newer release
+
+![A newer release](21-update-ribbon.png)
+
+When the instance has found a newer release, a golden ribbon across the top right corner names it. A click on it lists what has changed since the running version.

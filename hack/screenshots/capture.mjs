@@ -32,7 +32,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 // tiles drawn, every icon on screen loaded, fonts ready.
 // seen is the version the browser last opened the page with: an older one
 // makes the page say what is new.
-async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null } = {}) {
+async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null, update = null } = {}) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: scale,
@@ -51,6 +51,16 @@ async function open(prefs, { width = 1440, height = 900, path = '/', key = false
     [prefs, key ? editKey : null, seen],
   );
   const page = await context.newPage();
+  // update is a version to announce as newer than the running one. The
+  // instances of the shots do not look for updates themselves.
+  if (update) {
+    await page.route('**/api/v1/version', async (route) => {
+      const answer = await (await route.fetch()).json();
+      await route.fulfill({
+        json: { ...answer, latest: update, updateAvailable: true, url: `https://github.com/ullbergm/startpunkt/releases/tag/${update}` },
+      });
+    });
+  }
   await page.goto(base + path);
   await page.waitForSelector('.tile');
   await page.mouse.move(width - 2, height / 2);
@@ -149,9 +159,9 @@ await shot(page, f('12-background-pattern'));
 await close(page);
 
 page = await open(
-  dark({ type: 'theme' }, { layout: { columns: 3, spacing: 'tight', compact: true, showBoxes: true, descriptionLines: 1 } }),
+  dark({ type: 'theme' }, { layout: { columns: 3, showBoxes: true, descriptionLines: 1 } }),
 );
-await shot(page, f('13-layout-compact'));
+await shot(page, f('13-layout-columns'));
 await close(page);
 
 page = await open(dark(mesh, { ...bothClusters, collapsed: collapsed('home', 'media', 'infrastructure') }));
@@ -177,6 +187,17 @@ page = await open(dark(mesh), { key: true });
 await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForSelector('.editor select');
+await page.getByLabel('Name', { exact: true }).fill('Paperless');
+await page.getByLabel('Address', { exact: true }).fill('https://paperless.example.com');
+await page.getByLabel(/^Group/).fill('home');
+await page.getByLabel('Tags', { exact: true }).fill('documents,');
+await page.getByLabel('Tags', { exact: true }).fill('scanner,');
+await page.getByRole('button', { name: 'Choose an icon' }).click();
+await page.getByRole('searchbox', { name: 'Search icons' }).fill('paper');
+await page.waitForSelector('.icon-results img');
+await page.waitForSelector('.address-up');
+await page.locator('.icon-search').scrollIntoViewIfNeeded();
+await settle(page);
 await shot(page, f('20-add-tile'));
 await close(page);
 
@@ -184,6 +205,12 @@ await close(page);
 page = await open(dark(mesh), { seen: '5.0.0' });
 await page.waitForSelector('.changes li');
 await shot(page, f('19-whats-new'));
+await close(page);
+
+// A newer release: the ribbon across the corner.
+page = await open(dark(mesh), { update: 'v5.8.0' });
+await page.waitForSelector('.update-ribbon');
+await shot(page, f('21-update-ribbon'), { clip: { x: 720, y: 0, width: 720, height: 300 } });
 await close(page);
 
 // At /admin, the tiles tagged "admin" are shown too.

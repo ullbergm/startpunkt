@@ -21,7 +21,6 @@ import {
   type Background,
   type Complexity,
   type Preferences,
-  type Spacing,
   type ThemeMode,
 } from '../prefs';
 import { SCHEMES, type ColorScheme } from '../palettes';
@@ -49,12 +48,17 @@ function Check({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label class="field field-check">
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.currentTarget.checked)} />
+    <label class="field">
       <span>
         {label}
         {help && <small>{help}</small>}
       </span>
+      <input
+        type="checkbox"
+        class="d-toggle d-toggle-primary"
+        checked={checked}
+        onChange={(event) => onChange(event.currentTarget.checked)}
+      />
     </label>
   );
 }
@@ -73,7 +77,7 @@ function Select<T extends string>({
   return (
     <label class="field">
       <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.currentTarget.value as T)}>
+      <select class="d-select d-select-sm" value={value} onChange={(event) => onChange(event.currentTarget.value as T)}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -88,7 +92,7 @@ function Color({ label, value, onChange }: { label: string; value: string; onCha
   return (
     <label class="field">
       <span>{label}</span>
-      <input type="color" value={value} onInput={(event) => onChange(event.currentTarget.value)} />
+      <input type="color" class="swatch" value={value} onInput={(event) => onChange(event.currentTarget.value)} />
     </label>
   );
 }
@@ -103,6 +107,7 @@ function Range({
   max,
   step,
   format,
+  centred = false,
   onChange,
 }: {
   label: string;
@@ -112,8 +117,14 @@ function Range({
   max: number;
   step: number;
   format: (value: number) => string;
+  // The middle is where nothing is chosen, and the bar grows from there to
+  // either side.
+  centred?: boolean;
   onChange: (value: number) => void;
 }) {
+  // Where along the track something is, as the middle of the thumb there.
+  const at = (part: number) => `calc(0.5rem + (100% - 1rem) * ${part})`;
+  const part = (value - min) / (max - min);
   return (
     <label class="field">
       <span>
@@ -122,6 +133,8 @@ function Range({
       </span>
       <input
         type="range"
+        class={centred ? 'range-centred' : 'd-range d-range-primary d-range-xs'}
+        style={centred ? { '--from': at(Math.min(part, 0.5)), '--to': at(Math.max(part, 0.5)) } : undefined}
         min={min}
         max={max}
         step={step}
@@ -208,15 +221,18 @@ function Presets({ p }: { p: Preferences }) {
             <li key={preset}>
               <button
                 type="button"
+                class={preset === active ? 'd-btn d-btn-sm d-btn-active' : 'd-btn d-btn-sm'}
                 aria-pressed={preset === active}
                 aria-label={t('settings.presets.load', { name: preset })}
                 onClick={() => loadPreset(preset)}
               >
+                {/* The preset in use carries a mark, not only a shade. */}
+                {preset === active && <Icon name="check" size={16} />}
                 {preset}
               </button>
               <button
                 type="button"
-                class="icon-button"
+                class="d-btn d-btn-ghost d-btn-sm d-btn-square"
                 aria-label={t('settings.presets.delete', { name: preset })}
                 onClick={() => deletePreset(preset)}
               >
@@ -229,6 +245,7 @@ function Presets({ p }: { p: Preferences }) {
       <div class="preset-save field">
         <input
           type="text"
+          class="d-input d-input-sm"
           maxLength={40}
           aria-label={t('settings.presets.name')}
           placeholder={t('settings.presets.name')}
@@ -238,7 +255,7 @@ function Presets({ p }: { p: Preferences }) {
             if (event.key === 'Enter' && name.trim() !== '') save();
           }}
         />
-        <button type="button" disabled={name.trim() === ''} onClick={save}>
+        <button type="button" class="d-btn d-btn-primary d-btn-sm" disabled={name.trim() === ''} onClick={save}>
           {t('settings.presets.save')}
         </button>
       </div>
@@ -247,7 +264,6 @@ function Presets({ p }: { p: Preferences }) {
 }
 
 function Layout({ p }: { p: Preferences }) {
-  const spacings: Spacing[] = ['tight', 'normal', 'relaxed'];
   return (
     <>
       <Select
@@ -259,13 +275,6 @@ function Layout({ p }: { p: Preferences }) {
         }))}
         onChange={(columns) => setLayout({ columns: Number(columns) })}
       />
-      <Select
-        label={t('settings.spacing')}
-        value={p.layout.spacing}
-        options={spacings.map((value) => ({ value, label: t(`settings.spacing.${value}` as MessageKey) }))}
-        onChange={(spacing) => setLayout({ spacing })}
-      />
-      <Check label={t('settings.compact')} checked={p.layout.compact} onChange={(compact) => setLayout({ compact })} />
       <Check
         label={t('settings.showBoxes')}
         checked={p.layout.showBoxes}
@@ -351,6 +360,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
                 <input
                   key={index}
                   type="color"
+                  class="swatch"
                   aria-label={t('settings.background.meshColor', { number: index + 1 })}
                   value={color}
                   onInput={(event) =>
@@ -387,6 +397,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
           </span>
           <input
             type="url"
+            class="d-input"
             inputMode="url"
             placeholder="https://example.com/image.jpg"
             value={b.imageUrl}
@@ -403,6 +414,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
             </span>
             <input
               type="text"
+              class="d-input"
               maxLength={100}
               value={b.patternSeed}
               onInput={(event) => setBackground({ patternSeed: event.currentTarget.value })}
@@ -444,6 +456,7 @@ function BackgroundTab({ p }: { p: Preferences }) {
             min={-1}
             max={1}
             step={0.05}
+            centred
             format={(value) =>
               value === 0
                 ? t('settings.background.overlay.off')
@@ -479,6 +492,7 @@ function Accessibility({ p }: { p: Preferences }) {
         <span class="stepper" role="group" aria-labelledby="font-size-label">
           <button
             type="button"
+            class="d-btn d-btn-sm d-btn-square"
             aria-label={t('settings.fontSize.decrease')}
             disabled={scale <= 0}
             onClick={() => setAccessibility({ fontScale: FONT_SCALES[scale - 1] })}
@@ -488,6 +502,7 @@ function Accessibility({ p }: { p: Preferences }) {
           <output aria-live="polite">{p.accessibility.fontScale}%</output>
           <button
             type="button"
+            class="d-btn d-btn-sm d-btn-square"
             aria-label={t('settings.fontSize.increase')}
             disabled={scale >= FONT_SCALES.length - 1}
             onClick={() => setAccessibility({ fontScale: FONT_SCALES[scale + 1] })}
@@ -504,11 +519,11 @@ function Accessibility({ p }: { p: Preferences }) {
       />
       <dl class="shortcuts" aria-label={t('settings.shortcuts')}>
         <dt>
-          <kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd>
+          <kbd class="d-kbd d-kbd-sm">/</kbd> <kbd class="d-kbd d-kbd-sm">Ctrl</kbd>+<kbd class="d-kbd d-kbd-sm">K</kbd>
         </dt>
         <dd>{t('settings.shortcuts.search')}</dd>
         <dt>
-          <kbd>Esc</kbd>
+          <kbd class="d-kbd d-kbd-sm">Esc</kbd>
         </dt>
         <dd>{t('settings.shortcuts.close')}</dd>
       </dl>
@@ -576,7 +591,7 @@ export function Settings({
     <Modal label={t('settings.title')} class="settings" onClose={onClose}>
       <header class="settings-header">
         <h2>{t('settings.title')}</h2>
-        <button type="button" class="icon-button" aria-label={t('settings.close')} onClick={onClose}>
+        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
           <Icon name="close" />
         </button>
       </header>
@@ -586,11 +601,12 @@ export function Settings({
         tabs={TABS.map((key) => ({ key, label: t(`settings.${key}` as MessageKey) }))}
         selected={tab}
         onSelect={setTab}
+        kit
       />
       <div role="tabpanel" id="settings-panel" aria-labelledby={`settings-tab-${tab}`}>
         <form class="settings-body" onSubmit={(event) => event.preventDefault()}>
           {panels[tab]}
-          <button type="button" class="settings-reset" onClick={resetPrefs}>
+          <button type="button" class="d-btn d-btn-outline d-btn-sm settings-reset" onClick={resetPrefs}>
             {t('settings.reset')}
           </button>
         </form>

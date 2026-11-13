@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { editMode } from '../editing';
+import { editMode, fixed } from '../editing';
 import { setLanguage } from '../i18n';
 import { prefs, reloadPrefs, updatePrefs } from '../prefs';
 import { GRACE_MS, reset } from '../state';
@@ -24,6 +24,7 @@ beforeEach(async () => {
   window.localStorage.clear();
   reloadPrefs();
   editMode.value = false;
+  fixed.value = null;
   await setLanguage('en-US');
 });
 afterEach(() => cleanup());
@@ -266,18 +267,19 @@ describe('App', () => {
     fireEvent.click(add);
 
     const favorites = await screen.findByRole('region', { name: 'Favorites' });
-    expect(within(favorites).getByRole('link', { name: /Plex/ })).toBeTruthy();
-    expect(within(favorites).queryByRole('link', { name: /Grafana/ })).toBeNull();
+    // While the page is being edited a tile is not a link, so the tiles
+    // are told by their names.
+    const names = (within: Element) => [...within.querySelectorAll('.tile-name')].map((name) => name.textContent);
+    expect(names(favorites)).toEqual(['Plex']);
     // It is shown once: not in its group any more.
     const applications = screen.getByRole('region', { name: 'Applications' });
-    expect(within(applications).queryByRole('link', { name: /Plex/ })).toBeNull();
-    expect(within(applications).getByRole('link', { name: /Grafana/ })).toBeTruthy();
-    expect(screen.getAllByRole('link', { name: /Plex/ })).toHaveLength(1);
+    expect(names(applications)).toEqual(['Grafana']);
+    expect(screen.queryAllByRole('link', { name: /Plex|Grafana/ })).toHaveLength(0);
     expect(prefs.value.favorites).toEqual(['c/apps/ns/Plex']);
 
     fireEvent.click(within(favorites).getByRole('button', { name: 'Remove Plex from favorites' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Favorites' })).toBeNull());
-    expect(within(screen.getByRole('region', { name: 'Applications' })).getByRole('link', { name: /Plex/ })).toBeTruthy();
+    expect(names(screen.getByRole('region', { name: 'Applications' }))).toContain('Plex');
   });
 
   it('gives each tab its own favorites row, below the tabs', async () => {
@@ -459,6 +461,18 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
     expect(controls()).toHaveLength(0);
+    // In it a tile is not a link: a click is about the tile, and says here
+    // that it cannot be changed, with the link it would otherwise be.
+    edit();
+    expect(screen.queryByRole('link', { name: /Wiki/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Wiki, cannot be changed here' }));
+    const notice = await screen.findByRole('dialog', { name: 'Wiki cannot be changed here' });
+    expect(within(notice).getByText('Editing is not turned on for this instance.')).toBeTruthy();
+    expect(within(notice).getByRole('link', { name: 'Open Wiki' }).getAttribute('href')).toBe('https://example.com');
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
+    expect(screen.getByRole('link', { name: /Wiki/ })).toBeTruthy();
     // Escape leaves it as well.
     edit();
     fireEvent.keyDown(document.body, { key: 'Escape' });
@@ -471,9 +485,7 @@ describe('App', () => {
     const three = () =>
       serverState({ tiles: [tile({ name: 'Alpha' }), tile({ name: 'Beta' }), tile({ name: 'Gamma' })] });
     const order = () =>
-      within(screen.getByRole('region', { name: 'Favorites' }))
-        .getAllByRole('link')
-        .map((link) => link.querySelector('.tile-name')?.textContent);
+      [...screen.getByRole('region', { name: 'Favorites' }).querySelectorAll('.tile-name')].map((name) => name.textContent);
     beforeEach(() =>
       updatePrefs((p) => ({ ...p, favorites: ['c/apps/ns/Gamma', 'c/apps/ns/Alpha', 'c/apps/ns/Beta'] })),
     );
@@ -585,19 +597,21 @@ describe('App', () => {
     act(() =>
       updatePrefs((p) => ({
         ...p,
-        layout: { ...p.layout, columns: 3, spacing: 'tight', compact: true },
+        layout: { ...p.layout, columns: 3 },
         accessibility: { fontScale: 130, highContrast: true },
       })),
     );
     const root = document.documentElement;
-    await waitFor(() => expect(root.dataset.spacing).toBe('tight'));
+    await waitFor(() => expect(root.dataset.contrast).toBe('high'));
     expect(root.dataset.boxes).toBe('false'); // tiles have no box unless asked for
     expect(root.dataset.hover).toBe('false'); // nor a hover effect
     act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, hoverEffect: true } })));
     await waitFor(() => expect(root.dataset.hover).toBe('true'));
     act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, showBoxes: true } })));
     await waitFor(() => expect(root.dataset.boxes).toBe('true'));
-    expect(root.dataset.compact).toBe('true');
+    // Settings that are gone leave nothing on the document.
+    expect(root.dataset.compact).toBeUndefined();
+    expect(root.dataset.spacing).toBeUndefined();
     expect(root.dataset.contrast).toBe('high');
     expect(root.style.fontSize).toBe('130%');
   });
@@ -892,6 +906,22 @@ describe('App', () => {
     });
   });
 
+  it("starts a new browser from the instance's settings, and follows them", async () => {
+    const state = serverState({ tiles: [tile({ name: 'Plex', tags: ['media'] })] });
+    renderWith({ ...state, config: { ...state.config, defaultPreferences: { layout: { showBoxes: true, hoverEffect: true } } } });
+    const root = document.documentElement;
+    await waitFor(() => expect(root.dataset.boxes).toBe('true'));
+    expect(root.dataset.hover).toBe('true');
+    act(() => FakeStream.last.emit('config', { ...state.config, defaultPreferences: { layout: { showBoxes: false } } }));
+    await waitFor(() => expect(root.dataset.boxes).toBe('false'));
+    // One that has chosen keeps its choice.
+    act(() => updatePrefs((p) => ({ ...p, layout: { ...p.layout, hoverEffect: true } })));
+    act(() => FakeStream.last.emit('config', { ...state.config, defaultPreferences: { layout: { hoverEffect: false, showBoxes: true } } }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(root.dataset.hover).toBe('true');
+    expect(root.dataset.boxes).toBe('false');
+  });
+
   it('follows a change of title and theme without a reload', async () => {
     updatePrefs((p) => ({ ...p, background: { ...p.background, type: 'theme' } }));
     renderWith(serverState());
@@ -978,8 +1008,10 @@ describe('App', () => {
       window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
       const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
       show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all));
-      const footer = await screen.findByRole('contentinfo');
-      fireEvent.click(await within(footer).findByRole('button', { name: 'Update available: v5.3.0' }));
+      // The corner at the top is the one place that says so.
+      const notices = await screen.findAllByRole('button', { name: 'Update available: v5.3.0' });
+      expect(notices).toHaveLength(1);
+      fireEvent.click(notices[0]!);
       const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
       await within(dialog).findByText('change in 5.3.0');
       expect(within(dialog).getByText('change in 5.2.0')).toBeTruthy();
@@ -991,8 +1023,7 @@ describe('App', () => {
       window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
       const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
       show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all.slice(2)));
-      // The corner at the top says the same and opens the same.
-      fireEvent.click((await screen.findAllByRole('button', { name: 'Update available: v5.3.0' }))[0]!);
+      fireEvent.click(await screen.findByRole('button', { name: 'Update available: v5.3.0' }));
       const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
       expect(await within(dialog).findByText('The list of changes is not available.')).toBeTruthy();
       expect(within(dialog).getByRole('link', { name: 'Open the release on GitHub' })).toBeTruthy();

@@ -61,6 +61,8 @@ type Icons struct {
 	entries map[string]*iconEntry
 	// waiting holds, per icon set, what is collected for the next batch.
 	waiting map[string][]iconWait
+	// searches holds the answers to searches, by query.
+	searches map[string]iconSearchEntry
 }
 
 // iconWait is one icon waiting for its batch. It holds the entry itself, not
@@ -99,6 +101,7 @@ func (i *Icons) init() {
 		i.slots = make(chan struct{}, i.Limit)
 		i.entries = map[string]*iconEntry{}
 		i.waiting = map[string][]iconWait{}
+		i.searches = map[string]iconSearchEntry{}
 	})
 }
 

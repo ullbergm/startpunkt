@@ -62,4 +62,7 @@ export interface UIConfig {
   searchEngine: string;
   showAllClusters: boolean;
   theme: { light: Palette; dark: Palette };
+  // What a browser without preferences of its own starts from, in the form
+  // preferences are stored in. It is not trusted: prefs.ts checks it.
+  defaultPreferences?: unknown;
 }

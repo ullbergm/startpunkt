@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { editKey, editMode, editTarget, reloadEditKey } from '../editing';
+import { editKey, editMode, editTarget, fixed, reloadEditKey } from '../editing';
 import { setLanguage } from '../i18n';
 import { reloadPrefs } from '../prefs';
 import { reset } from '../state';
@@ -30,6 +30,7 @@ beforeEach(async () => {
   reloadEditKey();
   editTarget.value = null;
   editMode.value = false;
+  fixed.value = null;
   await setLanguage('en-US');
 });
 afterEach(() => {
@@ -87,6 +88,133 @@ describe('Editor', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(JSON.parse(calls[0]![1].body as string)).toEqual({
       spec: { name: 'Grafana', url: 'https://grafana.example.com', icon: 'mdi:chart-line', targetBlank: true },
+    });
+  });
+
+  it('says what is wrong next to the field, and does not send it', async () => {
+    const { fetcher, calls } = server({ 'POST /api/v1/applications': () => json(201, {}) });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    // Nothing is complained about before anything was done.
+    expect(screen.queryByText('This is needed.')).toBeNull();
+    type('Address', 'grafana.example.com');
+    fireEvent.blur(field('Address'));
+    expect(screen.getByText('An address starts with http:// or https://.')).toBeTruthy();
+    expect(field('Address').getAttribute('aria-invalid')).toBe('true');
+    type(/^Position/, 'first');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    // Sending shows the rest, and goes to the first field that is wrong.
+    expect(screen.getByText('This is needed.')).toBeTruthy();
+    expect(screen.getByText('A whole number.')).toBeTruthy();
+    expect(document.activeElement).toBe(field('Name'));
+    expect(calls.filter(([, init]) => init.method === 'POST')).toHaveLength(0);
+    expect(onClose).not.toHaveBeenCalled();
+
+    type('Name', 'Grafana');
+    type('Address', 'https://grafana.example.com');
+    type(/^Position/, '20');
+    expect(screen.queryByText(/This is needed|An address starts|A whole number/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'POST')![1].body as string)).toEqual({
+      spec: { name: 'Grafana', url: 'https://grafana.example.com', location: 20 },
+    });
+  });
+
+  it('says whether the address answers, and saves either way', async () => {
+    let available = false;
+    const { fetcher, calls } = server({
+      'POST /api/v1/check': () => json(200, { available }),
+      'POST /api/v1/applications': () => json(201, {}),
+    });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    type('Name', 'Grafana');
+    // Not asked about what is not an address.
+    type('Address', 'https://');
+    expect(screen.queryByText(/Checking the address|answers at this address/)).toBeNull();
+    type('Address', 'https://down.example.com');
+    expect(screen.getByText('Checking the address…')).toBeTruthy();
+    expect(await screen.findByText(/Nothing answers at this address/, undefined, { timeout: 3000 })).toBeTruthy();
+    expect(JSON.parse(calls.find(([url]) => url === '/api/v1/check')![1].body as string)).toEqual({ url: 'https://down.example.com' });
+    available = true;
+    type('Address', 'https://up.example.com');
+    expect(await screen.findByText('Something answers at this address.', undefined, { timeout: 3000 })).toBeTruthy();
+    available = false;
+    type('Address', 'https://down.example.com');
+    await screen.findByText(/Nothing answers at this address/, undefined, { timeout: 3000 });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('offers the groups in use, takes tags as pills and finds icons', async () => {
+    act(() =>
+      FakeStream.last?.emit?.('snapshot', serverState()),
+    );
+    const { fetcher, calls } = server({
+      'GET /api/v1/icons?query=grafana': () => json(200, { icons: ['simple-icons:grafana', 'logos:grafana'] }),
+      'POST /api/v1/applications': () => json(201, {}),
+    });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    type('Name', 'Grafana dashboards');
+    type('Address', 'https://grafana.example.com');
+    // A group can be picked or typed.
+    expect(field(/^Group/).getAttribute('list')).toBe('editor-groups');
+    type(/^Group/, 'Brand new');
+
+    // Tags: Enter or a comma ends one, a pill can be removed, Backspace
+    // takes the last.
+    const tags = field('Tags');
+    fireEvent.input(tags, { target: { value: 'admin' } });
+    fireEvent.keyDown(tags, { key: 'Enter' });
+    fireEvent.input(tags, { target: { value: 'media, home,' } });
+    expect(screen.getByRole('button', { name: 'Remove the tag admin' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove the tag media' }));
+    fireEvent.input(tags, { target: { value: 'ops' } });
+    fireEvent.keyDown(tags, { key: 'Enter' });
+    fireEvent.keyDown(tags, { key: 'Backspace' });
+    expect(screen.queryByRole('button', { name: 'Remove the tag ops' })).toBeNull();
+    // What is still being typed counts when the field is left.
+    fireEvent.input(tags, { target: { value: 'lab' } });
+    fireEvent.blur(tags);
+    expect(screen.getAllByRole('button', { name: /^Remove the tag / }).map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Remove the tag admin',
+      'Remove the tag home',
+      'Remove the tag lab',
+    ]);
+
+    // The colour: a ready one, the browser's picker, or typed.
+    fireEvent.click(screen.getByRole('button', { name: '#1e88e5' }));
+    expect(field(/^Icon colour/).value).toBe('#1e88e5');
+    expect(screen.getByRole('button', { name: '#1e88e5' }).getAttribute('aria-pressed')).toBe('true');
+    expect((screen.getByLabelText('Pick a colour') as HTMLInputElement).value).toBe('#1e88e5');
+    fireEvent.input(screen.getByLabelText('Pick a colour'), { target: { value: '#123456' } });
+    expect(field(/^Icon colour/).value).toBe('#123456');
+    fireEvent.click(screen.getByRole('button', { name: 'None' }));
+    expect(field(/^Icon colour/).value).toBe('');
+    fireEvent.click(screen.getByRole('button', { name: '#43a047' }));
+
+    // The icon search opens on the first word of the name.
+    fireEvent.click(screen.getByRole('button', { name: 'Choose an icon' }));
+    expect((screen.getByRole('searchbox', { name: 'Search icons' }) as HTMLInputElement).value).toBe('grafana');
+    fireEvent.click(await screen.findByRole('button', { name: 'simple-icons:grafana' }, { timeout: 3000 }));
+    expect(field('Icon').value).toBe('simple-icons:grafana');
+    expect(screen.queryByRole('searchbox', { name: 'Search icons' })).toBeNull();
+    // The picked icon is shown, from this instance.
+    expect(document.querySelector('.icon-preview img')?.getAttribute('src')).toContain('/api/v1/icons/simple-icons/grafana.svg');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'POST')![1].body as string)).toEqual({
+      spec: {
+        name: 'Grafana dashboards',
+        url: 'https://grafana.example.com',
+        group: 'Brand new',
+        icon: 'simple-icons:grafana',
+        iconColor: '#43a047',
+        tags: 'admin, home, lab',
+      },
     });
   });
 
@@ -226,18 +354,30 @@ describe('the page', () => {
     expect(screen.queryByRole('button', { name: 'Unlock editing' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    // Locked: nothing to change.
-    expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    // No tile is a link now. Only the Application of this cluster can be
+    // changed: not the Route, not the remote.
+    expect(screen.queryAllByRole('link', { name: /Grafana|Wiki|Plex/ })).toHaveLength(0);
+    expect(screen.getAllByRole('button', { name: /^Change / }).map((b) => b.getAttribute('aria-label'))).toEqual(['Change Grafana']);
+    // The others say why not, and where to go instead.
+    fireEvent.click(screen.getByRole('button', { name: 'Wiki, cannot be changed here' }));
+    let notice = await screen.findByRole('dialog', { name: 'Wiki cannot be changed here' });
+    expect(within(notice).getByText(/made from another resource in the cluster/)).toBeTruthy();
+    expect(within(notice).getByText('routes.route.openshift.io: wiki in the namespace home.')).toBeTruthy();
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Plex, cannot be changed here' }));
+    notice = await screen.findByRole('dialog', { name: 'Plex cannot be changed here' });
+    expect(within(notice).getByText(/belongs to the cluster prod/)).toBeTruthy();
+    expect(within(notice).getByRole('link', { name: 'Open Plex' })).toBeTruthy();
+    fireEvent.click(within(notice).getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
-    fireEvent.click(screen.getByRole('button', { name: 'Unlock editing' }));
+    // A click on the one that can be changed asks for the key first, and
+    // then opens its form.
+    fireEvent.click(screen.getByRole('button', { name: 'Change Grafana' }));
     type('Edit key', 'the right key');
     fireEvent.click(screen.getByRole('button', { name: 'Unlock' }));
-    const lockButton = await screen.findByRole('button', { name: 'Lock editing' });
-
-    // Only the Application of this cluster: not the Route, not the remote.
-    expect(screen.getAllByRole('button', { name: /^Change / }).map((b) => b.getAttribute('aria-label'))).toEqual(['Change Grafana']);
-    fireEvent.click(screen.getByRole('button', { name: 'Change Grafana' }));
     const dialog = await screen.findByRole('dialog', { name: 'Change application' });
+    const lockButton = screen.getByRole('button', { name: 'Lock editing' });
     await waitFor(() => expect((within(dialog).getByLabelText('Name') as HTMLInputElement).value).toBe('Grafana'));
     expect(calls.some(([url]) => url === '/api/v1/applications/home/grafana')).toBe(true);
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
@@ -247,10 +387,9 @@ describe('the page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     expect(await screen.findByRole('dialog', { name: 'Add an application' })).toBeTruthy();
 
-    // Locking takes all of it away again.
+    // Locking closes the form and forgets the key.
     fireEvent.click(lockButton);
-    await waitFor(() => expect(screen.queryByRole('button', { name: /^Change / })).toBeNull());
-    expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add an application' })).toBeNull());
     expect(window.localStorage.getItem('startpunkt.editKey')).toBeNull();
   });
 
@@ -272,10 +411,22 @@ describe('the page', () => {
     show(state(true));
     await screen.findByRole('link', { name: /Grafana/ });
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    expect(document.documentElement.dataset.boxes).toBe('false');
     fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
-    expect(screen.getByRole('button', { name: 'Change Grafana' })).toBeTruthy();
+    // The whole tile is what is clicked to change it: it is a button in
+    // place of its link, and every tile has its box. A tile that cannot be
+    // changed is a button too, which says why.
+    const change = screen.getByRole('button', { name: 'Change Grafana' });
+    expect(change.textContent).toContain('Grafana');
+    expect(change.closest('.tile')).not.toBeNull();
+    expect(screen.queryByRole('link', { name: /Grafana/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /Wiki/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Wiki, cannot be changed here' })).toBeTruthy();
+    await waitFor(() => expect(document.documentElement.dataset.boxes).toBe('true'));
     fireEvent.click(screen.getByRole('button', { name: 'Done editing' }));
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
+    expect(screen.getByRole('link', { name: /Grafana/ })).toBeTruthy();
+    await waitFor(() => expect(document.documentElement.dataset.boxes).toBe('false'));
     expect(editKey.value).toBe('the right key');
   });
 });

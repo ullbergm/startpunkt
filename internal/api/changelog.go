@@ -123,12 +123,8 @@ func ParseChangelog(text string) []Release {
 
 // ServeChangelog answers GET /api/v1/changelog.
 func (u *Updates) ServeChangelog(w http.ResponseWriter, r *http.Request) {
-	check := u.Check
-	if u.Flags != nil {
-		check, _ = u.Flags()
-	}
 	// Looks for a newer release when that is due, and its changes with it.
-	latest := u.newer(r.Context(), check)
+	latest := u.newer(r.Context(), u.checking())
 	doc := Changelog{Releases: []Release{}}
 	if latest != "" {
 		u.mu.Lock()

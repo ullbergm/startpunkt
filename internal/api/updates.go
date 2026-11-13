@@ -22,8 +22,8 @@ type VersionInfo struct {
 	UpdateAvailable bool `json:"updateAvailable"`
 	// URL is the page of the newer release.
 	URL string `json:"url,omitempty"`
-	// GitHubLink says whether the page shows the corner that links to the
-	// project. The corner is shown for an update either way.
+	// GitHubLink says whether the page shows its footer, which names the
+	// version and links to the project on GitHub.
 	GitHubLink bool `json:"githubLink"`
 }
 
@@ -71,12 +71,11 @@ type Updates struct {
 }
 
 func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	check, githubLink := u.Check, u.GitHubLink
+	info := VersionInfo{Version: u.Current, GitHubLink: u.GitHubLink}
 	if u.Flags != nil {
-		check, githubLink = u.Flags()
+		_, info.GitHubLink = u.Flags()
 	}
-	info := VersionInfo{Version: u.Current, GitHubLink: githubLink}
-	if latest := u.newer(r.Context(), check); latest != "" {
+	if latest := u.newer(r.Context(), u.checking()); latest != "" {
 		info.Latest = latest
 		info.UpdateAvailable = true
 		info.URL = releasePages + "tag/" + latest
@@ -84,6 +83,15 @@ func (u *Updates) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	_ = json.NewEncoder(w).Encode(info)
+}
+
+// checking reports whether newer releases are looked for.
+func (u *Updates) checking() bool {
+	if u.Flags != nil {
+		check, _ := u.Flags()
+		return check
+	}
+	return u.Check
 }
 
 // newer returns the tag of the latest release when it is newer than the

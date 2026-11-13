@@ -32,6 +32,14 @@
             }
           }
         },
+        "web": {
+          "type": "object",
+          "properties": {
+            "defaultPreferences": {
+              "type": "object"
+            }
+          }
+        },
         "log": {
           "type": "object",
           "properties": {

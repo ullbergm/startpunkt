@@ -103,6 +103,17 @@ func TestVersionEndpoint(t *testing.T) {
 		t.Errorf("unreachable: %+v", info)
 	}
 
+	// The setting for the footer can change while the process runs.
+	link := true
+	changing := serve(&Updates{Current: "5.0.0", Flags: func() (bool, bool) { return false, link }})
+	if !versionInfo(t, changing).GitHubLink {
+		t.Error("the footer is on")
+	}
+	link = false
+	if versionInfo(t, changing).GitHubLink {
+		t.Error("the footer was turned off")
+	}
+
 	if rec := get(t, (&Server{Store: store.New()}).Handler(), "/api/v1/version"); rec.Code != http.StatusNotFound {
 		t.Errorf("endpoint must be off without Updates: %d", rec.Code)
 	}

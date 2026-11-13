@@ -265,3 +265,33 @@ func TestSurvivesFallingBehind(t *testing.T) {
 	s.Upsert(mk("after", ts.URL+"/after"))
 	eventually(t, "probing to continue", is(s, "after", true))
 }
+
+func TestCheckProbesOneAddressOnce(t *testing.T) {
+	var hits atomic.Int32
+	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		if r.URL.Path == "/broken" {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}))
+	defer up.Close()
+	ctx := context.Background()
+	if !Check(ctx, up.URL, Options{}) {
+		t.Error("an address that answers with a redirect is there")
+	}
+	if n := hits.Load(); n != 1 {
+		t.Errorf("%d requests for one check; a redirect must not be followed", n)
+	}
+	if Check(ctx, up.URL+"/broken", Options{}) {
+		t.Error("a 502 is not an answer")
+	}
+	up.Close()
+	if Check(ctx, up.URL, Options{Timeout: 200 * time.Millisecond}) {
+		t.Error("nothing listens there any more")
+	}
+	if Check(ctx, "ftp://example.com", Options{}) {
+		t.Error("only http and https are probed")
+	}
+}

@@ -221,10 +221,10 @@ type Web struct {
 	// with the query appended.
 	SearchEngine string `json:"searchEngine"`
 	// CheckForUpdates asks GitHub now and then whether a newer release of
-	// Startpunkt exists, and tells visitors in the footer when one does.
+	// Startpunkt exists, and tells visitors in the corner of the page when one does.
 	CheckForUpdates bool `json:"checkForUpdates"`
-	// GitHubLink shows a corner on the page that links to the project. When
-	// an update is available the corner is shown regardless.
+	// GitHubLink shows the footer of the page, which names the running
+	// version and links to the project on GitHub and to its author.
 	GitHubLink bool `json:"githubLink"`
 	// ShowAllClusters makes a visitor who has not chosen see the tiles of
 	// every cluster. Without it they see this cluster's only, and switch
@@ -232,6 +232,18 @@ type Web struct {
 	ShowAllClusters bool `json:"showAllClusters"`
 	// Theme holds the colours of the light and the dark appearance.
 	Theme Theme `json:"theme"`
+	// DefaultPreferences are the settings of the page for a browser that
+	// has none of its own yet, and what "Reset to defaults" goes back to.
+	// They have the form the page keeps them in, for example
+	// {"theme": "dark", "layout": {"columns": 4, "showTags": true},
+	// "background": {"type": "gradient"}}. The page checks every value and
+	// uses its own default for one that does not fit or is left out.
+	// Environment: STARTPUNKT_WEB_DEFAULTPREFERENCES, as JSON.
+	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:validation:Type=object
+	// +kubebuilder:pruning:PreserveUnknownFields
+	DefaultPreferences json.RawMessage `json:"defaultPreferences,omitempty"`
 }
 
 // Theme is the pair of palettes the page switches between.

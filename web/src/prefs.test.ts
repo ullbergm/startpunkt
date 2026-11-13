@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, setServerDefaults, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -18,7 +18,7 @@ describe('sanitize', () => {
       theme: 'dark',
       language: 'sv-SE',
       favorites: ['a', 'a', 3, 'b'],
-      layout: { columns: 3, spacing: 'huge', compact: true, hideUnreachable: 'yes' },
+      layout: { columns: 3, spacing: 'huge', compact: true, showTags: true, hideUnreachable: 'yes' },
       background: { type: 'gradient', color: '#ABCDEF', color2: 'red', direction: 'sideways', imageUrl: 5 },
       accessibility: { fontScale: 115, highContrast: true },
       unknown: true,
@@ -29,7 +29,10 @@ describe('sanitize', () => {
     expect(sanitize({ colors: 'plaid' }).colors).toBe('default');
     expect(result.language).toBe('sv-SE');
     expect(result.favorites).toEqual(['a', 'b']);
-    expect(result.layout).toMatchObject({ columns: 3, spacing: 'normal', compact: true, hideUnreachable: false });
+    expect(result.layout).toMatchObject({ columns: 3, showTags: true, hideUnreachable: false });
+    // Spacing and compact tiles were settings once. What is stored of them is dropped.
+    expect(result.layout).not.toHaveProperty('spacing');
+    expect(result.layout).not.toHaveProperty('compact');
     expect(result.background).toMatchObject({
       type: 'gradient',
       color: '#ABCDEF',
@@ -181,13 +184,13 @@ describe('stored preferences', () => {
   it('keep presets valid whatever was stored', () => {
     const result = sanitize({
       presets: {
-        ' Evening ': { layout: { columns: 3, spacing: 'nope' }, background: { type: 'meshGradient', meshColors: ['#111111', 'x'] } },
+        ' Evening ': { layout: { columns: 3, showTags: 'nope' }, background: { type: 'meshGradient', meshColors: ['#111111', 'x'] } },
         '': { layout: {} },
         broken: 'not a preset',
       },
     });
     expect(Object.keys(result.presets).sort()).toEqual(['Evening', 'broken']);
-    expect(result.presets.Evening?.layout).toMatchObject({ columns: 3, spacing: 'normal' });
+    expect(result.presets.Evening?.layout).toMatchObject({ columns: 3, showTags: false });
     expect(result.presets.Evening?.background.meshColors[0]).toBe('#111111');
     expect(result.presets.Evening?.background.meshColors[1]).toBe(defaults().background.meshColors[1]);
     expect(result.presets.broken).toEqual({ layout: defaults().layout, background: defaults().background });
@@ -202,5 +205,53 @@ describe('stored preferences', () => {
     expect(sanitize({ background: { overlayBlur: true } }).background.overlayBlur).toBe(3);
     expect(sanitize({ background: { overlayBlur: false } }).background.overlayBlur).toBe(0);
     expect(sanitize({ background: { overlayOpacity: -0.4 } }).background.overlayOpacity).toBe(-0.4);
+  });
+});
+
+describe('the defaults of the instance', () => {
+  const server = { theme: 'dark', colors: 'ocean', layout: { columns: 4, showTags: true }, background: { type: 'gradient', blur: 'a lot' } };
+
+  it('are what a browser without preferences starts from, and follows', () => {
+    reloadPrefs();
+    expect(prefs.value.theme).toBe('auto');
+    setServerDefaults(server);
+    expect(prefs.value).toMatchObject({ theme: 'dark', colors: 'ocean' });
+    expect(prefs.value.layout).toMatchObject({ columns: 4, showTags: true });
+    // What is left out, or does not fit, is the page's own default.
+    expect(prefs.value.layout.showDescription).toBe(defaults().layout.showDescription);
+    expect(prefs.value.background.type).toBe('gradient');
+    expect(prefs.value.background.blur).toBe(defaults().background.blur);
+    // Nothing was stored by that: the browser still has none of its own.
+    expect(window.localStorage.getItem('startpunkt.preferences')).toBeNull();
+    setServerDefaults({ ...server, theme: 'light' });
+    expect(prefs.value.theme).toBe('light');
+    // Without any, the page's own again.
+    setServerDefaults(undefined);
+    expect(prefs.value.theme).toBe('auto');
+  });
+
+  it('leave a browser alone that has preferences of its own', () => {
+    reloadPrefs();
+    updatePrefs((p) => ({ ...p, theme: 'light' }));
+    setServerDefaults(server);
+    expect(prefs.value.theme).toBe('light');
+    expect(prefs.value.layout.columns).toBe(defaults().layout.columns);
+  });
+
+  it('are what a reset goes back to, keeping what is content', () => {
+    reloadPrefs();
+    updatePrefs((p) => ({ ...p, theme: 'light', favorites: ['a'], layout: { ...p.layout, columns: 2 } }));
+    setServerDefaults({ ...server, favorites: ['from the server'] });
+    resetPrefs();
+    expect(prefs.value).toMatchObject({ theme: 'dark', colors: 'ocean', favorites: ['a'] });
+    expect(prefs.value.layout.columns).toBe(4);
+  });
+
+  it('are not trusted', () => {
+    reloadPrefs();
+    for (const odd of ['dark', 7, ['x'], { theme: 'neon', layout: 'wide', accessibility: { fontScale: 9000 } }]) {
+      setServerDefaults(odd);
+      expect(prefs.value).toEqual(defaults());
+    }
   });
 });

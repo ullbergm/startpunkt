@@ -25,6 +25,7 @@ What is only about the moment, such as which dialog is open or which tab is chos
 ## Preferences
 
 - Change preferences only through `updatePrefs(fn)`. It checks the result and stores it.
+- An instance can give the preferences a browser starts from (`config.defaultPreferences`, taken in by `setServerDefaults`). They go through `sanitize` like stored ones. `defaults()` is what the page has built in; `startingPrefs()` is what a browser without preferences gets, and what a reset goes back to.
 - A new preference is added in three places: the `Preferences` type, `defaults()`, and the matching `sanitize` function. Every value read from storage is checked on its own and replaced by its default when it does not fit; nothing from storage is trusted.
 - A preset holds `layout` and `background`, so a field added to either is part of presets without more work. The active preset is found by comparing JSON text, so `sanitize` must keep building its objects in a fixed order.
 - Theme and panel depend on each other. Change them with `setTheme` and `setPanel`, not directly.
@@ -39,7 +40,11 @@ What is only about the moment, such as which dialog is open or which tab is chos
 
 ## Styles and themes
 
-- One stylesheet, `src/style.css`. No CSS modules, no CSS-in-JS.
+- The page's own styles are one stylesheet, `src/style.css`. No CSS modules, no CSS-in-JS.
+- The controls inside the dialogs (settings, unlocking, the editor, the list of changes) are drawn by daisyUI, a set of component classes built with Tailwind CSS. Both are tools of the build, set up in `src/kit.css`: nothing of them runs in the browser. Every daisyUI class has the prefix `d-` (`d-btn`, `d-toggle`, `d-select`, `d-input`, `d-range`, `d-tabs`), and only the components listed in `kit.css` are built, so add one there before using it. The classes go on the native element, which keeps its role and its keyboard behaviour. How the controls are laid out stays in `style.css`.
+- The kit is for the dialogs only. Tiles, groups, the page's tabs, the corner buttons and the search are the page's own and take no `d-` class. Tailwind's reset is not loaded, for the same reason.
+- The kit's colours are set on `dialog` from the five colours of the palette, so a theme still names only those. `--border` is the kit's name for the width of a border; the page's colour for lines is `--line`.
+- Tailwind turns any word in the sources that is the name of one of its utilities into a rule, such as `.fixed` or `.hidden`. Do not give an element of the page a class with such a name.
 - The palette from the server becomes five custom properties (`--bg`, `--muted`, `--text`, `--primary`, `--accent`); surfaces and borders are derived from them with `color-mix`. Preferences become `data-*` attributes on the root element, set in `theme.ts`.
 - Inline styles are style objects, never strings: the Content-Security-Policy refuses style attributes written as text.
 - A control that shows on hover also shows on `:focus-visible` and under `@media (hover: none)`. The controls of a tile are not such controls: they are rendered only while `editMode` is on, and are then always shown. Motion is off under `prefers-reduced-motion`, and `forced-colors` has rules of its own.

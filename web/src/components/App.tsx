@@ -12,9 +12,9 @@ import {
   type Release,
 } from '../changelog';
 import { clusterColors, orderClusters } from '../clusters';
-import { canEdit, editMode, editTarget, type EditTarget } from '../editing';
+import { canEdit, editMode, editTarget, fixed, type EditTarget } from '../editing';
 import { chooseLanguage, setLanguage, t } from '../i18n';
-import { clusterShown, prefs } from '../prefs';
+import { clusterShown, prefs, setServerDefaults } from '../prefs';
 import { connect, connection, fatalError, serverState, type EventStream } from '../state';
 import { filterByTags, tagsFromPath } from '../tags';
 import { PALETTES } from '../palettes';
@@ -22,15 +22,15 @@ import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../t
 import { Background } from './Background';
 import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
-import { EditControls, Editor, Unlock } from './Editing';
+import { EditControls, Editor, Fixed, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
-import { GitHubCorner } from './GitHubCorner';
 import { Favorites, Section } from './Section';
 import { Settings } from './Settings';
 import { Skeleton } from './Skeleton';
 import { Spotlight } from './Spotlight';
 import { Tabs } from './Tabs';
+import { UpdateRibbon } from './UpdateRibbon';
 
 type Kind = 'applications' | 'bookmarks';
 
@@ -92,7 +92,16 @@ export function App({
   const [chosen, setChosen] = useState<Kind | null>(null);
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
-  dialogOpen.current = dialog !== null || editing !== null;
+  const notice = fixed.value;
+  dialogOpen.current = dialog !== null || editing !== null || notice !== null;
+
+  // The instance's defaults for the settings come with its configuration,
+  // and may change while the page is open.
+  const serverDefaults = state?.config.defaultPreferences;
+  const connected = state !== null;
+  useEffect(() => {
+    if (connected) setServerDefaults(serverDefaults);
+  }, [connected, JSON.stringify(serverDefaults ?? null)]);
 
   const title = state?.config.title || 'Startpunkt';
   useEffect(() => {
@@ -110,7 +119,7 @@ export function App({
   }, []);
   const mode = panelMode(p) ?? resolveMode(p.theme, systemDark);
   const palette = p.colors === 'default' ? state?.config.theme[mode] : PALETTES[p.colors][mode];
-  useEffect(() => applyAppearance(document.documentElement, mode, palette, p), [mode, palette, p]);
+  useEffect(() => applyAppearance(document.documentElement, mode, palette, p, arranging), [mode, palette, p, arranging]);
 
   const defaultLanguage = state?.config.defaultLanguage;
   useEffect(() => {
@@ -243,7 +252,7 @@ export function App({
         {t('page.skipToContent')}
       </a>
       <Background background={p.background} />
-      {(versionInfo?.githubLink || update) && <GitHubCorner update={update} onUpdate={showUpdate} />}
+      {update && <UpdateRibbon update={update} onOpen={showUpdate} />}
       <header class="page-header">
         {/* Decorative: the heading next to it names the page. */}
         <img class="logo" src="/logo.svg" alt="" width="72" height="72" />
@@ -301,7 +310,7 @@ export function App({
           ))
         )}
       </main>
-      <Footer info={versionInfo} onChanges={() => running && showChanges('news', null, running)} onUpdate={showUpdate} />
+      <Footer info={versionInfo} onChanges={() => running && showChanges('news', null, running)} />
       {/* The page's own controls sit in the bottom right corner of the
           window, out of the way of the content. Search has no button on a
           device with a keyboard: it opens when you start typing. A touch
@@ -367,6 +376,16 @@ export function App({
           }}
         />
       )}
+      {/* A tile was clicked to change it, and the key has not been given:
+          it is asked for, and the form opens once it is there. */}
+      {editing && state && arranging && !canEdit.value && state.editing.available && (
+        <Unlock
+          onClose={() => {
+            if (!canEdit.value) editTarget.value = null;
+          }}
+        />
+      )}
+      {notice && <Fixed what={notice} onClose={() => (fixed.value = null)} />}
       {editing && state && arranging && canEdit.value && (
         <Editor
           // A new dialog for each resource, so nothing of the last one is left.
