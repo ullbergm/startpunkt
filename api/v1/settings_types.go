@@ -221,7 +221,7 @@ type Web struct {
 	// with the query appended.
 	SearchEngine string `json:"searchEngine"`
 	// CheckForUpdates asks GitHub now and then whether a newer release of
-	// Startpunkt exists, and tells visitors in the footer when one does.
+	// Startpunkt exists, and tells visitors in the corner of the page when one does.
 	CheckForUpdates bool `json:"checkForUpdates"`
 	// GitHubLink shows a corner on the page that links to the project. When
 	// an update is available the corner is shown regardless.

@@ -68,7 +68,7 @@ config:
     # goes; the query is appended.
     searchEngine: https://www.google.com/search?q=
     # STARTPUNKT_WEB_CHECKFORUPDATES. Ask GitHub a few times a day whether a
-    # newer release exists, and say so in the footer of the page. The request
+    # newer release exists, and say so in the corner of the page. The request
     # is made by the pods that serve the API, not by the browser, and does
     # not say which version is running. When there is a newer release, its
     # changelog is read from raw.githubusercontent.com to show what changed.

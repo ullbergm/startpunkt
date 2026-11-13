@@ -334,10 +334,6 @@ main:focus {
   color: inherit;
 }
 
-.page-footer .update {
-  font-weight: 600;
-}
-
 /* A button that reads as part of the text around it. */
 .link-button {
   padding: 0;

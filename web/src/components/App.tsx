@@ -309,7 +309,7 @@ export function App({
           ))
         )}
       </main>
-      <Footer info={versionInfo} onChanges={() => running && showChanges('news', null, running)} onUpdate={showUpdate} />
+      <Footer info={versionInfo} onChanges={() => running && showChanges('news', null, running)} />
       {/* The page's own controls sit in the bottom right corner of the
           window, out of the way of the content. Search has no button on a
           device with a keyboard: it opens when you start typing. A touch

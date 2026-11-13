@@ -39,19 +39,10 @@ export function availableUpdate(info: VersionInfo | null): { version: string; ur
     : undefined;
 }
 
-// The line under the content: what is running, where it comes from, and a
-// notice when a newer release exists. The version opens the list of what
-// changed in it, and the notice what has changed since.
-export function Footer({
-  info,
-  onChanges,
-  onUpdate,
-}: {
-  info: VersionInfo | null;
-  onChanges?: () => void;
-  onUpdate?: () => void;
-}) {
-  const update = availableUpdate(info);
+// The line under the content: what is running and where it comes from. The
+// version opens the list of what changed in it. A newer release is not
+// announced here: the corner at the top of the page does that.
+export function Footer({ info, onChanges }: { info: VersionInfo | null; onChanges?: () => void }) {
   const version = info ? versionName(info.version) : '';
   // A development build has no entry in the changelog.
   const released = info !== null && parseVersion(info.version) !== null;
@@ -75,13 +66,6 @@ export function Footer({
         </a>
         .
       </p>
-      {update && (
-        <p role="status">
-          <button type="button" class="link-button update" onClick={onUpdate}>
-            {t('footer.update', { version: update.version })}
-          </button>
-        </p>
-      )}
     </footer>
   );
 }

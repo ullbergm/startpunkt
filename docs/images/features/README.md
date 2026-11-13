@@ -114,7 +114,7 @@ On a narrow screen the tiles are in one column. A touch screen gets a search but
 
 ![What's new](19-whats-new.png)
 
-The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the notice of a newer release lists what has changed since the running version.
+The first time the page is opened after the instance was updated, it lists what changed since the version that browser last saw, from the project's changelog. The version in the footer opens the same list, and the corner at the top right, when it announces a newer release, lists what has changed since the running version.
 
 ## Adding a tile
 

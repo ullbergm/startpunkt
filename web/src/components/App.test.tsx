@@ -996,8 +996,10 @@ describe('App', () => {
       window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
       const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
       show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all));
-      const footer = await screen.findByRole('contentinfo');
-      fireEvent.click(await within(footer).findByRole('button', { name: 'Update available: v5.3.0' }));
+      // The corner at the top is the one place that says so.
+      const notices = await screen.findAllByRole('button', { name: 'Update available: v5.3.0' });
+      expect(notices).toHaveLength(1);
+      fireEvent.click(notices[0]!);
       const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
       await within(dialog).findByText('change in 5.3.0');
       expect(within(dialog).getByText('change in 5.2.0')).toBeTruthy();
@@ -1009,8 +1011,7 @@ describe('App', () => {
       window.localStorage.setItem('startpunkt.seenVersion', '5.1.0');
       const url = 'https://github.com/ullbergm/startpunkt/releases/tag/v5.3.0';
       show(server({ version: '5.1.0', latest: 'v5.3.0', updateAvailable: true, url }, all.slice(2)));
-      // The corner at the top says the same and opens the same.
-      fireEvent.click((await screen.findAllByRole('button', { name: 'Update available: v5.3.0' }))[0]!);
+      fireEvent.click(await screen.findByRole('button', { name: 'Update available: v5.3.0' }));
       const dialog = await screen.findByRole('dialog', { name: 'Update available: v5.3.0' });
       expect(await within(dialog).findByText('The list of changes is not available.')).toBeTruthy();
       expect(within(dialog).getByRole('link', { name: 'Open the release on GitHub' })).toBeTruthy();

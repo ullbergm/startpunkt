@@ -306,7 +306,7 @@ spec:
                   checkForUpdates:
                     description: |-
                       CheckForUpdates asks GitHub now and then whether a newer release of
-                      Startpunkt exists, and tells visitors in the footer when one does.
+                      Startpunkt exists, and tells visitors in the corner of the page when one does.
                     type: boolean
                   defaultLanguage:
                     description: |-

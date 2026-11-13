@@ -14,7 +14,7 @@ function Wired({ fetcher }: { fetcher: typeof fetch }) {
   return (
     <>
       {(info?.githubLink || update) && <GitHubCorner update={update} onUpdate={onUpdate} />}
-      <Footer info={info} onChanges={onChanges} onUpdate={onUpdate} />
+      <Footer info={info} onChanges={onChanges} />
     </>
   );
 }
@@ -55,7 +55,7 @@ describe('Footer', () => {
     expect(within(screen.getByRole('contentinfo')).queryByRole('button')).toBeNull();
   });
 
-  it('says when a newer release exists and opens what has changed', async () => {
+  it('leaves a newer release to the corner, and says nothing of it in the footer', async () => {
     render(
       <Wired
         fetcher={answer({
@@ -66,7 +66,11 @@ describe('Footer', () => {
         })}
       />,
     );
-    const notice = within(await screen.findByRole('status')).getByRole('button', { name: 'Update available: v5.1.0' });
+    const notice = await screen.findByRole('button', { name: 'Update available: v5.1.0' });
+    expect(notice.className).toContain('github-corner');
+    const footer = screen.getByRole('contentinfo');
+    expect(footer.textContent).not.toContain('Update available');
+    expect(within(footer).queryByRole('status')).toBeNull();
     fireEvent.click(notice);
     expect(onUpdate).toHaveBeenCalledTimes(1);
   });
@@ -97,7 +101,7 @@ describe('Footer', () => {
         })}
       />,
     );
-    await screen.findByRole('status');
+    await screen.findByRole('button', { name: 'Update available: v5.1.0' });
     const corner = document.querySelector('.github-corner') as HTMLButtonElement;
     expect(corner.tagName).toBe('BUTTON');
     expect(corner.className).toContain('has-update');
