@@ -1,6 +1,6 @@
 import type { Card, CardGroup } from '../cards';
 import { t } from '../i18n';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useId, useState } from 'preact/hooks';
 import { editMode } from '../editing';
 import { columnsThatFit, MAX_AUTO_COLUMNS, optimalColumns } from '../columns';
 import { moveFavoriteCards, prefs, toggleCollapsed } from '../prefs';
@@ -160,20 +160,21 @@ export function Section({
   iconColor: string;
   aligned?: boolean;
 }) {
+  const sectionId = useId();
   if (groups.length === 0) return null;
   const largest = aligned ? Math.max(...groups.map((group) => group.cards.length)) : undefined;
   const collapsed = prefs.value.collapsed;
   const Wrapper = title ? 'section' : 'div';
   return (
-    <Wrapper aria-labelledby={title ? id : undefined}>
+    <Wrapper aria-labelledby={title ? sectionId : undefined}>
       {title && (
-        <h2 id={id} class={color ? 'cluster-heading' : undefined} style={color ? { '--cluster': color } : undefined}>
+        <h2 id={sectionId} class={color ? 'cluster-heading' : undefined} style={color ? { '--cluster': color } : undefined}>
           {title}
         </h2>
       )}
       {groups.map((group) => {
         const key = `${id}:${group.name}`;
-        const groupId = `${id}-${group.name.replace(/[^a-z0-9]+/gi, '-')}`;
+        const groupId = `${sectionId}-group-${encodeURIComponent(group.name)}`;
         const open = !collapsed.includes(key);
         return (
           <section class="group" aria-labelledby={groupId} key={group.name}>

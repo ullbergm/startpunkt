@@ -364,6 +364,7 @@ cluster B: informers ─> store ─> prober ─┤                              
 - Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, and the "what's new" dialog.
 - Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons named from an Iconify set are images served by the instance itself; an icon given as an address is loaded from that address.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
+- Section and group headings have stable IDs unique to each rendered section. The group-name part is lossless, so spaces, punctuation and non-Latin names cannot collide in `aria-labelledby` references.
 
 ## Configuration
 

@@ -13,7 +13,7 @@ To ask for one of these, or for something that is not here, open a [feature requ
 Small things that make what is there more dependable.
 
 - [ ] **A switch for type-to-search** (S). Opening search on any key is in the way of speech input and of some assistive tools. `/` and `Ctrl+K` stay.
-- [ ] **Smaller fixes on the page** (S). The search button, which is meant for touch screens, showing on every screen; group names in lower case in search results; descriptions that do not refit when the text size changes, heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
+- [ ] **Smaller fixes on the page** (S). Group names in lower case in search results; descriptions that do not refit when the text size changes, heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
 - [ ] **Checks in CI** (S). `golangci-lint` and `govulncheck`, a linter for the page, rendering the chart against the Kubernetes schemas, Markdown and link checks, the pull request title, and the cutover test on a schedule.
 
 ## Later
@@ -37,7 +37,6 @@ Small things that make what is there more dependable.
 ### The page
 
 - [ ] **Export and import of preferences** (S). Favorites, layout, background and presets as a file, to take to another browser.
-- [ ] **Defaults from the operator** (M). The layout and the background a new visitor starts with, and presets offered to everyone, as part of the `Startpunkt` resource.
 - [ ] **More languages** (S each). A language is one file. German, French, Spanish and Norwegian are the first that come to mind; contributions are welcome.
 - [ ] **Search that does more** (M). Results that are links, so that they open in a new tab; matches in descriptions and tags as an option; recently opened first; several search engines by prefix.
 - [ ] **A view to link to** (S). The open tab, the shown clusters and the tags in the address, so that a view can be bookmarked and shared.
