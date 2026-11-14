@@ -242,7 +242,7 @@ describe('Editor', () => {
   it('loads a bookmark, changes it and keeps what it does not show', async () => {
     const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com/docs', info: 'Old words', links: [{ name: 'Logs', url: 'https://logs.example.com' }] };
     const { fetcher, calls } = server({
-      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', spec }),
+      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', resourceVersion: '42', spec }),
       'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
     });
     const onClose = vi.fn();
@@ -259,8 +259,26 @@ describe('Editor', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     const put = calls.find(([, init]) => init.method === 'PUT')!;
     expect(JSON.parse(put[1].body as string)).toEqual({
+      resourceVersion: '42',
       spec: { name: 'Documentation', group: 'Reference', url: 'https://example.com/docs', links: spec.links },
     });
+  });
+
+  it('keeps edits open when another writer changed the resource', async () => {
+    const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com/docs' };
+    const { fetcher, calls } = server({
+      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', resourceVersion: '41', spec }),
+      'PUT /api/v1/bookmarks/links/docs': () => json(409, { error: 'docs was changed by someone else; open it again' }),
+    });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'bookmarks', namespace: 'links', name: 'docs' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    await waitFor(() => expect(field('Name').value).toBe('Docs'));
+    type('Name', 'My unsaved title');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('changed by someone else');
+    expect(field('Name').value).toBe('My unsaved title');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).resourceVersion).toBe('41');
   });
 
   it('adds, validates and removes secondary links', async () => {
@@ -289,7 +307,7 @@ describe('Editor', () => {
   it('keeps an explicit empty links list when the final link is removed', async () => {
     const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com', links: [{ name: 'Logs', url: 'https://logs.example.com' }] };
     const { fetcher, calls } = server({
-      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', spec }),
+      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', resourceVersion: '42', spec }),
       'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
     });
     const onClose = vi.fn();

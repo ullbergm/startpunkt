@@ -145,7 +145,7 @@ ok "four applications and a bookmark, written through v1alpha1 to v1alpha4"
 
 step "v5 next to it, without definitions of its own"
 values=(--set image.repository="${IMAGE%:*}" --set image.tag="${IMAGE##*:}" --set image.pullPolicy=Never
-  --set config.availability.interval=5s)
+  --set availability.interval=5s)
 h install startpunkt-v5 charts/startpunkt -n startpunkt-v5 --create-namespace \
   --set crds.install=false "${values[@]}" --wait --timeout 180s >/dev/null
 [ "$(k get crd applications.startpunkt.ullberg.us -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}')" = startpunkt ] ||
@@ -274,8 +274,19 @@ ok "the key is checked"
 [ "$(k -n editing get applications.startpunkt.ullberg.us from-the-page -o jsonpath='{.spec.name}')" = "From the page" ] ||
   fail "the application is not in the cluster"
 eventually "an application created through the api pod is shown" has_tiles $'application First\napplication From the page'
-[ "$(api PUT applications/editing/from-the-page '{"spec":{"name":"Renamed","url":"https://page.example.invalid"}}')" = 200 ] ||
-  fail "update: $(cat "$work/answer")"
+[ "$(api PUT applications/editing/from-the-page '{"spec":{"name":"Renamed","url":"https://page.example.invalid"}}')" = 400 ] ||
+  fail "an update without resourceVersion was not refused"
+update_from_page() {
+  [ "$(api GET applications/editing/from-the-page)" = 200 ] || return 1
+  opened_version=$(sed -n 's/.*"resourceVersion":"\([^"]*\)".*/\1/p' "$work/answer")
+  [ -n "$opened_version" ] || return 1
+  printf '%s' "$opened_version" >"$work/opened-version"
+  [ "$(api PUT applications/editing/from-the-page "{\"resourceVersion\":\"$opened_version\",\"spec\":{\"name\":\"Renamed\",\"url\":\"https://page.example.invalid\"}}")" = 200 ]
+}
+eventually "an update carries the version through the api pod" update_from_page
+opened_version=$(cat "$work/opened-version")
+[ "$(api PUT applications/editing/from-the-page "{\"resourceVersion\":\"$opened_version\",\"spec\":{\"name\":\"Stale\",\"url\":\"https://stale.example.invalid\"}}")" = 409 ] ||
+  fail "a stale editor overwrote a newer save"
 eventually "a change is shown" has_tiles $'application First\napplication Renamed'
 [ "$(api POST bookmarks '{"spec":{"name":"Bad","group":"g","url":"javascript:alert(1)"}}')" = 400 ] ||
   fail "a link that is not http or https was accepted"

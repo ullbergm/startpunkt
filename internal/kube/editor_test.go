@@ -54,12 +54,23 @@ func TestEditorWritesWhatTheControllerShows(t *testing.T) {
 		t.Errorf("taken name: %v", err)
 	}
 
-	// Reading gives the spec as it is stored, to edit and send back.
+	// The fake API does not assign resource versions, so give the object
+	// the version a real API server returns before opening its editor.
+	obj, err := c.dynamic.Resource(gvr("v1", "applications")).Namespace("home").Get(ctx, "home-assistant", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj.SetResourceVersion("1")
+	if _, err := c.dynamic.Resource(gvr("v1", "applications")).Namespace("home").Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Reading gives the spec and version as stored, to edit and send back.
 	got, err := e.Get(ctx, edit.Applications, "home", "home-assistant")
 	if err != nil || !strings.Contains(string(got.Spec), `"group":"Home"`) {
 		t.Fatalf("get: %s, %v", got.Spec, err)
 	}
-	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "home-assistant", Spec: json.RawMessage(`{"name":"HA","url":"https://ha.example.com/new"}`)}); err != nil {
+	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "home-assistant", ResourceVersion: got.ResourceVersion, Spec: json.RawMessage(`{"name":"HA","url":"https://ha.example.com/new"}`)}); err != nil {
 		t.Fatal(err)
 	}
 	eventually(t, "the changed tile", func() bool {
@@ -143,7 +154,9 @@ func TestEditorRefusals(t *testing.T) {
 func TestEditorLeavesWhatIsDeployed(t *testing.T) {
 	managed := app("v1", "home", "managed", "https://managed.example.com")
 	managed.SetAnnotations(map[string]string{"argocd.argoproj.io/tracking-id": "home:startpunkt.ullberg.us/Application:home/managed"})
-	c := newCluster(managed, app("v1", "home", "own", "https://own.example.com"))
+	own := app("v1", "home", "own", "https://own.example.com")
+	own.SetResourceVersion("1")
+	c := newCluster(managed, own)
 	c.serve("v1")
 	e := editorFor(c)
 	ctx := context.Background()
@@ -160,7 +173,7 @@ func TestEditorLeavesWhatIsDeployed(t *testing.T) {
 		t.Errorf("after the refusals: %+v, %v", r, err)
 	}
 	// What nobody else deploys is changed and deleted as before.
-	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "own", Spec: spec}); err != nil {
+	if _, err := e.Update(ctx, edit.Applications, edit.Resource{Namespace: "home", Name: "own", ResourceVersion: "1", Spec: spec}); err != nil {
 		t.Errorf("update of an unmanaged resource: %v", err)
 	}
 	if err := e.Delete(ctx, edit.Applications, "home", "own"); err != nil {
@@ -186,5 +199,59 @@ func TestEditorNextToFourX(t *testing.T) {
 	c.serve()
 	if _, err := e.Create(ctx, edit.Applications, edit.Resource{Spec: json.RawMessage(`{"name":"x","url":"https://x.example.com"}`)}); statusOf(err) != http.StatusServiceUnavailable {
 		t.Errorf("without the resource type: %v", err)
+	}
+}
+
+// A fake client does not enforce optimistic locking. The explicit versions
+// model API-server updates and establish that the browser's read version,
+// rather than a fresh GET at save time, controls whether the save is allowed.
+func TestEditorRejectsChangesSinceTheFormWasOpened(t *testing.T) {
+	for _, kind := range []string{edit.Applications, edit.Bookmarks} {
+		t.Run(kind, func(t *testing.T) {
+			initial := app("v1", "home", "shared", "https://initial.example.com")
+			if kind == edit.Bookmarks {
+				initial.SetKind("Bookmark")
+				initial.Object["spec"].(map[string]any)["group"] = "home"
+			}
+			initial.SetResourceVersion("1")
+			c := newCluster(initial)
+			c.serve("v1")
+			e := editorFor(c)
+			ctx := context.Background()
+			first, err := e.Get(ctx, kind, "home", "shared")
+			if err != nil || first.ResourceVersion != "1" {
+				t.Fatalf("first read: %+v, %v", first, err)
+			}
+			second, err := e.Get(ctx, kind, "home", "shared")
+			if err != nil {
+				t.Fatal(err)
+			}
+			first.Spec = json.RawMessage(`{"name":"First save","group":"home","url":"https://first.example.com"}`)
+			if _, err := e.Update(ctx, kind, first); err != nil {
+				t.Fatalf("first save: %v", err)
+			}
+			// Simulate the version assigned by Kubernetes to that update.
+			client := c.dynamic.Resource(gvr("v1", kind)).Namespace("home")
+			obj, err := client.Get(ctx, "shared", metav1.GetOptions{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			obj.SetResourceVersion("2")
+			if _, err := client.Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+				t.Fatal(err)
+			}
+			second.Spec = json.RawMessage(`{"name":"Stale save","group":"home","url":"https://stale.example.com"}`)
+			if _, err := e.Update(ctx, kind, second); statusOf(err) != http.StatusConflict {
+				t.Fatalf("stale form: %v, want 409", err)
+			}
+			second.ResourceVersion = ""
+			if _, err := e.Update(ctx, kind, second); statusOf(err) != http.StatusBadRequest {
+				t.Fatalf("missing version: %v, want 400", err)
+			}
+			current, err := e.Get(ctx, kind, "home", "shared")
+			if err != nil || current.ResourceVersion != "2" || !strings.Contains(string(current.Spec), "first.example.com") {
+				t.Fatalf("stale save overwrote the first: %+v, %v", current, err)
+			}
+		})
 	}
 }

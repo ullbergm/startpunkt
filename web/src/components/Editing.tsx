@@ -117,6 +117,7 @@ export function Editor({
   // chosen. What was filled in stays, where the other kind has the field.
   const [kind, setKind] = useState<EditKind>(target.kind);
   const [base, setBase] = useState<Spec | null>(existing ? null : {});
+  const [resourceVersion, setResourceVersion] = useState<string>();
   const [links, setLinks] = useState<SecondaryLink[]>([]);
   const [linksEdited, setLinksEdited] = useState(false);
   const [values, setValues] = useState<FormValues>(() => ({
@@ -134,6 +135,7 @@ export function Editor({
       .then((resource) => {
         if (!current) return;
         setBase(resource.spec ?? {});
+        setResourceVersion(resource.resourceVersion);
         setLinks(Array.isArray(resource.spec.links) ? (resource.spec.links as SecondaryLink[]) : []);
         setValues(toForm(target.kind, resource.spec ?? {}));
       })
@@ -193,7 +195,7 @@ export function Editor({
     const spec = toSpec(kind, base, values);
     delete spec.links;
     if (savedLinks.length > 0 || base.links !== undefined || linksEdited) spec.links = savedLinks;
-    void run(() => saveResource({ ...target, kind }, spec, fetcher));
+    void run(() => saveResource({ ...target, kind, resourceVersion }, spec, fetcher));
   };
 
   // Whether something answers at the address, asked a moment after it was

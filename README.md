@@ -407,7 +407,7 @@ The page uses a small HTTP API, and so can anything else:
 curl -s https://start.example.com/api/v1/state | jq '.tiles[] | {name, url, available}'
 ```
 
-With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key and `POST /api/v1/check`, which says whether something answers at an address. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
+With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key and `POST /api/v1/check`, which says whether something answers at an address. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A resource read includes `resourceVersion`; a `PUT` must send that version alongside `spec`. A missing version returns 400, and a resource changed since the form was opened returns 409 without overwriting it. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 

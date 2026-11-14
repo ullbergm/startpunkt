@@ -138,6 +138,12 @@ func (e *Editor) Update(ctx context.Context, kind string, r edit.Resource) (edit
 	if err := changeable(obj); err != nil {
 		return edit.Resource{}, err
 	}
+	if r.ResourceVersion == "" {
+		return edit.Resource{}, edit.Errorf(http.StatusBadRequest, "resourceVersion is required; open the resource again")
+	}
+	if r.ResourceVersion != obj.GetResourceVersion() {
+		return edit.Resource{}, edit.Errorf(http.StatusConflict, "%q was changed by someone else; open it again", r.Name)
+	}
 	obj.Object["spec"] = spec
 	// The update carries the version that was read, so a change made by
 	// someone else in between is not overwritten.
@@ -183,7 +189,7 @@ func resource(obj *unstructured.Unstructured) (edit.Resource, error) {
 	if err != nil {
 		return edit.Resource{}, err
 	}
-	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), Spec: data}, nil
+	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), ResourceVersion: obj.GetResourceVersion(), Spec: data}, nil
 }
 
 // translate turns an error of the API server into one for the caller of

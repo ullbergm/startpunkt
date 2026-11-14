@@ -83,13 +83,14 @@ export type EditKind = 'applications' | 'bookmarks';
 export type Spec = Record<string, unknown>;
 
 export interface Resource {
+  resourceVersion: string;
   namespace: string;
   name: string;
   spec: Spec;
 }
 
 // What the editor is open on: a resource to change, or a new one of a kind.
-export type EditTarget = { kind: EditKind; namespace?: string; name?: string };
+export type EditTarget = { kind: EditKind; namespace?: string; name?: string; resourceVersion?: string };
 export const editTarget = signal<EditTarget | null>(null);
 
 const TYPES: Record<string, EditKind> = {
@@ -172,7 +173,7 @@ export async function loadResource(target: EditTarget, fetcher: typeof fetch = f
 // spec.
 export async function saveResource(target: EditTarget, spec: Spec, fetcher: typeof fetch = fetch): Promise<void> {
   if (target.name) {
-    await call('PUT', item(target), { spec }, fetcher);
+    await call('PUT', item(target), { spec, resourceVersion: target.resourceVersion }, fetcher);
   } else {
     await call('POST', target.kind, { spec }, fetcher);
   }

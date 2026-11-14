@@ -28,8 +28,9 @@ const (
 // Resource is one Application or Bookmark as the endpoints read and write
 // it.
 type Resource struct {
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
+	Namespace       string `json:"namespace"`
+	Name            string `json:"name"`
+	ResourceVersion string `json:"resourceVersion,omitempty"`
 	// Spec is the spec of the resource, with the fields of api/v1.
 	Spec json.RawMessage `json:"spec"`
 }

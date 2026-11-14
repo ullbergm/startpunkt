@@ -13,8 +13,6 @@ To ask for one of these, or for something that is not here, open a [feature requ
 Small things that make what is there more dependable.
 
 - [ ] **Metrics** (S). A Prometheus endpoint with the number of tiles by cluster and source, probe results and durations, open event streams, the state of each remote and the errors of the settings and status writers, and a ServiceMonitor in the chart. 4.x had one and v5 does not.
-- [ ] **Add the first bookmark from the page** (S). The button adds the kind of the open tab, and a kind with no tiles has no tab, so a page without bookmarks cannot get its first one there.
-- [ ] **Do not lose changes made in between** (S). An edit saves over whatever happened to the resource since the editor was opened. Carry the resource's version from the read to the write, and say so when it has changed.
 - [ ] **Read the cluster again without going unready** (M). A change to the sources, the namespaces or probing empties the store, and every replica reports itself not ready at once. Build the new state next to the old one and swap.
 - [ ] **Try a failed `urlFrom` again** (S). A reference to a kind that is not installed yet stays unresolved until the Application is changed or the pod restarts.
 - [ ] **Limits on what is read from other processes** (S). A cap on the length of a line and the number of tiles taken from a remote, and the same checks on a remote's tiles as on the instance's own.

@@ -225,6 +225,8 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
 
+Resource reads include `resourceVersion`. An update requires that version alongside the spec: missing versions receive 400, stale versions 409. The comparison covers the interval since the form was opened as well as the API server’s final optimistic update check. Split-role forwarding preserves the version.
+
 Write endpoints only change the custom resource. The UI updates when the resulting watch event arrives on the stream, so there is one code path for changes made in the UI and changes made with `kubectl`.
 
 ### Why not GraphQL

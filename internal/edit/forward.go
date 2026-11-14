@@ -94,7 +94,7 @@ func (f *Forwarder) Create(ctx context.Context, kind string, r Resource) (Resour
 
 // Update implements Editor.
 func (f *Forwarder) Update(ctx context.Context, kind string, r Resource) (Resource, error) {
-	in := Resource{Spec: r.Spec}
+	in := Resource{Spec: r.Spec, ResourceVersion: r.ResourceVersion}
 	return f.call(ctx, http.MethodPut, &in, kind, r.Namespace, r.Name)
 }
 

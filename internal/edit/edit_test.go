@@ -199,8 +199,8 @@ func TestEndpointsCreateReadUpdateDelete(t *testing.T) {
 	}
 	// The address says which resource is meant, whatever the body claims.
 	code, _, _ = call(t, http.MethodPut, server.URL+"/api/v1/applications/home/grafana", key,
-		`{"namespace":"elsewhere","name":"other","spec":{"name":"Grafana 2","url":"https://grafana.example.com"}}`)
-	if code != http.StatusOK || !strings.Contains(string(store.items["applications/home/grafana"].Spec), "Grafana 2") {
+		`{"namespace":"elsewhere","name":"other","resourceVersion":"42","spec":{"name":"Grafana 2","url":"https://grafana.example.com"}}`)
+	if code != http.StatusOK || store.items["applications/home/grafana"].ResourceVersion != "42" || !strings.Contains(string(store.items["applications/home/grafana"].Spec), "Grafana 2") {
 		t.Errorf("update: %d, stored %s", code, store.items["applications/home/grafana"].Spec)
 	}
 	if code, _, _ := call(t, http.MethodDelete, server.URL+"/api/v1/applications/home/grafana", key, ""); code != http.StatusNoContent || len(store.items) != 0 {
@@ -269,15 +269,15 @@ func TestForwarderReachesTheControllersEditor(t *testing.T) {
 	ctx := context.Background()
 
 	f := NewForwarder(controller.URL+"/", key)
-	created, err := f.Create(ctx, Bookmarks, Resource{Spec: json.RawMessage(`{"name":"Docs","group":"Reference","url":"https://example.com"}`)})
-	if err != nil || created.Namespace != "home" || created.Name != "generated" {
+	created, err := f.Create(ctx, Bookmarks, Resource{ResourceVersion: "12", Spec: json.RawMessage(`{"name":"Docs","group":"Reference","url":"https://example.com"}`)})
+	if err != nil || created.Namespace != "home" || created.Name != "generated" || created.ResourceVersion != "12" {
 		t.Fatalf("create: %+v, %v", created, err)
 	}
-	if got, err := f.Get(ctx, Bookmarks, "home", "generated"); err != nil || !strings.Contains(string(got.Spec), "Docs") {
+	if got, err := f.Get(ctx, Bookmarks, "home", "generated"); err != nil || got.ResourceVersion != "12" || !strings.Contains(string(got.Spec), "Docs") {
 		t.Errorf("get: %+v, %v", got, err)
 	}
-	if _, err := f.Update(ctx, Bookmarks, Resource{Namespace: "home", Name: "generated", Spec: json.RawMessage(`{"name":"Docs 2","group":"Reference","url":"https://example.com"}`)}); err != nil ||
-		!strings.Contains(string(store.items["bookmarks/home/generated"].Spec), "Docs 2") {
+	if _, err := f.Update(ctx, Bookmarks, Resource{Namespace: "home", Name: "generated", ResourceVersion: "12", Spec: json.RawMessage(`{"name":"Docs 2","group":"Reference","url":"https://example.com"}`)}); err != nil ||
+		store.items["bookmarks/home/generated"].ResourceVersion != "12" || !strings.Contains(string(store.items["bookmarks/home/generated"].Spec), "Docs 2") {
 		t.Errorf("update: %v", err)
 	}
 	// The controller's refusals come through as they are.
