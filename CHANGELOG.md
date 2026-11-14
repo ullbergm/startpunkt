@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.0](https://github.com/ullbergm/startpunkt/compare/v5.7.0...v5.8.0) (2026-11-14)
+
+
+### Features
+
+* **github-action:** update actions/upload-artifact action to v7.0.2 ([#973](https://github.com/ullbergm/startpunkt/issues/973)) ([c6e99ac](https://github.com/ullbergm/startpunkt/commit/c6e99ac78961fb58c6124f181972b80cb7bd872c))
+
 ## [5.7.0](https://github.com/ullbergm/startpunkt/compare/v5.6.0...v5.7.0) (2026-11-14)
 
 
