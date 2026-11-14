@@ -204,6 +204,7 @@ func (i *Icons) send(prefix string) {
 		icons, retry, err := i.fetch(ctx, prefix, names)
 		cancel()
 		<-i.slots
+		i.mu.Lock()
 		for _, w := range batch {
 			entry := w.entry
 			switch svg, found := icons[w.name]; {
@@ -220,6 +221,7 @@ func (i *Icons) send(prefix string) {
 			}
 			close(entry.ready)
 		}
+		i.mu.Unlock()
 	}
 }
 

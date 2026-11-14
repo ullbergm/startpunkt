@@ -228,6 +228,8 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 
 Followers bound each SSE line and complete event to 8 MiB, each snapshot and cumulative feed to 10,000 tiles, and snapshots and cumulative cluster updates to 1,024 clusters. Remote tile identities, kinds, HTTP/HTTPS URLs, secondary links and field lengths are checked before state changes. Invalid input ends the connection and leaves the last known tiles available while reconnection backs off.
 
+Icon requests that share a fetch wait for its completed result. Cache publication and completion are synchronised, so concurrent callers do not race while reading the fetched SVG.
+
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
 
 Resource reads include `resourceVersion`. An update requires that version alongside the spec: missing versions receive 400, stale versions 409. The comparison covers the interval since the form was opened as well as the API server’s final optimistic update check. Split-role forwarding preserves the version.
