@@ -42,6 +42,8 @@ spec:
           args:
             - {{ $role }}
           env:
+            - name: STARTPUNKT_CLUSTER_NAME
+              value: {{ $.Values.config.cluster.name | quote }}
             - name: STARTPUNKT_LOG_LEVEL
               value: {{ $.Values.config.log.level | quote }}
             - name: STARTPUNKT_LOG_FORMAT
@@ -61,8 +63,6 @@ spec:
             {{- end }}
             {{- if not $.Values.customResources.enabled }}
             {{- if $kube }}
-            - name: STARTPUNKT_CLUSTER_NAME
-              value: {{ $.Values.config.cluster.name | quote }}
             - name: STARTPUNKT_NAMESPACESELECTOR_ANY
               value: {{ $.Values.namespaceSelector.any | quote }}
             {{- with $.Values.namespaceSelector.matchNames }}

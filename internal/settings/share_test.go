@@ -72,3 +72,25 @@ func TestSharedSettingsLeaveOutHeaders(t *testing.T) {
 		t.Errorf("headers must not be shared, and the original must be left alone: %+v", s.Remotes)
 	}
 }
+
+func TestSharedClusterIdentityAllowsRemoteCalledLocal(t *testing.T) {
+	controller := config.Default()
+	controller.Cluster.Name = "prod"
+	controller.Web.Title = "Updated"
+	controller.Federation.Remotes = []config.Remote{{Name: "local", URL: "https://remote.test"}}
+	if err := controller.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	upstream := New(controller)
+	ts := httptest.NewServer(Handler(upstream))
+	defer ts.Close()
+	base := config.Default()
+	local := New(base)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go Follow(ctx, ts.URL, base, local, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	eventually(t, "authoritative identity", func() bool { return local.Get().Cluster.Name == "prod" && local.Get().Web.Title == "Updated" })
+	if len(local.Get().Federation.Remotes) != 1 || local.Get().Federation.Remotes[0].Name != "local" {
+		t.Fatal("valid remote was rejected")
+	}
+}

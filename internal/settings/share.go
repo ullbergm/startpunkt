@@ -27,6 +27,7 @@ const SharedPath = "/internal/v1/settings"
 // of remotes are not part of it: they may be secrets, and stay with the
 // process that was given them.
 type Shared struct {
+	Cluster config.Cluster  `json:"cluster"`
 	Web     config.Web      `json:"web"`
 	Icons   config.Icons    `json:"icons"`
 	Remotes []config.Remote `json:"remotes"`
@@ -38,7 +39,7 @@ func shared(cfg config.Config) Shared {
 		r.Headers = nil
 		remotes[i] = r
 	}
-	return Shared{Web: cfg.Web, Icons: cfg.Icons, Remotes: remotes}
+	return Shared{Cluster: cfg.Cluster, Web: cfg.Web, Icons: cfg.Icons, Remotes: remotes}
 }
 
 // Handler serves the shared settings as an event stream: the current ones
@@ -143,6 +144,9 @@ func followOnce(ctx context.Context, client *http.Client, address string, base c
 			return fmt.Errorf("decoding settings: %w", err)
 		}
 		cfg := base
+		if s.Cluster.Name != "" {
+			cfg.Cluster = s.Cluster
+		}
 		cfg.Web, cfg.Icons = s.Web, s.Icons
 		headers := map[string]map[string]string{}
 		for _, r := range base.Federation.Remotes {
