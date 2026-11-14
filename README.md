@@ -411,6 +411,8 @@ With an edit key configured there are also `POST /api/v1/applications`, `GET`, `
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 
+Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses.
+
 ## Upgrading from 4.x
 
 Startpunkt 5 is a rewrite. Annotated resources and existing `Application` and `Bookmark` resources work unchanged, and v5 can run next to a 4.x installation before you switch. Some things are different or gone, and the definitions of the custom resources need care when 4.x is removed. Read [Migrating from 4.x](docs/migrating-from-4.x.md) first.

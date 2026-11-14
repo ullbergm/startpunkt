@@ -11,11 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
+	"github.com/ullbergm/startpunkt/internal/tile"
 )
 
 // The kinds that can be edited. The values are the resource names and the
@@ -104,8 +104,7 @@ func NameFor(title string) string {
 // https are accepted: anything else a browser might run or hand to another
 // program.
 func link(s string) bool {
-	u, err := url.Parse(strings.TrimSpace(s))
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
+	return tile.ValidURL(s)
 }
 
 // Validate checks a spec of the given kind and returns it in the form it is

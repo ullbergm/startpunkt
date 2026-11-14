@@ -181,6 +181,8 @@ The controller watches API discovery and starts or stops informers as resource t
 
 ### Annotations
 
+Every final tile URL is checked on the server, including `spec.url`, annotations and `urlFrom`. Only absolute HTTP and HTTPS addresses with a host and a valid port are accepted.
+
 The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`, `appName`, `group`, `icon`, `iconColor`, `info`, `location`, `port`, `protocol`, `rootPath`, `tags`, `targetBlank`, `url`. They remain the way to publish an app without creating a custom resource.
 
 ### Custom resources

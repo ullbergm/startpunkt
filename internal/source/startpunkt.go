@@ -95,6 +95,9 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 	if url == "" {
 		return nil, nil
 	}
+	if !tile.ValidURL(url) {
+		return nil, fmt.Errorf("url must be an http or https address")
+	}
 	group := strings.TrimSpace(s.Group)
 	if group == "" {
 		group = obj.GetNamespace()
@@ -109,11 +112,15 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 	if strings.TrimSpace(tags) == "" {
 		tags = ann[annTags]
 	}
+	url = appendRootPath(url, rootPath)
+	if !tile.ValidURL(url) {
+		return nil, fmt.Errorf("url with rootPath must be an http or https address")
+	}
 	return []tile.Tile{{
 		Kind:        tile.KindApplication,
 		Name:        s.Name,
 		Group:       strings.ToLower(group),
-		URL:         appendRootPath(url, rootPath),
+		URL:         url,
 		Icon:        s.Icon,
 		IconColor:   s.IconColor,
 		Info:        s.Info,
@@ -148,6 +155,9 @@ func (Bookmark) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, er
 	url := strings.TrimSpace(s.URL)
 	if url == "" {
 		return nil, fmt.Errorf("spec.url is empty")
+	}
+	if !tile.ValidURL(url) {
+		return nil, fmt.Errorf("url must be an http or https address")
 	}
 	group := strings.TrimSpace(s.Group)
 	if group == "" {

@@ -158,11 +158,15 @@ func annotatedTilesWith(
 
 	tiles := make([]tile.Tile, 0, len(urls))
 	for _, u := range urls {
+		u = appendRootPath(u, ann[annRootPath])
+		if !tile.ValidURL(u) {
+			return nil, fmt.Errorf("url must be an http or https address")
+		}
 		tiles = append(tiles, tile.Tile{
 			Kind:        tile.KindApplication,
 			Name:        name,
 			Group:       strings.ToLower(group),
-			URL:         appendRootPath(u, ann[annRootPath]),
+			URL:         u,
 			Icon:        first(ann[annIcon], fallback.icon),
 			IconColor:   strings.TrimSpace(ann[annIconColor]),
 			Info:        info,
