@@ -182,3 +182,22 @@ func (c *Controller) releaseType(typ string) {
 		c.setDeps(owner, nil)
 	}
 }
+
+// retryUnwatchedRefs retries dependencies whose kind was absent or whose
+// discovery failed. deps is recorded even when lookup could not start a watch.
+// Discovery runs on a bounded interval, so installing a CRD needs no source edit.
+func (c *Controller) retryUnwatchedRefs() {
+	c.refMu.Lock()
+	owners := map[store.Owner]bool{}
+	for owner, refs := range c.deps {
+		for _, ref := range refs {
+			if c.refs[ref] == nil {
+				owners[owner] = true
+			}
+		}
+	}
+	c.refMu.Unlock()
+	for owner := range owners {
+		c.reapply(owner)
+	}
+}

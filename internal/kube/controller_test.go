@@ -441,3 +441,24 @@ func TestNamespaceSelector(t *testing.T) {
 		t.Error("an application outside the selected namespaces was read")
 	}
 }
+
+func TestURLFromRetriesWhenKindAppears(t *testing.T) {
+	withRef := app("v1", "ns", "a", "")
+	withRef.Object["spec"] = map[string]any{"name": "a", "urlFrom": map[string]any{
+		"apiVersion": "v1", "kind": "ConfigMap", "name": "links", "property": "data.url"}}
+	c := newCluster(withRef, configMap("ns", "links", "https://resolved.test"))
+	c.extra = nil // the target's kind is not installed at initial conversion
+	c.serve("v1")
+	s := c.run(t)
+	eventually(t, "initial sync", s.Ready)
+	if len(s.Snapshot().Tiles) != 0 {
+		t.Fatal("unexpected resolved tile before target kind exists")
+	}
+	c.mu.Lock()
+	c.extra = []*metav1.APIResourceList{{GroupVersion: "v1", APIResources: []metav1.APIResource{{Name: "configmaps", Kind: "ConfigMap", Namespaced: true, Verbs: metav1.Verbs{"get", "list", "watch"}}}}}
+	c.mu.Unlock()
+	c.serve("v1")
+	eventually(t, "reference to resolve without modifying its application", func() bool {
+		return urlOf(s, "test/applications.startpunkt.ullberg.us/ns/a") == "https://resolved.test"
+	})
+}

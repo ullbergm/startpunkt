@@ -174,6 +174,7 @@ sources:
 - The kind is mapped to its resource through API discovery, not by guessing a plural.
 - Each referenced object gets a watch limited to that one object by name. The watch stops when no Application refers to it any more.
 - A reference that resolves wins over `spec.url`. When it does not resolve, `spec.url` is used if set; otherwise the Application has no tile until the reference resolves.
+- A reference whose kind is absent or whose discovery fails is retried on the discovery interval. Installing that kind later resolves the Application without editing it.
 - The controller needs `get`, `list` and `watch` on the referenced type. The chart grants this for the source types and takes further rules from `rbac.extraRules`.
 
 ### Discovery

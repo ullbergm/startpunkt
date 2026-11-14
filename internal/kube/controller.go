@@ -142,6 +142,7 @@ func (c *Controller) Run(ctx context.Context) {
 			c.synced.Store(true)
 		}
 		c.reportSynced()
+		c.retryUnwatchedRefs()
 		select {
 		case <-ctx.Done():
 			return
