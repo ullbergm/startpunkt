@@ -23,7 +23,6 @@ Small things that make what is there more dependable.
 ### Reading the cluster
 
 - [ ] **Readiness of the workload behind a service** (M). Find the Deployment or StatefulSet a tile's Service points at, and show "starting" or "degraded" next to what the probe says.
-- [ ] **Ready-made mappings** (S). Traefik IngressRoute is one expression today. Ship it, and others such as Contour HTTPProxy, Kong and Tailscale Ingress, as values that can be switched on.
 - [ ] **GRPCRoute and TLSRoute** (S). The Gateway API types that carry host names, as built-in sources.
 - [ ] **The address of a VirtualService or HTTPRoute from its Gateway** (M). Whether the listener has TLS and on which port is the Gateway's to say; today it is a default and an annotation.
 - [ ] **Namespaces by label** (S). `namespaceSelector` takes names. A label selector lets a namespace opt in on its own.

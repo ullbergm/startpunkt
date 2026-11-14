@@ -31,6 +31,13 @@ func (n NamespaceSelector) Namespaces() []string {
 // environment variable of a setting is STARTPUNKT_SOURCES_<SOURCE>_<SETTING>
 // in upper case, for example STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED.
 type Sources struct {
+	// Presets enables ready-made CEL mappings by name: traefik and contour.
+	// Each reads only resources annotated startpunkt.ullberg.us/enable: "true".
+	// Environment: STARTPUNKT_SOURCES_PRESETS, comma-separated.
+	// +optional
+	// +listType=set
+	// +kubebuilder:validation:items:Enum=traefik;contour
+	Presets        []string      `json:"presets,omitempty"`
 	Application    Source        `json:"application"`
 	Bookmark       Source        `json:"bookmark"`
 	Route          Annotated     `json:"route"`

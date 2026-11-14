@@ -205,6 +205,8 @@ spec:
 
 ### Other resource types
 
+For common routing resources, enable [ready-made CEL mappings](docs/source-presets.md) with `sources.presets: [traefik, contour]`. They use the same annotations and validation as custom mappings.
+
 A resource type that Startpunkt has no source for can be added in the settings. An expression says where an object of that type is served, and the annotations above do the rest. This reads Traefik's IngressRoutes:
 
 ```yaml

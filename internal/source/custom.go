@@ -59,6 +59,7 @@ func celEnv() (*cel.Env, error) {
 	return cel.NewEnv(
 		cel.Variable("object", cel.DynType),
 		ext.Strings(),
+		ext.Lists(),
 		cel.Function("hostsFromRule",
 			cel.Overload("hostsFromRule_string", []*cel.Type{cel.StringType}, cel.ListType(cel.StringType),
 				cel.UnaryBinding(func(rule ref.Val) ref.Val {

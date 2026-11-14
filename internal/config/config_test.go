@@ -417,3 +417,38 @@ func TestDefaultPreferences(t *testing.T) {
 		}
 	}
 }
+
+func TestSourcePresets(t *testing.T) {
+	cfg, err := Load("", false, env(map[string]string{
+		"STARTPUNKT_SOURCES_PRESETS": "traefik, contour",
+	}))
+	if err != nil || !reflect.DeepEqual(cfg.Sources.Presets, []string{"traefik", "contour"}) {
+		t.Fatalf("environment presets: %v, %v", cfg.Sources.Presets, err)
+	}
+	with, err := Default().WithResources([]byte(`{"sources":{"presets":["contour"]}}`), nil)
+	if err != nil || !reflect.DeepEqual(with.Sources.Presets, []string{"contour"}) {
+		t.Fatalf("resource presets: %v, %v", with.Sources.Presets, err)
+	}
+	cleared, err := cfg.WithResources([]byte(`{"sources":{"presets":[]}}`), nil)
+	if err != nil || len(cleared.Sources.Presets) != 0 {
+		t.Fatalf("clear presets: %v, %v", cleared.Sources.Presets, err)
+	}
+	if _, err := cfg.WithResources([]byte(`{"sources":{"presets":["contour"]}}`), nil); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(cfg.Sources.Presets, []string{"traefik", "contour"}) {
+		t.Errorf("resource changed the fallback presets: %v", cfg.Sources.Presets)
+	}
+	for _, value := range []string{"unknown", "traefik,traefik"} {
+		if _, err := Load("", false, env(map[string]string{"STARTPUNKT_SOURCES_PRESETS": value})); err == nil {
+			t.Errorf("invalid presets accepted: %s", value)
+		}
+	}
+	_, err = Load("", false, env(map[string]string{
+		"STARTPUNKT_SOURCES_PRESETS": "traefik",
+		"STARTPUNKT_SOURCES_CUSTOM":  `[{"name":"duplicate","apiGroup":"traefik.io","version":"v1alpha1","resource":"ingressroutes","url":"'example.com'"}]`,
+	}))
+	if err == nil || !strings.Contains(err.Error(), "one source per resource type") {
+		t.Errorf("preset/custom resource collision: %v", err)
+	}
+}

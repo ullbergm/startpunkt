@@ -319,7 +319,7 @@ func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.
 	runCtx, stop := context.WithCancel(ctx)
 	r := &clusterRun{store: store.New(), stop: stop}
 	_, r.events, r.unsubscribe = r.store.Subscribe()
-	sources, err := source.All(sourceOptions(cfg.Sources), cfg.Sources.Custom)
+	sources, err := source.Configured(sourceOptions(cfg.Sources), cfg.Sources.Custom, cfg.Sources.Presets)
 	if err != nil {
 		log.Error("the custom sources cannot be used", "error", err)
 		sources = source.Builtin(sourceOptions(cfg.Sources))

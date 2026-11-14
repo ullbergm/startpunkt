@@ -160,12 +160,14 @@ sources:
 - The mapping only has to say what is particular to the type: the address. Everything else is shared with the built-in annotated sources. The `startpunkt.ullberg.us` annotations name the tile, group it, show or hide it, and adjust the address, and `onlyAnnotated` means the same. The first sketch of this had expressions calling an `annotation()` function for each field; reusing the annotation handling made that unnecessary, and a mapping is usually one line.
 - `url` gives a string or a list of strings. Each is an address with its scheme, or a bare host, optionally with a path. To a bare host the `protocol`, `port` and `rootPath` annotations apply as for a built-in source; to an address with its scheme only `rootPath` does. Only `http` and `https` addresses are accepted.
 - `tileName`, `tileGroup`, `icon` and `info` are optional expressions for what a tile shows when the object has no annotation for it.
-- Expressions see the object as `object`, the standard CEL functions, the string extensions, and `hostFromRule` and `hostsFromRule` for routing rules. An expression has a cost limit, so one that does far more work than a single object warrants is stopped.
+- Expressions see the object as `object`, the standard CEL functions, the string and list extensions (including `flatten()`), and `hostFromRule` and `hostsFromRule` for routing rules. An expression has a cost limit, so one that does far more work than a single object warrants is stopped.
 - A mapping names the plural resource, not the kind: that is what is watched, and it needs no lookup.
 - A mapping that fails to compile is rejected with the expression and the error. From a `Startpunkt` resource that means the settings are not applied and the status says why; from the environment the process does not start.
 - A mapping that fails on a specific object is logged with the object reference and skips that object only. An object without the `enable` annotation, under `onlyAnnotated`, is not evaluated.
 - A resource type that has a built-in source cannot be mapped, also while that source is turned off.
 - The chart grants `get`, `list` and `watch` on each mapped type.
+
+Named, opt-in presets under `sources.presets` supply CEL mappings for Traefik IngressRoute and Contour HTTPProxy. They infer TLS from the object, publish only annotated resources and share the custom mapping evaluator. Presets and custom mappings cannot claim the same resource type. See [source presets](source-presets.md).
 
 ### urlFrom
 

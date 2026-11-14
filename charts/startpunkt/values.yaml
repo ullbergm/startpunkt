@@ -147,6 +147,12 @@ namespaceSelector:
 # STARTPUNKT_SOURCES_INGRESS_ONLYANNOTATED. Turning a source off also removes
 # its RBAC rule.
 sources:
+  # STARTPUNKT_SOURCES_PRESETS, comma-separated. Ready-made CEL mappings,
+  # off by default. Supported names are traefik (traefik.io IngressRoute)
+  # and contour (projectcontour.io HTTPProxy). They require the enable
+  # annotation, infer TLS from each object, and grant read access to their types.
+  # Use sources.custom instead when the mapping needs different settings.
+  presets: []
   # Application custom resources (startpunkt.ullberg.us).
   application:
     enabled: true

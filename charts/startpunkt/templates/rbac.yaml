@@ -46,6 +46,16 @@ rules:
     resources: [virtualservices]
     verbs: {{ toJson $read }}
   {{- end }}
+  {{- if has "traefik" .Values.sources.presets }}
+  - apiGroups: [traefik.io]
+    resources: [ingressroutes]
+    verbs: {{ toJson $read }}
+  {{- end }}
+  {{- if has "contour" .Values.sources.presets }}
+  - apiGroups: [projectcontour.io]
+    resources: [httpproxies]
+    verbs: {{ toJson $read }}
+  {{- end }}
   {{- range .Values.sources.custom }}
   # Custom source {{ .name | quote }}.
   - apiGroups: [{{ .apiGroup | default "" | quote }}]

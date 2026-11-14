@@ -259,6 +259,18 @@ spec:
                           startpunkt.ullberg.us/enable: "true".
                         type: boolean
                     type: object
+                  presets:
+                    description: |-
+                      Presets enables ready-made CEL mappings by name: traefik and contour.
+                      Each reads only resources annotated startpunkt.ullberg.us/enable: "true".
+                      Environment: STARTPUNKT_SOURCES_PRESETS, comma-separated.
+                    items:
+                      enum:
+                      - traefik
+                      - contour
+                      type: string
+                    type: array
+                    x-kubernetes-list-type: set
                   route:
                     description: Annotated is a source whose objects are published
                       with annotations.

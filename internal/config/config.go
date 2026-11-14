@@ -318,6 +318,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 	lists := map[string]*[]string{
 		"NAMESPACESELECTOR_MATCHNAMES": &c.NamespaceSelector.MatchNames,
 		"SOURCES_INGRESS_CLASSNAMES":   &c.Sources.Ingress.ClassNames,
+		"SOURCES_PRESETS":              &c.Sources.Presets,
 	}
 	for mode, palette := range map[string]*Palette{"LIGHT": &c.Web.Theme.Light, "DARK": &c.Web.Theme.Dark} {
 		text["WEB_THEME_"+mode+"_BODYBGCOLOR"] = &palette.BodyBgColor
@@ -385,7 +386,7 @@ func (c Config) Validate() error {
 	}
 	// Compiling them is the check: an expression that cannot be used is
 	// found here, not when the first object arrives.
-	if _, err := source.NewCustom(c.Sources.Custom, nil); err != nil {
+	if _, err := source.Configured(source.DefaultOptions(), c.Sources.Custom, c.Sources.Presets); err != nil {
 		return err
 	}
 	if !c.NamespaceSelector.Any && len(c.NamespaceSelector.MatchNames) == 0 {
@@ -497,6 +498,7 @@ func (c Config) WithResources(spec []byte, remotes []Remote) (Config, error) {
 		// into the memory it finds. Give it memory of its own, or the
 		// receiver's would be written over.
 		out.Web.DefaultPreferences = bytes.Clone(c.Web.DefaultPreferences)
+		out.Sources.Presets = append([]string(nil), c.Sources.Presets...)
 		if err := json.Unmarshal(spec, &out); err != nil {
 			return c, fmt.Errorf("reading the settings: %w", err)
 		}
