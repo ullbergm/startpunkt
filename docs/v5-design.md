@@ -284,6 +284,7 @@ Follower requests follow redirects only within the configured origin, preserving
 - What is taken from a remote can be limited per remote with `include` and `exclude`: by name and group, as patterns, by tag and by kind. Without `include` everything is taken, and `exclude` leaves tiles out, also among the included. The filter is applied by the hub as tiles arrive, so a tile that changes into or out of the selection appears or disappears.
 - For each remote, the hub opens `GET /api/v1/events`, receives the snapshot, and applies events to its own store under that cluster's key.
 - The cluster key is the name in the hub's own configuration, not the name the remote reports. Names must be unique within a hub, because they are part of the tile id.
+- A remote can rename its own cluster without changing this configured key. Tile updates for an identity not yet announced by `cluster.status` are held until that identity is known, so the rename does not temporarily discard its tiles.
 - A remote needs no configuration to be federated and does not know it is being consumed.
 - If a stream drops, the hub keeps the last known tiles, marks the cluster as stale, and reconnects with backoff. The snapshot sent on reconnect replaces that cluster's tiles, which resynchronises it. The UI shows a stale cluster as unreachable instead of dropping its tiles.
 - Remote tiles are read-only on the hub, whether or not the hub is unlocked. The UI links to the owning instance for editing. The hub holds no edit keys for remotes.

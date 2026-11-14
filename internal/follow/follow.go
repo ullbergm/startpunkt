@@ -56,6 +56,7 @@ type Follower struct {
 	MaxTiles      int
 	received      map[string]bool
 	clusters      map[string]bool
+	pending       map[string]tile.Tile
 	own           remote
 	// problem is why the last connection ended or could not be made, and
 	// is empty while connected.
@@ -384,6 +385,7 @@ func (f *Follower) applyRemote(name, data string) error {
 		for _, t := range state.Tiles {
 			f.received[t.ID] = true
 		}
+		f.pending = map[string]tile.Tile{}
 		f.own.local = map[string]bool{}
 		for _, c := range state.Clusters {
 			if c.Local {
@@ -412,6 +414,13 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := f.trackID(t.ID); err != nil {
 			return err
 		}
+		if !f.clusters[t.Cluster] {
+			if f.pending == nil {
+				f.pending = map[string]tile.Tile{}
+			}
+			f.pending[t.ID] = t
+			return nil
+		}
 		if adopted, ok := f.adopt(t); ok {
 			f.Store.UpsertFrom(feed, adopted)
 		} else if id, own := f.adoptID(t.ID); own {
@@ -424,6 +433,7 @@ func (f *Follower) applyRemote(name, data string) error {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
 		delete(f.received, d.ID)
+		delete(f.pending, d.ID)
 		if id, ok := f.adoptID(d.ID); ok {
 			f.Store.Remove(id)
 		}
@@ -435,6 +445,19 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := validateCluster(c); err != nil {
 			return err
 		}
+		if f.clusters == nil {
+			f.clusters = map[string]bool{}
+		}
+		if !f.clusters[c.Name] && len(f.clusters) >= 1024 {
+			return errors.New("too many remote clusters")
+		}
+		if c.Local && f.clusters[c.Name] && !f.own.local[c.Name] {
+			// A formerly federated cluster became the remote's own. Its
+			// earlier upserts were intentionally ignored, so read a snapshot
+			// instead of silently retaining an incomplete view.
+			return errors.New("remote cluster ownership changed; resynchronizing")
+		}
+		f.clusters[c.Name] = true
 		if c.Local {
 			if f.own.local == nil {
 				f.own.local = map[string]bool{}
@@ -447,16 +470,33 @@ func (f *Follower) applyRemote(name, data string) error {
 		} else {
 			delete(f.own.local, c.Name)
 		}
+		for id, t := range f.pending {
+			if t.Cluster != c.Name {
+				continue
+			}
+			if adopted, ok := f.adopt(t); ok {
+				f.Store.UpsertFrom(feed, adopted)
+			}
+			delete(f.pending, id)
+		}
 	case string(store.EventClusterDelete):
 		var d api.ClusterDelete
 		if err := json.Unmarshal([]byte(data), &d); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
 		delete(f.own.local, d.Name)
+		delete(f.clusters, d.Name)
+		for id, t := range f.pending {
+			if t.Cluster == d.Name {
+				delete(f.pending, id)
+			}
+		}
 	}
 	return nil
 }
 
+// Configured headers can contain arbitrary credentials, not only Authorization.
+// Never forward them across an origin change, including HTTPS downgrades.
 func safeRedirect(req *http.Request, via []*http.Request) error {
 	if len(via) >= 10 {
 		return errors.New("too many redirects")
