@@ -80,6 +80,20 @@ type BookmarkList struct {
 	Items           []Bookmark `json:"items"`
 }
 
+// Link is a named secondary HTTP or HTTPS address on a tile.
+type Link struct {
+	// Name shown for the link.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=80
+	Name string `json:"name"`
+	// URL opened by the link.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MaxLength=4096
+	// +kubebuilder:validation:Pattern=`^https?://[^/]+`
+	URL string `json:"url"`
+}
+
 // ApplicationSpec describes an application tile.
 type ApplicationSpec struct {
 	// Application name
@@ -103,6 +117,10 @@ type ApplicationSpec struct {
 	// Description of the application
 	// +optional
 	Info string `json:"info,omitempty"`
+	// Secondary links, such as documentation, logs or the deployment.
+	// +optional
+	// +kubebuilder:validation:MaxItems=8
+	Links []Link `json:"links,omitempty"`
 	// Open the URL in a new tab
 	// +optional
 	TargetBlank *bool `json:"targetBlank,omitempty"`
@@ -163,6 +181,10 @@ type BookmarkSpec struct {
 	// Description of the bookmark
 	// +optional
 	Info string `json:"info,omitempty"`
+	// Secondary links, such as documentation, logs or the deployment.
+	// +optional
+	// +kubebuilder:validation:MaxItems=8
+	Links []Link `json:"links,omitempty"`
 	// Open the URL in a new tab
 	// +optional
 	TargetBlank *bool `json:"targetBlank,omitempty"`

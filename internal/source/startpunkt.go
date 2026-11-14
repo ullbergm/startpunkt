@@ -98,6 +98,10 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 	if !tile.ValidURL(url) {
 		return nil, fmt.Errorf("url must be an http or https address")
 	}
+	links, err := secondaryLinks(s.Links, obj.GetAnnotations())
+	if err != nil {
+		return nil, err
+	}
 	group := strings.TrimSpace(s.Group)
 	if group == "" {
 		group = obj.GetNamespace()
@@ -124,6 +128,7 @@ func (Application) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.
 		Icon:        s.Icon,
 		IconColor:   s.IconColor,
 		Info:        s.Info,
+		Links:       links,
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        splitTags(tags),
@@ -159,6 +164,10 @@ func (Bookmark) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, er
 	if !tile.ValidURL(url) {
 		return nil, fmt.Errorf("url must be an http or https address")
 	}
+	links, err := secondaryLinks(s.Links, obj.GetAnnotations())
+	if err != nil {
+		return nil, err
+	}
 	group := strings.TrimSpace(s.Group)
 	if group == "" {
 		group = obj.GetNamespace()
@@ -170,6 +179,7 @@ func (Bookmark) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, er
 		URL:         url,
 		Icon:        s.Icon,
 		Info:        s.Info,
+		Links:       links,
 		TargetBlank: s.TargetBlank != nil && *s.TargetBlank,
 		Location:    location(s.Location, apiv1.DefaultLocation),
 		Tags:        []string{},

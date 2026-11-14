@@ -29,6 +29,7 @@ const (
 	annTags        = AnnotationPrefix + "tags"
 	annTargetBlank = AnnotationPrefix + "targetBlank"
 	annURL         = AnnotationPrefix + "url"
+	annLinks       = AnnotationPrefix + "links"
 )
 
 // endpoint is one place an object is served at, before annotations are
@@ -156,6 +157,10 @@ func annotatedTilesWith(
 		}
 	}
 
+	links, err := secondaryLinks(nil, ann)
+	if err != nil {
+		return nil, err
+	}
 	tiles := make([]tile.Tile, 0, len(urls))
 	for _, u := range urls {
 		u = appendRootPath(u, ann[annRootPath])
@@ -170,6 +175,7 @@ func annotatedTilesWith(
 			Icon:        first(ann[annIcon], fallback.icon),
 			IconColor:   strings.TrimSpace(ann[annIconColor]),
 			Info:        info,
+			Links:       links,
 			TargetBlank: targetBlank,
 			Location:    location(loc, apiv1.DefaultLocation),
 			Tags:        splitTags(ann[annTags]),

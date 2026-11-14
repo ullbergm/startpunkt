@@ -156,6 +156,26 @@ export function TileCard({
             {body}
           </div>
         )}
+        {!arranging && card.members.some((member) => member.links?.length) && (
+          <div class="tile-secondary-links">
+            {card.members.flatMap((member) =>
+              (member.links ?? []).map((link, index) => {
+                const address = /^https?:\/\//i.test(link.url) ? safeHref(link.url) : null;
+                return address ? (
+                  <a
+                    key={`${member.id}/${index}`}
+                    href={address}
+                    aria-label={combined ? `${link.name} · ${member.cluster}` : undefined}
+                    target={member.targetBlank ? '_blank' : undefined}
+                    rel={member.targetBlank ? 'noopener noreferrer' : undefined}
+                  >
+                    {link.name}{combined && <span class="secondary-cluster"> · {member.cluster}</span>}
+                  </a>
+                ) : null;
+              }),
+            )}
+          </div>
+        )}
         {/* Next to the card's link, not inside it: a link in a link is not
             valid, and each cluster has to be reachable on its own. */}
         {showCluster && (

@@ -94,6 +94,11 @@ export function Unlock({ onClose, fetcher }: { onClose: () => void; fetcher?: ty
   );
 }
 
+interface SecondaryLink {
+  name: string;
+  url: string;
+}
+
 // Creates or changes one Application or Bookmark.
 export function Editor({
   target,
@@ -112,6 +117,8 @@ export function Editor({
   // chosen. What was filled in stays, where the other kind has the field.
   const [kind, setKind] = useState<EditKind>(target.kind);
   const [base, setBase] = useState<Spec | null>(existing ? null : {});
+  const [links, setLinks] = useState<SecondaryLink[]>([]);
+  const [linksEdited, setLinksEdited] = useState(false);
   const [values, setValues] = useState<FormValues>(() => ({
     ...toForm('applications', {}),
     ...toForm('bookmarks', {}),
@@ -127,6 +134,7 @@ export function Editor({
       .then((resource) => {
         if (!current) return;
         setBase(resource.spec ?? {});
+        setLinks(Array.isArray(resource.spec.links) ? (resource.spec.links as SecondaryLink[]) : []);
         setValues(toForm(target.kind, resource.spec ?? {}));
       })
       .catch((error) => current && setProblem(explain(error)));
@@ -151,6 +159,18 @@ export function Editor({
   // An address that is read from another object does not have to be given.
   const urlFrom = base?.urlFrom as { kind?: string; name?: string } | undefined;
   const problems = validate(kind, values, Boolean(urlFrom));
+  const savedLinks = links
+    .map((link) => ({ name: link.name.trim(), url: link.url.trim() }))
+    .filter((link) => link.name !== '' || link.url !== '');
+  const invalidLinks =
+    savedLinks.length > 8 ||
+    savedLinks.some(
+      (link) =>
+        link.name === '' ||
+        new TextEncoder().encode(link.name).length > 80 ||
+        new TextEncoder().encode(link.url).length > 4096 ||
+        !isAddress(link.url),
+    );
   // A problem is said next to its field once the field has been left, or
   // the form was sent with it.
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -165,7 +185,15 @@ export function Editor({
       form.current?.querySelector<HTMLElement>(`[data-field="${wrong.name}"] input`)?.focus();
       return;
     }
-    void run(() => saveResource({ ...target, kind }, toSpec(kind, base, values), fetcher));
+    if (invalidLinks) {
+      setSent(true);
+      form.current?.querySelector<HTMLElement>('[data-links] input')?.focus();
+      return;
+    }
+    const spec = toSpec(kind, base, values);
+    delete spec.links;
+    if (savedLinks.length > 0 || base.links !== undefined || linksEdited) spec.links = savedLinks;
+    void run(() => saveResource({ ...target, kind }, spec, fetcher));
   };
 
   // Whether something answers at the address, asked a moment after it was
@@ -202,6 +230,10 @@ export function Editor({
 
   const title = t(`edit.${existing ? 'change' : 'add'}.${kind}` as MessageKey);
   const set = (name: string, value: string | boolean) => setValues({ ...values, [name]: value });
+  const changeLinks = (next: SecondaryLink[]) => {
+    setLinks(next);
+    setLinksEdited(true);
+  };
   return (
     <Modal label={title} class="settings editor" onClose={onClose}>
       <header class="settings-header">
@@ -360,6 +392,58 @@ export function Editor({
               </div>
             );
           })}
+        {base !== null && (
+          <fieldset class="field field-wide" data-links>
+            <legend>{t('edit.links.title')}</legend>
+            <p class="help">{t('edit.links.help')}</p>
+            {links.map((link, index) => (
+              <div class="field field-wide" key={index}>
+                <label class="field field-wide">
+                  <span>{t('edit.links.name', { index: index + 1 })}</span>
+                  <input
+                    class="d-input"
+                    type="text"
+                    maxLength={80}
+                    value={link.name}
+                    onInput={(event) =>
+                      changeLinks(links.map((value, i) => (i === index ? { ...value, name: event.currentTarget.value } : value)))
+                    }
+                  />
+                </label>
+                <label class="field field-wide">
+                  <span>{t('edit.links.url', { index: index + 1 })}</span>
+                  <input
+                    class="d-input"
+                    type="url"
+                    maxLength={4096}
+                    value={link.url}
+                    onInput={(event) =>
+                      changeLinks(links.map((value, i) => (i === index ? { ...value, url: event.currentTarget.value } : value)))
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  class="d-btn d-btn-ghost d-btn-sm"
+                  onClick={() => changeLinks(links.filter((_, i) => i !== index))}
+                >
+                  {t('edit.links.remove', { index: index + 1 })}
+                </button>
+              </div>
+            ))}
+            {sent && invalidLinks && (
+              <small class="field-error" role="alert">{t('edit.links.invalid')}</small>
+            )}
+            <button
+              type="button"
+              class="d-btn d-btn-outline d-btn-sm"
+              disabled={links.length >= 8}
+              onClick={() => changeLinks([...links, { name: '', url: '' }])}
+            >
+              {t('edit.links.add')}
+            </button>
+          </fieldset>
+        )}
         {problem && (
           <p class="d-alert d-alert-error d-alert-soft form-error" role="alert">
             {problem}

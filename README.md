@@ -201,7 +201,7 @@ spec:
   url: https://kubernetes.io/docs/
 ```
 
-`name`, `group` and `url` are required; `icon`, `info`, `targetBlank` and `location` are optional. Bookmarks are not probed and have no tags.
+`name`, `group` and `url` are required; `icon`, `info`, `targetBlank` and `location` are optional. Bookmarks are not probed and have no tags. Both kinds accept optional `links`, a list of named secondary addresses; see [secondary links](docs/secondary-links.md).
 
 ### Other resource types
 

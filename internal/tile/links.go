@@ -1,6 +1,7 @@
 package tile
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"strconv"
@@ -38,4 +39,20 @@ func ValidURL(address string) bool {
 		}
 	}
 	return true
+}
+
+// ValidateLinks applies the same limits to local and remote secondary links.
+func ValidateLinks(links []Link) error {
+	if len(links) > 8 {
+		return fmt.Errorf("links may contain at most 8 entries")
+	}
+	for i, link := range links {
+		if strings.TrimSpace(link.Name) == "" || len(link.Name) > 80 {
+			return fmt.Errorf("links[%d].name must contain 1 to 80 bytes", i)
+		}
+		if len(link.URL) > 4096 || !ValidURL(link.URL) {
+			return fmt.Errorf("links[%d].url must be an http or https address of at most 4096 bytes", i)
+		}
+	}
+	return nil
 }

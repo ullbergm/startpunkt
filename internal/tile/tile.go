@@ -27,6 +27,12 @@ type Source struct {
 	Name      string `json:"name"`
 }
 
+// Link is a named secondary HTTP or HTTPS address on a tile.
+type Link struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
 // Tile is one application or bookmark. It is the unit held by the store and
 // sent to clients, and its JSON form is part of the versioned API.
 type Tile struct {
@@ -39,6 +45,7 @@ type Tile struct {
 	Icon        string     `json:"icon,omitempty"`
 	IconColor   string     `json:"iconColor,omitempty"`
 	Info        string     `json:"info,omitempty"`
+	Links       []Link     `json:"links,omitempty"`
 	TargetBlank bool       `json:"targetBlank"`
 	Location    int        `json:"location"`
 	Tags        []string   `json:"tags"`
@@ -65,6 +72,14 @@ func Equal(a, b Tile) bool {
 		a.IconColor != b.IconColor || a.Info != b.Info || a.TargetBlank != b.TargetBlank ||
 		a.Location != b.Location || a.Source != b.Source || a.Editable != b.Editable {
 		return false
+	}
+	if len(a.Links) != len(b.Links) {
+		return false
+	}
+	for i := range a.Links {
+		if a.Links[i] != b.Links[i] {
+			return false
+		}
 	}
 	if len(a.Tags) != len(b.Tags) {
 		return false

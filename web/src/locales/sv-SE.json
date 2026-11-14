@@ -223,5 +223,12 @@
   "edit.help.tags": "Tryck Enter eller komma efter varje. En taggad bricka visas bara på adresser som nämner en av dess taggar.",
   "edit.help.rootPath": "Läggs till adressen.",
   "edit.help.location": "Lägre kommer först inom gruppen.",
-  "edit.help.group": "Namnrymden används om inget anges."
+  "edit.help.group": "Namnrymden används om inget anges.",
+  "edit.links.title": "Fler länkar",
+  "edit.links.help": "Upp till åtta länkar till dokumentation, loggar eller andra sidor.",
+  "edit.links.name": "Namn på länk {index}",
+  "edit.links.url": "Adress för länk {index}",
+  "edit.links.remove": "Ta bort länk {index}",
+  "edit.links.add": "Lägg till en länk",
+  "edit.links.invalid": "Varje länk behöver ett namn (högst 80 tecken) och en http- eller https-adress."
 }

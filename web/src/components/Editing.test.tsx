@@ -240,7 +240,7 @@ describe('Editor', () => {
   });
 
   it('loads a bookmark, changes it and keeps what it does not show', async () => {
-    const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com/docs', info: 'Old words' };
+    const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com/docs', info: 'Old words', links: [{ name: 'Logs', url: 'https://logs.example.com' }] };
     const { fetcher, calls } = server({
       'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', spec }),
       'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
@@ -259,8 +259,45 @@ describe('Editor', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     const put = calls.find(([, init]) => init.method === 'PUT')!;
     expect(JSON.parse(put[1].body as string)).toEqual({
-      spec: { name: 'Documentation', group: 'Reference', url: 'https://example.com/docs' },
+      spec: { name: 'Documentation', group: 'Reference', url: 'https://example.com/docs', links: spec.links },
     });
+  });
+
+  it('adds, validates and removes secondary links', async () => {
+    const { fetcher, calls } = server({ 'POST /api/v1/applications': () => json(201, {}) });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    type('Name', 'Grafana');
+    type('Address', 'https://grafana.example.com');
+    fireEvent.click(screen.getByRole('button', { name: 'Add a link' }));
+    type('Link 1 name', 'Logs');
+    type('Link 1 address', 'javascript:alert(1)');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('Each link needs');
+    expect(calls.filter(([, init]) => init.method === 'POST')).toHaveLength(0);
+    type('Link 1 address', 'https://logs.example.com');
+    fireEvent.click(screen.getByRole('button', { name: 'Add a link' }));
+    type('Link 2 name', 'Removed');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove link 2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'POST')![1].body as string).spec.links).toEqual([
+      { name: 'Logs', url: 'https://logs.example.com' },
+    ]);
+  });
+
+  it('keeps an explicit empty links list when the final link is removed', async () => {
+    const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com', links: [{ name: 'Logs', url: 'https://logs.example.com' }] };
+    const { fetcher, calls } = server({
+      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', spec }),
+      'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
+    });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'bookmarks', namespace: 'links', name: 'docs' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove link 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).spec.links).toEqual([]);
   });
 
   it('does not ask for an address that is read from another object', async () => {
@@ -330,6 +367,22 @@ describe('the page', () => {
     render(<App open={openFake} />);
     act(() => FakeStream.last.emit('snapshot', s));
   };
+
+  it.each(['application', 'bookmark'] as const)('creates the first other kind from a page containing only %ss', async (kind) => {
+    const other = kind === 'application' ? 'bookmarks' : 'applications';
+    const { fetcher, calls } = server({ [`POST /api/v1/${other}`]: () => json(201, {}) });
+    vi.stubGlobal('fetch', fetcher);
+    editKey.value = 'the right key';
+    show(serverState({ editing: { available: true, namespace: 'home' }, tiles: [tile({ kind })] }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit the page' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.change(field('Kind'), { target: { value: other } });
+    type('Name', 'New tile');
+    type('Address', 'https://new.example.com');
+    type(/^Group/, 'New group');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some(([url, init]) => url === `/api/v1/${other}` && init.method === 'POST')).toBe(true));
+  });
 
   it('asks for nothing when the instance has no edit key', async () => {
     vi.stubGlobal('fetch', server({}).fetcher);

@@ -26,11 +26,12 @@ const SchemaVersion = 1
 // State is the document served by GET /api/v1/state and sent as the first
 // event of GET /api/v1/events.
 type State struct {
-	SchemaVersion int             `json:"schemaVersion"`
-	Tiles         []tile.Tile     `json:"tiles"`
-	Clusters      []store.Cluster `json:"clusters"`
-	Config        UIConfig        `json:"config"`
-	Editing       Editing         `json:"editing"`
+	SchemaVersion int `json:"schemaVersion"`
+	// Tiles include optional named secondary links. Older clients may ignore them.
+	Tiles    []tile.Tile     `json:"tiles"`
+	Clusters []store.Cluster `json:"clusters"`
+	Config   UIConfig        `json:"config"`
+	Editing  Editing         `json:"editing"`
 }
 
 // UIConfig is the configuration the frontend needs.

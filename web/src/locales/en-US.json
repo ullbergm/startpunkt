@@ -223,5 +223,12 @@
   "edit.help.tags": "Press Enter or a comma after each. A tagged tile shows only on addresses that name one of its tags.",
   "edit.help.rootPath": "Added to the address.",
   "edit.help.location": "Lower comes first within the group.",
-  "edit.help.group": "Defaults to the namespace."
+  "edit.help.group": "Defaults to the namespace.",
+  "edit.links.title": "Secondary links",
+  "edit.links.help": "Up to eight links to documentation, logs or other pages.",
+  "edit.links.name": "Link {index} name",
+  "edit.links.url": "Link {index} address",
+  "edit.links.remove": "Remove link {index}",
+  "edit.links.add": "Add a link",
+  "edit.links.invalid": "Each link needs a name (up to 80 characters) and an http or https address."
 }

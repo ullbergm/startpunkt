@@ -712,6 +712,26 @@ li[draggable='true'] {
   min-width: 0;
 }
 
+/* Separate anchors keep secondary destinations reachable without nesting
+   links inside the card's main link. They stay visible on touch screens. */
+.tile-secondary-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0 var(--tile-pad) var(--tile-pad) calc(var(--tile-pad) + 40px + 0.75rem);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.tile-secondary-links a {
+  color: var(--primary);
+  text-underline-offset: 0.2em;
+}
+
+.secondary-cluster {
+  color: var(--muted);
+}
+
 .tile-pills {
   display: flex;
   flex-wrap: wrap;

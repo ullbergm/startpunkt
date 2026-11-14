@@ -41,7 +41,6 @@ Small things that make what is there more dependable.
 - [ ] **Response time and a short history** (M). The prober already measures. Keep the last hours in memory and show them on the tile and in a small status view. Nothing is stored, so a restart starts over.
 - [ ] **Sync and health from Argo CD and Flux** (M). A badge from the `Application` or `Kustomization` that deploys a service, found by label.
 - [ ] **A value from the service** (M). One generic, declared readout: an address, a path into its JSON answer, a label. Fetched by the instance, with the address limited to the tile's own host and secrets taken from Secrets. Not a catalogue of integrations.
-- [ ] **More links on a tile** (S). Secondary links from annotations, such as documentation, logs or the service in Argo CD.
 
 ### The page
 

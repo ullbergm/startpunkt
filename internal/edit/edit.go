@@ -120,6 +120,7 @@ func Validate(kind string, spec json.RawMessage) (map[string]any, error) {
 		return nil
 	}
 	var typed any
+	preserveEmptyLinks := false
 	switch kind {
 	case Applications:
 		var s apiv1.ApplicationSpec
@@ -139,6 +140,16 @@ func Validate(kind string, spec json.RawMessage) (map[string]any, error) {
 		if f := s.URLFrom; f != nil && (f.APIVersion == "" || f.Kind == "" || f.Name == "" || f.Property == "") {
 			return nil, Errorf(http.StatusBadRequest, "urlFrom needs apiVersion, kind, name and property")
 		}
+		links := make([]tile.Link, 0, len(s.Links))
+		for i := range s.Links {
+			s.Links[i].Name = strings.TrimSpace(s.Links[i].Name)
+			s.Links[i].URL = strings.TrimSpace(s.Links[i].URL)
+			links = append(links, tile.Link{Name: s.Links[i].Name, URL: s.Links[i].URL})
+		}
+		if err := tile.ValidateLinks(links); err != nil {
+			return nil, Errorf(http.StatusBadRequest, "%v", err)
+		}
+		preserveEmptyLinks = s.Links != nil && len(s.Links) == 0
 		typed = s
 	case Bookmarks:
 		var s apiv1.BookmarkSpec
@@ -152,6 +163,16 @@ func Validate(kind string, spec json.RawMessage) (map[string]any, error) {
 		if !link(s.URL) {
 			return nil, Errorf(http.StatusBadRequest, "url must be an http or https address")
 		}
+		links := make([]tile.Link, 0, len(s.Links))
+		for i := range s.Links {
+			s.Links[i].Name = strings.TrimSpace(s.Links[i].Name)
+			s.Links[i].URL = strings.TrimSpace(s.Links[i].URL)
+			links = append(links, tile.Link{Name: s.Links[i].Name, URL: s.Links[i].URL})
+		}
+		if err := tile.ValidateLinks(links); err != nil {
+			return nil, Errorf(http.StatusBadRequest, "%v", err)
+		}
+		preserveEmptyLinks = s.Links != nil && len(s.Links) == 0
 		typed = s
 	default:
 		return nil, Errorf(http.StatusNotFound, "not found")
@@ -164,6 +185,10 @@ func Validate(kind string, spec json.RawMessage) (map[string]any, error) {
 	var out map[string]any
 	if err := json.Unmarshal(data, &out); err != nil {
 		return nil, err
+	}
+	if preserveEmptyLinks {
+		// An explicit empty list overrides the links annotation.
+		out["links"] = []any{}
 	}
 	return out, nil
 }

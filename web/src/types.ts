@@ -12,6 +12,11 @@ export interface TileSource {
   name: string;
 }
 
+export interface TileLink {
+  name: string;
+  url: string;
+}
+
 export interface Tile {
   id: string;
   kind: TileKind;
@@ -22,6 +27,7 @@ export interface Tile {
   icon?: string;
   iconColor?: string;
   info?: string;
+  links?: TileLink[];
   targetBlank: boolean;
   location: number;
   tags: string[];

@@ -75,6 +75,28 @@ spec:
               info:
                 description: Description of the application
                 type: string
+              links:
+                description: Secondary links, such as documentation, logs or the deployment.
+                items:
+                  description: Link is a named secondary HTTP or HTTPS address on
+                    a tile.
+                  properties:
+                    name:
+                      description: Name shown for the link.
+                      maxLength: 80
+                      minLength: 1
+                      type: string
+                    url:
+                      description: URL opened by the link.
+                      maxLength: 4096
+                      pattern: ^https?://[^/]+
+                      type: string
+                  required:
+                  - name
+                  - url
+                  type: object
+                maxItems: 8
+                type: array
               location:
                 description: Sorting order of the application
                 type: integer
@@ -239,6 +261,28 @@ spec:
               info:
                 description: Description of the application
                 type: string
+              links:
+                description: Secondary links, such as documentation, logs or the deployment.
+                items:
+                  description: Link is a named secondary HTTP or HTTPS address on
+                    a tile.
+                  properties:
+                    name:
+                      description: Name shown for the link.
+                      maxLength: 80
+                      minLength: 1
+                      type: string
+                    url:
+                      description: URL opened by the link.
+                      maxLength: 4096
+                      pattern: ^https?://[^/]+
+                      type: string
+                  required:
+                  - name
+                  - url
+                  type: object
+                maxItems: 8
+                type: array
               location:
                 description: Sorting order of the application
                 type: integer
@@ -403,6 +447,28 @@ spec:
               info:
                 description: Description of the application
                 type: string
+              links:
+                description: Secondary links, such as documentation, logs or the deployment.
+                items:
+                  description: Link is a named secondary HTTP or HTTPS address on
+                    a tile.
+                  properties:
+                    name:
+                      description: Name shown for the link.
+                      maxLength: 80
+                      minLength: 1
+                      type: string
+                    url:
+                      description: URL opened by the link.
+                      maxLength: 4096
+                      pattern: ^https?://[^/]+
+                      type: string
+                  required:
+                  - name
+                  - url
+                  type: object
+                maxItems: 8
+                type: array
               location:
                 description: Sorting order of the application
                 type: integer
@@ -567,6 +633,28 @@ spec:
               info:
                 description: Description of the application
                 type: string
+              links:
+                description: Secondary links, such as documentation, logs or the deployment.
+                items:
+                  description: Link is a named secondary HTTP or HTTPS address on
+                    a tile.
+                  properties:
+                    name:
+                      description: Name shown for the link.
+                      maxLength: 80
+                      minLength: 1
+                      type: string
+                    url:
+                      description: URL opened by the link.
+                      maxLength: 4096
+                      pattern: ^https?://[^/]+
+                      type: string
+                  required:
+                  - name
+                  - url
+                  type: object
+                maxItems: 8
+                type: array
               location:
                 description: Sorting order of the application
                 type: integer
@@ -731,6 +819,28 @@ spec:
               info:
                 description: Description of the application
                 type: string
+              links:
+                description: Secondary links, such as documentation, logs or the deployment.
+                items:
+                  description: Link is a named secondary HTTP or HTTPS address on
+                    a tile.
+                  properties:
+                    name:
+                      description: Name shown for the link.
+                      maxLength: 80
+                      minLength: 1
+                      type: string
+                    url:
+                      description: URL opened by the link.
+                      maxLength: 4096
+                      pattern: ^https?://[^/]+
+                      type: string
+                  required:
+                  - name
+                  - url
+                  type: object
+                maxItems: 8
+                type: array
               location:
                 description: Sorting order of the application
                 type: integer
