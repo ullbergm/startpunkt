@@ -15,7 +15,6 @@ Small things that make what is there more dependable.
 - [ ] **A switch for type-to-search** (S). Opening search on any key is in the way of speech input and of some assistive tools. `/` and `Ctrl+K` stay.
 - [ ] **Smaller fixes on the page** (S). The search button, which is meant for touch screens, showing on every screen; group names in lower case in search results; a key pressed before the first tiles arrive, descriptions that do not refit when the text size changes, heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
 - [ ] **Checks in CI** (S). `golangci-lint` and `govulncheck`, a linter for the page, rendering the chart against the Kubernetes schemas, Markdown and link checks, the pull request title, and the cutover test on a schedule.
-- [ ] **A values schema for the whole chart** (S). The schema covers the settings sections but not `image`, `ingress`, `route`, `resources` and the rest, so a misspelt key there goes unnoticed.
 
 ## Later
 
