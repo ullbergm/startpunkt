@@ -260,6 +260,7 @@ describe('Editor', () => {
     const put = calls.find(([, init]) => init.method === 'PUT')!;
     expect(JSON.parse(put[1].body as string)).toEqual({
       resourceVersion: '42',
+
       spec: { name: 'Documentation', group: 'Reference', url: 'https://example.com/docs', links: spec.links },
     });
   });
@@ -279,6 +280,89 @@ describe('Editor', () => {
     expect(field('Name').value).toBe('My unsaved title');
     expect(onClose).not.toHaveBeenCalled();
     expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).resourceVersion).toBe('41');
+  });
+
+  it('shows annotation links without writing an override on an ordinary save', async () => {
+    const inheritedLinks = [{ name: 'Documentation', url: 'https://docs.example.com' }];
+    const { fetcher, calls } = server({
+      'GET /api/v1/applications/home/grafana': () => json(200, {
+        namespace: 'home', name: 'grafana', resourceVersion: '12', inheritedLinks,
+        spec: { name: 'Grafana', url: 'https://grafana.example.com' },
+      }),
+      'PUT /api/v1/applications/home/grafana': () => json(200, {}),
+    });
+    render(<Editor target={{ kind: 'applications', namespace: 'home', name: 'grafana' }} namespace="home" onClose={vi.fn()} fetcher={fetcher} />);
+    await waitFor(() => expect(field('Link 1 name').value).toBe('Documentation'));
+    expect(field('Link 1 name').readOnly).toBe(true);
+    expect(field('Link 1 address').readOnly).toBe(true);
+    expect(screen.getByText(/These links come from the resource annotation/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Remove link 1' })).toBeNull();
+    type('Name', 'Monitoring');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some(([, init]) => init.method === 'PUT')).toBe(true));
+    const body = JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string);
+    expect(body.spec).toEqual({ name: 'Monitoring', url: 'https://grafana.example.com' });
+  });
+
+  it('explicitly overrides inherited links and clears them', async () => {
+    const inheritedLinks = [{ name: 'Documentation', url: 'https://docs.example.com' }];
+    const { fetcher, calls } = server({
+      'GET /api/v1/applications/home/grafana': () => json(200, {
+        namespace: 'home', name: 'grafana', resourceVersion: '12', inheritedLinks,
+        spec: { name: 'Grafana', url: 'https://grafana.example.com' },
+      }),
+      'PUT /api/v1/applications/home/grafana': () => json(200, {}),
+    });
+    const onClose = vi.fn();
+    render(<Editor target={{ kind: 'applications', namespace: 'home', name: 'grafana' }} namespace="home" onClose={onClose} fetcher={fetcher} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Override links' }));
+    expect(field('Link 1 name').readOnly).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove link 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).spec.links).toEqual([]);
+
+  });
+
+  it('resets a spec override to annotation links without changing the annotation', async () => {
+    const { fetcher, calls } = server({
+      'GET /api/v1/bookmarks/links/docs': () => json(200, {
+        namespace: 'links', name: 'docs', resourceVersion: '18',
+        inheritedLinks: [{ name: 'Original', url: 'https://original.example.com' }],
+        spec: { name: 'Docs', group: 'links', url: 'https://example.com', links: [{ name: 'Override', url: 'https://override.example.com' }] },
+      }),
+      'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
+    });
+    render(<Editor target={{ kind: 'bookmarks', namespace: 'links', name: 'docs' }} namespace="home" onClose={vi.fn()} fetcher={fetcher} />);
+    await waitFor(() => expect(field('Link 1 name').value).toBe('Override'));
+    fireEvent.click(screen.getByRole('button', { name: 'Use annotation links' }));
+    expect(field('Link 1 name').value).toBe('Original');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some(([, init]) => init.method === 'PUT')).toBe(true));
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).spec).not.toHaveProperty('links');
+  });
+
+  it('keeps a valid override and disables reset when the annotation links are invalid', async () => {
+    const links = [{ name: 'Docs', url: 'https://docs.example.com' }];
+    const inheritedLinksError = 'unknown annotation field <img src=x onerror=alert(1)>';
+    const { fetcher, calls } = server({
+      'GET /api/v1/bookmarks/links/docs': () => json(200, {
+        namespace: 'links', name: 'docs', resourceVersion: '18', inheritedLinksError,
+        spec: { name: 'Docs', group: 'links', url: 'https://example.com', links },
+      }),
+      'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
+    });
+    render(<Editor target={{ kind: 'bookmarks', namespace: 'links', name: 'docs' }} namespace="home" onClose={vi.fn()} fetcher={fetcher} />);
+    const error = await screen.findByRole('alert');
+    expect(error.textContent).toContain('The annotation links are invalid.');
+    expect(error.textContent).toContain(inheritedLinksError);
+    expect(document.querySelector('img[src="x"]')).toBeNull();
+    expect((screen.getByRole('button', { name: 'Use annotation links' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(field('Link 1 name').value).toBe('Docs');
+    expect(field('Link 1 name').readOnly).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some(([, init]) => init.method === 'PUT')).toBe(true));
+    expect(JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string).spec.links).toEqual(links);
   });
 
   it('adds, validates and removes secondary links', async () => {

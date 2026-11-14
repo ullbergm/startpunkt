@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/ullbergm/startpunkt/internal/edit"
+	"github.com/ullbergm/startpunkt/internal/source"
 )
 
 func editorFor(c *cluster) *Editor {
@@ -253,5 +254,40 @@ func TestEditorRejectsChangesSinceTheFormWasOpened(t *testing.T) {
 				t.Fatalf("stale save overwrote the first: %+v, %v", current, err)
 			}
 		})
+	}
+}
+
+func TestEditorInheritedLinksUseStrictSourceValidation(t *testing.T) {
+	obj := app("v1", "home", "a", "https://a.test")
+	obj.SetAnnotations(map[string]string{source.AnnotationPrefix + "links": `[{"name":"Docs","url":"https://docs.test","typo":true}]`})
+	got, err := resource(obj)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.InheritedLinks) != 0 || got.InheritedLinksError == "" {
+		t.Fatal("editor preview accepted annotation links refused by the source")
+	}
+}
+
+func TestEditorRefusesResetToMalformedAnnotationLinks(t *testing.T) {
+	obj := app("v1", "home", "a", "https://a.test")
+	obj.SetResourceVersion("1")
+	obj.Object["spec"].(map[string]any)["links"] = []any{map[string]any{"name": "Valid", "url": "https://valid.test"}}
+	obj.SetAnnotations(map[string]string{source.AnnotationPrefix + "links": `[{"name":"Docs","url":"https://docs.test","typo":true}]`})
+	c := newCluster(obj)
+	c.serve("v1")
+	e := editorFor(c)
+	ctx := context.Background()
+	opened, err := e.Get(ctx, edit.Applications, "home", "a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened.Spec = json.RawMessage(`{"name":"a","url":"https://a.test"}`)
+	if _, err := e.Update(ctx, edit.Applications, opened); statusOf(err) != http.StatusBadRequest {
+		t.Fatalf("invalid fallback accepted: %v", err)
+	}
+	opened.Spec = json.RawMessage(`{"name":"a","url":"https://a.test","links":[]}`)
+	if _, err := e.Update(ctx, edit.Applications, opened); err != nil {
+		t.Fatalf("explicit empty override rejected: %v", err)
 	}
 }

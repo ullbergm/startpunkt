@@ -31,6 +31,9 @@ type Resource struct {
 	Namespace       string `json:"namespace"`
 	Name            string `json:"name"`
 	ResourceVersion string `json:"resourceVersion,omitempty"`
+	// InheritedLinks are annotation links, independent of any spec override.
+	InheritedLinks      []tile.Link `json:"inheritedLinks,omitempty"`
+	InheritedLinksError string      `json:"inheritedLinksError,omitempty"`
 	// Spec is the spec of the resource, with the fields of api/v1.
 	Spec json.RawMessage `json:"spec"`
 }

@@ -138,6 +138,11 @@ func (e *Editor) Update(ctx context.Context, kind string, r edit.Resource) (edit
 	if err := changeable(obj); err != nil {
 		return edit.Resource{}, err
 	}
+	if _, overridden := spec["links"]; !overridden {
+		if _, err := source.AnnotationLinks(obj.GetAnnotations()); err != nil {
+			return edit.Resource{}, edit.Errorf(http.StatusBadRequest, "annotation links are invalid; keep an explicit override or fix the annotation")
+		}
+	}
 	if r.ResourceVersion == "" {
 		return edit.Resource{}, edit.Errorf(http.StatusBadRequest, "resourceVersion is required; open the resource again")
 	}
@@ -189,7 +194,15 @@ func resource(obj *unstructured.Unstructured) (edit.Resource, error) {
 	if err != nil {
 		return edit.Resource{}, err
 	}
-	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), ResourceVersion: obj.GetResourceVersion(), Spec: data}, nil
+	inherited, inheritedErr := source.AnnotationLinks(obj.GetAnnotations())
+	inheritedError := ""
+	if inheritedErr != nil {
+		inheritedError = inheritedErr.Error()
+		if len(inheritedError) > 1024 {
+			inheritedError = inheritedError[:1024]
+		}
+	}
+	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), ResourceVersion: obj.GetResourceVersion(), InheritedLinks: inherited, InheritedLinksError: inheritedError, Spec: data}, nil
 }
 
 // translate turns an error of the API server into one for the caller of

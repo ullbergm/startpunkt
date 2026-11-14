@@ -84,6 +84,8 @@ export type Spec = Record<string, unknown>;
 
 export interface Resource {
   resourceVersion: string;
+  inheritedLinks?: { name: string; url: string }[];
+  inheritedLinksError?: string;
   namespace: string;
   name: string;
   spec: Spec;

@@ -230,5 +230,9 @@
   "edit.links.url": "Adress för länk {index}",
   "edit.links.remove": "Ta bort länk {index}",
   "edit.links.add": "Lägg till en länk",
-  "edit.links.invalid": "Varje länk behöver ett namn (högst 80 tecken) och en http- eller https-adress."
+  "edit.links.invalid": "Varje länk behöver ett namn (högst 80 tecken) och en http- eller https-adress.",
+  "edit.links.inherited": "Länkarna kommer från resursens annotering. Åsidosätt dem för att ändra dem här.",
+  "edit.links.override": "Åsidosätt länkar",
+  "edit.links.reset": "Använd annoteringens länkar",
+  "edit.links.inheritedInvalid": "Annoteringens länkar är ogiltiga. Åsidosätt dem här eller rätta annoteringen."
 }

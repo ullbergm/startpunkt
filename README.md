@@ -249,6 +249,7 @@ Things to know before turning it on:
 - The key is one shared secret, not a login. Everyone who has it can edit, and changes are not attributed to a person. It has to be at least 16 characters long.
 - The browser keeps the key, so it is asked for once, until "Forget the edit key" is chosen in the settings.
 - With a key configured, marking favorites and arranging them takes the key as well, since they are done in edit mode.
+- The resource editor shows secondary links inherited from annotations, with controls to override them or return to inheritance. An invalid annotation is shown as an error and cannot be selected by resetting the override. See [secondary links](docs/secondary-links.md#editing-inherited-links).
 - The instance is granted `create`, `update` and `delete` on the two resource types. Tiles that come from an Ingress, a Route or another cluster cannot be changed from the page.
 - Only `http` and `https` addresses are accepted.
 - The form checks what is typed and says what is wrong next to the field. It also asks the instance whether something answers at the address, and says so; an address that does not answer can be saved all the same. Whoever has the key can in this way learn whether an address answers from inside the cluster, which they could also learn by adding it as a tile.

@@ -118,8 +118,10 @@ export function Editor({
   const [kind, setKind] = useState<EditKind>(target.kind);
   const [base, setBase] = useState<Spec | null>(existing ? null : {});
   const [resourceVersion, setResourceVersion] = useState<string>();
+  const [inheritedLinks, setInheritedLinks] = useState<SecondaryLink[]>([]);
+  const [inheritedLinksError, setInheritedLinksError] = useState<string | null>(null);
+  const [linksOverride, setLinksOverride] = useState(false);
   const [links, setLinks] = useState<SecondaryLink[]>([]);
-  const [linksEdited, setLinksEdited] = useState(false);
   const [values, setValues] = useState<FormValues>(() => ({
     ...toForm('applications', {}),
     ...toForm('bookmarks', {}),
@@ -136,6 +138,9 @@ export function Editor({
         if (!current) return;
         setBase(resource.spec ?? {});
         setResourceVersion(resource.resourceVersion);
+        setInheritedLinks(resource.inheritedLinks ?? []);
+        setInheritedLinksError(resource.inheritedLinksError ?? null);
+        setLinksOverride(resource.spec.links !== undefined);
         setLinks(Array.isArray(resource.spec.links) ? (resource.spec.links as SecondaryLink[]) : []);
         setValues(toForm(target.kind, resource.spec ?? {}));
       })
@@ -194,7 +199,7 @@ export function Editor({
     }
     const spec = toSpec(kind, base, values);
     delete spec.links;
-    if (savedLinks.length > 0 || base.links !== undefined || linksEdited) spec.links = savedLinks;
+    if (linksOverride) spec.links = savedLinks;
     void run(() => saveResource({ ...target, kind, resourceVersion }, spec, fetcher));
   };
 
@@ -230,11 +235,13 @@ export function Editor({
   );
   const tags = [...new Set(tiles.flatMap((tile) => tile.tags))].sort((a, b) => a.localeCompare(b));
 
+  const showingInherited = !linksOverride && inheritedLinks.length > 0;
+  const shownLinks = showingInherited ? inheritedLinks : links;
   const title = t(`edit.${existing ? 'change' : 'add'}.${kind}` as MessageKey);
   const set = (name: string, value: string | boolean) => setValues({ ...values, [name]: value });
   const changeLinks = (next: SecondaryLink[]) => {
     setLinks(next);
-    setLinksEdited(true);
+    setLinksOverride(true);
   };
   return (
     <Modal label={title} class="settings editor" onClose={onClose}>
@@ -395,10 +402,28 @@ export function Editor({
             );
           })}
         {base !== null && (
-          <fieldset class="field field-wide" data-links>
+          <fieldset class="field field-wide" data-links aria-describedby={inheritedLinksError ? 'inherited-links-error' : undefined}>
             <legend>{t('edit.links.title')}</legend>
             <p class="help">{t('edit.links.help')}</p>
-            {links.map((link, index) => (
+            {inheritedLinksError && <p class="field-error" id="inherited-links-error" role="alert">
+              {t('edit.links.inheritedInvalid')} {' '}{inheritedLinksError}
+            </p>}
+            {showingInherited && <p class="help">{t('edit.links.inherited')}</p>}
+            {showingInherited && (
+              <button type="button" class="d-btn d-btn-outline d-btn-sm" onClick={() => changeLinks(inheritedLinks.map((link) => ({ ...link })))}>
+                {t('edit.links.override')}
+              </button>
+            )}
+            {linksOverride && existing && (
+              <button type="button" class="d-btn d-btn-ghost d-btn-sm" disabled={Boolean(inheritedLinksError)} onClick={() => {
+                setLinksOverride(false);
+                setLinks([]);
+                setSent(false);
+              }}>
+                {t('edit.links.reset')}
+              </button>
+            )}
+            {shownLinks.map((link, index) => (
               <div class="field field-wide" key={index}>
                 <label class="field field-wide">
                   <span>{t('edit.links.name', { index: index + 1 })}</span>
@@ -406,6 +431,7 @@ export function Editor({
                     class="d-input"
                     type="text"
                     maxLength={80}
+                    readOnly={showingInherited}
                     value={link.name}
                     onInput={(event) =>
                       changeLinks(links.map((value, i) => (i === index ? { ...value, name: event.currentTarget.value } : value)))
@@ -418,19 +444,20 @@ export function Editor({
                     class="d-input"
                     type="url"
                     maxLength={4096}
+                    readOnly={showingInherited}
                     value={link.url}
                     onInput={(event) =>
                       changeLinks(links.map((value, i) => (i === index ? { ...value, url: event.currentTarget.value } : value)))
                     }
                   />
                 </label>
-                <button
+                {!showingInherited && <button
                   type="button"
                   class="d-btn d-btn-ghost d-btn-sm"
                   onClick={() => changeLinks(links.filter((_, i) => i !== index))}
                 >
                   {t('edit.links.remove', { index: index + 1 })}
-                </button>
+                </button>}
               </div>
             ))}
             {sent && invalidLinks && (
@@ -439,7 +466,7 @@ export function Editor({
             <button
               type="button"
               class="d-btn d-btn-outline d-btn-sm"
-              disabled={links.length >= 8}
+              disabled={showingInherited || links.length >= 8}
               onClick={() => changeLinks([...links, { name: '', url: '' }])}
             >
               {t('edit.links.add')}

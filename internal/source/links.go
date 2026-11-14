@@ -37,3 +37,9 @@ func secondaryLinks(spec []apiv1.Link, annotations map[string]string) ([]tile.Li
 	}
 	return links, nil
 }
+
+// AnnotationLinks returns the same strictly checked fallback links used by
+// tile adapters, for the editor's inherited-link preview.
+func AnnotationLinks(annotations map[string]string) ([]tile.Link, error) {
+	return secondaryLinks(nil, annotations)
+}
