@@ -306,6 +306,15 @@
          ],
          "groupName": "all minor/patch version npm",
          "groupSlug": "all-npm-minor"
+      },
+      {
+         "description": "Merge GitHub Actions updates directly from branches without waiting for test checks.",
+         "matchManagers": [
+            "github-actions"
+         ],
+         "automerge": true,
+         "automergeType": "branch",
+         "ignoreTests": true
       }
    ]
 }

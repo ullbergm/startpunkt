@@ -68,6 +68,10 @@ Please try to create bug reports that are:
 5. Push to the branch (`git push origin feat/amazing_feature`)
 6. [Open a Pull Request](https://github.com/ullbergm/startpunkt/compare?expand=1)
 
+## Dependency updates
+
+Renovate merges GitHub Actions updates directly from branches without waiting for test checks. Other dependencies use pull request automerge. CI still runs when an update reaches `main`.
+
 ## Release Process
 
 Releases are prepared by [release-please](https://github.com/googleapis/release-please). Every push to `main` updates a release pull request, which holds the changelog and the next version, worked out from the commits since the last release: a `fix` raises the patch version, a `feat` the minor version and a breaking change (`!`) the major version.
