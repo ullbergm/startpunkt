@@ -84,6 +84,7 @@ export type Spec = Record<string, unknown>;
 
 export interface Resource {
   resourceVersion: string;
+  specToken?: string;
   inheritedLinks?: { name: string; url: string }[];
   inheritedLinksError?: string;
   namespace: string;
@@ -92,7 +93,7 @@ export interface Resource {
 }
 
 // What the editor is open on: a resource to change, or a new one of a kind.
-export type EditTarget = { kind: EditKind; namespace?: string; name?: string; resourceVersion?: string };
+export type EditTarget = { kind: EditKind; namespace?: string; name?: string; resourceVersion?: string; specToken?: string };
 export const editTarget = signal<EditTarget | null>(null);
 
 const TYPES: Record<string, EditKind> = {
@@ -175,7 +176,7 @@ export async function loadResource(target: EditTarget, fetcher: typeof fetch = f
 // spec.
 export async function saveResource(target: EditTarget, spec: Spec, fetcher: typeof fetch = fetch): Promise<void> {
   if (target.name) {
-    await call('PUT', item(target), { spec, resourceVersion: target.resourceVersion }, fetcher);
+    await call('PUT', item(target), { spec, resourceVersion: target.resourceVersion, specToken: target.specToken }, fetcher);
   } else {
     await call('POST', target.kind, { spec }, fetcher);
   }

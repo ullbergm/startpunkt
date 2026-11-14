@@ -246,6 +246,7 @@ func TestEditorRejectsChangesSinceTheFormWasOpened(t *testing.T) {
 				t.Fatalf("stale form: %v, want 409", err)
 			}
 			second.ResourceVersion = ""
+			second.SpecToken = ""
 			if _, err := e.Update(ctx, kind, second); statusOf(err) != http.StatusBadRequest {
 				t.Fatalf("missing version: %v, want 400", err)
 			}
@@ -254,6 +255,57 @@ func TestEditorRejectsChangesSinceTheFormWasOpened(t *testing.T) {
 				t.Fatalf("stale save overwrote the first: %+v, %v", current, err)
 			}
 		})
+	}
+}
+
+func TestEditorSpecTokenIgnoresStatusButRejectsSpecAndIdentityChanges(t *testing.T) {
+	initial := app("v1", "home", "shared", "https://initial.test")
+	initial.SetUID("original")
+	initial.SetGeneration(1)
+	initial.SetResourceVersion("1")
+	initial.SetAnnotations(map[string]string{source.AnnotationPrefix + "links": `[{"name":"Docs","url":"https://docs.test"}]`})
+	c := newCluster(initial)
+	c.serve("v1")
+	e := editorFor(c)
+	ctx := context.Background()
+	opened, err := e.Get(ctx, edit.Applications, "home", "shared")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opened.SpecToken == "" || len(opened.InheritedLinks) != 1 {
+		t.Fatalf("opened metadata: %+v", opened)
+	}
+	client := c.dynamic.Resource(gvr("v1", "applications")).Namespace("home")
+	obj, err := client.Get(ctx, "shared", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj.SetResourceVersion("2")
+	obj.Object["status"] = map[string]any{"available": true}
+	if _, err := client.Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	opened.Spec = json.RawMessage(`{"name":"Changed","url":"https://changed.test"}`)
+	saved, err := e.Update(ctx, edit.Applications, opened)
+	if err != nil {
+		t.Fatalf("status-only change rejected: %v", err)
+	}
+	if saved.SpecToken == opened.SpecToken {
+		t.Fatal("spec change did not change token")
+	}
+	if _, err := e.Update(ctx, edit.Applications, opened); statusOf(err) != http.StatusConflict {
+		t.Fatalf("stale spec save: %v", err)
+	}
+	obj, err = client.Get(ctx, "shared", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj.SetUID("replacement")
+	if _, err := client.Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.Update(ctx, edit.Applications, saved); statusOf(err) != http.StatusConflict {
+		t.Fatalf("replacement save: %v", err)
 	}
 }
 

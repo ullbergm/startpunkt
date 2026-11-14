@@ -31,6 +31,8 @@ type Resource struct {
 	Namespace       string `json:"namespace"`
 	Name            string `json:"name"`
 	ResourceVersion string `json:"resourceVersion,omitempty"`
+	// SpecToken detects changes to the editable spec while ignoring status writes.
+	SpecToken string `json:"specToken,omitempty"`
 	// InheritedLinks are annotation links, independent of any spec override.
 	InheritedLinks      []tile.Link `json:"inheritedLinks,omitempty"`
 	InheritedLinksError string      `json:"inheritedLinksError,omitempty"`

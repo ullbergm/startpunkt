@@ -288,6 +288,14 @@ opened_version=$(cat "$work/opened-version")
 [ "$(api PUT applications/editing/from-the-page "{\"resourceVersion\":\"$opened_version\",\"spec\":{\"name\":\"Stale\",\"url\":\"https://stale.example.invalid\"}}")" = 409 ] ||
   fail "a stale editor overwrote a newer save"
 eventually "a change is shown" has_tiles $'application First\napplication Renamed'
+# A status-only change must not invalidate an editor's spec token.
+[ "$(api GET applications/editing/from-the-page)" = 200 ] || fail "read for spec token"
+opened_token=$(sed -n 's/.*"specToken":"\([^"]*\)".*/\1/p' "$work/answer")
+opened_version=$(sed -n 's/.*"resourceVersion":"\([^"]*\)".*/\1/p' "$work/answer")
+[ -n "$opened_token" ] || fail "the editor read has no spec token"
+k -n editing patch applications.startpunkt.ullberg.us from-the-page --subresource=status --type=merge -p '{"status":{"available":true}}' >/dev/null
+[ "$(api PUT applications/editing/from-the-page "{\"resourceVersion\":\"$opened_version\",\"specToken\":\"$opened_token\",\"spec\":{\"name\":\"Renamed\",\"url\":\"https://page.example.invalid\"}}")" = 200 ] || fail "status-only change rejected: $(cat "$work/answer")"
+ok "status-only writes do not reject an open editor"
 [ "$(api POST bookmarks '{"spec":{"name":"Bad","group":"g","url":"javascript:alert(1)"}}')" = 400 ] ||
   fail "a link that is not http or https was accepted"
 [ "$(api DELETE applications/editing/from-the-page)" = 204 ] || fail "delete: $(cat "$work/answer")"

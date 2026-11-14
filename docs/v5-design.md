@@ -237,7 +237,7 @@ The icon service admits at most 512 pending icons. Each request has a 20-second 
 
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
 
-Resource reads include `resourceVersion`. An update requires that version alongside the spec: missing versions receive 400, stale versions 409. The comparison covers the interval since the form was opened as well as the API server’s final optimistic update check. Split-role forwarding preserves the version.
+Resource reads include `resourceVersion` and an opaque `specToken`. New clients return `specToken` alongside the spec on update. It covers the object UID, generation, canonical spec and secondary-links annotation, so status-only writes do not reject an open form while another spec edit or annotation change receives 409. Kubernetes update conflicts are retried only while that token still matches. A legacy client can send `resourceVersion` instead, retaining strict version comparison; omitting both receives 400. Split-role forwarding preserves both fields. The token is a concurrency check, not an authentication credential.
 
 Write endpoints only change the custom resource. The UI updates when the resulting watch event arrives on the stream, so there is one code path for changes made in the UI and changes made with `kubectl`.
 

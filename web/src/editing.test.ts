@@ -67,7 +67,7 @@ describe('requests', () => {
   });
 
   it('carry the key and address the resource', async () => {
-    const target = { kind: 'applications' as const, namespace: 'home', name: 'grafana', resourceVersion: '123' };
+    const target = { kind: 'applications' as const, namespace: 'home', name: 'grafana', resourceVersion: '123', specToken: 'unchanged-spec' };
     const load = answer(200, { namespace: 'home', name: 'grafana', spec: { name: 'Grafana' } });
     expect((await loadResource(target, load)).spec).toEqual({ name: 'Grafana' });
     expect(calls(load)[0]![0]).toBe('/api/v1/applications/home/grafana');
@@ -76,7 +76,7 @@ describe('requests', () => {
     const save = answer(200, {});
     await saveResource(target, { name: 'Grafana 2' }, save);
     expect(calls(save)[0]![1].method).toBe('PUT');
-    expect(JSON.parse(calls(save)[0]![1].body)).toEqual({ spec: { name: 'Grafana 2' }, resourceVersion: '123' });
+    expect(JSON.parse(calls(save)[0]![1].body)).toEqual({ spec: { name: 'Grafana 2' }, resourceVersion: '123', specToken: 'unchanged-spec' });
 
     const create = answer(201, {});
     await saveResource({ kind: 'bookmarks' }, { name: 'Docs' }, create);

@@ -242,7 +242,7 @@ describe('Editor', () => {
   it('loads a bookmark, changes it and keeps what it does not show', async () => {
     const spec = { name: 'Docs', group: 'Reference', url: 'https://example.com/docs', info: 'Old words', links: [{ name: 'Logs', url: 'https://logs.example.com' }] };
     const { fetcher, calls } = server({
-      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', resourceVersion: '42', spec }),
+      'GET /api/v1/bookmarks/links/docs': () => json(200, { namespace: 'links', name: 'docs', resourceVersion: '42', specToken: 'original-spec', spec }),
       'PUT /api/v1/bookmarks/links/docs': () => json(200, {}),
     });
     const onClose = vi.fn();
@@ -260,7 +260,7 @@ describe('Editor', () => {
     const put = calls.find(([, init]) => init.method === 'PUT')!;
     expect(JSON.parse(put[1].body as string)).toEqual({
       resourceVersion: '42',
-
+      specToken: 'original-spec',
       spec: { name: 'Documentation', group: 'Reference', url: 'https://example.com/docs', links: spec.links },
     });
   });
@@ -286,7 +286,7 @@ describe('Editor', () => {
     const inheritedLinks = [{ name: 'Documentation', url: 'https://docs.example.com' }];
     const { fetcher, calls } = server({
       'GET /api/v1/applications/home/grafana': () => json(200, {
-        namespace: 'home', name: 'grafana', resourceVersion: '12', inheritedLinks,
+        namespace: 'home', name: 'grafana', resourceVersion: '12', specToken: 'spec-12', inheritedLinks,
         spec: { name: 'Grafana', url: 'https://grafana.example.com' },
       }),
       'PUT /api/v1/applications/home/grafana': () => json(200, {}),
@@ -302,6 +302,7 @@ describe('Editor', () => {
     await waitFor(() => expect(calls.some(([, init]) => init.method === 'PUT')).toBe(true));
     const body = JSON.parse(calls.find(([, init]) => init.method === 'PUT')![1].body as string);
     expect(body.spec).toEqual({ name: 'Monitoring', url: 'https://grafana.example.com' });
+    expect(body.specToken).toBe('spec-12');
   });
 
   it('explicitly overrides inherited links and clears them', async () => {

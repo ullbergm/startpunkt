@@ -118,6 +118,7 @@ export function Editor({
   const [kind, setKind] = useState<EditKind>(target.kind);
   const [base, setBase] = useState<Spec | null>(existing ? null : {});
   const [resourceVersion, setResourceVersion] = useState<string>();
+  const [specToken, setSpecToken] = useState<string>();
   const [inheritedLinks, setInheritedLinks] = useState<SecondaryLink[]>([]);
   const [inheritedLinksError, setInheritedLinksError] = useState<string | null>(null);
   const [linksOverride, setLinksOverride] = useState(false);
@@ -138,6 +139,7 @@ export function Editor({
         if (!current) return;
         setBase(resource.spec ?? {});
         setResourceVersion(resource.resourceVersion);
+        setSpecToken(resource.specToken);
         setInheritedLinks(resource.inheritedLinks ?? []);
         setInheritedLinksError(resource.inheritedLinksError ?? null);
         setLinksOverride(resource.spec.links !== undefined);
@@ -200,7 +202,7 @@ export function Editor({
     const spec = toSpec(kind, base, values);
     delete spec.links;
     if (linksOverride) spec.links = savedLinks;
-    void run(() => saveResource({ ...target, kind, resourceVersion }, spec, fetcher));
+    void run(() => saveResource({ ...target, kind, resourceVersion, specToken }, spec, fetcher));
   };
 
   // Whether something answers at the address, asked a moment after it was

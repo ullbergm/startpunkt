@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/util/retry"
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 	"github.com/ullbergm/startpunkt/internal/edit"
@@ -131,28 +133,36 @@ func (e *Editor) Update(ctx context.Context, kind string, r edit.Resource) (edit
 	if err != nil {
 		return edit.Resource{}, err
 	}
-	obj, err := client.Get(ctx, r.Name, metav1.GetOptions{})
-	if err != nil {
-		return edit.Resource{}, translate(err, r.Name)
-	}
-	if err := changeable(obj); err != nil {
-		return edit.Resource{}, err
-	}
-	if _, overridden := spec["links"]; !overridden {
-		if _, err := source.AnnotationLinks(obj.GetAnnotations()); err != nil {
-			return edit.Resource{}, edit.Errorf(http.StatusBadRequest, "annotation links are invalid; keep an explicit override or fix the annotation")
+	var updated *unstructured.Unstructured
+	// A status patch can race even with this GET. Retry against the current
+	// API version only while the spec token still matches the opened form.
+	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+		obj, err := client.Get(ctx, r.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
 		}
-	}
-	if r.ResourceVersion == "" {
-		return edit.Resource{}, edit.Errorf(http.StatusBadRequest, "resourceVersion is required; open the resource again")
-	}
-	if r.ResourceVersion != obj.GetResourceVersion() {
-		return edit.Resource{}, edit.Errorf(http.StatusConflict, "%q was changed by someone else; open it again", r.Name)
-	}
-	obj.Object["spec"] = spec
-	// The update carries the version that was read, so a change made by
-	// someone else in between is not overwritten.
-	updated, err := client.Update(ctx, obj, metav1.UpdateOptions{})
+		if err := changeable(obj); err != nil {
+			return err
+		}
+		if _, overridden := spec["links"]; !overridden {
+			if _, err := source.AnnotationLinks(obj.GetAnnotations()); err != nil {
+				return edit.Errorf(http.StatusBadRequest, "annotation links are invalid; keep an explicit override or fix the annotation")
+			}
+		}
+		if r.ResourceVersion == "" && r.SpecToken == "" {
+			return edit.Errorf(http.StatusBadRequest, "resourceVersion or specToken is required; open the resource again")
+		}
+		matches := r.ResourceVersion == obj.GetResourceVersion()
+		if r.SpecToken != "" {
+			matches = r.SpecToken == specToken(obj)
+		}
+		if !matches {
+			return edit.Errorf(http.StatusConflict, "%q was changed by someone else; open it again", r.Name)
+		}
+		obj.Object["spec"] = spec
+		updated, err = client.Update(ctx, obj, metav1.UpdateOptions{})
+		return err
+	})
 	if err != nil {
 		return edit.Resource{}, translate(err, r.Name)
 	}
@@ -202,7 +212,7 @@ func resource(obj *unstructured.Unstructured) (edit.Resource, error) {
 			inheritedError = inheritedError[:1024]
 		}
 	}
-	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), ResourceVersion: obj.GetResourceVersion(), InheritedLinks: inherited, InheritedLinksError: inheritedError, Spec: data}, nil
+	return edit.Resource{Namespace: obj.GetNamespace(), Name: obj.GetName(), ResourceVersion: obj.GetResourceVersion(), SpecToken: specToken(obj), InheritedLinks: inherited, InheritedLinksError: inheritedError, Spec: data}, nil
 }
 
 // translate turns an error of the API server into one for the caller of
@@ -223,4 +233,11 @@ func translate(err error, name string) error {
 		return edit.Errorf(http.StatusBadRequest, "the cluster refused the resource: %v", err)
 	}
 	return err
+}
+
+// specToken includes identity and generation so deleting/recreating a resource
+// or changing its spec invalidates the form. Status-only writes change neither.
+func specToken(obj *unstructured.Unstructured) string {
+	data, _ := json.Marshal([]any{obj.GetUID(), obj.GetGeneration(), obj.Object["spec"], obj.GetAnnotations()[source.AnnotationPrefix+"links"]})
+	return fmt.Sprintf("spec-v1:%x", sha256.Sum256(data))
 }
