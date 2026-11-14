@@ -12,16 +12,14 @@ To ask for one of these, or for something that is not here, open a [feature requ
 
 Small things that make what is there more dependable.
 
-- [ ] **A switch for type-to-search** (S). Opening search on any key is in the way of speech input and of some assistive tools. `/` and `Ctrl+K` stay.
-- [ ] **Smaller fixes on the page** (S). Group names in lower case in search results; descriptions that do not refit when the text size changes, heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
-- [ ] **Checks in CI** (S). `golangci-lint` and `govulncheck`, a linter for the page, rendering the chart against the Kubernetes schemas, Markdown and link checks, the pull request title, and the cutover test on a schedule.
+- [ ] **Smaller fixes on the page** (S). Group names in lower case in search results; heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
+- [ ] **Checks in CI** (S). `golangci-lint` and `govulncheck`, a linter for the page, Markdown and link checks, the pull request title, and the cutover test on a schedule.
 
 ## Later
 
 ### Reading the cluster
 
 - [ ] **GRPCRoute and TLSRoute** (S). The Gateway API types that carry host names, as built-in sources.
-- [ ] **The address of a VirtualService or HTTPRoute from its Gateway** (M). Whether the listener has TLS and on which port is the Gateway's to say; today it is a default and an annotation.
 - [ ] **Namespaces by label** (S). `namespaceSelector` takes names. A label selector lets a namespace opt in on its own.
 - [ ] **Annotations of other start pages** (S). Read `hajimari.io` and `forecastle.stakater.com` annotations as a source that is off by default, for those who move over. v5 dropped this from 4.x on purpose; whether it comes back depends on who asks.
 - [ ] **Tags and status for Bookmarks** (S). Bookmarks cannot be filtered by tag and report nothing in their status.
@@ -60,12 +58,12 @@ Small things that make what is there more dependable.
 
 ### Running it
 
-- [ ] **More in the chart** (S). A NetworkPolicy that lets only `api` reach the controller, a PodDisruptionBudget, topology spread, an autoscaler for `api` and `web`, and a Gateway API HTTPRoute next to the Ingress and the Route.
+- [ ] **More in the chart** (S). A PodDisruptionBudget, topology spread, an autoscaler for `api` and `web`, and a Gateway API HTTPRoute next to the Ingress and the Route.
 - [ ] **Signed releases** (S). Signatures, provenance and a bill of materials for the image and the chart.
 - [ ] **The chart on Artifact Hub** (S). With its metadata, keywords and the range of Kubernetes versions it supports.
 - [ ] **One log** (S). The messages of the Kubernetes client library in the same format and stream as the rest.
 - [ ] **Events on the resources** (S). A Kubernetes event when an Application cannot be resolved or stops answering, next to the condition in its status.
-- [ ] **Tests in a browser** (M). The page driven end to end against a kind cluster, with an automated accessibility check. The screenshots are made the same way and can share the setup.
+- [ ] **More browser coverage** (M). Extend the Playwright tests to a kind cluster and add automated accessibility checks. Editing, reconnects, keyboard navigation, font scaling and visual preferences are already covered against fake Kubernetes clients.
 - [ ] **Running outside a cluster** (S). The configuration file and the variables a process starts with, documented for those who do not use the chart.
 
 ## Not planned

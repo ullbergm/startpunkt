@@ -477,3 +477,31 @@ func TestWorkloadAndLeaderElectionSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestTraefikIsDefaultAndPresetsCanBeDisabled(t *testing.T) {
+	cfg, err := Load("", false, env(nil))
+	if err != nil || !reflect.DeepEqual(cfg.Sources.Presets, []string{"traefik"}) {
+		t.Fatalf("default presets: %v, %v", cfg.Sources.Presets, err)
+	}
+	for _, mode := range []string{"resource", "file", "environment"} {
+		t.Run(mode, func(t *testing.T) {
+			var disabled Config
+			var err error
+			switch mode {
+			case "resource":
+				disabled, err = cfg.WithResources([]byte(`{"sources":{"presets":[]}}`), nil)
+			case "file":
+				path := filepath.Join(t.TempDir(), "config.yaml")
+				if err := os.WriteFile(path, []byte("sources:\n  presets: []\n"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				disabled, err = Load(path, true, env(nil))
+			case "environment":
+				disabled, err = Load("", false, env(map[string]string{"STARTPUNKT_SOURCES_PRESETS": "[]"}))
+			}
+			if err != nil || len(disabled.Sources.Presets) != 0 {
+				t.Fatalf("disabled presets: %v, %v", disabled.Sources.Presets, err)
+			}
+		})
+	}
+}

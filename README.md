@@ -100,7 +100,7 @@ helm show crds oci://ghcr.io/ullbergm/charts/startpunkt | kubectl apply -f -
 
 ### Annotations
 
-An Ingress, Route, HTTPRoute or VirtualService is shown when it carries the annotation `startpunkt.ullberg.us/enable: "true"`. Its address comes from the object itself. Further annotations describe the tile:
+An Ingress, Route, HTTPRoute or VirtualService is shown when it carries the annotation `startpunkt.ullberg.us/enable: "true"`. Its address comes from the object itself. For an HTTPRoute or VirtualService, referenced Gateways supply the scheme and port when a matching listener is available. Annotation overrides take precedence. If no listener can be resolved, the source’s configured protocol remains the fallback. HTTPRoute parent namespace, section and port constraints, listener hostname and allowed-route restrictions are respected. Istio server hosts can restrict the source namespace. When several listeners match, HTTPS wins, then the lowest port. Gateway and namespace-label changes update tiles through reference watches. Further annotations describe the tile:
 
 | Annotation | Meaning |
 | --- | --- |
@@ -205,12 +205,13 @@ spec:
 
 ### Other resource types
 
-For common routing resources, enable [ready-made CEL mappings](docs/source-presets.md) with `sources.presets: [traefik, contour]`. They use the same annotations and validation as custom mappings.
+[Ready-made CEL mappings](docs/source-presets.md) cover Traefik IngressRoute, Contour HTTPProxy, Knative Service, F5 NGINX VirtualServer and APISIX ApisixRoute. Traefik is enabled by default; select others with `sources.presets: [traefik, contour, knative, nginx, apisix]`, or disable all with `sources.presets: []`. Every preset requires the enable annotation and uses the same validation as custom mappings.
 
 A resource type that Startpunkt has no source for can be added in the settings. An expression says where an object of that type is served, and the annotations above do the rest. This reads Traefik's IngressRoutes:
 
 ```yaml
 sources:
+  presets: [] # Disable the default Traefik preset before replacing it.
   custom:
     - name: traefik
       apiGroup: traefik.io
@@ -368,7 +369,7 @@ Connections to remotes follow redirects only within the configured origin. Confi
 
 <p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>
 
-- **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. Letters match in their written order, so `Osft` finds `OpenShift`, ignoring case and accents. Exact and prefix matches come first; a single letter matches word prefixes. A further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
+- **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. Letters match in their written order, so `Osft` finds `OpenShift`, ignoring case and accents. Exact and prefix matches come first; a single letter matches word prefixes. A further word may name the cluster. `?` in front searches the web. A touch screen has a button for it. Automatic opening when typing can be turned off in Settings → Accessibility; the shortcuts still work.
 - **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again. In edit mode a click on a tile does not open the service: it opens the tile's form, or says why the tile cannot be changed from the page.
 - **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
 - A combined card is a favorite when any member is starred. Removing its star removes all members; moving it moves its favored members together and preserves the positions of favorites hidden by the current filters.
@@ -378,17 +379,23 @@ Connections to remotes follow redirects only within the configured origin. Confi
   | Tab | What it holds |
   | --- | --- |
   | Appearance | Light, dark or automatic theme (follows the system and adjusts the background panel to match), the colours (the instance's own, or one of ten schemes that each have a light and a dark palette), language, a handwritten typeface |
-  | Layout | Columns (automatic, or one to six), a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, and hiding applications that do not answer |
+  | Layout | Columns (automatic, or one to six), a box around each tile, and a highlight under the pointer |
+  | Tiles | Descriptions and their line limit, tags, HTTP status, workload readiness, secondary links, console links, diagnostics controls, and hiding applications that do not answer. Workload readiness, console links and diagnostics controls are off by default |
   | Background | The Bing picture of the day, the theme's colour, a colour of your own, a gradient, a gradient that follows the time of day, a mesh gradient that can move, a picture by its address, or a generated pattern; with opacity, blur, and a panel behind the content that keeps text readable |
   | Presets | Named copies of the layout and the background, to save, apply and delete |
   | Clusters | Which clusters to show, whether a service on several clusters is one card, and a section for each cluster instead |
-  | Accessibility | Text size from 85% to 150%, high contrast, and the list of keyboard shortcuts |
+  | Accessibility | Text size from 85% to 150%, high contrast, automatic search when typing, and the list of keyboard shortcuts |
 
-  Up to twenty presets can be saved.
+  Up to twenty presets can be saved. Settings have no visible scrollbars; wheel, touch and keyboard scrolling remain available on small screens.
+- **Diagnostics**: enable diagnostics controls in Settings → Tiles. The information button on a tile shows its source resource, resolved URL, HTTP availability and when it changed, workload readiness, and cluster connection state. The corner information button also lists local resources that could not be converted into tiles. Fixed or deleted resources disappear from the error list automatically. Remote tiles expose their existing source and status fields; remote conversion errors are not federated.
 - **Status**: the page says when it has lost its connection and is reconnecting, and when a cluster it shows cannot be reached. The footer names the running version. Unless the check is turned off, a golden ribbon across the top right corner names a newer release when one exists.
 - **What's new**: the first visit after the instance was updated lists what changed since the version that browser last saw, taken from the project's changelog. The version in the footer opens the list again. That ribbon opens a list of what has changed since the running version, with a link to the release.
 
+The chart can install ingress NetworkPolicies with `networkPolicy.enabled: true`. In split mode the controller accepts HTTP only from this release’s API pods, plus controller peers when leader election is enabled. Add monitoring peers through `networkPolicy.controllerIngressFrom`. Public roles accept HTTP from everyone unless `networkPolicy.ingressFrom` is set. Egress is unrestricted; enforcement requires a NetworkPolicy-capable network plugin.
+
 ## Deployment modes
+
+The chart defaults to two replicas per role with leader election enabled. One controller handles probing and status writes; every replica continues serving its role. See [leader election](docs/leader-election.md) for failover and configuration.
 
 The chart's `mode` chooses between two ways of running the same image:
 
@@ -397,7 +404,7 @@ The chart's `mode` chooses between two ways of running the same image:
 
 Every process is stateless, so more than one replica of each is safe. Source, namespace and availability settings rebuild a replacement state alongside the current one. The instance keeps serving its current tiles and stays ready until the replacement has finished listing, then swaps the local state atomically.
 
-With multiple controller replicas, optional [leader election](docs/leader-election.md) makes one replica probe and write status while the others keep reading resources and follow its probe results. It is disabled by default, so replicas otherwise probe independently. Configure `leaderElection` through chart values, environment or the configuration file, not a `Startpunkt` resource.
+With multiple controller replicas, [leader election](docs/leader-election.md) makes one replica probe and write status while the others keep reading resources and follow its probe results. The chart enables it by default; processes run outside the chart enable it explicitly. Configure `leaderElection` through chart values, environment or the configuration file, not a `Startpunkt` resource.
 
 ## API
 
@@ -423,6 +430,8 @@ With an edit key configured there are also `POST /api/v1/applications`, `GET`, `
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does. `lastProbe` records the probe that established the current availability value. Confirming probes leave it unchanged; it does not record the latest request time.
 
+Optional `diagnostics` in the state document describe local source conversion failures, identified by cluster and source resource. They follow the stream as `diagnostic.upsert` and `diagnostic.delete`. Split API processes mirror them; federated remotes do not import them.
+
 Optional `workload` readiness is independent of HTTP availability, and `consoleURL` links to the source resource in an operator-configured OpenShift console. See [workload readiness and console links](docs/workloads.md) for settings, supported sources and RBAC.
 
 Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses. Followers reject events larger than 8 MiB and feeds larger than 10,000 tiles, retain their last known state and reconnect. Remote tile identities, kinds, URLs, secondary links and field lengths are validated before they enter the store.
@@ -444,8 +453,12 @@ make check          # Go and frontend tests, vet, type check, chart lint
 make build          # frontend, then the binary with the frontend embedded, in bin/
 make image          # container image
 make crds           # regenerate the custom resource definitions after changing api/v1
+make test-browser   # built page and real API, using fake Kubernetes clients
+make check-chart-schemas # strict validation of chart renders against schemas
 make test-cutover   # the move from 4.x to v5 on a throwaway kind cluster
 ```
+
+Browser tests need `cd web && npx playwright install chromium` once, or an installed Chromium named by `CHROMIUM=/usr/bin/chromium`. The test server binds loopback only and uses no kubeconfig. `make check-chart-schemas` installs a pinned kubeconform into a temporary directory and fetches Kubernetes schemas; the project’s runtime dependencies do not change. CRD envelope schemas are omitted by that registry and are checked through generation and the cutover test instead.
 
 To work on the page, run the binary, which listens on port 8080, and start `npm run dev` in `web/`. The development server reloads on every change and passes `/api` on to the binary. To work on the page against an instance that is already running, in a cluster for example, name it in `STARTPUNKT_DEV_BACKEND`, in the environment or in `web/.env.local` (see `web/.env.example`), and no binary is needed.
 
@@ -461,7 +474,7 @@ The rules the code follows are in [AGENTS.md](AGENTS.md), with more for the page
 | Live updates | Server-sent events, between the page and the server and between instances |
 | Page | [Preact](https://preactjs.com) with [signals](https://preactjs.com/guide/v10/signals/) and [TypeScript](https://www.typescriptlang.org), built with [Vite](https://vite.dev) and embedded in the binary |
 | Icons | [Iconify](https://iconify.design), fetched and cached by the server |
-| Tests | Go's `testing` package with the client-go fake clients, [Vitest](https://vitest.dev) with [Testing Library](https://testing-library.com), and a [kind](https://kind.sigs.k8s.io) cluster for the move from 4.x |
+| Tests | Go's `testing` package with the client-go fake clients, [Vitest](https://vitest.dev) with [Testing Library](https://testing-library.com), [Playwright](https://playwright.dev) browser tests, and a [kind](https://kind.sigs.k8s.io) cluster for the move from 4.x |
 | Packaging | A [distroless](https://github.com/GoogleContainerTools/distroless) image for amd64 and arm64, and a [Helm](https://helm.sh) chart published as an OCI artifact |
 | Releases | GitHub Actions, [release-please](https://github.com/googleapis/release-please) and [Renovate](https://docs.renovatebot.com) |
 

@@ -57,6 +57,7 @@ type Follower struct {
 	received      map[string]bool
 	clusters      map[string]bool
 	pending       map[string]tile.Tile
+	diagnostics   map[string]bool
 	lastTouch     time.Time
 	own           remote
 	// problem is why the last connection ended or could not be made, and
@@ -319,7 +320,11 @@ func (f *Follower) apply(name, data string) error {
 		for _, t := range state.Tiles {
 			f.received[t.ID] = true
 		}
-		f.Store.Mirror(store.Snapshot{Tiles: state.Tiles, Clusters: state.Clusters})
+		f.diagnostics = map[string]bool{}
+		for _, d := range state.Diagnostics {
+			f.diagnostics[d.ID] = true
+		}
+		f.Store.Mirror(store.Snapshot{Tiles: state.Tiles, Clusters: state.Clusters, Diagnostics: state.Diagnostics})
 		f.Log.Info("snapshot received", "upstream", f.URL, "tiles", len(state.Tiles))
 	case string(store.EventUpsert):
 		var t tile.Tile
@@ -360,6 +365,29 @@ func (f *Follower) apply(name, data string) error {
 		}
 		delete(f.clusters, d.Name)
 		f.Store.RemoveCluster(d.Name)
+	case string(store.EventDiagnostic):
+		var d tile.Diagnostic
+		if err := json.Unmarshal([]byte(data), &d); err != nil {
+			return err
+		}
+		if err := validateDiagnostic(d); err != nil {
+			return err
+		}
+		if f.diagnostics == nil {
+			f.diagnostics = map[string]bool{}
+		}
+		if !f.diagnostics[d.ID] && len(f.diagnostics) >= f.tileLimit() {
+			return errors.New("too many diagnostics")
+		}
+		f.diagnostics[d.ID] = true
+		f.Store.UpsertDiagnostic(d)
+	case string(store.EventDiagnosticDelete):
+		var d api.TileDelete
+		if err := json.Unmarshal([]byte(data), &d); err != nil {
+			return err
+		}
+		delete(f.diagnostics, d.ID)
+		f.Store.RemoveDiagnostic(d.ID)
 	default:
 		// Unknown events are ignored so that an upstream can add new ones.
 	}

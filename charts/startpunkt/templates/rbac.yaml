@@ -38,12 +38,16 @@ rules:
   {{- end }}
   {{- if .Values.sources.httpRoute.enabled }}
   - apiGroups: [gateway.networking.k8s.io]
-    resources: [httproutes]
+    resources: [httproutes, gateways]
+    verbs: {{ toJson $read }}
+  # Namespace labels are used by Gateway allowedRoutes selectors.
+  - apiGroups: [""]
+    resources: [namespaces]
     verbs: {{ toJson $read }}
   {{- end }}
   {{- if .Values.sources.virtualService.enabled }}
   - apiGroups: [networking.istio.io]
-    resources: [virtualservices]
+    resources: [virtualservices, gateways]
     verbs: {{ toJson $read }}
   {{- end }}
   {{- if has "traefik" .Values.sources.presets }}
@@ -54,6 +58,21 @@ rules:
   {{- if has "contour" .Values.sources.presets }}
   - apiGroups: [projectcontour.io]
     resources: [httpproxies]
+    verbs: {{ toJson $read }}
+  {{- end }}
+  {{- if has "knative" .Values.sources.presets }}
+  - apiGroups: [serving.knative.dev]
+    resources: [services]
+    verbs: {{ toJson $read }}
+  {{- end }}
+  {{- if has "nginx" .Values.sources.presets }}
+  - apiGroups: [k8s.nginx.org]
+    resources: [virtualservers]
+    verbs: {{ toJson $read }}
+  {{- end }}
+  {{- if has "apisix" .Values.sources.presets }}
+  - apiGroups: [apisix.apache.org]
+    resources: [apisixroutes]
     verbs: {{ toJson $read }}
   {{- end }}
   {{- range .Values.sources.custom }}

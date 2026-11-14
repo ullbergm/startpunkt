@@ -1593,3 +1593,53 @@ dialog .d-btn:disabled {
 .workload-starting {
   border-color: var(--accent);
 }
+
+/* Settings keep native wheel, touch and keyboard scrolling without a visible
+   scrollbar. Tabs wrap instead of creating horizontal scrolling. */
+.settings:not(.editor) {
+  scrollbar-width: none;
+  overflow-x: hidden;
+}
+.settings:not(.editor)::-webkit-scrollbar {
+  display: none;
+}
+.settings .d-tabs {
+  flex-wrap: wrap;
+}
+.tile-inspect {
+  flex: none;
+  align-self: flex-start;
+  margin: 0.4rem;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+.diagnostics h2 {
+  margin: 0;
+}
+.diagnostic-resource {
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.diagnostic-resource summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.diagnostic-resource h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+.diagnostic-fields {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(0, 2fr);
+  gap: 0.4rem 1rem;
+}
+.diagnostic-fields dt {
+  color: var(--muted);
+}
+.diagnostic-fields dd {
+  margin: 0;
+}

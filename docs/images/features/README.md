@@ -142,10 +142,22 @@ The Grafana and NAS tiles in the screenshots carry Documentation and Logs links.
 
 ![Workload readiness and OpenShift resource links](23-workload-readiness.png)
 
-Workload readiness is shown independently from HTTP availability. Backup server's address is Offline while its demo Deployment satisfies its desired state of zero replicas, shown as Workload ready · 0/0. The demo workloads are scaled to zero so taking screenshots starts no application containers. An OpenShift link opens the source resource, as a separate keyboard-reachable link below the tile. Combined cards preserve the console links and readiness of each cluster.
+Enable workload readiness and console links in Settings → Tiles; both are hidden by default. Workload readiness is shown independently from HTTP availability. Backup server's address is Offline while its demo Deployment satisfies its desired state of zero replicas, shown as Workload ready · 0/0. The demo workloads are scaled to zero so taking screenshots starts no application containers. An OpenShift link opens the source resource, as a separate keyboard-reachable link below the tile. Combined cards preserve the console links and readiness of each cluster.
 
 ## Remote freshness
 
 ![Remote last contact and stale duration](24-remote-freshness.png)
 
 A remote with stale data shows its last successful contact and how long its data has been stale. Last contact is a semantic time, and the elapsed duration advances without repeatedly announcing the same warning. This screenshot keeps the demo tiles and supplies a fixed stale remote snapshot to demonstrate an earlier disconnect without waiting in real time.
+
+## Tile display options
+
+![Tile display settings](25-settings-tiles.png)
+
+Descriptions, tags, HTTP status, workload readiness, secondary links, console links and diagnostics controls have independent settings. Settings have no visible scrollbars; keyboard, touch and wheel scrolling remain available.
+
+## Tile diagnostics
+
+![Tile diagnostics](26-tile-diagnostics.png)
+
+A tile's information button shows its source, resolved address, availability transition, workload state and cluster connection. The corner information button also lists local conversion failures, including resources that produce no tile.

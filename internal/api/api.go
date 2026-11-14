@@ -31,10 +31,11 @@ type State struct {
 	// Tiles include optional links, console addresses and workload readiness.
 	// Clusters carry optional last-contact and stale-start timestamps.
 	// Older clients may ignore these additive fields.
-	Tiles    []tile.Tile     `json:"tiles"`
-	Clusters []store.Cluster `json:"clusters"`
-	Config   UIConfig        `json:"config"`
-	Editing  Editing         `json:"editing"`
+	Diagnostics []tile.Diagnostic `json:"diagnostics,omitempty"`
+	Tiles       []tile.Tile       `json:"tiles"`
+	Clusters    []store.Cluster   `json:"clusters"`
+	Config      UIConfig          `json:"config"`
+	Editing     Editing           `json:"editing"`
 }
 
 // UIConfig is the configuration the frontend needs.
@@ -194,6 +195,7 @@ func (s *Server) state(snap store.Snapshot) State {
 	return State{
 		SchemaVersion: SchemaVersion,
 		Tiles:         snap.Tiles,
+		Diagnostics:   snap.Diagnostics,
 		Clusters:      snap.Clusters,
 		Config:        s.ui(),
 		Editing:       s.editing(),
@@ -301,6 +303,10 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 					payload = e.Cluster
 				case store.EventClusterDelete:
 					payload = ClusterDelete{Name: e.Cluster.Name}
+				case store.EventDiagnostic:
+					payload = e.Diagnostic
+				case store.EventDiagnosticDelete:
+					payload = TileDelete{ID: e.ID}
 				default:
 					continue
 				}

@@ -57,7 +57,15 @@ export interface Cluster {
   staleSince?: string;
 }
 
+export interface Diagnostic {
+  id: string;
+  cluster: string;
+  source: TileSource;
+  message: string;
+}
+
 export interface ServerState {
+  diagnostics?: Diagnostic[];
   schemaVersion: number;
   tiles: Tile[];
   clusters: Cluster[];

@@ -34,6 +34,18 @@ func (s *Store) ApplyFeed(feed string, batch []Event) {
 			}
 			delete(s.clusters, e.Cluster.Name)
 			delete(s.clusterOrigin, e.Cluster.Name)
+		case EventDiagnostic:
+			if origin, exists := s.diagnosticOrigin[e.Diagnostic.ID]; exists && origin != feed {
+				continue
+			}
+			changes = append(changes, s.upsertDiagnostic(feed, e.Diagnostic)...)
+			continue
+		case EventDiagnosticDelete:
+			if origin, exists := s.diagnosticOrigin[e.ID]; !exists || origin != feed {
+				continue
+			}
+			changes = append(changes, s.removeDiagnostic(e.ID)...)
+			continue
 		default:
 			continue
 		}

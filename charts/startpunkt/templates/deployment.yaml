@@ -97,10 +97,8 @@ spec:
             - name: STARTPUNKT_SOURCES_CUSTOM
               value: {{ toJson . | quote }}
             {{- end }}
-            {{- with $.Values.sources.presets }}
             - name: STARTPUNKT_SOURCES_PRESETS
-              value: {{ join "," . | quote }}
-            {{- end }}
+              value: {{ join "," $.Values.sources.presets | default "[]" | quote }}
             {{- range $name, $source := omit $.Values.sources "custom" "presets" }}
             {{- range $setting, $value := $source }}
             {{- if kindIs "slice" $value }}

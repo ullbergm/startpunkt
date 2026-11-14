@@ -19,6 +19,7 @@ import { connect, connection, fatalError, serverState, type EventStream } from '
 import { filterByTags, tagsFromPath } from '../tags';
 import { PALETTES } from '../palettes';
 import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../theme';
+import { Diagnostics, diagnosticTarget } from './Diagnostics';
 import { Background } from './Background';
 import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
@@ -38,7 +39,8 @@ type Kind = 'applications' | 'bookmarks';
 
 // True while the keyboard is being used to type somewhere.
 const typing = (target: EventTarget | null) =>
-  target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
 export function App({
   open,
@@ -95,7 +97,7 @@ export function App({
   const [initialQuery, setInitialQuery] = useState('');
   const dialogOpen = useRef(false);
   const notice = fixed.value;
-  dialogOpen.current = dialog !== null || editing !== null || notice !== null;
+  dialogOpen.current = dialog !== null || editing !== null || notice !== null || diagnosticTarget.value !== null;
 
   // The instance's defaults for the settings come with its configuration,
   // and may change while the page is open.
@@ -121,7 +123,10 @@ export function App({
   }, []);
   const mode = p.theme === 'auto' ? resolveMode(p.theme, systemDark) : (panelMode(p) ?? p.theme);
   const palette = p.colors === 'default' ? state?.config.theme[mode] : PALETTES[p.colors][mode];
-  useEffect(() => applyAppearance(document.documentElement, mode, palette, p, arranging), [mode, palette, p, arranging]);
+  useEffect(
+    () => applyAppearance(document.documentElement, mode, palette, p, arranging),
+    [mode, palette, p, arranging],
+  );
 
   const defaultLanguage = state?.config.defaultLanguage;
   useEffect(() => {
@@ -132,7 +137,7 @@ export function App({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (dialogOpen.current || serverState.value === null) return;
+      if (dialogOpen.current || serverState.value === null || event.isComposing) return;
       if (event.key === 'Escape' && editMode.value) {
         editMode.value = false;
         return;
@@ -147,6 +152,7 @@ export function App({
       // Typing anywhere on the page starts a search with what was typed.
       // "/" opens the search empty. Space is left alone: it scrolls.
       if (modified || typing(event.target) || event.key.length !== 1 || event.key === ' ') return;
+      if (event.key !== '/' && !prefs.value.accessibility.typeToSearch) return;
       event.preventDefault();
       setInitialQuery(event.key === '/' ? '' : event.key);
       setDialog('search');
@@ -208,7 +214,10 @@ export function App({
         .map((cluster) => ({
           cluster,
           groups: groups
-            .map((group) => ({ ...group, cards: group.cards.filter((card) => card.primary.cluster === cluster) }))
+            .map((group) => ({
+              ...group,
+              cards: group.cards.filter((card) => card.primary.cluster === cluster),
+            }))
             .filter((group) => group.cards.length > 0),
         }))
     : null;
@@ -242,8 +251,13 @@ export function App({
   // that is not "connected" means the tiles of that cluster are the last
   // known ones, or that it has not been reached at all.
   const syncing = clusters.some((cluster) => cluster.local && cluster.state === 'syncing');
-  const stale = shown.filter((cluster) => cluster.state !== 'connected' && !(cluster.local && cluster.state === 'syncing'));
-  const freshnessNow = useFreshnessNow(stale.some((cluster) => timestamp(cluster.staleSince) !== null), now);
+  const stale = shown.filter(
+    (cluster) => cluster.state !== 'connected' && !(cluster.local && cluster.state === 'syncing'),
+  );
+  const freshnessNow = useFreshnessNow(
+    stale.some((cluster) => timestamp(cluster.staleSince) !== null),
+    now,
+  );
   const empty = state !== null && tiles.length === 0;
   // Icons without a colour of their own take the theme's secondary colour,
   // so that they stand apart from the names next to them.
@@ -267,11 +281,19 @@ export function App({
           {status === 'reconnecting' && !error && <p class="notice">{t('page.reconnecting')}</p>}
           {syncing && <p class="notice">{t('page.syncing')}</p>}
           {stale.length > 0 && (
-            <p class="notice">{t('page.stale', { clusters: stale.map((cluster) => cluster.name).join(', ') })}</p>
+            <p class="notice">
+              {t('page.stale', {
+                clusters: stale.map((cluster) => cluster.name).join(', '),
+              })}
+            </p>
           )}
           {empty && !syncing && <p class="notice">{t('page.empty')}</p>}
         </div>
-        {stale.map((cluster) => <p class="notice" key={`freshness-${cluster.name}`}><ClusterFreshness cluster={cluster} now={freshnessNow} /></p>)}
+        {stale.map((cluster) => (
+          <p class="notice" key={`freshness-${cluster.name}`}>
+            <ClusterFreshness cluster={cluster} now={freshnessNow} />
+          </p>
+        ))}
         {error && (
           <div class="notice notice-error" role="alert">
             <p>{t('page.newerProtocol')}</p>
@@ -320,6 +342,18 @@ export function App({
           device with a keyboard: it opens when you start typing. A touch
           screen has no keys to start typing on, so there it gets one. */}
       <div class="corner-actions">
+        {p.layout.showDiagnostics && (
+          <button
+            type="button"
+            class="icon-button"
+            aria-label={t('diagnostics.title')}
+            onClick={() => {
+              diagnosticTarget.value = [];
+            }}
+          >
+            ⓘ
+          </button>
+        )}
         <button
           type="button"
           class="icon-button touch-only"
@@ -410,7 +444,17 @@ export function App({
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog === 'settings' && <Settings clusters={clusters} shownClusters={shownNames} onClose={() => setDialog(null)} />}
+      {diagnosticTarget.value !== null && (
+        <Diagnostics
+          clusters={shownNames}
+          onClose={() => {
+            diagnosticTarget.value = null;
+          }}
+        />
+      )}
+      {dialog === 'settings' && (
+        <Settings clusters={clusters} shownClusters={shownNames} onClose={() => setDialog(null)} />
+      )}
     </>
   );
 }

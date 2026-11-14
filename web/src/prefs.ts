@@ -47,6 +47,10 @@ export interface Preferences {
     descriptionLines: number;
     showTags: boolean;
     showStatus: boolean;
+    showWorkload: boolean;
+    showLinks: boolean;
+    showConsole: boolean;
+    showDiagnostics: boolean;
     hideUnreachable: boolean;
     // Show the same service on several clusters as one card.
     combine: boolean;
@@ -63,6 +67,7 @@ export interface Preferences {
     // Text size in percent of the browser's own.
     fontScale: number;
     highContrast: boolean;
+    typeToSearch: boolean;
   };
 }
 
@@ -139,6 +144,10 @@ export function defaults(): Preferences {
       descriptionLines: 2,
       showTags: false,
       showStatus: true,
+      showWorkload: false,
+      showLinks: true,
+      showConsole: false,
+      showDiagnostics: false,
       hideUnreachable: false,
       combine: true,
       byCluster: false,
@@ -162,17 +171,16 @@ export function defaults(): Preferences {
     },
     handwrittenFont: false,
     presets: {},
-    accessibility: { fontScale: 100, highContrast: false },
+    accessibility: { fontScale: 100, highContrast: false, typeToSearch: true },
   };
 }
 
 const KEY = 'startpunkt.preferences';
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-const oneOf = <T,>(value: unknown, allowed: readonly T[], fallback: T): T =>
+const oneOf = <T>(value: unknown, allowed: readonly T[], fallback: T): T =>
   allowed.includes(value as T) ? (value as T) : fallback;
-const bool = (value: unknown, fallback: boolean): boolean =>
-  typeof value === 'boolean' ? value : fallback;
+const bool = (value: unknown, fallback: boolean): boolean => (typeof value === 'boolean' ? value : fallback);
 const strings = (value: unknown): string[] =>
   Array.isArray(value) ? [...new Set(value.filter((v): v is string => typeof v === 'string'))] : [];
 const hex = (value: unknown, fallback: string): string =>
@@ -198,6 +206,10 @@ function sanitizeLayout(raw: unknown): Preferences['layout'] {
     descriptionLines: oneOf(layout.descriptionLines, [0, 1, 2, 3], d.descriptionLines),
     showTags: bool(layout.showTags, d.showTags),
     showStatus: bool(layout.showStatus, d.showStatus),
+    showWorkload: bool(layout.showWorkload, d.showWorkload),
+    showLinks: bool(layout.showLinks, d.showLinks),
+    showConsole: bool(layout.showConsole, d.showConsole),
+    showDiagnostics: bool(layout.showDiagnostics, d.showDiagnostics),
     hideUnreachable: bool(layout.hideUnreachable, d.hideUnreachable),
     combine: bool(layout.combine, d.combine),
     byCluster: bool(layout.byCluster, d.byCluster),
@@ -243,7 +255,10 @@ function sanitizePresets(raw: unknown): Record<string, Preset> {
     const trimmed = name.trim().slice(0, 40);
     if (trimmed === '') continue;
     const preset = record(value);
-    out[trimmed] = { layout: sanitizeLayout(preset.layout), background: sanitizeBackground(preset.background) };
+    out[trimmed] = {
+      layout: sanitizeLayout(preset.layout),
+      background: sanitizeBackground(preset.background),
+    };
   }
   return out;
 }
@@ -270,6 +285,7 @@ export function sanitize(raw: unknown): Preferences {
     accessibility: {
       fontScale: oneOf(accessibility.fontScale, FONT_SCALES, d.accessibility.fontScale),
       highContrast: bool(accessibility.highContrast, d.accessibility.highContrast),
+      typeToSearch: bool(accessibility.typeToSearch, d.accessibility.typeToSearch),
     },
   };
 }
@@ -341,7 +357,11 @@ export function setTheme(theme: ThemeMode): void {
     const strength = Math.abs(current.background.overlayOpacity);
     const overlayOpacity =
       theme === 'auto' || strength === 0 ? current.background.overlayOpacity : theme === 'dark' ? strength : -strength;
-    return { ...current, theme, background: { ...current.background, overlayOpacity } };
+    return {
+      ...current,
+      theme,
+      background: { ...current.background, overlayOpacity },
+    };
   });
 }
 
@@ -385,7 +405,10 @@ export function moveFavorite(id: string, toIndex: number): void {
     if (from < 0) return current;
     const rest = current.favorites.filter((other) => other !== id);
     const index = Math.min(Math.max(toIndex, 0), rest.length);
-    return { ...current, favorites: [...rest.slice(0, index), id, ...rest.slice(index)] };
+    return {
+      ...current,
+      favorites: [...rest.slice(0, index), id, ...rest.slice(index)],
+    };
   });
 }
 
@@ -400,7 +423,10 @@ export function moveFavoriteCards(groups: string[][], from: number, to: number):
     ordered.splice(to, 0, moving!);
     const next = ordered.flat();
     let index = 0;
-    return { ...current, favorites: current.favorites.map((id) => visible.has(id) ? next[index++]! : id) };
+    return {
+      ...current,
+      favorites: current.favorites.map((id) => (visible.has(id) ? next[index++]! : id)),
+    };
   });
 }
 
@@ -463,7 +489,10 @@ export function savePreset(name: string): void {
   if (trimmed === '') return;
   updatePrefs((current) => ({
     ...current,
-    presets: { ...current.presets, [trimmed]: { layout: current.layout, background: current.background } },
+    presets: {
+      ...current.presets,
+      [trimmed]: { layout: current.layout, background: current.background },
+    },
   }));
 }
 

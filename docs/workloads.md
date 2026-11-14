@@ -43,7 +43,7 @@ metadata:
 | Degraded | Some desired replicas are missing, or a Deployment reports a failed rollout or replica failure. |
 | Unknown | No supported workload can be found, a Service has no selector, a reference is missing, or the workload APIs cannot be read reliably. |
 
-The badge includes ready and desired replica counts when known. Combined cards show readiness separately for each cluster. The page's status-indicator preference controls these badges as well as the HTTP offline indicator. Bookmarks have no workload badge.
+The badge includes ready and desired replica counts when known. Combined cards show readiness separately for each cluster. The badge and the HTTP offline indicator have separate settings under Settings → Tiles. Workload readiness and console links are hidden by default in the browser, even when the controller supplies them; turn on each visual option there. Bookmarks have no workload badge.
 
 Enabling readiness grants read access to Services, Deployments and StatefulSets in the chart. It adds no write permission. Only the controller reads them; the API and web roles receive the resulting optional `workload` tile field. A hub displays the owning instance's result and never resolves remote references against its own cluster. After a workload watch fails, readiness becomes unknown until the watch recovers.
 

@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'preact/hooks';
+import { prefs } from '../prefs';
 
 // Sizes to try, as a fraction of the normal size, largest first.
 export const FIT_STEPS = [1, 0.92, 0.85, 0.78, 0.7];
@@ -21,6 +22,10 @@ export function fit(measure: (scale: number) => number, limit: (scale: number) =
 // available as a tooltip. With lines at 0 the text is shown as it is.
 export function FitText({ text, lines, class: className }: { text: string; lines: number; class?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
+  const {
+    accessibility: { fontScale },
+    handwrittenFont,
+  } = prefs.value;
 
   useLayoutEffect(() => {
     const element = ref.current;
@@ -57,8 +62,20 @@ export function FitText({ text, lines, class: className }: { text: string; lines
       }
     };
     apply();
+    const frame = requestAnimationFrame(apply);
+    let disposed = false;
+    const fontsChanged = () => {
+      if (!disposed) apply();
+    };
+    void document.fonts?.ready.then(fontsChanged);
+    document.fonts?.addEventListener('loadingdone', fontsChanged);
     // The width of a tile changes with the window and the layout.
-    if (typeof ResizeObserver === 'undefined') return;
+    const cleanup = () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      document.fonts?.removeEventListener('loadingdone', fontsChanged);
+    };
+    if (typeof ResizeObserver === 'undefined') return cleanup;
     let width = element.clientWidth;
     const observer = new ResizeObserver(() => {
       if (element.clientWidth !== width) {
@@ -67,8 +84,11 @@ export function FitText({ text, lines, class: className }: { text: string; lines
       }
     });
     observer.observe(element);
-    return () => observer.disconnect();
-  }, [text, lines]);
+    return () => {
+      observer.disconnect();
+      cleanup();
+    };
+  }, [text, lines, fontScale, handwrittenFont]);
 
   // The sizing is done on an inner element. The outer one is usually an
   // item of a flex container, where the clamp that cuts text off with an

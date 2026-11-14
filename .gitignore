@@ -27,3 +27,7 @@ Thumbs.db
 *.log
 tmp/
 .cache/
+
+# Browser test artifacts
+/web/test-results/
+/web/playwright-report/

@@ -631,7 +631,7 @@ describe('App', () => {
       updatePrefs((p) => ({
         ...p,
         layout: { ...p.layout, columns: 3 },
-        accessibility: { fontScale: 130, highContrast: true },
+        accessibility: { fontScale: 130, highContrast: true, typeToSearch: true },
       })),
     );
     const root = document.documentElement;
@@ -1102,4 +1102,23 @@ describe('App', () => {
       expect(container.querySelector('.tile-icon-fallback')?.textContent).toBe('P'),
     );
   });
+});
+
+it('keeps ordinary typing alone when type-to-search is off, while shortcuts still work', () => {
+  renderWith(serverState({ tiles: [tile({})] }));
+  act(() =>
+    updatePrefs((p) => ({
+      ...p,
+      accessibility: { ...p.accessibility, typeToSearch: false },
+    })),
+  );
+  fireEvent.keyDown(document.body, { key: 'g' });
+  expect(screen.queryByRole('combobox')).toBeNull();
+  fireEvent.keyDown(document.body, { key: '/' });
+  expect(screen.getByRole('combobox')).toBeTruthy();
+});
+it('does not interrupt input composition', () => {
+  renderWith(serverState({ tiles: [tile({})] }));
+  fireEvent.keyDown(document.body, { key: 'a', isComposing: true });
+  expect(screen.queryByRole('combobox')).toBeNull();
 });

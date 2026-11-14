@@ -40,7 +40,7 @@ describe('sanitize', () => {
       direction: defaults().background.direction,
       imageUrl: '',
     });
-    expect(result.accessibility).toEqual({ fontScale: 115, highContrast: true });
+    expect(result.accessibility).toEqual({ fontScale: 115, highContrast: true, typeToSearch: true });
     expect('unknown' in result).toBe(false);
   });
 

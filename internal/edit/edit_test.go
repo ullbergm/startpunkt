@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -348,5 +350,32 @@ func TestCheckSaysOnlyWhetherAnAddressAnswers(t *testing.T) {
 	plain := serve(t, &Handler{Editor: &memory{}, Key: key})
 	if code, _, _ := call(t, http.MethodPost, plain.URL+"/api/v1/check", key, `{"url":"https://up.example.com"}`); code == http.StatusOK {
 		t.Errorf("without a checker: %d", code)
+	}
+}
+
+// A burst of simultaneous failures must not spend future refill tokens.
+func TestConcurrentWrongKeysHaveBoundedRetry(t *testing.T) {
+	h := &Handler{Key: key, Failures: 3, Refill: time.Hour}
+	mux := http.NewServeMux()
+	h.Routes(mux)
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	for range 256 {
+		wg.Go(func() {
+			<-start
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/unlock", nil)
+			req.Header.Set("Authorization", "Bearer wrong")
+			mux.ServeHTTP(httptest.NewRecorder(), req)
+		})
+	}
+	close(start)
+	wg.Wait()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/unlock", nil)
+	req.Header.Set("Authorization", "Bearer "+key)
+	w := httptest.NewRecorder()
+	mux.ServeHTTP(w, req)
+	seconds, err := strconv.Atoi(w.Header().Get("Retry-After"))
+	if w.Code != http.StatusTooManyRequests || err != nil || seconds > 3601 {
+		t.Fatalf("unbounded lockout: status %d, retry %q", w.Code, w.Header().Get("Retry-After"))
 	}
 }

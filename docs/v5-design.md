@@ -123,8 +123,8 @@ How each type becomes tiles:
 | --- | --- | --- |
 | Route | One, from `spec.host` and `spec.path`. | `https` when the Route has a `tls` section. |
 | Ingress | One per host in `spec.rules`. | `https` for a host that a `tls` entry covers. |
-| HTTPRoute | One per entry in `spec.hostnames`. | The `protocol` annotation, otherwise the source's `defaultProtocol`. The Gateway decides this, not the route. |
-| VirtualService | One per entry in `spec.hosts`. | As for HTTPRoute. |
+| HTTPRoute | One per entry in `spec.hostnames`, or concrete matching Gateway listener hostnames when omitted. | Annotations override a matching Gateway listener’s scheme and port; the source’s `defaultProtocol` is the fallback. |
+| VirtualService | One per entry in `spec.hosts`. | Annotations override a matching Istio Gateway server’s scheme and port; the source’s `defaultProtocol` is the fallback. |
 
 - Wildcard hosts yield no tile, because they name no single place to link to.
 - The `url` annotation replaces everything derived from the spec with one tile.
@@ -142,12 +142,15 @@ Differences from 4.x, which are deliberate:
 - Only `startpunkt.ullberg.us/*` annotations are read. The `hajimari.io` and `forecastle.stakater.com` equivalents are ignored.
 - An annotation that cannot be parsed, such as a `port` that is not a number, removes the object's tiles and is logged, instead of being silently ignored.
 
+Gateway references use the existing object-reference watches, so a listener change reconverts the route. HTTPRoute parent section, port, hostname and allowed-route namespace/kind restrictions are checked. Namespace selectors watch the referenced Namespace’s labels. Istio Gateways use the source API version, namespace-qualified names, and server host namespace restrictions; `mesh` does not name a Gateway. Matching HTTPS listeners are preferred, then the lowest port. Missing, unreadable or unmatched Gateways retain the configured scheme fallback. URL, protocol and port annotations retain precedence. Hidden sources do not start reference watches.
+
 ### User-defined mappings
 
 Operators can add sources for other resource types, for example Traefik `IngressRoute`, through the settings. A mapping names a group, version and resource, and gives a CEL expression for where an object is served. It is one more adapter behind the same interface, so the store, API and UI are unaffected.
 
 ```yaml
 sources:
+  presets: [] # Replace the default Traefik preset with a custom mapping.
   custom:
     - name: traefik
       apiGroup: traefik.io
@@ -169,7 +172,7 @@ sources:
 - A resource type that has a built-in source cannot be mapped, also while that source is turned off.
 - The chart grants `get`, `list` and `watch` on each mapped type.
 
-Named, opt-in presets under `sources.presets` supply CEL mappings for Traefik IngressRoute and Contour HTTPProxy. They infer TLS from the object, publish only annotated resources and share the custom mapping evaluator. Presets and custom mappings cannot claim the same resource type. See [source presets](source-presets.md).
+Named presets under `sources.presets` supply CEL mappings for Traefik IngressRoute, Contour HTTPProxy, Knative Service, F5 NGINX VirtualServer and APISIX ApisixRoute. Traefik is enabled by default; the others are opt-in. A selected list replaces the defaults, and an explicit empty list disables all presets. The environment accepts `STARTPUNKT_SOURCES_PRESETS=[]` to clear the default even in the chart’s environment configuration mode. Traefik, Contour and NGINX infer TLS from the object; Knative reads its resolved status URL; APISIX reads concrete HTTP-rule hosts and uses HTTP unless the protocol annotation overrides it. All presets publish only annotated resources and share the custom mapping evaluator. Presets and custom mappings cannot claim the same resource type. See [source presets](source-presets.md).
 
 ### urlFrom
 
@@ -221,7 +224,7 @@ All paths are under `/api/v1`. The JSON schema is versioned, because other Start
 | Endpoint | Access | Purpose |
 | --- | --- | --- |
 | `GET /state` | Open | Full snapshot: tiles, clusters with their connection state, UI configuration (title, theme, default language, search engine, whether every cluster is shown from the start, the default preferences), and whether editing is available and in which namespace new resources go. Supports `ETag`. |
-| `GET /events` | Open | SSE stream. Sends a full `snapshot` on every connect, then `tile.upsert`, `tile.delete`, `cluster.status`, `cluster.delete` and, when the settings of the page change, `config` events. A comment line every 15 seconds keeps proxies from closing an idle stream. |
+| `GET /events` | Open | SSE stream. Sends a full `snapshot` on every connect, then `tile.upsert`, `tile.delete`, `diagnostic.upsert`, `diagnostic.delete`, `cluster.status`, `cluster.delete` and, when the settings of the page change, `config` events. A comment line every 15 seconds keeps proxies from closing an idle stream. |
 | `GET /unlock` | Edit key | Returns success when the supplied key is valid. Used by the UI to check a key when it is entered. |
 | `POST /check` | Edit key | Probes an `http` or `https` address once, the way the availability prober does, and answers only whether something is there. The editor shows it next to the address. In split mode the `api` role asks the controller, which is the process that probes. |
 | `GET /icons?query=` | Open | The names of icons that match a word, asked of the icon service by the server and kept for an hour. Only names of the form `set:name` are passed on. |
@@ -242,6 +245,8 @@ A reconnecting client receives a fresh snapshot instead of a replay of missed ev
 Resource reads include `resourceVersion` and an opaque `specToken`. New clients return `specToken` alongside the spec on update. It covers the object UID, generation, canonical spec and secondary-links annotation, so status-only writes do not reject an open form while another spec edit or annotation change receives 409. Kubernetes update conflicts are retried only while that token still matches. A legacy client can send `resourceVersion` instead, retaining strict version comparison; omitting both receives 400. Split-role forwarding preserves both fields. The token is a concurrency check, not an authentication credential.
 
 Write endpoints only change the custom resource. The UI updates when the resulting watch event arrives on the stream, so there is one code path for changes made in the UI and changes made with `kubectl`.
+
+The optional `diagnostics` list in a snapshot contains source conversion failures: stable id, cluster, source reference and a message bounded to 4096 bytes. Diagnostics are cleared on successful conversion, resource deletion and source removal. They are stored, mirrored across controller generations and sent to split API processes with the same atomic snapshot and subscription mechanism as tiles. Remote followers ignore conversion diagnostics, so tile filters cannot accidentally reveal excluded remote resources. The page displays source and probe/workload details from existing tile fields and local conversion errors as text, never raw resource bodies or probe responses.
 
 ### Why not GraphQL
 
@@ -369,6 +374,8 @@ cluster B: informers ─> store ─> prober ─┤                              
 - The top right corner is empty unless a newer release exists. Then a golden ribbon lies across it that reads "v5.8.0 available", with the version there is, and opens the list of what has changed. The corner that linked to the project on GitHub is gone. The footer links to the project, and `web.githubLink` now says whether the footer is shown.
 - Not carried over from 4.x: the Lorem Picsum picture provider, whose service no longer answers, and the "what's new" dialog.
 - Translations are static JSON files served with the bundle: English is part of it and is the fallback for any missing key, other languages are fetched when chosen. The language is the visitor's choice, else the first of the browser's languages that is available, else the configured default. A test checks that every language has the same keys and placeholders. Icons named from an Iconify set are images served by the instance itself; an icon given as an address is loaded from that address.
+- Settings → Tiles independently controls descriptions, tags, HTTP availability, workload readiness, secondary links, console links and diagnostics controls. Workload readiness, console links and diagnostics controls start off. These are browser preferences and can also be supplied through default preferences or presets.
+- Automatic type-to-search can be turned off in Accessibility; explicit shortcuts remain. Composition keystrokes do not open search. Description fitting responds to font size, typeface and font loading as well as width. Settings tabs wrap and visible scrollbars are suppressed without disabling keyboard, touch or wheel scrolling.
 - Accessibility requirements from 4.x carry over: keyboard navigation, ARIA labelling, visible focus, high-contrast mode.
 - Section and group headings have stable IDs unique to each rendered section. The group-name part is lossless, so spaces, punctuation and non-Latin names cannot collide in `aria-labelledby` references.
 
@@ -401,9 +408,10 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 - Multi-stage container build producing a static binary on a distroless base.
 - The chart has a `mode` setting. `single` creates one Deployment running the `all` role. `split` creates one Deployment per role, mounts a service account token only in the controller, and routes `/api` to `api` and everything else to `web` on one host.
 - Helm chart with the generated CRDs, Deployment, Service, optional Ingress or Route, ServiceAccount and RBAC. An optional Secret for the edit key comes with editing. Every role exposes `/metrics` in Prometheus text format using a bounded standard-library registry. The chart optionally installs a ServiceMonitor, a Grafana dashboard ConfigMap and a Grafana Operator dashboard. In split mode the monitor scrapes controller and api, without going through the Route. See [monitoring](monitoring.md) for OpenShift user workload monitoring setup.
+- Optional ingress NetworkPolicies isolate the split controller to this release’s API pods, controller peers during leader election, and explicitly configured additional peers. Public role ingress can also be restricted. Egress stays unrestricted.
 - No admission or conversion webhooks, so no certificates to manage.
 - The `Application` and `Bookmark` definitions are templates of the chart, so that an upgrade of the chart upgrades them. `crds.install` leaves them out, for running next to a 4.x installation. The `Startpunkt` and `Remote` definitions are in the chart's `crds` directory instead, because the release creates a `Startpunkt` resource and Helm needs its definition to exist before that. All resource names derive from the release name and namespace.
-- Every process is stateless and writes its log, as text or JSON, to standard output; messages of the Kubernetes client library go to standard error in that library's own format. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. Optional Lease-based leader election runs probing and status writes on one controller at a time; followers copy probe results through the existing event stream only when tile identity, cluster and URL match. Resource watches, editing and serving continue on every replica. Without election each replica probes independently. See [leader election](leader-election.md).
+- Every process is stateless and writes its log, as text or JSON, to standard output; messages of the Kubernetes client library go to standard error in that library's own format. More than one replica is safe: each builds its own store from the API server, or from the controller in split mode. In split mode `api` and `web` scale without adding informers. The chart defaults to two replicas per role and enables Lease-based leader election, which runs probing and status writes on one controller at a time; followers copy probe results through the existing event stream only when tile identity, cluster and URL match. Resource watches, editing and serving continue on every replica. Without election each replica probes independently. See [leader election](leader-election.md).
 
 ## Testing
 
@@ -412,7 +420,8 @@ Every setting can be given as an environment variable named `STARTPUNKT_<SECTION
 - What only a real API server can show is tested on a throwaway kind cluster by `hack/test-cutover.sh`: reading and writing through each deprecated version, the 4.x definitions, the cutover, pruning and status writes, and the chart itself. It is run by hand with `make test-cutover`; CI does not run it yet.
 - API tests for the edit key: missing, wrong and valid keys, and editing disabled when no key is configured.
 - Federation tests with two in-process instances, covering disconnect, stale marking and resynchronisation.
-- Frontend component tests with Vitest and Testing Library.
+- Frontend component tests with Vitest and Testing Library. Playwright runs the built frontend with the real HTTP API and controller using fake Kubernetes clients, covering editing, reconnects, keyboard navigation, font scaling, visual preferences and narrow-screen settings under the production CSP.
+- CI runs strict kubeconform validation on chart renders for both modes and both configuration sources. Startpunkt schemas come from the generated CRDs. The registry omits the recursive CustomResourceDefinition schema, so CRD envelopes are skipped; missing schemas otherwise fail. Operator-owned optional resources are outside this native-resource matrix.
 - Tests never point at a real cluster.
 
 ## Coexistence with 4.x

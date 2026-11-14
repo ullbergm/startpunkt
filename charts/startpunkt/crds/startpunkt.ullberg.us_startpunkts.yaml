@@ -261,13 +261,18 @@ spec:
                     type: object
                   presets:
                     description: |-
-                      Presets enables ready-made CEL mappings by name: traefik and contour.
+                      Presets enables ready-made CEL mappings by name: traefik, contour,
+                      knative, nginx and apisix. Traefik is enabled by default; an empty
+                      list disables all presets.
                       Each reads only resources annotated startpunkt.ullberg.us/enable: "true".
-                      Environment: STARTPUNKT_SOURCES_PRESETS, comma-separated.
+                      Environment: STARTPUNKT_SOURCES_PRESETS, comma-separated, or [] to disable.
                     items:
                       enum:
                       - traefik
                       - contour
+                      - knative
+                      - nginx
+                      - apisix
                       type: string
                     type: array
                     x-kubernetes-list-type: set

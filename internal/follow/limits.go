@@ -114,6 +114,14 @@ func validateTile(t tile.Tile) error {
 }
 
 func (f *Follower) validateState(state api.State) error {
+	if len(state.Diagnostics) > f.tileLimit() {
+		return errors.New("too many diagnostics")
+	}
+	for _, d := range state.Diagnostics {
+		if err := validateDiagnostic(d); err != nil {
+			return err
+		}
+	}
 	if len(state.Tiles) > f.tileLimit() {
 		return fmt.Errorf("snapshot exceeds %d tiles", f.tileLimit())
 	}
@@ -157,5 +165,17 @@ func (f *Follower) trackID(id string) error {
 		return fmt.Errorf("upstream exceeds %d tiles", f.tileLimit())
 	}
 	f.received[id] = true
+	return nil
+}
+
+func validateDiagnostic(d tile.Diagnostic) error {
+	if d.ID == "" || len(d.ID) > 2048 || d.Cluster == "" || !strings.HasPrefix(d.ID, d.Cluster+"/") || len(d.Message) > 4096 {
+		return errors.New("invalid diagnostic")
+	}
+	for _, v := range []string{d.Source.Type, d.Source.Version, d.Source.Kind, d.Source.Namespace, d.Source.Name} {
+		if len(v) > 4096 {
+			return errors.New("invalid diagnostic source")
+		}
+	}
 	return nil
 }

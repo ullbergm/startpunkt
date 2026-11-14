@@ -1,12 +1,13 @@
 # One prober and status writer per instance
 
-When an instance has several controller replicas, optional leader election keeps
+The chart defaults to two replicas per role and enables leader election. When
+an instance has several controller replicas, leader election keeps
 one replica responsible for availability probes and status writes. Every replica
 continues reading its own informer state and serving requests. The leader writes
 Application, Startpunkt and Remote statuses; editing remains available on every
 controller and still uses the edit key and optimistic concurrency checks.
 
-Enable it in the chart:
+The chart’s single-mode defaults are:
 
 ```yaml
 replicas:
@@ -67,6 +68,7 @@ and must not include credentials, a query or a fragment. A controller needs
 `get`, `list`, `watch`, `create` and `update` on the instance's Lease in that
 namespace. No cluster-wide Lease permission is needed.
 
-Election is disabled by default, so an existing single-replica installation
-keeps working without Lease permissions. With election disabled, each controller
-replica continues probing and writing statuses independently.
+Outside the chart, election is disabled by default; enable it explicitly for
+several controllers. To opt out in chart values, set `leaderElection.enabled: false`. With election disabled, each controller replica continues probing and
+writing statuses independently. A smaller single-mode chart deployment can use
+`replicas.all: 1`; in split mode set the desired replica count for each role.

@@ -47,12 +47,27 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: web/test-results
+          retention-days: 7
 
   chart:
     name: Chart
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: make check-chart-schemas
       - run: helm lint charts/startpunkt
       - run: helm lint charts/startpunkt --set mode=split --set route.enabled=true --set route.host=start.example.com
       - run: helm lint charts/startpunkt --set customResources.enabled=false --set crds.install=false

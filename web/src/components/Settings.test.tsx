@@ -29,7 +29,7 @@ describe('Settings tabs', () => {
   it('shows one section at a time, starting with appearance', () => {
     open();
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.map((tab) => tab.textContent)).toEqual(['Appearance', 'Layout', 'Background', 'Presets', 'Accessibility']);
+    expect(tabs.map((tab) => tab.textContent)).toEqual(['Appearance', 'Layout', 'Tiles', 'Background', 'Presets', 'Accessibility']);
     expect(tabs[0]!.getAttribute('aria-selected')).toBe('true');
     expect(screen.getByRole('tabpanel', { name: 'Appearance' })).toBeTruthy();
     expect(screen.getByRole('combobox', { name: 'Theme' })).toBeTruthy();
@@ -56,7 +56,7 @@ describe('Settings tabs', () => {
     fireEvent.keyDown(list, { key: 'End' });
     expect(selected()?.textContent).toBe('Accessibility');
     // Only the selected tab is a Tab stop.
-    expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).toEqual([-1, -1, -1, -1, 0]);
+    expect(screen.getAllByRole('tab').map((tab) => tab.tabIndex)).toEqual([-1, -1, -1, -1, -1, 0]);
   });
 });
 
@@ -80,6 +80,7 @@ describe('Settings', () => {
     const hover = screen.getByRole('checkbox', { name: 'Highlight the tile under the pointer' }) as HTMLInputElement;
     expect(hover.checked).toBe(false);
     fireEvent.click(hover);
+    fireEvent.click(screen.getByRole('tab', { name: 'Tiles' }));
     expect((screen.getByRole('combobox', { name: 'Description lines, at most' }) as HTMLSelectElement).value).toBe('2');
     select('Description lines, at most', '1');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show tags' }));

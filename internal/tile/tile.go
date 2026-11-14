@@ -50,6 +50,15 @@ type WorkloadRef struct {
 	Name      string
 }
 
+// Diagnostic is a source object that could not be converted into tiles.
+// It is additive to the versioned API; it never contains a resource body.
+type Diagnostic struct {
+	ID      string `json:"id"`
+	Cluster string `json:"cluster"`
+	Source  Source `json:"source"`
+	Message string `json:"message"`
+}
+
 // Tile is one application or bookmark. It is the unit held by the store and
 // sent to clients, and its JSON form is part of the versioned API.
 type Tile struct {

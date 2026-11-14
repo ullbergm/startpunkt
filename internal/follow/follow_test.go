@@ -326,3 +326,34 @@ func TestRemoteCertificateIsCheckedUnlessToldNotTo(t *testing.T) {
 	defer cancel()
 	eventually(t, "the remote's tile", func() bool { _, ok := find(hub, "prod/apps/ns/grafana"); return ok })
 }
+
+func TestFollowsDiagnosticsAndClearsOnResync(t *testing.T) {
+	upstream := store.New()
+	upstream.SetCluster(store.Cluster{Name: "prod", Local: true, State: store.StateConnected})
+	src := tile.Source{Type: "applications.startpunkt.ullberg.us", Namespace: "apps", Name: "bad", Version: "v1"}
+	owner := store.Owner{Cluster: "prod", Type: src.Type, Namespace: src.Namespace, Name: src.Name}
+	upstream.SetDiagnostic(owner, src, "missing reference")
+	ts := httptest.NewServer((&api.Server{Store: upstream, Heartbeat: 20 * time.Millisecond}).Handler())
+	defer ts.Close()
+	local := store.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go (&Follower{URL: ts.URL, Store: local}).Run(ctx)
+	eventually(t, "diagnostic snapshot", func() bool { return len(local.Snapshot().Diagnostics) == 1 })
+	upstream.SetDiagnostic(owner, src, "changed failure")
+	eventually(t, "diagnostic event", func() bool {
+		d := local.Snapshot().Diagnostics
+		return len(d) == 1 && d[0].Message == "changed failure"
+	})
+	upstream.SetDiagnostic(owner, src, "")
+	eventually(t, "resolved diagnostic", func() bool { return len(local.Snapshot().Diagnostics) == 0 })
+	// Reconnecting snapshots replace diagnostics rather than retaining removed errors.
+	f := &Follower{Store: local, Log: slog.Default()}
+	local.UpsertDiagnostic(tile.Diagnostic{ID: "old/apps/ns/bad", Cluster: "old", Message: "old failure"})
+	if err := f.apply(api.EventSnapshot, `{"schemaVersion":1,"tiles":[],"clusters":[]}`); err != nil {
+		t.Fatal(err)
+	}
+	if len(local.Snapshot().Diagnostics) != 0 {
+		t.Fatal("resync retained old error")
+	}
+}

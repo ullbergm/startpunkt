@@ -133,13 +133,14 @@ func (HTTPRoute) Resource() string { return "httproutes" }
 // Versions implements Source.
 func (HTTPRoute) Versions() []string { return []string{"v1", "v1beta1"} }
 
-// Tiles implements Source. There is one tile per hostname. Whether a
-// hostname is served over TLS is decided by the Gateway's listeners, not by
-// the route, so the scheme comes from the protocol annotation or the
-// configured default.
-func (h HTTPRoute) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, error) {
+// Tiles implements Source. Gateway listeners supply scheme and port when
+// available; annotations override them and the configured scheme is the fallback.
+func (h HTTPRoute) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.Tile, error) {
+	if !mayPublish(obj, h.Options.Annotated) {
+		return annotatedTiles(obj, h.Options.Annotated, h.Options.DefaultProtocol, nil)
+	}
 	return annotatedTiles(obj, h.Options.Annotated, h.Options.DefaultProtocol,
-		hostEndpoints(stringList(obj, "spec", "hostnames")))
+		httpGatewayEndpoints(obj, lookup))
 }
 
 // VirtualService is the adapter for the Istio VirtualService.
@@ -156,11 +157,14 @@ func (VirtualService) Resource() string { return "virtualservices" }
 // Versions implements Source.
 func (VirtualService) Versions() []string { return []string{"v1", "v1beta1", "v1alpha3"} }
 
-// Tiles implements Source. There is one tile per host. As with HTTPRoute,
-// the scheme comes from the protocol annotation or the configured default.
-func (v VirtualService) Tiles(obj *unstructured.Unstructured, _ Lookup) ([]tile.Tile, error) {
+// Tiles implements Source. Referenced Istio Gateways supply scheme and port,
+// with annotations taking precedence and the configured scheme as fallback.
+func (v VirtualService) Tiles(obj *unstructured.Unstructured, lookup Lookup) ([]tile.Tile, error) {
+	if !mayPublish(obj, v.Options.Annotated) {
+		return annotatedTiles(obj, v.Options.Annotated, v.Options.DefaultProtocol, nil)
+	}
 	return annotatedTiles(obj, v.Options.Annotated, v.Options.DefaultProtocol,
-		hostEndpoints(stringList(obj, "spec", "hosts")))
+		istioGatewayEndpoints(obj, lookup))
 }
 
 func hostEndpoints(hosts []string) []endpoint {

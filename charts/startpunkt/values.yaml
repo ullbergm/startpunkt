@@ -99,6 +99,9 @@ config:
     #       type: gradient
     #       color: "#1b2a4e"
     #       color2: "#5b2a86"
+    # Tile options: layout.showWorkload and layout.showConsole are false by
+    # default; layout.showLinks is true and layout.showDiagnostics is false.
+    # These affect display only, independently of controller collection.
     defaultPreferences: {}
     # Colours of the light and the dark appearance, as hex values, passed as
     # STARTPUNKT_WEB_THEME_<LIGHT|DARK>_<NAME>. The names are those of 4.x,
@@ -148,11 +151,13 @@ namespaceSelector:
 # its RBAC rule.
 sources:
   # STARTPUNKT_SOURCES_PRESETS, comma-separated. Ready-made CEL mappings,
-  # off by default. Supported names are traefik (traefik.io IngressRoute)
-  # and contour (projectcontour.io HTTPProxy). They require the enable
-  # annotation, infer TLS from each object, and grant read access to their types.
+  # with traefik enabled by default. Other names are contour (HTTPProxy),
+  # knative (Knative Service), nginx (F5 NGINX VirtualServer) and apisix
+  # (ApisixRoute). Each requires the enable annotation and grants read access
+  # to its resource type. Set [] to disable all presets. Knative reads its
+  # resolved status URL; APISIX uses http unless the protocol annotation is set.
   # Use sources.custom instead when the mapping needs different settings.
-  presets: []
+  presets: [traefik]
   # Application custom resources (startpunkt.ullberg.us).
   application:
     enabled: true
@@ -175,10 +180,11 @@ sources:
   httpRoute:
     enabled: true
     onlyAnnotated: true
-    # URL scheme when the object does not set the protocol annotation: http
-    # or https. The route itself does not say which one the Gateway serves.
+    # Fallback URL scheme (http or https) when no matching Gateway listener
+    # can be read. Protocol and port annotations override the listener.
     defaultProtocol: http
-  # Istio VirtualServices. One tile per host.
+  # Istio VirtualServices. One tile per host. Referenced Gateway servers
+  # supply scheme and port; annotations override them.
   virtualService:
     enabled: true
     onlyAnnotated: true
@@ -194,6 +200,7 @@ sources:
   # there are hostFromRule and hostsFromRule, which take the host names out of
   # a routing rule such as "Host(`a.example.com`) && PathPrefix(`/x`)".
   #
+  #   presets: [] # Disable the default Traefik preset before replacing it.
   #   custom:
   #     - name: traefik            # for messages; unique
   #       apiGroup: traefik.io     # empty for the core group
@@ -319,12 +326,13 @@ editing:
 extraEnv: []
 
 # Replicas per Deployment. "all" is used in single mode, the others in split
-# mode. Every process is stateless, so more than one replica of each is safe.
+# mode. Defaults to two per role; every process is stateless. Leader election
+# is enabled below so only one controller probes and writes status.
 replicas:
-  all: 1
-  controller: 1
-  api: 1
-  web: 1
+  all: 2
+  controller: 2
+  api: 2
+  web: 2
 
 # Resources per Deployment, keyed like replicas. Example:
 #   resources:
@@ -443,10 +451,26 @@ workloads:
 # Bootstrap settings for electing one prober and status writer per release.
 # These settings are passed through the environment in both configuration modes.
 leaderElection:
-  # STARTPUNKT_LEADERELECTION_ENABLED. Default: false. Enable for several
-  # replicas to avoid duplicate probes and competing status writes.
-  enabled: false
+  # STARTPUNKT_LEADERELECTION_ENABLED. Default: true. Elect one controller
+  # to avoid duplicate probes and competing status writes.
+  enabled: true
   # STARTPUNKT_LEADERELECTION_LEASENAME. Empty uses the release's resource name.
   leaseName: ""
   # The Lease is in the release namespace. Identity and advertiseURL are set
   # separately on each pod using the downward API.
+
+# Ingress policies for the release's pods. Requires a network plugin that
+# enforces NetworkPolicy. Egress is not restricted.
+networkPolicy:
+  # Disabled by default. In split mode only api pods in this release and
+  # namespace can reach the controller; leader election also allows its
+  # controller peers. api and web (or all in single mode) accept HTTP ingress
+  # from everyone unless ingressFrom is set below.
+  enabled: false
+  # Optional NetworkPolicyPeer entries for public HTTP ingress. An empty list
+  # permits everyone. Set namespaceSelector and podSelector together to limit
+  # ingress to the pods of your ingress controller.
+  ingressFrom: []
+  # Extra peers allowed to reach the split controller's HTTP port, for example
+  # Prometheus in a monitoring namespace. Empty by default.
+  controllerIngressFrom: []

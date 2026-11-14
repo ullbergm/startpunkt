@@ -131,17 +131,15 @@ func (h *Handler) guard(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Answers depend on the key and must never be kept by a cache.
 		w.Header().Set("Cache-Control", "no-store")
-		if wait, limited := h.limited(); limited {
+		given, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+		sum := sha256.Sum256([]byte(given))
+		valid := ok && subtle.ConstantTimeCompare(sum[:], h.digest[:]) == 1
+		if wait, limited := h.attempt(valid); limited {
 			w.Header().Set("Retry-After", strconv.Itoa(int(wait.Seconds())+1))
 			writeError(w, http.StatusTooManyRequests, "too many attempts with a wrong key; try again shortly")
 			return
 		}
-		given, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-		// Comparing digests takes the same time whatever the key's length
-		// and wherever it first differs.
-		sum := sha256.Sum256([]byte(given))
-		if !ok || subtle.ConstantTimeCompare(sum[:], h.digest[:]) != 1 {
-			h.failed()
+		if !valid {
 			w.Header().Set("WWW-Authenticate", "Bearer")
 			writeError(w, http.StatusUnauthorized, "the edit key is missing or wrong")
 			return
@@ -150,26 +148,23 @@ func (h *Handler) guard(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// limited reports whether attempts are refused for now, and for how long.
+// attempt atomically checks the allowance and consumes a wrong-key attempt.
+// Valid keys do not consume allowance. It reports the wait when exhausted.
 // The count is for the whole process, not per client: behind a proxy the
 // client's address is whatever the request claims. Someone who keeps
 // guessing can therefore keep editing locked for everyone, and cannot do
 // more than that.
-func (h *Handler) limited() (time.Duration, bool) {
+func (h *Handler) attempt(valid bool) (time.Duration, bool) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.refill()
 	if h.left >= 1 {
+		if !valid {
+			h.left--
+		}
 		return 0, false
 	}
 	return time.Duration((1 - h.left) * float64(h.Refill)), true
-}
-
-func (h *Handler) failed() {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	h.refill()
-	h.left--
 }
 
 func (h *Handler) refill() {

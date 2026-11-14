@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import { SCHEMA_VERSION, type Cluster, type ServerState, type Tile } from './types';
+import { SCHEMA_VERSION, type Cluster, type Diagnostic, type ServerState, type Tile } from './types';
 
 // The one signal that holds what the server knows. It is fed by the event
 // stream: a snapshot when the stream opens, then single changes.
@@ -71,7 +71,10 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
     });
     current.addEventListener('tile.delete', (event) => {
       const { id } = JSON.parse(event.data) as { id: string };
-      update((state) => ({ ...state, tiles: state.tiles.filter((tile) => tile.id !== id) }));
+      update((state) => ({
+        ...state,
+        tiles: state.tiles.filter((tile) => tile.id !== id),
+      }));
     });
     current.addEventListener('cluster.status', (event) => {
       const cluster = JSON.parse(event.data) as Cluster;
@@ -82,9 +85,26 @@ export function connect(open: Opener = (url) => new EventSource(url)): () => voi
     });
     current.addEventListener('cluster.delete', (event) => {
       const { name } = JSON.parse(event.data) as { name: string };
-      update((state) => ({ ...state, clusters: state.clusters.filter((cluster) => cluster.name !== name) }));
+      update((state) => ({
+        ...state,
+        clusters: state.clusters.filter((cluster) => cluster.name !== name),
+      }));
     });
     // The page's settings changed on the server: a new title, theme and so on.
+    current.addEventListener('diagnostic.upsert', (event) => {
+      const diagnostic = JSON.parse(event.data) as Diagnostic;
+      update((state) => ({
+        ...state,
+        diagnostics: [...(state.diagnostics ?? []).filter((d) => d.id !== diagnostic.id), diagnostic],
+      }));
+    });
+    current.addEventListener('diagnostic.delete', (event) => {
+      const { id } = JSON.parse(event.data) as { id: string };
+      update((state) => ({
+        ...state,
+        diagnostics: (state.diagnostics ?? []).filter((d) => d.id !== id),
+      }));
+    });
     current.addEventListener('config', (event) => {
       const config = JSON.parse(event.data) as ServerState['config'];
       update((state) => ({ ...state, config }));

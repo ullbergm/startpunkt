@@ -36,6 +36,7 @@ const (
 // applied to it.
 type endpoint struct {
 	host string
+	port int
 	path string
 	// tls is whether the object itself says the host is served over TLS.
 	// It is nil when the object cannot tell.
@@ -115,7 +116,11 @@ func annotatedTilesWith(
 					scheme = "http"
 				}
 			}
-			u := buildURL(scheme, e.host, port, e.path)
+			endpointPort := port
+			if endpointPort == 0 {
+				endpointPort = e.port
+			}
+			u := buildURL(scheme, e.host, endpointPort, e.path)
 			if !seen[u] {
 				seen[u] = true
 				urls = append(urls, u)
@@ -228,4 +233,15 @@ func boolPtr(b bool) *bool { return &b }
 func stringList(obj *unstructured.Unstructured, fields ...string) []string {
 	list, _, _ := unstructured.NestedStringSlice(obj.Object, fields...)
 	return list
+}
+
+// mayPublish avoids reference watches for hidden objects. annotatedTiles still
+// performs validation and reports an invalid enable annotation to the caller.
+func mayPublish(obj *unstructured.Unstructured, options Annotated) bool {
+	raw, present := obj.GetAnnotations()[annEnable]
+	if !present {
+		return !options.OnlyAnnotated
+	}
+	enabled, err := strconv.ParseBool(strings.TrimSpace(raw))
+	return err == nil && enabled
 }

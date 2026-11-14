@@ -6,7 +6,7 @@ import (
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 )
 
-// PresetMappings expands the named, opt-in mappings. The mappings use the
+// PresetMappings expands the selected named mappings. The mappings use the
 // same CEL evaluator, annotations and cost limit as user-defined sources.
 // A preset owns its resource type; use a custom mapping instead when its
 // expression needs changing.
@@ -30,8 +30,23 @@ func PresetMappings(names []string) ([]apiv1.CustomSource, error) {
 				Name: "contour", APIGroup: "projectcontour.io", Version: "v1", Resource: "httpproxies",
 				URL: `has(object.spec) && has(object.spec.virtualhost) && has(object.spec.virtualhost.fqdn) && object.spec.virtualhost.fqdn != '' && !object.spec.virtualhost.fqdn.contains('*') ? [(has(object.spec.virtualhost.tls) ? 'https://' : 'http://') + object.spec.virtualhost.fqdn] : []`,
 			}
+		case "knative":
+			spec = apiv1.CustomSource{
+				Name: "knative", APIGroup: "serving.knative.dev", Version: "v1", Resource: "services",
+				URL: `has(object.status) && has(object.status.url) && object.status.url != '' ? [object.status.url] : []`,
+			}
+		case "nginx":
+			spec = apiv1.CustomSource{
+				Name: "nginx", APIGroup: "k8s.nginx.org", Version: "v1", Resource: "virtualservers",
+				URL: `has(object.spec) && has(object.spec.host) && object.spec.host != '' && !object.spec.host.contains('*') ? [(has(object.spec.tls) ? 'https://' : 'http://') + object.spec.host] : []`,
+			}
+		case "apisix":
+			spec = apiv1.CustomSource{
+				Name: "apisix", APIGroup: "apisix.apache.org", Version: "v2", Resource: "apisixroutes",
+				URL: `has(object.spec) && has(object.spec.http) ? object.spec.http.filter(r, has(r.match) && has(r.match.hosts)).map(r, r.match.hosts).flatten().filter(host, host != '' && !host.contains('*')) : []`,
+			}
 		default:
-			return nil, fmt.Errorf("sources.presets: unknown mapping %q; choose traefik or contour", name)
+			return nil, fmt.Errorf("sources.presets: unknown mapping %q; choose traefik, contour, knative, nginx or apisix", name)
 		}
 		out = append(out, spec)
 	}

@@ -160,6 +160,16 @@ page = await open(dark(pattern, bothClusters));
 await settings(page, 'Layout');
 await shot(page, f('06-settings-layout'));
 await close(page);
+page = await open(dark(pattern, bothClusters));
+await settings(page, 'Tiles');
+await shot(page, f('25-settings-tiles'));
+await close(page);
+
+page = await open(dark(pattern, { ...bothClusters, layout: { showDiagnostics: true } }));
+await page.getByRole('button', { name: 'Inspect Grafana', exact: true }).first().click();
+await shot(page, f('26-tile-diagnostics'));
+await close(page);
+
 
 page = await open(dark(pattern));
 await settings(page, 'Background');
@@ -270,7 +280,7 @@ await close(page);
 
 // HTTP failure and workload readiness remain separate signals. The demo
 // Deployment is scaled to zero, so 0/0 ready is a legitimate desired state.
-page = await open(dark({ type: 'geopattern' }, { favorites: [], collapsed: collapsed('development', 'home', 'media', 'monitoring') }));
+page = await open(dark({ type: 'geopattern' }, { favorites: [], layout: { showWorkload: true, showConsole: true }, collapsed: collapsed('development', 'home', 'media', 'monitoring') }));
 const backupCard = page.locator('.tile').filter({ has: page.getByText('Backup server', { exact: true }) });
 await backupCard.getByText('Offline', { exact: true }).waitFor();
 await backupCard.locator('.tile-workload').filter({ hasText: 'Workload ready · 0/0' }).waitFor();

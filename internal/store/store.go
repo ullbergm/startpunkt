@@ -29,16 +29,19 @@ const (
 	// EventClusterDelete means a cluster is no longer part of the state,
 	// because the remote it came from was removed or this cluster was
 	// given another name. Cluster holds its name.
-	EventClusterDelete EventType = "cluster.delete"
+	EventClusterDelete    EventType = "cluster.delete"
+	EventDiagnostic       EventType = "diagnostic.upsert"
+	EventDiagnosticDelete EventType = "diagnostic.delete"
 )
 
 // Event is one change to the store. Tile is set for upserts, ID for upserts
 // and deletes, Cluster for cluster status changes.
 type Event struct {
-	Type    EventType
-	ID      string
-	Tile    tile.Tile
-	Cluster Cluster
+	Type       EventType
+	ID         string
+	Tile       tile.Tile
+	Cluster    Cluster
+	Diagnostic tile.Diagnostic
 }
 
 // Cluster states.
@@ -72,7 +75,8 @@ type Snapshot struct {
 	// Tiles are in display order.
 	Tiles []tile.Tile
 	// Clusters are ordered by name.
-	Clusters []Cluster
+	Clusters    []Cluster
+	Diagnostics []tile.Diagnostic
 }
 
 // Store is safe for concurrent use.
@@ -83,21 +87,25 @@ type Store struct {
 	clusters map[string]Cluster
 	// origin records which feed a mirrored tile or cluster came from, so
 	// that one feed's snapshot replaces only what that feed brought.
-	tileOrigin    map[string]string
-	clusterOrigin map[string]string
-	nextSub       int
-	subs          map[int]chan []Event
+	tileOrigin       map[string]string
+	clusterOrigin    map[string]string
+	diagnostics      map[string]tile.Diagnostic
+	diagnosticOrigin map[string]string
+	nextSub          int
+	subs             map[int]chan []Event
 }
 
 // New returns an empty store.
 func New() *Store {
 	return &Store{
-		tiles:         map[string]tile.Tile{},
-		owned:         map[Owner][]string{},
-		clusters:      map[string]Cluster{},
-		tileOrigin:    map[string]string{},
-		clusterOrigin: map[string]string{},
-		subs:          map[int]chan []Event{},
+		tiles:            map[string]tile.Tile{},
+		diagnostics:      map[string]tile.Diagnostic{},
+		diagnosticOrigin: map[string]string{},
+		owned:            map[Owner][]string{},
+		clusters:         map[string]Cluster{},
+		tileOrigin:       map[string]string{},
+		clusterOrigin:    map[string]string{},
+		subs:             map[int]chan []Event{},
 	}
 }
 
@@ -112,6 +120,7 @@ func (s *Store) Set(owner Owner, tiles []tile.Tile) {
 // Delete removes every tile derived from owner.
 func (s *Store) Delete(owner Owner) {
 	s.Set(owner, nil)
+	s.RemoveDiagnostic(tile.ID(owner.Cluster, tile.Source{Type: owner.Type, Namespace: owner.Namespace, Name: owner.Name}, 0))
 }
 
 // Retain removes the owners of the given cluster and type for which keep
@@ -127,6 +136,7 @@ func (s *Store) Retain(cluster, typ string, keep func(Owner) bool) {
 		}
 		events = append(events, s.set(owner, nil)...)
 	}
+	events = append(events, s.retainDiagnostics(cluster, typ, keep)...)
 	s.publish(events)
 }
 
@@ -332,6 +342,7 @@ func (s *Store) MirrorFrom(feed string, snap Snapshot) {
 			delete(s.clusterOrigin, name)
 		}
 	}
+	events = append(events, s.mirrorDiagnostics(feed, snap.Diagnostics)...)
 	s.publish(events)
 }
 
@@ -372,6 +383,7 @@ func (s *Store) DropFeed(feed string) {
 		events = append(events, Event{Type: EventDelete, ID: id})
 	}
 	events = append(events, s.dropClusters(feed)...)
+	events = append(events, s.mirrorDiagnostics(feed, nil)...)
 	s.publish(events)
 }
 
@@ -390,6 +402,7 @@ func (s *Store) DropOwned() {
 		delete(s.owned, owner)
 	}
 	events = append(events, s.dropClusters(LocalFeed)...)
+	events = append(events, s.mirrorDiagnostics(LocalFeed, nil)...)
 	s.publish(events)
 }
 
@@ -429,8 +442,9 @@ func (s *Store) Snapshot() Snapshot {
 
 func (s *Store) snapshot() Snapshot {
 	snap := Snapshot{
-		Tiles:    make([]tile.Tile, 0, len(s.tiles)),
-		Clusters: make([]Cluster, 0, len(s.clusters)),
+		Tiles:       make([]tile.Tile, 0, len(s.tiles)),
+		Diagnostics: s.diagnosticSnapshot(),
+		Clusters:    make([]Cluster, 0, len(s.clusters)),
 	}
 	for _, t := range s.tiles {
 		snap.Tiles = append(snap.Tiles, t)

@@ -169,6 +169,7 @@ func Default() Config {
 		Cluster:           Cluster{Name: "local"},
 		NamespaceSelector: NamespaceSelector{Any: true},
 		Sources: Sources{
+			Presets:        []string{"traefik"},
 			Application:    Source{Enabled: true},
 			Bookmark:       Source{Enabled: true},
 			Route:          Annotated{Enabled: true, OnlyAnnotated: true},
@@ -358,6 +359,10 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 	}
 	for name, target := range lists {
 		v := getenv(EnvPrefix + name)
+		if name == "SOURCES_PRESETS" && strings.TrimSpace(v) == "[]" {
+			*target = []string{}
+			continue
+		}
 		if v == "" {
 			continue
 		}

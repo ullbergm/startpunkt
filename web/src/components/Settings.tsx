@@ -35,7 +35,10 @@ const setLayout = (change: Partial<Preferences['layout']>) =>
 const setBackground = (change: Partial<Background>) =>
   updatePrefs((p) => ({ ...p, background: { ...p.background, ...change } }));
 const setAccessibility = (change: Partial<Preferences['accessibility']>) =>
-  updatePrefs((p) => ({ ...p, accessibility: { ...p.accessibility, ...change } }));
+  updatePrefs((p) => ({
+    ...p,
+    accessibility: { ...p.accessibility, ...change },
+  }));
 
 function Check({
   label,
@@ -135,7 +138,14 @@ function Range({
       <input
         type="range"
         class={centred ? 'range-centred' : 'd-range d-range-primary d-range-xs'}
-        style={centred ? { '--from': at(Math.min(part, 0.5)), '--to': at(Math.max(part, 0.5)) } : undefined}
+        style={
+          centred
+            ? {
+                '--from': at(Math.min(part, 0.5)),
+                '--to': at(Math.max(part, 0.5)),
+              }
+            : undefined
+        }
         min={min}
         max={max}
         step={step}
@@ -172,7 +182,10 @@ function Appearance({ p }: { p: Preferences }) {
       <Select
         label={t('settings.theme')}
         value={p.theme}
-        options={themes.map((value) => ({ value, label: t(`settings.theme.${value}` as MessageKey) }))}
+        options={themes.map((value) => ({
+          value,
+          label: t(`settings.theme.${value}` as MessageKey),
+        }))}
         onChange={setTheme}
       />
       <Select<ColorScheme>
@@ -286,6 +299,13 @@ function Layout({ p }: { p: Preferences }) {
         checked={p.layout.hoverEffect}
         onChange={(hoverEffect) => setLayout({ hoverEffect })}
       />
+    </>
+  );
+}
+
+function TileOptions({ p }: { p: Preferences }) {
+  return (
+    <>
       <Check
         label={t('settings.showDescription')}
         checked={p.layout.showDescription}
@@ -302,11 +322,35 @@ function Layout({ p }: { p: Preferences }) {
           onChange={(value) => setLayout({ descriptionLines: Number(value) })}
         />
       )}
-      <Check label={t('settings.showTags')} checked={p.layout.showTags} onChange={(showTags) => setLayout({ showTags })} />
+      <Check
+        label={t('settings.showTags')}
+        checked={p.layout.showTags}
+        onChange={(showTags) => setLayout({ showTags })}
+      />
       <Check
         label={t('settings.showStatus')}
         checked={p.layout.showStatus}
         onChange={(showStatus) => setLayout({ showStatus })}
+      />
+      <Check
+        label={t('settings.showWorkload')}
+        checked={p.layout.showWorkload}
+        onChange={(showWorkload) => setLayout({ showWorkload })}
+      />
+      <Check
+        label={t('settings.showLinks')}
+        checked={p.layout.showLinks}
+        onChange={(showLinks) => setLayout({ showLinks })}
+      />
+      <Check
+        label={t('settings.showConsole')}
+        checked={p.layout.showConsole}
+        onChange={(showConsole) => setLayout({ showConsole })}
+      />
+      <Check
+        label={t('settings.showDiagnostics')}
+        checked={p.layout.showDiagnostics}
+        onChange={(showDiagnostics) => setLayout({ showDiagnostics })}
       />
       <Check
         label={t('settings.hideUnreachable')}
@@ -327,7 +371,10 @@ function BackgroundTab({ p }: { p: Preferences }) {
       <Select
         label={t('settings.background.type')}
         value={type}
-        options={TYPES.map((value) => ({ value, label: t(`settings.background.${value}` as MessageKey) }))}
+        options={TYPES.map((value) => ({
+          value,
+          label: t(`settings.background.${value}` as MessageKey),
+        }))}
         onChange={(next) => setBackground({ type: next })}
       />
       {(type === 'solid' || type === 'gradient') && (
@@ -362,7 +409,9 @@ function BackgroundTab({ p }: { p: Preferences }) {
                   key={index}
                   type="color"
                   class="swatch"
-                  aria-label={t('settings.background.meshColor', { number: index + 1 })}
+                  aria-label={t('settings.background.meshColor', {
+                    number: index + 1,
+                  })}
                   value={color}
                   onInput={(event) =>
                     setBackground({
@@ -518,6 +567,12 @@ function Accessibility({ p }: { p: Preferences }) {
         checked={p.accessibility.highContrast}
         onChange={(highContrast) => setAccessibility({ highContrast })}
       />
+      <Check
+        label={t('settings.typeToSearch')}
+        help={t('settings.typeToSearchHelp')}
+        checked={p.accessibility.typeToSearch}
+        onChange={(typeToSearch) => setAccessibility({ typeToSearch })}
+      />
       <dl class="shortcuts" aria-label={t('settings.shortcuts')}>
         <dt>
           <kbd class="d-kbd d-kbd-sm">/</kbd> <kbd class="d-kbd d-kbd-sm">Ctrl</kbd>+<kbd class="d-kbd d-kbd-sm">K</kbd>
@@ -532,7 +587,7 @@ function Accessibility({ p }: { p: Preferences }) {
   );
 }
 
-type Tab = 'appearance' | 'layout' | 'background' | 'presets' | 'clusters' | 'accessibility';
+type Tab = 'appearance' | 'tiles' | 'layout' | 'background' | 'presets' | 'clusters' | 'accessibility';
 
 // Which clusters' tiles are shown. Offered when there is more than one.
 function Clusters({ p, clusters, shown }: { p: Preferences; clusters: Cluster[]; shown: string[] }) {
@@ -555,7 +610,9 @@ function Clusters({ p, clusters, shown }: { p: Preferences; clusters: Cluster[];
         <Check
           key={cluster.name}
           label={cluster.name}
-          help={t(`settings.clusters.${cluster.local ? 'local' : cluster.state === 'connected' ? 'connected' : 'unreachable'}` as MessageKey)}
+          help={t(
+            `settings.clusters.${cluster.local ? 'local' : cluster.state === 'connected' ? 'connected' : 'unreachable'}` as MessageKey,
+          )}
           checked={shown.includes(cluster.name)}
           onChange={(shown) => setClusterShown(cluster.name, shown)}
         />
@@ -578,10 +635,19 @@ export function Settings({
   const p = prefs.value;
   const [tab, setTab] = useState<Tab>('appearance');
   // The clusters tab is there only when there is a choice to make.
-  const TABS: Tab[] = ['appearance', 'layout', 'background', 'presets', ...(clusters.length > 1 ? (['clusters'] as const) : []), 'accessibility'];
+  const TABS: Tab[] = [
+    'appearance',
+    'layout',
+    'tiles',
+    'background',
+    'presets',
+    ...(clusters.length > 1 ? (['clusters'] as const) : []),
+    'accessibility',
+  ];
   const panels: Record<Tab, ComponentChildren> = {
     appearance: <Appearance p={p} />,
     layout: <Layout p={p} />,
+    tiles: <TileOptions p={p} />,
     background: <BackgroundTab p={p} />,
     presets: <Presets p={p} />,
     clusters: <Clusters p={p} clusters={clusters} shown={shownClusters} />,
@@ -592,14 +658,22 @@ export function Settings({
     <Modal label={t('settings.title')} class="settings" onClose={onClose}>
       <header class="settings-header">
         <h2>{t('settings.title')}</h2>
-        <button type="button" class="d-btn d-btn-ghost d-btn-sm d-btn-circle" aria-label={t('settings.close')} onClick={onClose}>
+        <button
+          type="button"
+          class="d-btn d-btn-ghost d-btn-sm d-btn-circle"
+          aria-label={t('settings.close')}
+          onClick={onClose}
+        >
           <Icon name="close" />
         </button>
       </header>
       <Tabs
         id="settings"
         label={t('settings.tabs')}
-        tabs={TABS.map((key) => ({ key, label: t(`settings.${key}` as MessageKey) }))}
+        tabs={TABS.map((key) => ({
+          key,
+          label: t(`settings.${key}` as MessageKey),
+        }))}
         selected={tab}
         onSelect={setTab}
         kit

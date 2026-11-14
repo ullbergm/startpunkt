@@ -250,7 +250,7 @@ func TestLeaderElectionIsScopedToControllerAndNamespace(t *testing.T) {
 	}
 }
 func TestElectionDisabledHasNoLeaseAccessOrBootstrap(t *testing.T) {
-	docs := scopeRender(t, "--set", "mode=split")
+	docs := scopeRender(t, "--set", "mode=split", "--set", "leaderElection.enabled=false")
 	for _, doc := range docs {
 		for _, rule := range doc.Rules {
 			if contains(rule.APIGroups, "coordination.k8s.io") && contains(rule.Resources, "leases") {

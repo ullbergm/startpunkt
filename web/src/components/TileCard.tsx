@@ -6,6 +6,7 @@ import { t } from '../i18n';
 import { prefs, toggleFavorite } from '../prefs';
 import type { Tile } from '../types';
 import { safeHref } from '../url';
+import { diagnosticTarget } from './Diagnostics';
 import { FitText } from './FitText';
 import { Icon } from './Icons';
 import { TileIcon } from './TileIcon';
@@ -21,8 +22,13 @@ export interface Reorder {
 // pill is a link to that cluster's instance of the service and says, in its
 // name and with a mark, whether that instance answers.
 function Pill({ tile, link }: { tile: Tile; link: boolean }) {
-  const state =
-    tile.available === true ? 'available' : tile.available === false ? 'unavailable' : 'unknown';
+  const state = !prefs.value.layout.showStatus
+    ? 'unknown'
+    : tile.available === true
+      ? 'available'
+      : tile.available === false
+        ? 'unavailable'
+        : 'unknown';
   const label = t(`pill.${state}`, { name: tile.name, cluster: tile.cluster });
   const body = (
     <>
@@ -37,7 +43,9 @@ function Pill({ tile, link }: { tile: Tile; link: boolean }) {
   );
   const href = link ? safeHref(tile.url) : null;
   // The cluster's own colour, the same as on its button above the tiles.
-  const style = { '--cluster': clusterColors.value[tile.cluster] ?? 'currentColor' };
+  const style = {
+    '--cluster': clusterColors.value[tile.cluster] ?? 'currentColor',
+  };
   return href ? (
     <a
       class="pill"
@@ -62,7 +70,10 @@ function Pill({ tile, link }: { tile: Tile; link: boolean }) {
 function WorkloadStatus({ tile, combined }: { tile: Tile; combined: boolean }) {
   const workload = tile.workload;
   if (!workload) return null;
-  const status = t(`tile.workload.${workload.state}`, { ready: workload.ready, desired: workload.desired });
+  const status = t(`tile.workload.${workload.state}`, {
+    ready: workload.ready,
+    desired: workload.desired,
+  });
   const symbol = { ready: '✓', starting: '◌', degraded: '!', unknown: '?' }[workload.state];
   return (
     <span class={`tile-workload workload-${workload.state}`}>
@@ -81,7 +92,10 @@ function ConsoleLink({ tile, combined }: { tile: Tile; combined: boolean }) {
       target={tile.targetBlank ? '_blank' : undefined}
       rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
     >
-      {t(combined ? 'tile.console.cluster' : 'tile.console', { name: tile.name, cluster: tile.cluster })}
+      {t(combined ? 'tile.console.cluster' : 'tile.console', {
+        name: tile.name,
+        cluster: tile.cluster,
+      })}
     </a>
   );
 }
@@ -185,32 +199,39 @@ export function TileCard({
             {body}
           </div>
         )}
-        {layout.showStatus && card.members.some((member) => member.workload) && (
+        {layout.showWorkload && card.members.some((member) => member.workload) && (
           <div class="tile-workloads">
-            {card.members.map((member) => <WorkloadStatus key={member.id} tile={member} combined={combined} />)}
+            {card.members.map((member) => (
+              <WorkloadStatus key={member.id} tile={member} combined={combined} />
+            ))}
           </div>
         )}
-        {!arranging && card.members.some((member) => member.links?.length || member.consoleURL) && (
-          <div class="tile-secondary-links">
-            {card.members.flatMap((member) =>
-              (member.links ?? []).map((link, index) => {
-                const address = /^https?:\/\//i.test(link.url) ? safeHref(link.url) : null;
-                return address ? (
-                  <a
-                    key={`${member.id}/${index}`}
-                    href={address}
-                    aria-label={combined ? `${link.name} · ${member.cluster}` : undefined}
-                    target={member.targetBlank ? '_blank' : undefined}
-                    rel={member.targetBlank ? 'noopener noreferrer' : undefined}
-                  >
-                    {link.name}{combined && <span class="secondary-cluster"> · {member.cluster}</span>}
-                  </a>
-                ) : null;
-              }),
-            )}
-            {card.members.map((member) => <ConsoleLink key={member.id} tile={member} combined={combined} />)}
-          </div>
-        )}
+        {!arranging &&
+          card.members.some(
+            (member) => (layout.showLinks && member.links?.length) || (layout.showConsole && member.consoleURL),
+          ) && (
+            <div class="tile-secondary-links">
+              {card.members.flatMap((member) =>
+                (layout.showLinks ? (member.links ?? []) : []).map((link, index) => {
+                  const address = /^https?:\/\//i.test(link.url) ? safeHref(link.url) : null;
+                  return address ? (
+                    <a
+                      key={`${member.id}/${index}`}
+                      href={address}
+                      aria-label={combined ? `${link.name} · ${member.cluster}` : undefined}
+                      target={member.targetBlank ? '_blank' : undefined}
+                      rel={member.targetBlank ? 'noopener noreferrer' : undefined}
+                    >
+                      {link.name}
+                      {combined && <span class="secondary-cluster"> · {member.cluster}</span>}
+                    </a>
+                  ) : null;
+                }),
+              )}
+              {layout.showConsole &&
+                card.members.map((member) => <ConsoleLink key={member.id} tile={member} combined={combined} />)}
+            </div>
+          )}
         {/* Next to the card's link, not inside it: a link in a link is not
             valid, and each cluster has to be reachable on its own. */}
         {showCluster && (
@@ -221,6 +242,18 @@ export function TileCard({
           </span>
         )}
       </div>
+      {!arranging && layout.showDiagnostics && (
+        <button
+          type="button"
+          class="tile-inspect"
+          aria-label={t('diagnostics.inspect', { name: tile.name })}
+          onClick={() => {
+            diagnosticTarget.value = ids;
+          }}
+        >
+          ⓘ
+        </button>
+      )}
       {arranging && reorder && (
         <span class="tile-move">
           <button
@@ -248,7 +281,9 @@ export function TileCard({
           type="button"
           class="tile-favorite"
           aria-pressed={favorite}
-          aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', { name: tile.name })}
+          aria-label={t(favorite ? 'tile.removeFavorite' : 'tile.addFavorite', {
+            name: tile.name,
+          })}
           onClick={() => toggleFavorite(ids)}
         >
           <Icon name={favorite ? 'star' : 'starOutline'} size={18} />

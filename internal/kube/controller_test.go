@@ -518,3 +518,26 @@ waiting:
 	release.Do(func() { close(blocked.release) })
 	eventually(t, "ready after initial conversion", func() bool { return s.Ready() && len(s.Snapshot().Tiles) == 1 })
 }
+
+func TestConversionDiagnosticsRecoverAndDisappear(t *testing.T) {
+	broken := app("v1", "apps", "bad", "not-a-url")
+	c := newCluster(broken)
+	c.serve("v1")
+	s := c.run(t)
+	eventually(t, "conversion diagnostic", func() bool { return len(s.Snapshot().Diagnostics) == 1 })
+	fixed := broken.DeepCopy()
+	_ = unstructured.SetNestedField(fixed.Object, "https://fixed.example.com", "spec", "url")
+	if _, err := c.dynamic.Resource(gvr("v1", "applications")).Namespace("apps").Update(context.Background(), fixed, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "recovered resource", func() bool { return len(s.Snapshot().Diagnostics) == 0 && len(s.Snapshot().Tiles) == 1 })
+	_ = unstructured.SetNestedField(fixed.Object, "bad", "spec", "url")
+	if _, err := c.dynamic.Resource(gvr("v1", "applications")).Namespace("apps").Update(context.Background(), fixed, metav1.UpdateOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "failed resource", func() bool { return len(s.Snapshot().Diagnostics) == 1 })
+	if err := c.dynamic.Resource(gvr("v1", "applications")).Namespace("apps").Delete(context.Background(), "bad", metav1.DeleteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	eventually(t, "deleted diagnostic", func() bool { return len(s.Snapshot().Diagnostics) == 0 })
+}

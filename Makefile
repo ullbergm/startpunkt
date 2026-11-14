@@ -1,7 +1,7 @@
 VERSION ?= dev
 IMAGE ?= ghcr.io/ullbergm/startpunkt:$(VERSION)
 
-.PHONY: all web build test check image icons crds test-cutover clean
+.PHONY: all web build test check image icons crds test-cutover test-browser check-chart-schemas clean
 
 all: check build
 
@@ -63,3 +63,11 @@ test-cutover:
 clean:
 	rm -rf bin
 	find web/dist -mindepth 1 ! -name .gitkeep -delete
+
+# Browser tests use fake Kubernetes clients and the built page.
+test-browser:
+	cd web && npm run test:browser
+
+# Strict validation of rendered native resources and Startpunkt settings.
+check-chart-schemas:
+	hack/check-chart-schemas.sh

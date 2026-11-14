@@ -385,10 +385,12 @@ func (c *Controller) apply(w *watch, obj *unstructured.Unstructured) {
 	if err != nil {
 		c.Log.Warn("skipping object",
 			"type", typ, "namespace", owner.Namespace, "name", owner.Name, "error", err)
-		c.Store.Delete(owner)
+		c.Store.Set(owner, nil)
+		c.Store.SetDiagnostic(owner, tile.Source{Type: typ, Version: version, Kind: obj.GetKind(), Namespace: owner.Namespace, Name: owner.Name}, err.Error())
 		return
 	}
 	ref := tile.Source{Type: typ, Version: version, Kind: obj.GetKind(), Namespace: owner.Namespace, Name: owner.Name}
+	c.Store.SetDiagnostic(owner, ref, "")
 	for i := range tiles {
 		tiles[i].ID = tile.ID(c.Cluster, ref, i)
 		tiles[i].Cluster = c.Cluster

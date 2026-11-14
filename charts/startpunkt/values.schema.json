@@ -362,7 +362,10 @@
             "type": "string",
             "enum": [
               "traefik",
-              "contour"
+              "contour",
+              "knative",
+              "nginx",
+              "apisix"
             ]
           }
         }
@@ -1412,6 +1415,81 @@
           "type": "string",
           "maxLength": 253,
           "pattern": "^$|^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ingressFrom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "podSelector": {
+                "type": "object"
+              },
+              "namespaceSelector": {
+                "type": "object"
+              },
+              "ipBlock": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "cidr"
+                ],
+                "properties": {
+                  "cidr": {
+                    "type": "string"
+                  },
+                  "except": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "controllerIngressFrom": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "podSelector": {
+                "type": "object"
+              },
+              "namespaceSelector": {
+                "type": "object"
+              },
+              "ipBlock": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "cidr"
+                ],
+                "properties": {
+                  "cidr": {
+                    "type": "string"
+                  },
+                  "except": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
