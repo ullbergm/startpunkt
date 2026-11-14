@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"log/slog"
 	"sort"
 	"time"
@@ -90,6 +91,7 @@ func (w *ConfigWatcher) Run(ctx context.Context) {
 	remotes := dynamicinformer.NewFilteredDynamicInformer(w.Dynamic, remoteGVR, w.Namespace, 0, cache.Indexers{}, nil).Informer()
 	for name, informer := range map[string]cache.SharedIndexInformer{"startpunkts": own, "remotes": remotes} {
 		_ = informer.SetWatchErrorHandlerWithContext(func(_ context.Context, _ *cache.Reflector, err error) {
+			metrics.Inc("startpunkt_settings_errors_total")
 			w.Log.Warn("watching settings failed, retrying", "resource", name, "error", err)
 		})
 		_, _ = informer.AddEventHandler(handler)
@@ -168,6 +170,7 @@ func (w *ConfigWatcher) apply(ctx context.Context, own, remoteStore cache.Store)
 		err = invalid
 	}
 	if err != nil {
+		metrics.Inc("startpunkt_settings_errors_total")
 		w.Log.Warn("the settings in the cluster are not valid; keeping the last valid ones", "error", err)
 		w.report(ctx, resource, false, "Invalid", err.Error())
 		return
@@ -215,6 +218,7 @@ func (w *ConfigWatcher) report(ctx context.Context, resource *unstructured.Unstr
 	_, err := w.Dynamic.Resource(startpunktGVR).Namespace(w.Namespace).
 		Patch(ctx, w.Name, types.MergePatchType, body, metav1.PatchOptions{}, "status")
 	if err != nil && !apierrors.IsNotFound(err) {
+		metrics.Inc("startpunkt_status_errors_total")
 		w.Log.Warn("writing the status of the settings failed", "error", err)
 	}
 }

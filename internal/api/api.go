@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"io"
 	"io/fs"
 	"net/http"
@@ -146,6 +147,7 @@ type Server struct {
 // Handler returns the HTTP handler for everything the process serves.
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.Handle("GET /metrics", metrics.Handler(s.Store))
 	if s.Store != nil {
 		mux.HandleFunc("GET /api/v1/state", s.handleState)
 		mux.HandleFunc("GET /api/v1/events", s.handleEvents)
@@ -234,6 +236,8 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 // every change. A client that falls behind is disconnected and gets a fresh
 // snapshot when it reconnects, so no event log is kept.
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
+	metrics.Add("startpunkt_event_streams", 1)
+	defer metrics.Add("startpunkt_event_streams", -1)
 	rc := http.NewResponseController(w)
 	snap, events, cancel := s.Store.Subscribe()
 	defer cancel()

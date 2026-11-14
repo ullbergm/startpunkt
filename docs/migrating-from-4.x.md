@@ -16,7 +16,7 @@ If your 4.x installation uses the image tag `latest`, pin it to a 4.x version su
 
 - **Hajimari.** `hajimari.io` resources and annotations are not read, and there is no conversion for them. Recreate them as `Application` and `Bookmark` resources or as `startpunkt.ullberg.us` annotations.
 - **The GraphQL API and the WebSocket endpoint.** The API is now a snapshot at `/api/v1/state` and a server-sent event stream at `/api/v1/events`. See the README.
-- **Metrics.** There is no Prometheus endpoint and the chart has no ServiceMonitor.
+- **Metrics.** Prometheus metrics are served at `/metrics`, with an optional ServiceMonitor and Grafana dashboard. The metric names differ from 4.x; see [monitoring](monitoring.md).
 - **The Kubernetes and OpenShift manifests and the Docker Compose file** in the repository. v5 is installed with its Helm chart; `helm template` produces plain manifests if you need them.
 - **The JVM and native images.** There is one image, a static binary, for amd64 and arm64.
 - **The "what's new" dialog** and the **Lorem Picsum** background.

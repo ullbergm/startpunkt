@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"io"
 	"log/slog"
 	"net"
@@ -95,6 +96,7 @@ func Follow(ctx context.Context, upstream string, base config.Config, h *Holder,
 		if ctx.Err() != nil {
 			return
 		}
+		metrics.Inc("startpunkt_settings_errors_total")
 		log.Warn("settings stream ended, reconnecting", "error", err, "wait", wait.String())
 		select {
 		case <-ctx.Done():
@@ -152,6 +154,7 @@ func followOnce(ctx context.Context, client *http.Client, address string, base c
 			cfg.Federation.Remotes[i] = r
 		}
 		if err := cfg.Validate(); err != nil {
+			metrics.Inc("startpunkt_settings_errors_total")
 			log.Warn("the controller sent settings this process cannot use; keeping the last ones", "error", err)
 			continue
 		}

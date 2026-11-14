@@ -405,6 +405,7 @@ The page uses a small HTTP API, and so can anything else:
 | `GET /api/v1/icons/{set}/{name}.svg` | An [Iconify](https://icon-sets.iconify.design/) icon, in the colour given as `?color=` |
 | `GET /api/v1/icons?query=` | The names of the icons that match a word, for the icon picker of the editor |
 | `GET /api/v1/background` | Address, title and copyright of the Bing picture of the day |
+| `GET /metrics` | Prometheus counts, durations and connection state; see [monitoring](docs/monitoring.md). |
 | `GET /healthz`, `GET /readyz` | Liveness and readiness. An instance is ready when it has read its cluster. |
 
 ```shell
@@ -416,6 +417,10 @@ With an edit key configured there are also `POST /api/v1/applications`, `GET`, `
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 
 Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses. Followers reject events larger than 8 MiB and feeds larger than 10,000 tiles, retain their last known state and reconnect. Remote tile identities, kinds, URLs, secondary links and field lengths are validated before they enter the store.
+
+## Monitoring
+
+Every role serves Prometheus metrics at `/metrics`. See [monitoring and OpenShift setup](docs/monitoring.md) for the ServiceMonitor, Grafana dashboard and metric reference.
 
 ## Upgrading from 4.x
 

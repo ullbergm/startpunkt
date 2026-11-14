@@ -393,3 +393,39 @@ securityContext:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Every process serves Prometheus text metrics at /metrics on its HTTP port.
+# In split mode the controller has probes and source state, while api has
+# browser streams and remotes. Neither Ingress nor Route exposes /metrics in
+# split mode; Prometheus scrapes the Services directly.
+metrics:
+  serviceMonitor:
+    # Create a ServiceMonitor for all in single mode, controller and api in
+    # split mode. Off by default; needs the Prometheus Operator definitions.
+    enabled: false
+    # Additional labels for a Prometheus installation's monitor selector.
+    # OpenShift user workload monitoring needs no release label here.
+    labels: {}
+    # Additional annotations on the ServiceMonitor. Empty by default.
+    annotations: {}
+    # Time between scrapes, and the time allowed for each scrape.
+    interval: 30s
+    scrapeTimeout: 10s
+  grafanaDashboard:
+    # Put the dashboard JSON in a ConfigMap. Off by default. Import the JSON
+    # manually or let a Grafana sidecar watch this ConfigMap's labels.
+    enabled: false
+    # Labels used by a Grafana dashboard sidecar. Change them to its selector.
+    labels:
+      grafana_dashboard: "1"
+    # Additional annotations on the dashboard ConfigMap. Empty by default.
+    annotations: {}
+    operator:
+      # Also create a GrafanaDashboard for Grafana Operator v5. Off by
+      # default; needs grafanaDashboard.enabled and the operator's definitions.
+      enabled: false
+      # Match the Grafana instance's labels in this namespace. An empty
+      # selector is refused when enabled, to avoid selecting every instance.
+      matchLabels: {}
+      # Folder in Grafana that holds the dashboard. Defaults to Startpunkt.
+      folder: Startpunkt

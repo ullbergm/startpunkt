@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"encoding/json"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"sync"
 	"time"
 
@@ -168,6 +169,9 @@ func (w *statusWriter) write(ctx context.Context, owner store.Owner) {
 	gvr := schema.GroupVersionResource{Group: apiv1.Group, Version: version, Resource: apiv1.ApplicationResource}
 	updated, err := w.c.Dynamic.Resource(gvr).Namespace(owner.Namespace).
 		Patch(ctx, owner.Name, types.MergePatchType, body, metav1.PatchOptions{}, "status")
+	if err != nil && ctx.Err() == nil {
+		metrics.Inc("startpunkt_status_errors_total")
+	}
 	log := w.c.Log.With("namespace", owner.Namespace, "name", owner.Name, "version", version)
 	switch {
 	case apierrors.IsNotFound(err) && w.c.exists(owner):

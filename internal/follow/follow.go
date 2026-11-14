@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/ullbergm/startpunkt/internal/api"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"github.com/ullbergm/startpunkt/internal/store"
 	"github.com/ullbergm/startpunkt/internal/tile"
 )
@@ -107,6 +108,11 @@ func (f *Follower) Run(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
+		kind := "controller"
+		if f.Remote != "" {
+			kind = "remote"
+		}
+		metrics.Inc("startpunkt_follower_reconnects_total", "kind", kind)
 		f.Store.MarkStaleFrom(f.feed())
 		if err != nil {
 			problem := err.Error()

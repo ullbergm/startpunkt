@@ -12,3 +12,11 @@
 {{- fail "editing.key must be at least 16 characters long." }}
 {{- end }}
 {{- end }}
+{{- if .Values.metrics.grafanaDashboard.operator.enabled }}
+{{- if not .Values.metrics.grafanaDashboard.enabled }}
+{{- fail "metrics.grafanaDashboard.operator.enabled needs metrics.grafanaDashboard.enabled=true." }}
+{{- end }}
+{{- if not .Values.metrics.grafanaDashboard.operator.matchLabels }}
+{{- fail "metrics.grafanaDashboard.operator.matchLabels must select a Grafana instance when the operator dashboard is enabled." }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,37 @@
+{{- if .Values.metrics.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+    {{- with .Values.metrics.grafanaDashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.metrics.grafanaDashboard.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  startpunkt.json: |-
+    {{- .Files.Get "files/dashboards/startpunkt.json" | nindent 4 }}
+{{- if .Values.metrics.grafanaDashboard.operator.enabled }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "startpunkt.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+spec:
+  instanceSelector:
+    matchLabels:
+      {{- toYaml .Values.metrics.grafanaDashboard.operator.matchLabels | nindent 6 }}
+  folder: {{ .Values.metrics.grafanaDashboard.operator.folder | quote }}
+  configMapRef:
+    name: {{ include "startpunkt.fullname" . }}-dashboard
+    key: startpunkt.json
+{{- end }}
+{{- end }}

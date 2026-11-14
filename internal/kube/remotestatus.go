@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"encoding/json"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"log/slog"
 	"sync"
 	"time"
@@ -162,6 +163,9 @@ func (w *RemoteStatusWriter) write(ctx context.Context, resource *unstructured.U
 	}})
 	updated, err := w.Dynamic.Resource(remoteGVR).Namespace(w.Namespace).
 		Patch(ctx, resource.GetName(), types.MergePatchType, body, metav1.PatchOptions{}, "status")
+	if err != nil && ctx.Err() == nil {
+		metrics.Inc("startpunkt_status_errors_total")
+	}
 	switch {
 	case apierrors.IsForbidden(err):
 		w.stop("the service account may not patch remotes/status")

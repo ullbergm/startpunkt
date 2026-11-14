@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"github.com/ullbergm/startpunkt/internal/metrics"
 	"io"
 	"log/slog"
 	"math/rand/v2"
@@ -259,6 +260,15 @@ func probeable(url string) bool {
 // application, and so does a TLS handshake whose certificate cannot be
 // verified. A 5xx answer or no answer at all counts as unavailable.
 func (p *Prober) probe(ctx context.Context, url string) (available bool, detail string) {
+	started := time.Now()
+	defer func() {
+		result := "unavailable"
+		if available {
+			result = "available"
+		}
+		metrics.Inc("startpunkt_probes_total", "result", result)
+		metrics.Observe("startpunkt_probe_duration_seconds", time.Since(started).Seconds(), "result", result)
+	}()
 	ctx, cancel := context.WithTimeout(ctx, p.Options.Timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)

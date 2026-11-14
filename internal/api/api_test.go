@@ -285,3 +285,21 @@ func TestEditingIsOffUnlessConfigured(t *testing.T) {
 		t.Errorf("with a key: editing %v, unlock %d", e, status(on.URL))
 	}
 }
+
+func TestMetricsEndpointForStoreAndWebRoles(t *testing.T) {
+	for _, tiles := range []*store.Store{nil, store.New()} {
+		if tiles != nil {
+			tiles.SetCluster(store.Cluster{Name: "local", Local: true, State: store.StateConnected})
+		}
+		rec := get(t, (&Server{Store: tiles}).Handler(), "/metrics")
+		if rec.Code != http.StatusOK || !strings.HasPrefix(rec.Header().Get("Content-Type"), "text/plain; version=0.0.4") {
+			t.Fatalf("metrics response: %d %v", rec.Code, rec.Header())
+		}
+		if !strings.Contains(rec.Body.String(), "startpunkt_probes_total") {
+			t.Fatal("metrics endpoint missing registry")
+		}
+		if tiles != nil && !strings.Contains(rec.Body.String(), "startpunkt_ready 1") {
+			t.Fatal("store readiness metric missing")
+		}
+	}
+}
