@@ -27,9 +27,10 @@ import (
 //
 // Writes are best-effort: nothing else depends on them.
 type RemoteStatusWriter struct {
-	Dynamic   dynamic.Interface
-	Namespace string
-	Log       *slog.Logger
+	Dynamic    dynamic.Interface
+	Namespace  string
+	Log        *slog.Logger
+	Leadership *Leadership
 	// Expiry is how long a report is believed. When no newer one has come
 	// by then, every remote's connection is reported as unknown. It must
 	// exceed the interval between reports.
@@ -74,6 +75,8 @@ func (w *RemoteStatusWriter) Run(ctx context.Context) {
 	}
 	wake := w.wake
 	w.mu.Unlock()
+	leadershipChanged, cancelLeadership := w.Leadership.Subscribe()
+	defer cancelLeadership()
 	expired := time.NewTimer(w.Expiry)
 	defer expired.Stop()
 	for {
@@ -82,6 +85,7 @@ func (w *RemoteStatusWriter) Run(ctx context.Context) {
 			return
 		case <-wake:
 			expired.Reset(w.Expiry)
+		case <-leadershipChanged:
 		case <-expired.C:
 			// Nobody is reporting: what the statuses say may no longer
 			// be true.
@@ -96,6 +100,12 @@ func (w *RemoteStatusWriter) Run(ctx context.Context) {
 // writeAll brings the status of every Remote resource up to date. One that
 // no report mentions is not being followed, as far as is known here.
 func (w *RemoteStatusWriter) writeAll(ctx context.Context) {
+	writeCtx, done, allowed := w.Leadership.WriteContext(ctx)
+	if !allowed {
+		return
+	}
+	defer done()
+	ctx = writeCtx
 	w.mu.Lock()
 	reports, stopped := w.reports, w.stopped
 	w.mu.Unlock()

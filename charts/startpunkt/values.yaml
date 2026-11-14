@@ -439,3 +439,14 @@ workloads:
   # https://console-openshift-console.apps.example.com. Empty disables links.
   # Console links work even when workload watching is disabled.
   consoleURL: ""
+
+# Bootstrap settings for electing one prober and status writer per release.
+# These settings are passed through the environment in both configuration modes.
+leaderElection:
+  # STARTPUNKT_LEADERELECTION_ENABLED. Default: false. Enable for several
+  # replicas to avoid duplicate probes and competing status writes.
+  enabled: false
+  # STARTPUNKT_LEADERELECTION_LEASENAME. Empty uses the release's resource name.
+  leaseName: ""
+  # The Lease is in the release namespace. Identity and advertiseURL are set
+  # separately on each pod using the downward API.

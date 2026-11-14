@@ -397,7 +397,7 @@ The chart's `mode` chooses between two ways of running the same image:
 
 Every process is stateless, so more than one replica of each is safe. Source, namespace and availability settings rebuild a replacement state alongside the current one. The instance keeps serving its current tiles and stays ready until the replacement has finished listing, then swaps the local state atomically.
 
-Each replica that watches the cluster probes the applications on its own, so replicas of `single`, or of `controller`, multiply the probes.
+With multiple controller replicas, optional [leader election](docs/leader-election.md) makes one replica probe and write status while the others keep reading resources and follow its probe results. It is disabled by default, so replicas otherwise probe independently. Configure `leaderElection` through chart values, environment or the configuration file, not a `Startpunkt` resource.
 
 ## API
 

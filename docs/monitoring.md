@@ -118,5 +118,8 @@ The data source is chosen by the dashboard's Prometheus selector. See the
 Counters reset when a process restarts. Store metrics represent each
 replica's view, which can differ during reconnects. Open streams and probe
 counts are per process; sum them for the requests the release actually
-handles. Until probe leader election is added, each controller replica
-probes independently.
+handles. With optional [leader election](leader-election.md), one controller
+performs probes and status writes; the other controllers follow its probe
+results. Probe counters remain per process, so summing them includes work
+before and after a leadership change. With election disabled, each
+controller replica probes independently.

@@ -123,3 +123,41 @@ subjects:
     namespace: {{ .Release.Namespace }}
 {{- end }}
 {{- end }}
+
+{{- if and .Values.rbac.create .Values.leaderElection.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-leader
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+rules:
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [create]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    resourceNames: [{{ .Values.leaderElection.leaseName | default (include "startpunkt.fullname" .) | quote }}]
+    verbs: [get, update]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "startpunkt.fullname" . }}-leader
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "startpunkt.commonLabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "startpunkt.fullname" . }}-leader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "startpunkt.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -60,7 +60,6 @@ Small things that make what is there more dependable.
 
 ### Running it
 
-- [ ] **One prober among several replicas** (M). Leader election for probing and status writes, so that replicas do not multiply the requests. The prober and the writer as roles of their own, as the design foresees.
 - [ ] **More in the chart** (S). A NetworkPolicy that lets only `api` reach the controller, a PodDisruptionBudget, topology spread, an autoscaler for `api` and `web`, and a Gateway API HTTPRoute next to the Ingress and the Route.
 - [ ] **Signed releases** (S). Signatures, provenance and a bill of materials for the image and the chart.
 - [ ] **The chart on Artifact Hub** (S). With its metadata, keywords and the range of Kubernetes versions it supports.

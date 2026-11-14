@@ -48,6 +48,20 @@ spec:
               value: {{ $.Values.config.log.level | quote }}
             - name: STARTPUNKT_LOG_FORMAT
               value: {{ $.Values.config.log.format | quote }}
+            {{- if and $kube $.Values.leaderElection.enabled }}
+            - name: STARTPUNKT_LEADERELECTION_ENABLED
+              value: "true"
+            - name: STARTPUNKT_LEADERELECTION_LEASENAME
+              value: {{ $.Values.leaderElection.leaseName | default (include "startpunkt.fullname" $) | quote }}
+            - name: STARTPUNKT_LEADERELECTION_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: STARTPUNKT_LEADERELECTION_PODIP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            {{- end }}
             {{- if and $kube $.Values.customResources.enabled }}
             # Which Startpunkt resource holds this instance's settings.
             - name: STARTPUNKT_RESOURCES_NAME

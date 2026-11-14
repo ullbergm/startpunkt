@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/url"
 	"os"
 	"path"
@@ -49,6 +50,7 @@ type (
 	Theme             = apiv1.Theme
 	Palette           = apiv1.Palette
 	Workloads         = apiv1.Workloads
+	LeaderElection    = apiv1.LeaderElection
 )
 
 // EnvPrefix starts the name of every environment variable read by Load.
@@ -57,6 +59,7 @@ const EnvPrefix = "STARTPUNKT_"
 // Config is the full configuration.
 type Config struct {
 	Workloads         Workloads         `json:"workloads"`
+	LeaderElection    LeaderElection    `json:"leaderElection"`
 	Cluster           Cluster           `json:"cluster"`
 	NamespaceSelector NamespaceSelector `json:"namespaceSelector"`
 	Sources           Sources           `json:"sources"`
@@ -233,6 +236,10 @@ func Load(path string, required bool, getenv func(string) string) (Config, error
 func (c *Config) applyEnvironment(getenv func(string) string) error {
 	text := map[string]*string{
 		"WORKLOADS_CONSOLEURL":                   &c.Workloads.ConsoleURL,
+		"LEADERELECTION_LEASENAME":               &c.LeaderElection.LeaseName,
+		"LEADERELECTION_NAMESPACE":               &c.LeaderElection.Namespace,
+		"LEADERELECTION_IDENTITY":                &c.LeaderElection.Identity,
+		"LEADERELECTION_ADVERTISEURL":            &c.LeaderElection.AdvertiseURL,
 		"CLUSTER_NAME":                           &c.Cluster.Name,
 		"SERVER_ADDRESS":                         &c.Server.Address,
 		"UPSTREAM_URL":                           &c.Upstream.URL,
@@ -250,6 +257,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 	}
 	flags := map[string]*bool{
 		"WORKLOADS_ENABLED":                    &c.Workloads.Enabled,
+		"LEADERELECTION_ENABLED":               &c.LeaderElection.Enabled,
 		"NAMESPACESELECTOR_ANY":                &c.NamespaceSelector.Any,
 		"AVAILABILITY_ENABLED":                 &c.Availability.Enabled,
 		"AVAILABILITY_INSECURESKIPVERIFY":      &c.Availability.InsecureSkipVerify,
@@ -360,6 +368,19 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 			}
 		}
 	}
+	if c.LeaderElection.Enabled && c.LeaderElection.AdvertiseURL == "" {
+		if rawIP := getenv(EnvPrefix + "LEADERELECTION_PODIP"); rawIP != "" {
+			ip := net.ParseIP(rawIP)
+			if ip == nil {
+				return errors.New("leader election pod address is not an IP address")
+			}
+			_, port, err := net.SplitHostPort(c.Server.Address)
+			if err != nil {
+				return fmt.Errorf("leader election needs a server address with a port: %w", err)
+			}
+			c.LeaderElection.AdvertiseURL = "http://" + net.JoinHostPort(ip.String(), port)
+		}
+	}
 	return nil
 }
 
@@ -371,6 +392,20 @@ func (c Config) Validate() error {
 			return errors.New("workloads.consoleURL must be an http or https base URL without credentials, query or fragment")
 		}
 	}
+	if c.LeaderElection.Enabled {
+		l := c.LeaderElection
+		if l.LeaseName == "" || len(l.LeaseName) > 253 || !regexp.MustCompile(`^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$`).MatchString(l.LeaseName) {
+			return errors.New("leaderElection.leaseName must be a Kubernetes resource name")
+		}
+		if l.Namespace != "" && (len(l.Namespace) > 63 || !regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`).MatchString(l.Namespace)) {
+			return errors.New("leaderElection.namespace must be a Kubernetes namespace name")
+		}
+		u, err := url.Parse(l.AdvertiseURL)
+		if err != nil || !tile.ValidURL(l.AdvertiseURL) || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+			return errors.New("leaderElection.advertiseURL must be a reachable http or https base URL without credentials, query or fragment")
+		}
+	}
+
 	if p := c.Web.DefaultPreferences; len(p) > 0 {
 		// What is in it is the page's to check. Here it only has to be
 		// something the page can read, and of a size worth sending to
@@ -515,6 +550,7 @@ func (c Config) WithResources(spec []byte, remotes []Remote) (Config, error) {
 		}
 		// Only the sections of the resource may come from it.
 		out.Server, out.Upstream, out.Log, out.Federation, out.Resources, out.Editing = c.Server, c.Upstream, c.Log, c.Federation, c.Resources, c.Editing
+		out.LeaderElection = c.LeaderElection
 	}
 	if remotes != nil {
 		headers := map[string]map[string]string{}

@@ -95,6 +95,8 @@ func (w *statusWriter) run(ctx context.Context) {
 		}
 	}()
 	defer func() { w.queue.ShutDown(); <-done }()
+	leadershipChanged, cancelLeadership := w.c.Leadership.Subscribe()
+	defer cancelLeadership()
 	for ctx.Err() == nil {
 		_, events, cancel := w.c.Store.Subscribe()
 		w.mu.Lock()
@@ -108,6 +110,12 @@ func (w *statusWriter) run(ctx context.Context) {
 			case <-ctx.Done():
 				cancel()
 				return
+			case <-leadershipChanged:
+				w.mu.Lock()
+				for owner := range w.known {
+					w.queue.Add(owner)
+				}
+				w.mu.Unlock()
 			case batch, ok := <-events:
 				if !ok {
 					break loop
@@ -126,6 +134,12 @@ func (w *statusWriter) run(ctx context.Context) {
 // write patches the status of one Application if it differs from what the
 // object already says.
 func (w *statusWriter) write(ctx context.Context, owner store.Owner) (retry bool) {
+	writeCtx, done, allowed := w.c.Leadership.WriteContext(ctx)
+	if !allowed {
+		return false
+	}
+	defer done()
+	ctx = writeCtx
 	w.mu.Lock()
 	res, ok := w.known[owner]
 	stopped := w.stopped

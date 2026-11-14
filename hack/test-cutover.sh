@@ -257,7 +257,7 @@ eventually "a new release serves its first application" has_tiles "application F
 step "editing from the page, with the roles in separate pods"
 EDIT_KEY=a-key-for-the-test-cluster
 h install edit charts/startpunkt -n editing --create-namespace "${values[@]}" \
-  --set mode=split --set crds.install=false \
+  --set mode=split --set crds.install=false --set leaderElection.enabled=true --set replicas.controller=2 \
   --set editing.enabled=true --set editing.key="$EDIT_KEY" --wait --timeout 180s >/dev/null
 forward_to editing edit-startpunkt-api
 api() { # method path [body] -> prints the status
@@ -305,6 +305,26 @@ eventually "a deletion is shown" has_tiles "application First"
 forward_to fresh start-startpunkt
 [ "$(api GET unlock)" = 404 ] || fail "a release without an edit key answers on the edit endpoints"
 ok "a release without an edit key has no edit endpoints"
+
+step "controller leader election and failover"
+lease_ready() { [ -n "$(k -n editing get lease edit-startpunkt -o jsonpath='{.spec.holderIdentity}' 2>/dev/null)" ]; }
+eventually "a controller holds the lease" lease_ready
+old_leader=$(k -n editing get lease edit-startpunkt -o jsonpath='{.spec.holderIdentity}')
+leader_pod=
+for pod in $(k -n editing get pods -l app.kubernetes.io/component=controller -o jsonpath='{range .items[*]}{.metadata.name}{" "}{end}'); do
+  case "$old_leader" in "$pod"-*) leader_pod=$pod ;; esac
+done
+[ -n "$leader_pod" ] || fail "lease holder is not a controller pod: $old_leader"
+k -n editing delete pod "$leader_pod" --wait=false >/dev/null
+new_leader() {
+  local current
+  current=$(k -n editing get lease edit-startpunkt -o jsonpath='{.spec.holderIdentity}' 2>/dev/null) || return 1
+  [ -n "$current" ] && [ "$current" != "$old_leader" ]
+}
+eventually "another controller takes over the lease" new_leader
+k -n editing rollout status deployment/edit-startpunkt-controller --timeout=180s >/dev/null
+forward_to editing edit-startpunkt-api
+eventually "the split API keeps serving after leader failover" has_tiles "application First"
 
 step "a custom source for a resource type of its own"
 k apply -f - >/dev/null <<EOF

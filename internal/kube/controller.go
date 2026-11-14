@@ -43,7 +43,9 @@ type Controller struct {
 	DiscoveryInterval time.Duration
 	// WriteStatus keeps the status of Application resources up to date.
 	WriteStatus bool
-	Log         *slog.Logger
+	// Leadership gates status writes; nil permits writes on this process.
+	Leadership *Leadership
+	Log        *slog.Logger
 
 	mu      sync.Mutex
 	watches map[string]*watch

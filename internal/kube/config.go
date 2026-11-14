@@ -34,13 +34,14 @@ import (
 // Settings that are not valid are not applied: the instance carries on with
 // the last valid ones and says so in the resource's status.
 type ConfigWatcher struct {
-	Base      config.Config
-	Holder    *settings.Holder
-	Dynamic   dynamic.Interface
-	Discovery Discovery
-	Namespace string
-	Name      string
-	Log       *slog.Logger
+	Base       config.Config
+	Holder     *settings.Holder
+	Dynamic    dynamic.Interface
+	Discovery  Discovery
+	Namespace  string
+	Name       string
+	Log        *slog.Logger
+	Leadership *Leadership
 	// Interval is how often to look for the resource types while they are
 	// not installed.
 	Interval time.Duration
@@ -100,12 +101,15 @@ func (w *ConfigWatcher) Run(ctx context.Context) {
 	if !cache.WaitForCacheSync(ctx.Done(), own.HasSynced, remotes.HasSynced) {
 		return
 	}
+	leadershipChanged, cancelLeadership := w.Leadership.Subscribe()
+	defer cancelLeadership()
 	for {
 		w.apply(ctx, own.GetStore(), remotes.GetStore())
 		select {
 		case <-ctx.Done():
 			return
 		case <-changed:
+		case <-leadershipChanged:
 		}
 	}
 }
@@ -187,6 +191,12 @@ func (w *ConfigWatcher) report(ctx context.Context, resource *unstructured.Unstr
 	if resource == nil {
 		return
 	}
+	writeCtx, done, allowed := w.Leadership.WriteContext(ctx)
+	if !allowed {
+		return
+	}
+	defer done()
+	ctx = writeCtx
 	status := "False"
 	if ok {
 		status = "True"

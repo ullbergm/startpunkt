@@ -453,24 +453,27 @@ func TestSourcePresets(t *testing.T) {
 	}
 }
 
-func TestWorkloadsSettingsReachResources(t *testing.T) {
-	cfg, err := Load("", false, func(key string) string {
-		if key == "STARTPUNKT_WORKLOADS_ENABLED" {
-			return "true"
-		}
-		if key == "STARTPUNKT_WORKLOADS_CONSOLEURL" {
-			return "https://console.test"
-		}
-		return ""
-	})
+func TestWorkloadAndLeaderElectionSettings(t *testing.T) {
+	env := map[string]string{"STARTPUNKT_WORKLOADS_ENABLED": "true", "STARTPUNKT_WORKLOADS_CONSOLEURL": "https://console.example.test", "STARTPUNKT_LEADERELECTION_ENABLED": "true", "STARTPUNKT_LEADERELECTION_LEASENAME": "startpunkt", "STARTPUNKT_LEADERELECTION_PODIP": "fd00::12"}
+	cfg, err := Load("", false, func(key string) string { return env[key] })
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !cfg.Workloads.Enabled {
-		t.Fatal("environment ignored")
+	if !cfg.Workloads.Enabled || cfg.LeaderElection.AdvertiseURL != "http://[fd00::12]:8080" {
+		t.Fatalf("settings: %+v %+v", cfg.Workloads, cfg.LeaderElection)
 	}
-	changed, err := cfg.WithResources([]byte(`{"workloads":{"enabled":false,"consoleURL":"https://other.test"}}`), nil)
-	if err != nil || changed.Workloads.Enabled || changed.Workloads.ConsoleURL != "https://other.test" {
-		t.Fatal("resource ignored", err)
+	changed, err := cfg.WithResources([]byte(`{"workloads":{"enabled":false,"consoleURL":"https://other.test"},"leaderElection":{"enabled":false}}`), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changed.Workloads.Enabled || !changed.LeaderElection.Enabled {
+		t.Fatal("resource settings replaced process-only leader election settings")
+	}
+	for _, address := range []string{"javascript:alert(1)", "https://user:secret@console.test", "https://console.test/?token=secret"} {
+		invalid := cfg
+		invalid.Workloads.ConsoleURL = address
+		if invalid.Validate() == nil {
+			t.Fatalf("console URL accepted: %s", address)
+		}
 	}
 }

@@ -162,3 +162,122 @@ func TestWorkloadValuesRejectMisspellings(t *testing.T) {
 		t.Fatalf("workload typo accepted: %v\n%s", err, out)
 	}
 }
+
+func TestLeaderElectionIsScopedToControllerAndNamespace(t *testing.T) {
+	for _, mode := range []string{"single", "split"} {
+		for _, resources := range []bool{false, true} {
+			for _, customLease := range []bool{false, true} {
+				t.Run(mode+"/resources="+strconv.FormatBool(resources)+"/customLease="+strconv.FormatBool(customLease), func(t *testing.T) {
+					args := []string{"--set", "mode=" + mode, "--set", "customResources.enabled=" + strconv.FormatBool(resources), "--set", "leaderElection.enabled=true"}
+					leaseName := "test-startpunkt"
+					if customLease {
+						leaseName = "shared-probes"
+						args = append(args, "--set", "leaderElection.leaseName="+leaseName)
+					}
+					docs := scopeRender(t, args...)
+					var leaseRole, leaseBinding, serviceAccount string
+					permissions := map[string]bool{}
+					deployments := 0
+					for _, doc := range docs {
+						switch doc.Kind {
+						case "Startpunkt":
+							if doc.Spec.LeaderElection != nil {
+								t.Fatal("pod-specific election bootstrap settings leaked into Startpunkt resource")
+							}
+						case "Deployment":
+							deployments++
+							role, vars := environment(t, doc)
+							kube := role == "all" || role == "controller"
+							serviceAccount = doc.Spec.Template.Spec.ServiceAccountName
+							if kube {
+								if vars["STARTPUNKT_LEADERELECTION_ENABLED"].Value != "true" || vars["STARTPUNKT_LEADERELECTION_LEASENAME"].Value != leaseName {
+									t.Fatalf("election not configured for %s: %v", role, vars)
+								}
+								if vars["STARTPUNKT_LEADERELECTION_NAMESPACE"].ValueFrom.FieldRef.FieldPath != "metadata.namespace" || vars["STARTPUNKT_LEADERELECTION_PODIP"].ValueFrom.FieldRef.FieldPath != "status.podIP" {
+									t.Fatalf("election address/namespace are not pod-specific in %s", role)
+								}
+							} else {
+								for name := range vars {
+									if strings.HasPrefix(name, "STARTPUNKT_LEADERELECTION_") {
+										t.Fatalf("%s unnecessarily participates in leader election", role)
+									}
+								}
+							}
+						case "Role", "ClusterRole":
+							for _, rule := range doc.Rules {
+								if !contains(rule.APIGroups, "coordination.k8s.io") || !contains(rule.Resources, "leases") {
+									continue
+								}
+								if doc.Kind != "Role" || doc.Metadata.Namespace != "startpunkt" {
+									t.Fatalf("Lease permissions escape the release namespace: %s %s", doc.Kind, doc.Metadata.Namespace)
+								}
+								leaseRole = doc.Metadata.Name
+								for _, verb := range rule.Verbs {
+									if !contains([]string{"create", "get", "update", "list", "watch"}, verb) {
+										t.Fatalf("unnecessary Lease privilege %q", verb)
+									}
+									permissions[verb] = true
+									if (verb == "get" || verb == "update") && !reflect.DeepEqual(rule.ResourceNames, []string{leaseName}) {
+										t.Fatalf("Lease %s is not limited to %s: %+v", verb, leaseName, rule)
+									}
+									if verb == "create" && len(rule.ResourceNames) > 0 {
+										t.Fatal("create cannot be limited by resourceNames")
+									}
+								}
+							}
+						case "RoleBinding":
+							if strings.HasSuffix(doc.Metadata.Name, "-leader") {
+								leaseBinding = doc.RoleRef.Name
+								if doc.Metadata.Namespace != "startpunkt" || doc.RoleRef.Kind != "Role" || len(doc.Subjects) != 1 || doc.Subjects[0].Kind != "ServiceAccount" || doc.Subjects[0].Namespace != "startpunkt" {
+									t.Fatalf("incorrect Lease RoleBinding: %+v", doc)
+								}
+								if doc.Subjects[0].Name != "test-startpunkt" {
+									t.Fatal("Lease binding does not name the release's service account")
+								}
+							}
+						}
+					}
+					wantDeployments := 1
+					if mode == "split" {
+						wantDeployments = 3
+					}
+					if deployments != wantDeployments || serviceAccount != "test-startpunkt" || leaseRole == "" || leaseBinding != leaseRole || len(permissions) != 5 {
+						t.Fatalf("incomplete election wiring: pods=%d role=%q binding=%q permissions=%v", deployments, leaseRole, leaseBinding, permissions)
+					}
+				})
+			}
+		}
+	}
+}
+func TestElectionDisabledHasNoLeaseAccessOrBootstrap(t *testing.T) {
+	docs := scopeRender(t, "--set", "mode=split")
+	for _, doc := range docs {
+		for _, rule := range doc.Rules {
+			if contains(rule.APIGroups, "coordination.k8s.io") && contains(rule.Resources, "leases") {
+				t.Fatal("disabled election grants Lease access")
+			}
+		}
+		if doc.Kind == "Deployment" {
+			role, vars := environment(t, doc)
+			for name := range vars {
+				if strings.HasPrefix(name, "STARTPUNKT_LEADERELECTION_") {
+					t.Fatalf("disabled election configured on %s", role)
+				}
+			}
+		}
+	}
+}
+func TestElectionDoesNotCreateRBACWhenExternallyManaged(t *testing.T) {
+	docs := scopeRender(t, "--set", "leaderElection.enabled=true", "--set", "rbac.create=false")
+	for _, doc := range docs {
+		if doc.Kind == "Role" || doc.Kind == "RoleBinding" || doc.Kind == "ClusterRole" || doc.Kind == "ClusterRoleBinding" {
+			t.Fatalf("rbac.create=false produced %s", doc.Kind)
+		}
+	}
+}
+func TestLeaderElectionValuesRejectMisspellings(t *testing.T) {
+	out, err := render(t, "--set", "leaderElection.enabld=true")
+	if err == nil || !strings.Contains(string(out), "schema") {
+		t.Fatalf("election typo accepted: %v\n%s", err, out)
+	}
+}

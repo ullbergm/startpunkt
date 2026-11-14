@@ -21,6 +21,7 @@ import (
 
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
+	coordinationclient "k8s.io/client-go/kubernetes/typed/coordination/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
@@ -150,20 +151,47 @@ func run() error {
 		if err != nil {
 			return err
 		}
+		var leadership *kube.Leadership
+		if cfg.LeaderElection.Enabled {
+			client, err := coordinationclient.NewForConfig(restConfig)
+			if err != nil {
+				return err
+			}
+			l := cfg.LeaderElection
+			if l.Namespace == "" {
+				l.Namespace = ownNamespace()
+			}
+			leadership = &kube.Leadership{Client: client, Namespace: l.Namespace, Name: l.LeaseName, Identity: l.Identity, AdvertiseURL: l.AdvertiseURL, Log: log}
+			electionDone := make(chan struct{})
+			go func() {
+				defer close(electionDone)
+				if err := leadership.Run(ctx); err != nil {
+					log.Error("leader election stopped", "error", err)
+				}
+			}()
+			defer func() {
+				stop()
+				select {
+				case <-electionDone:
+				case <-time.After(5 * time.Second):
+					log.Warn("leader election did not finish before shutdown")
+				}
+			}()
+		}
 		if cfg.Resources.Name != "" {
 			namespace := cfg.Resources.Namespace
 			if namespace == "" {
 				namespace = ownNamespace()
 			}
-			statuses := &kube.RemoteStatusWriter{Dynamic: dynamicClient, Namespace: namespace, Log: log}
+			statuses := &kube.RemoteStatusWriter{Dynamic: dynamicClient, Namespace: namespace, Log: log, Leadership: leadership}
 			go statuses.Run(ctx)
 			remoteStatus = statuses.Report
 			go (&kube.ConfigWatcher{
 				Base: cfg, Holder: holder, Dynamic: dynamicClient, Discovery: discoveryClient,
-				Namespace: namespace, Name: cfg.Resources.Name, Log: log,
+				Namespace: namespace, Name: cfg.Resources.Name, Log: log, Leadership: leadership,
 			}).Run(ctx)
 		}
-		go watchCluster(ctx, holder, handler.Store, dynamicClient, discoveryClient, log)
+		go watchCluster(ctx, holder, handler.Store, dynamicClient, discoveryClient, log, leadership)
 		editor = &kube.Editor{
 			Dynamic: dynamicClient, Discovery: discoveryClient, Namespace: editNamespace,
 			Allowed: func(namespace string) bool {
@@ -183,7 +211,7 @@ func run() error {
 			// it and tells it how the remotes are doing.
 			internal := http.NewServeMux()
 			internal.Handle(settings.SharedPath, settings.Handler(holder))
-			internal.Handle(follow.ReportPath, follow.ReportHandler(remoteStatus))
+			internal.Handle(follow.ReportPath, leadership.RemoteReportHandler(remoteStatus))
 			if cfg.Editing.Key != "" {
 				internal.Handle(edit.InternalPrefix+"/", edit.Internal(&edit.Handler{Editor: editor, Check: check, Key: cfg.Editing.Key}))
 			}
@@ -315,7 +343,11 @@ type clusterRun struct {
 	running     sync.WaitGroup
 }
 
-func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger) *clusterRun {
+func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger, leaders ...*kube.Leadership) *clusterRun {
+	var leadership *kube.Leadership
+	if len(leaders) > 0 {
+		leadership = leaders[0]
+	}
 	runCtx, stop := context.WithCancel(ctx)
 	r := &clusterRun{store: store.New(), stop: stop}
 	_, r.events, r.unsubscribe = r.store.Subscribe()
@@ -327,7 +359,7 @@ func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.
 	r.controller = &kube.Controller{
 		Cluster: cfg.Cluster.Name, Store: r.store, Sources: sources,
 		Namespaces: cfg.NamespaceSelector.Namespaces(), WriteStatus: cfg.Status.Enabled,
-		Discovery: discoveryClient, Dynamic: dynamicClient, Log: log,
+		Discovery: discoveryClient, Dynamic: dynamicClient, Log: log, Leadership: leadership,
 	}
 	r.running.Go(func() { r.controller.Run(runCtx) })
 	if a := cfg.Availability; a.Enabled {
@@ -335,7 +367,8 @@ func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.
 			Options: probe.Options{Interval: time.Duration(a.Interval), Timeout: time.Duration(a.Timeout),
 				InitialBackoff: time.Duration(a.InitialBackoff), MaxBackoff: time.Duration(a.MaxBackoff),
 				Concurrency: a.Concurrency, InsecureSkipVerify: a.InsecureSkipVerify, UserAgent: "startpunkt/" + version}}
-		r.running.Go(func() { prober.Run(runCtx) })
+		r.running.Go(func() { leadership.RunWork(runCtx, prober.Run) })
+		r.running.Go(func() { leadership.MirrorProbes(runCtx, r.store, cfg.Cluster.Name) })
 	}
 	if cfg.Workloads.Enabled || cfg.Workloads.ConsoleURL != "" {
 		workloads := &kube.WorkloadWatcher{Store: r.store, Dynamic: dynamicClient, Discovery: discoveryClient, Cluster: cfg.Cluster.Name, Namespaces: cfg.NamespaceSelector.Namespaces(), Enabled: cfg.Workloads.Enabled, ConsoleURL: cfg.Workloads.ConsoleURL, Log: log}
@@ -358,7 +391,7 @@ func (r *clusterRun) close() {
 // cluster. A gapless snapshot and subscription promote it atomically. Rapid
 // settings changes cancel only the superseded candidate, never the active one.
 func watchCluster(ctx context.Context, holder *settings.Holder, tiles *store.Store,
-	dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger) {
+	dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger, leaders ...*kube.Leadership) {
 	changed, cancel := holder.Subscribe()
 	defer cancel()
 	var active, candidate *clusterRun
@@ -368,7 +401,7 @@ func watchCluster(ctx context.Context, holder *settings.Holder, tiles *store.Sto
 		cfg := holder.Get()
 		if next := clusterSettings(cfg); next != key {
 			candidate.close()
-			candidate = startCluster(ctx, cfg, dynamicClient, discoveryClient, log)
+			candidate = startCluster(ctx, cfg, dynamicClient, discoveryClient, log, leaders...)
 			key = next
 			log.Info("building cluster state with the current settings")
 		}
