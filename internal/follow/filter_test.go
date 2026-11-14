@@ -69,8 +69,8 @@ func TestRemoteFilterAppliesToSnapshotsAndChanges(t *testing.T) {
 	f := &Follower{Remote: "prod", Store: hub, Filter: Filter{Exclude: Selector{Tags: []string{"private"}}}}
 	f.own.local = map[string]bool{}
 	snapshot := `{"schemaVersion":1,"clusters":[{"name":"local","local":true,"state":"connected"}],"tiles":[` +
-		`{"id":"local/apps/ns/open","cluster":"local","name":"Open","tags":[]},` +
-		`{"id":"local/apps/ns/secret","cluster":"local","name":"Secret","tags":["private"]}]}`
+		`{"id":"local/apps/ns/open","kind":"application","url":"https://example.test","cluster":"local","name":"Open","tags":[]},` +
+		`{"id":"local/apps/ns/secret","kind":"application","url":"https://example.test","cluster":"local","name":"Secret","tags":["private"]}]}`
 	f.Log = testLogger()
 	if err := f.apply("snapshot", snapshot); err != nil {
 		t.Fatal(err)
@@ -80,14 +80,14 @@ func TestRemoteFilterAppliesToSnapshotsAndChanges(t *testing.T) {
 	}
 
 	// A tile that starts to match the exclusion disappears from the hub...
-	if err := f.apply("tile.upsert", `{"id":"local/apps/ns/open","cluster":"local","name":"Open","tags":["private"]}`); err != nil {
+	if err := f.apply("tile.upsert", `{"id":"local/apps/ns/open","kind":"application","url":"https://example.test","cluster":"local","name":"Open","tags":["private"]}`); err != nil {
 		t.Fatal(err)
 	}
 	if got := ids(hub); len(got) != 0 {
 		t.Fatalf("a tile that is now excluded must go: %v", got)
 	}
 	// ...and one that stops matching appears.
-	if err := f.apply("tile.upsert", `{"id":"local/apps/ns/secret","cluster":"local","name":"Secret","tags":[]}`); err != nil {
+	if err := f.apply("tile.upsert", `{"id":"local/apps/ns/secret","kind":"application","url":"https://example.test","cluster":"local","name":"Secret","tags":[]}`); err != nil {
 		t.Fatal(err)
 	}
 	if got := ids(hub); len(got) != 1 || !got["prod/apps/ns/secret"] {

@@ -411,7 +411,7 @@ With an edit key configured there are also `POST /api/v1/applications`, `GET`, `
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does.
 
-Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses.
+Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses. Followers reject events larger than 8 MiB and feeds larger than 10,000 tiles, retain their last known state and reconnect. Remote tile identities, kinds, URLs, secondary links and field lengths are validated before they enter the store.
 
 ## Upgrading from 4.x
 

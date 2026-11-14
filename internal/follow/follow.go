@@ -50,7 +50,12 @@ type Follower struct {
 	// MinBackoff and MaxBackoff bound the wait between connection attempts.
 	MinBackoff, MaxBackoff time.Duration
 
-	own remote
+	// Limits bound input even when the upstream is faulty. Zero uses the defaults.
+	MaxEventBytes int
+	MaxTiles      int
+	received      map[string]bool
+	clusters      map[string]bool
+	own           remote
 	// problem is why the last connection ended or could not be made, and
 	// is empty while connected.
 	problem atomic.Pointer[string]
@@ -164,21 +169,30 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 	}
 
 	reader := bufio.NewReader(resp.Body)
+	limit := f.eventLimit()
+	var eventBytes int
 	var name string
 	var data strings.Builder
 	for {
-		line, err := reader.ReadString('\n')
+		line, err := readLine(reader, limit)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				err = errors.New("stream closed by upstream")
 			}
 			return connected, err
 		}
+		eventBytes += len(line)
+		if eventBytes > limit {
+			return connected, fmt.Errorf("event exceeds %d bytes", limit)
+		}
 		idle.Reset(f.IdleTimeout)
 		line = strings.TrimRight(line, "\r\n")
 		switch {
 		case line == "":
 			if data.Len() > 0 {
+				if !connected && (strings.HasPrefix(name, "tile.") || strings.HasPrefix(name, "cluster.")) {
+					return false, errors.New("upstream sent a change before its snapshot")
+				}
 				if err := f.apply(name, data.String()); err != nil {
 					return connected, err
 				}
@@ -189,6 +203,7 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 			}
 			name = ""
 			data.Reset()
+			eventBytes = 0
 		case strings.HasPrefix(line, ":"):
 			// Comment, used as heartbeat.
 		case strings.HasPrefix(line, "event:"):
@@ -254,6 +269,9 @@ func remoteState(clusters []store.Cluster) string {
 }
 
 func (f *Follower) apply(name, data string) error {
+	if len(data) > f.eventLimit() {
+		return fmt.Errorf("event exceeds %d bytes", f.eventLimit())
+	}
 	if f.Remote != "" {
 		return f.applyRemote(name, data)
 	}
@@ -263,9 +281,20 @@ func (f *Follower) apply(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &state); err != nil {
 			return fmt.Errorf("decoding snapshot: %w", err)
 		}
+		if err := f.validateState(state); err != nil {
+			return err
+		}
 		if state.SchemaVersion != api.SchemaVersion {
 			return fmt.Errorf("upstream speaks schema version %d, this process %d",
 				state.SchemaVersion, api.SchemaVersion)
+		}
+		f.clusters = make(map[string]bool, len(state.Clusters))
+		for _, c := range state.Clusters {
+			f.clusters[c.Name] = true
+		}
+		f.received = make(map[string]bool, len(state.Tiles))
+		for _, t := range state.Tiles {
+			f.received[t.ID] = true
 		}
 		f.Store.Mirror(store.Snapshot{Tiles: state.Tiles, Clusters: state.Clusters})
 		f.Log.Info("snapshot received", "upstream", f.URL, "tiles", len(state.Tiles))
@@ -274,24 +303,39 @@ func (f *Follower) apply(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &t); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		if err := f.trackID(t.ID); err != nil {
+			return err
+		}
 		f.Store.Upsert(t)
 	case string(store.EventDelete):
 		var d api.TileDelete
 		if err := json.Unmarshal([]byte(data), &d); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		delete(f.received, d.ID)
 		f.Store.Remove(d.ID)
 	case string(store.EventCluster):
 		var c store.Cluster
 		if err := json.Unmarshal([]byte(data), &c); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		if err := validateCluster(c); err != nil {
+			return err
+		}
+		if f.clusters == nil {
+			f.clusters = map[string]bool{}
+		}
+		if !f.clusters[c.Name] && len(f.clusters) >= 1024 {
+			return errors.New("upstream exceeds 1024 clusters")
+		}
+		f.clusters[c.Name] = true
 		f.Store.SetCluster(c)
 	case string(store.EventClusterDelete):
 		var d api.ClusterDelete
 		if err := json.Unmarshal([]byte(data), &d); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		delete(f.clusters, d.Name)
 		f.Store.RemoveCluster(d.Name)
 	default:
 		// Unknown events are ignored so that an upstream can add new ones.
@@ -308,9 +352,20 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &state); err != nil {
 			return fmt.Errorf("decoding snapshot: %w", err)
 		}
+		if err := f.validateState(state); err != nil {
+			return err
+		}
 		if state.SchemaVersion != api.SchemaVersion {
 			return fmt.Errorf("remote speaks schema version %d, this process %d",
 				state.SchemaVersion, api.SchemaVersion)
+		}
+		f.clusters = make(map[string]bool, len(state.Clusters))
+		for _, c := range state.Clusters {
+			f.clusters[c.Name] = true
+		}
+		f.received = make(map[string]bool, len(state.Tiles))
+		for _, t := range state.Tiles {
+			f.received[t.ID] = true
 		}
 		f.own.local = map[string]bool{}
 		for _, c := range state.Clusters {
@@ -334,6 +389,12 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &t); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		if err := validateTile(t); err != nil {
+			return err
+		}
+		if err := f.trackID(t.ID); err != nil {
+			return err
+		}
 		if adopted, ok := f.adopt(t); ok {
 			f.Store.UpsertFrom(feed, adopted)
 		} else if id, own := f.adoptID(t.ID); own {
@@ -345,6 +406,7 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &d); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		delete(f.received, d.ID)
 		if id, ok := f.adoptID(d.ID); ok {
 			f.Store.Remove(id)
 		}
@@ -353,10 +415,27 @@ func (f *Follower) applyRemote(name, data string) error {
 		if err := json.Unmarshal([]byte(data), &c); err != nil {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
+		if err := validateCluster(c); err != nil {
+			return err
+		}
 		if c.Local {
+			if f.own.local == nil {
+				f.own.local = map[string]bool{}
+			}
+			if len(f.own.local) >= 1024 && !f.own.local[c.Name] {
+				return errors.New("too many remote clusters")
+			}
 			f.own.local[c.Name] = true
 			f.Store.SetClusterFrom(feed, store.Cluster{Name: f.Remote, Local: false, State: c.State})
+		} else {
+			delete(f.own.local, c.Name)
 		}
+	case string(store.EventClusterDelete):
+		var d api.ClusterDelete
+		if err := json.Unmarshal([]byte(data), &d); err != nil {
+			return fmt.Errorf("decoding %s: %w", name, err)
+		}
+		delete(f.own.local, d.Name)
 	}
 	return nil
 }

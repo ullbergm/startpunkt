@@ -141,8 +141,8 @@ func remoteInstance() (*store.Store, http.Handler) {
 	s := store.New()
 	s.SetCluster(store.Cluster{Name: "local", Local: true, State: store.StateConnected})
 	s.SetClusterFrom("remote:third", store.Cluster{Name: "third", Local: false, State: store.StateConnected})
-	own := tile.Tile{ID: "local/apps/ns/grafana", Name: "Grafana", Cluster: "local", Editable: true, Tags: []string{}}
-	foreign := tile.Tile{ID: "third/apps/ns/wiki", Name: "Wiki", Cluster: "third", Tags: []string{}}
+	own := tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "local/apps/ns/grafana", Name: "Grafana", Cluster: "local", Editable: true, Tags: []string{}}
+	foreign := tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "third/apps/ns/wiki", Name: "Wiki", Cluster: "third", Tags: []string{}}
 	s.Upsert(own)
 	s.UpsertFrom("remote:third", foreign)
 	return s, (&api.Server{Store: s, Heartbeat: 20 * time.Millisecond}).Handler()
@@ -186,7 +186,7 @@ func TestFederationAdoptsARemotesOwnTiles(t *testing.T) {
 	// The hub has a cluster and a tile of its own, also called "local".
 	hub := store.New()
 	hub.SetCluster(store.Cluster{Name: "local", Local: true, State: store.StateConnected})
-	hub.Upsert(tile.Tile{ID: "local/apps/ns/grafana", Name: "Grafana", Cluster: "local", Editable: true, Tags: []string{}})
+	hub.Upsert(tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "local/apps/ns/grafana", Name: "Grafana", Cluster: "local", Editable: true, Tags: []string{}})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -223,8 +223,8 @@ func TestFederationAdoptsARemotesOwnTiles(t *testing.T) {
 	}
 
 	// Live changes on the remote, including one to a foreign tile.
-	remote.Upsert(tile.Tile{ID: "local/apps/ns/plex", Name: "Plex", Cluster: "local", Tags: []string{}})
-	remote.UpsertFrom("remote:third", tile.Tile{ID: "third/apps/ns/more", Name: "More", Cluster: "third", Tags: []string{}})
+	remote.Upsert(tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "local/apps/ns/plex", Name: "Plex", Cluster: "local", Tags: []string{}})
+	remote.UpsertFrom("remote:third", tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "third/apps/ns/more", Name: "More", Cluster: "third", Tags: []string{}})
 	remote.Remove("local/apps/ns/grafana")
 	eventually(t, "live changes", func() bool {
 		_, plex := find(hub, "prod/apps/ns/plex")
@@ -248,7 +248,7 @@ func TestFederationAdoptsARemotesOwnTiles(t *testing.T) {
 	}
 
 	remote.Remove("local/apps/ns/plex")
-	remote.Upsert(tile.Tile{ID: "local/apps/ns/new", Name: "New", Cluster: "local", Tags: []string{}})
+	remote.Upsert(tile.Tile{Kind: tile.KindApplication, URL: "https://example.test", ID: "local/apps/ns/new", Name: "New", Cluster: "local", Tags: []string{}})
 	down.Store(false)
 	eventually(t, "resynchronisation", func() bool {
 		_, plex := find(hub, "prod/apps/ns/plex")
@@ -277,7 +277,7 @@ func TestTwoRemotesDoNotDisturbEachOther(t *testing.T) {
 	b := &Follower{Remote: "b", Store: hub, Log: slog.Default()}
 	a.own.local, b.own.local = map[string]bool{}, map[string]bool{}
 	snapshot := func(name string) string {
-		return `{"schemaVersion":1,"tiles":[{"id":"local/apps/ns/` + name + `","cluster":"local","name":"` + name + `","tags":[]}],` +
+		return `{"schemaVersion":1,"tiles":[{"id":"local/apps/ns/` + name + `","kind":"application","url":"https://example.test","cluster":"local","name":"` + name + `","tags":[]}],` +
 			`"clusters":[{"name":"local","local":true,"state":"connected"}]}`
 	}
 	if err := a.apply(api.EventSnapshot, snapshot("one")); err != nil {
