@@ -371,9 +371,9 @@ export function resetPrefs(): void {
 
 export function toggleFavorite(ids: string[]): void {
   updatePrefs((current) => {
-    const all = ids.every((id) => current.favorites.includes(id));
+    const any = ids.some((id) => current.favorites.includes(id));
     const rest = current.favorites.filter((id) => !ids.includes(id));
-    return { ...current, favorites: all ? rest : [...rest, ...ids] };
+    return { ...current, favorites: any ? rest : [...rest, ...ids] };
   });
 }
 
@@ -386,6 +386,21 @@ export function moveFavorite(id: string, toIndex: number): void {
     const rest = current.favorites.filter((other) => other !== id);
     const index = Math.min(Math.max(toIndex, 0), rest.length);
     return { ...current, favorites: [...rest.slice(0, index), id, ...rest.slice(index)] };
+  });
+}
+
+// Moves a visible card as a group. Fill only the existing visible slots so
+// favorites from hidden clusters or another tab keep their exact positions.
+export function moveFavoriteCards(groups: string[][], from: number, to: number): void {
+  if (from < 0 || to < 0 || from >= groups.length || to >= groups.length || from === to) return;
+  updatePrefs((current) => {
+    const visible = new Set(groups.flat());
+    const ordered = groups.map((ids) => current.favorites.filter((id) => ids.includes(id)));
+    const [moving] = ordered.splice(from, 1);
+    ordered.splice(to, 0, moving!);
+    const next = ordered.flat();
+    let index = 0;
+    return { ...current, favorites: current.favorites.map((id) => visible.has(id) ? next[index++]! : id) };
   });
 }
 

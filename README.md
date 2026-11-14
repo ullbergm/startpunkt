@@ -367,6 +367,7 @@ Connections to remotes follow redirects only within the configured origin. Confi
 - **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. Letters match in their written order, so `Osft` finds `OpenShift`, ignoring case and accents. Exact and prefix matches come first; a single letter matches word prefixes. A further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
 - **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again. In edit mode a click on a tile does not open the service: it opens the tile's form, or says why the tile cannot be changed from the page.
 - **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
+- A combined card is a favorite when any member is starred. Removing its star removes all members; moving it moves its favored members together and preserves the positions of favorites hidden by the current filters.
 - **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.
 - **Settings**, bottom right, kept in the browser. What they start from can be set for the instance, see [Default settings](#default-settings):
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clusterShown, defaults, moveFavorite, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, setServerDefaults, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
+import { clusterShown, defaults, moveFavorite, moveFavoriteCards, prefs, setClusterShown, setPanel, setTheme, showOnlyCluster, reloadPrefs, resetPrefs, sanitize, setServerDefaults, toggleCollapsed, toggleFavorite, updatePrefs } from './prefs';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -76,8 +76,10 @@ describe('stored preferences', () => {
 
   it('treat a set of ids as one favorite', () => {
     toggleFavorite(['a']);
-    toggleFavorite(['a', 'b']); // not all are favorites yet: add the rest
-    expect(prefs.value.favorites.sort()).toEqual(['a', 'b']);
+    toggleFavorite(['a', 'b']); // the combined card is already starred
+    expect(prefs.value.favorites).toEqual([]);
+    toggleFavorite(['a', 'b']);
+    expect(prefs.value.favorites).toEqual(['a', 'b']);
     toggleFavorite(['a', 'b']);
     expect(prefs.value.favorites).toEqual([]);
   });
@@ -92,6 +94,16 @@ describe('stored preferences', () => {
     expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
     moveFavorite('unknown', 0);
     expect(prefs.value.favorites).toEqual(['b', 'd', 'c', 'a']);
+  });
+
+  it('moves every member of a card while hidden favorite slots stay unchanged', () => {
+    updatePrefs((p) => ({ ...p, favorites: ['hidden-before', 'a-local', 'hidden-middle', 'a-remote', 'b', 'hidden-after'] }));
+    moveFavoriteCards([['a-local', 'a-remote'], ['b']], 0, 1);
+    expect(prefs.value.favorites).toEqual(['hidden-before', 'b', 'hidden-middle', 'a-local', 'a-remote', 'hidden-after']);
+    moveFavoriteCards([['b'], ['a-local', 'a-remote']], 1, 0);
+    expect(prefs.value.favorites).toEqual(['hidden-before', 'a-local', 'hidden-middle', 'a-remote', 'b', 'hidden-after']);
+    moveFavoriteCards([['a-local', 'a-remote'], ['b']], 0, 2);
+    expect(prefs.value.favorites).toEqual(['hidden-before', 'a-local', 'hidden-middle', 'a-remote', 'b', 'hidden-after']);
   });
 
   it('keep the theme and the panel in agreement', () => {

@@ -3,7 +3,7 @@ import { t } from '../i18n';
 import { useEffect, useState } from 'preact/hooks';
 import { editMode } from '../editing';
 import { columnsThatFit, MAX_AUTO_COLUMNS, optimalColumns } from '../columns';
-import { moveFavorite, prefs, toggleCollapsed } from '../prefs';
+import { moveFavoriteCards, prefs, toggleCollapsed } from '../prefs';
 import { Icon } from './Icons';
 import { TileCard } from './TileCard';
 
@@ -75,18 +75,10 @@ export function Favorites({
   if (cards.length === 0) return null;
   const movable = editMode.value && cards.length > 1;
 
-  // The place of a card among the stored favorites is that of the first of
-  // its tiles that is one.
-  const place = (card: Card) => {
-    const stored = prefs.value.favorites;
-    const indexes = card.members.map((member) => stored.indexOf(member.id)).filter((index) => index >= 0);
-    return { id: stored[Math.min(...indexes)]!, index: Math.min(...indexes) };
-  };
   const move = (card: Card, toIndex: number) => {
     if (toIndex < 0 || toIndex >= cards.length) return;
-    // The stored list may hold favorites that are not shown right now, so
-    // the new place is given as the place of the card it is moved onto.
-    moveFavorite(place(card).id, place(cards[toIndex]!).index);
+    const fromIndex = cards.findIndex((other) => other.key === card.key);
+    moveFavoriteCards(cards.map((other) => other.members.map((member) => member.id)), fromIndex, toIndex);
     setAnnouncement(t('favorites.moved', { name: card.primary.name, position: toIndex + 1, count: cards.length }));
   };
 
