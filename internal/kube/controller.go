@@ -70,6 +70,17 @@ type watch struct {
 	cancel    context.CancelFunc
 	synced    atomic.Bool
 	informers []cache.SharedIndexInformer
+	// gate serializes invalidation with final mutations, without waiting for
+	// a slow conversion to finish before the replacement watcher can start.
+	gate   sync.RWMutex
+	active bool
+}
+
+func (w *watch) stop() {
+	w.gate.Lock()
+	w.active = false
+	w.cancel()
+	w.gate.Unlock()
 }
 
 // Synced reports whether discovery has run and every informer started by it
@@ -96,6 +107,11 @@ func (c *Controller) Close() {
 	c.life.Lock()
 	c.closed = true
 	c.life.Unlock()
+	c.mu.Lock()
+	for _, w := range c.watches {
+		w.stop()
+	}
+	c.mu.Unlock()
 }
 
 // reportSynced marks the cluster as connected in the store once the initial
@@ -175,7 +191,7 @@ func (c *Controller) reconcile(ctx context.Context) bool {
 		case version == "":
 			if current != nil {
 				c.Log.Info("resource type is no longer served, removing its tiles", "type", typ)
-				current.cancel()
+				current.stop()
 				delete(c.watches, typ)
 				removed = true
 			}
@@ -183,7 +199,7 @@ func (c *Controller) reconcile(ctx context.Context) bool {
 			if current != nil {
 				c.Log.Info("switching watched version",
 					"type", typ, "from", current.version, "to", version)
-				current.cancel()
+				current.stop()
 			} else {
 				c.Log.Info("watching resource type", "type", typ, "version", version)
 			}
@@ -236,14 +252,14 @@ func hasVerbs(have []string, want ...string) bool {
 // held.
 func (c *Controller) start(ctx context.Context, src source.Source, version string) *watch {
 	ctx, cancel := context.WithCancel(ctx)
-	w := &watch{src: src, version: version, cancel: cancel}
+	w := &watch{src: src, version: version, cancel: cancel, active: true}
 	typ := source.Type(src)
 	gvr := schema.GroupVersionResource{Group: src.Group(), Version: version, Resource: src.Resource()}
 	log := c.Log.With("type", typ, "version", version)
 
 	apply := func(obj any) {
 		if u, ok := obj.(*unstructured.Unstructured); ok {
-			c.apply(src, version, u)
+			c.apply(w, u)
 		}
 	}
 	handler := cache.ResourceEventHandlerFuncs{
@@ -257,6 +273,11 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 				c.life.RLock()
 				defer c.life.RUnlock()
 				if c.closed {
+					return
+				}
+				w.gate.RLock()
+				defer w.gate.RUnlock()
+				if !w.active {
 					return
 				}
 				owner := c.owner(typ, u)
@@ -295,6 +316,11 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 		}
 		// Drop tiles of objects that were deleted while this type was not
 		// being watched, for example across a version switch.
+		w.gate.Lock()
+		if !w.active {
+			w.gate.Unlock()
+			return
+		}
 		present := map[store.Owner]bool{}
 		for _, informer := range w.informers {
 			for _, obj := range informer.GetStore().List() {
@@ -305,6 +331,7 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 		}
 		c.Store.Retain(c.Cluster, typ, func(o store.Owner) bool { return present[o] })
 		w.synced.Store(true)
+		w.gate.Unlock()
 		log.Info("initial list complete", "objects", len(present))
 		c.reportSynced()
 	}()
@@ -323,7 +350,8 @@ func (c *Controller) owner(typ string, obj *unstructured.Unstructured) store.Own
 // apply converts one object and writes its tiles to the store. An object
 // that cannot be converted loses its tiles and is logged; other objects are
 // not affected.
-func (c *Controller) apply(src source.Source, version string, obj *unstructured.Unstructured) {
+func (c *Controller) apply(w *watch, obj *unstructured.Unstructured) {
+	src, version := w.src, w.version
 	c.life.RLock()
 	defer c.life.RUnlock()
 	if c.closed {
@@ -334,8 +362,14 @@ func (c *Controller) apply(src source.Source, version string, obj *unstructured.
 	var used []source.Ref
 	tiles, err := src.Tiles(obj, func(ref source.Ref) (*unstructured.Unstructured, error) {
 		used = append(used, ref)
-		return c.lookup(owner, ref)
+		return c.lookup(w, owner, ref)
 	})
+	w.gate.RLock()
+	defer w.gate.RUnlock()
+	if !w.active {
+		c.discardDeps(w, owner, used)
+		return
+	}
 	c.setDeps(owner, used)
 	if c.status != nil && typ == statusType {
 		// Reported after the store is updated below, so the status is

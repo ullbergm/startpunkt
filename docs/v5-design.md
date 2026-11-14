@@ -183,6 +183,8 @@ Named, opt-in presets under `sources.presets` supply CEL mappings for Traefik In
 
 The controller watches API discovery and starts or stops informers as resource types appear or disappear. An absent type (Istio not installed) is a normal state, not an error.
 
+Each informer generation owns its updates and deletes. Once it is replaced or stopped, a late callback cannot repopulate its tiles. Starting an informer for a newly discovered type retains existing source tiles until its initial list has completed.
+
 ### Annotations
 
 Every final tile URL is checked on the server, including `spec.url`, annotations and `urlFrom`. Only absolute HTTP and HTTPS addresses with a host and a valid port are accepted.

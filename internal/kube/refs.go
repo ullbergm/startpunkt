@@ -25,12 +25,12 @@ type refWatch struct {
 	namespaced bool
 	informer   cache.SharedIndexInformer
 	cancel     context.CancelFunc
-	dependents map[store.Owner]bool
+	dependents map[store.Owner]*watch
 }
 
 // lookup returns the object a reference points at, or nil when it does not
 // exist, and from then on converts owner again whenever that object changes.
-func (c *Controller) lookup(owner store.Owner, ref source.Ref) (*unstructured.Unstructured, error) {
+func (c *Controller) lookup(w *watch, owner store.Owner, ref source.Ref) (*unstructured.Unstructured, error) {
 	c.refMu.Lock()
 	rw := c.refs[ref]
 	if rw == nil {
@@ -47,7 +47,7 @@ func (c *Controller) lookup(owner store.Owner, ref source.Ref) (*unstructured.Un
 		rw.namespaced = namespaced
 		c.refs[ref] = rw
 	}
-	rw.dependents[owner] = true
+	rw.dependents[owner] = w
 	c.refMu.Unlock()
 
 	if rw.informer.HasSynced() {
@@ -100,7 +100,7 @@ func (c *Controller) startRef(ref source.Ref, gvr schema.GroupVersionResource, n
 	informer := dynamicinformer.NewFilteredDynamicInformer(
 		c.Dynamic, gvr, namespace, 0, cache.Indexers{},
 		func(o *metav1.ListOptions) { o.FieldSelector = selector }).Informer()
-	rw := &refWatch{gvr: gvr, informer: informer, cancel: cancel, dependents: map[store.Owner]bool{}}
+	rw := &refWatch{gvr: gvr, informer: informer, cancel: cancel, dependents: map[store.Owner]*watch{}}
 	log := c.Log.With("kind", ref.Kind, "namespace", ref.Namespace, "name", ref.Name)
 	_ = informer.SetWatchErrorHandlerWithContext(
 		func(_ context.Context, _ *cache.Reflector, err error) {
@@ -139,7 +139,7 @@ func (c *Controller) reapply(owner store.Owner) {
 	w := c.watches[owner.Type]
 	c.mu.Unlock()
 	if obj, _ := c.current(owner); obj != nil && w != nil {
-		c.apply(w.src, w.version, obj)
+		c.apply(w, obj)
 	}
 }
 
@@ -199,5 +199,24 @@ func (c *Controller) retryUnwatchedRefs() {
 	c.refMu.Unlock()
 	for owner := range owners {
 		c.reapply(owner)
+	}
+}
+
+// discardDeps releases lookups made by a conversion invalidated while it was
+// running. Dependencies committed by a newer conversion are left in place.
+func (c *Controller) discardDeps(w *watch, owner store.Owner, used []source.Ref) {
+	c.refMu.Lock()
+	defer c.refMu.Unlock()
+	for _, ref := range used {
+		if slices.Contains(c.deps[owner], ref) {
+			continue
+		}
+		if rw := c.refs[ref]; rw != nil && rw.dependents[owner] == w {
+			delete(rw.dependents, owner)
+			if len(rw.dependents) == 0 {
+				rw.cancel()
+				delete(c.refs, ref)
+			}
+		}
 	}
 }

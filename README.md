@@ -281,7 +281,7 @@ The sections of the settings, all of which are documented with their defaults in
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
 
-A change to how the cluster is read, which is the `cluster`, `namespaceSelector`, `sources`, `availability` and `status` sections, makes the instance read the cluster again. It reports itself as not ready for the moment that takes, and open pages are filled anew.
+A change to how the cluster is read starts a replacement controller and store alongside the current one. The current tiles, live updates and readiness remain until the replacement has completed its initial list, then the local state is swapped atomically. If it cannot sync, the current generation stays in service.
 
 Startpunkt needs to read the resources it shows and nothing else. The chart creates a ClusterRole with `get`, `list` and `watch` on the enabled sources, and permission to write the status of its own resource types.
 
