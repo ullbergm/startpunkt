@@ -13,7 +13,6 @@ To ask for one of these, or for something that is not here, open a [feature requ
 Small things that make what is there more dependable.
 
 - [ ] **Metrics** (S). A Prometheus endpoint with the number of tiles by cluster and source, probe results and durations, open event streams, the state of each remote and the errors of the settings and status writers, and a ServiceMonitor in the chart. 4.x had one and v5 does not.
-- [ ] **Read the cluster again without going unready** (M). A change to the sources, the namespaces or probing empties the store, and every replica reports itself not ready at once. Build the new state next to the old one and swap.
 - [ ] **A switch for type-to-search** (S). Opening search on any key is in the way of speech input and of some assistive tools. `/` and `Ctrl+K` stay.
 - [ ] **Smaller fixes on the page** (S). The search button, which is meant for touch screens, showing on every screen; group names in lower case in search results; a key pressed before the first tiles arrive, descriptions that do not refit when the text size changes, heading levels on a page with tabs, a visible mark on required fields, the footer and the corner buttons on a narrow screen, translated error messages from the editor, and the keyboard list on a Mac.
 - [ ] **Checks in CI** (S). `golangci-lint` and `govulncheck`, a linter for the page, rendering the chart against the Kubernetes schemas, Markdown and link checks, the pull request title, and the cutover test on a schedule.

@@ -18,6 +18,7 @@ import (
 
 	"github.com/ullbergm/startpunkt/internal/source"
 	"github.com/ullbergm/startpunkt/internal/store"
+	"github.com/ullbergm/startpunkt/internal/tile"
 )
 
 const group = "startpunkt.ullberg.us"
@@ -461,4 +462,59 @@ func TestURLFromRetriesWhenKindAppears(t *testing.T) {
 	eventually(t, "reference to resolve without modifying its application", func() bool {
 		return urlOf(s, "test/applications.startpunkt.ullberg.us/ns/a") == "https://resolved.test"
 	})
+}
+
+type blockedApplication struct {
+	source.Application
+	entered chan struct{}
+	release chan struct{}
+	once    sync.Once
+}
+
+func (b *blockedApplication) Tiles(obj *unstructured.Unstructured, lookup source.Lookup) ([]tile.Tile, error) {
+	b.once.Do(func() { close(b.entered) })
+	<-b.release
+	return b.Application.Tiles(obj, lookup)
+}
+
+func TestReadyWaitsForInitialHandlerConversions(t *testing.T) {
+	c := newCluster(app("v1", "ns", "a", "https://a.test"))
+	c.serve("v1")
+	blocked := &blockedApplication{entered: make(chan struct{}), release: make(chan struct{})}
+	var release sync.Once
+	defer release.Do(func() { close(blocked.release) })
+	s := store.New()
+	_, events, unsubscribe := s.Subscribe()
+	defer unsubscribe()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctrl := &Controller{Cluster: "test", Store: s, Sources: []source.Source{blocked}, Discovery: lockedDiscovery{c}, Dynamic: c.dynamic, DiscoveryInterval: 10 * time.Millisecond, Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
+	go ctrl.Run(ctx)
+	select {
+	case <-blocked.entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("initial conversion never began")
+	}
+	// The informer cache has received its list, but the handler still has not
+	// converted it. It must not publish a connected (promotable) generation.
+	timer := time.NewTimer(200 * time.Millisecond)
+	defer timer.Stop()
+waiting:
+	for {
+		select {
+		case batch := <-events:
+			for _, e := range batch {
+				if e.Type == store.EventCluster && e.Cluster.State == store.StateConnected {
+					t.Fatal("ready before initial handler completed")
+				}
+			}
+		case <-timer.C:
+			break waiting
+		}
+	}
+	if s.Ready() {
+		t.Fatal("store ready while initial conversion blocked")
+	}
+	release.Do(func() { close(blocked.release) })
+	eventually(t, "ready after initial conversion", func() bool { return s.Ready() && len(s.Snapshot().Tiles) == 1 })
 }

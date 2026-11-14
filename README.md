@@ -386,7 +386,9 @@ The chart's `mode` chooses between two ways of running the same image:
 - `single`, the default: one Deployment watches the cluster and serves the page.
 - `split`: three Deployments. `controller` watches the cluster and is the only one with Kubernetes credentials. `api` serves the tiles from the controller's state, and `web` serves the page. Only `api` and `web` are reachable from outside, and they scale without adding load on the Kubernetes API.
 
-Every process is stateless, so more than one replica of each is safe. Each replica that watches the cluster probes the applications on its own, so replicas of `single`, or of `controller`, multiply the probes.
+Every process is stateless, so more than one replica of each is safe. Source, namespace and availability settings rebuild a replacement state alongside the current one. The instance keeps serving its current tiles and stays ready until the replacement has finished listing, then swaps the local state atomically.
+
+Each replica that watches the cluster probes the applications on its own, so replicas of `single`, or of `controller`, multiply the probes.
 
 ## API
 

@@ -281,9 +281,11 @@ func (c *Controller) start(ctx context.Context, src source.Source, version strin
 			func(_ context.Context, _ *cache.Reflector, err error) {
 				log.Warn("watch failed, retrying", "namespace", namespace, "error", err)
 			})
-		_, _ = informer.AddEventHandler(handler)
+		registration, _ := informer.AddEventHandler(handler)
 		w.informers = append(w.informers, informer)
-		synced = append(synced, informer.HasSynced)
+		// Cache sync alone can precede delivery to our handler. Readiness
+		// requires every initial conversion to have reached the staging store.
+		synced = append(synced, registration.HasSynced)
 		go informer.RunWithContext(ctx)
 	}
 

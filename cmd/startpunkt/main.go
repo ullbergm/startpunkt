@@ -303,71 +303,111 @@ func clusterSettings(cfg config.Config) string {
 	return string(key)
 }
 
-// watchCluster reads the cluster with the settings in use and keeps the
-// store in step with it. When the settings that decide how the cluster is
-// read change, it stops, clears what it had read, and starts again with the
-// new ones. Changes to other settings do not interrupt it.
-func watchCluster(
-	ctx context.Context, holder *settings.Holder, tiles *store.Store,
-	dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger,
-) {
+// clusterRun builds a generation in its own store. Only the serving store is
+// read by HTTP/federation clients; a generation replaces its local feed once
+// its initial list is complete.
+type clusterRun struct {
+	store       *store.Store
+	events      <-chan []store.Event
+	unsubscribe func()
+	stop        context.CancelFunc
+	controller  *kube.Controller
+	running     sync.WaitGroup
+}
+
+func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger) *clusterRun {
+	runCtx, stop := context.WithCancel(ctx)
+	r := &clusterRun{store: store.New(), stop: stop}
+	_, r.events, r.unsubscribe = r.store.Subscribe()
+	sources, err := source.All(sourceOptions(cfg.Sources), cfg.Sources.Custom)
+	if err != nil {
+		log.Error("the custom sources cannot be used", "error", err)
+		sources = source.Builtin(sourceOptions(cfg.Sources))
+	}
+	r.controller = &kube.Controller{
+		Cluster: cfg.Cluster.Name, Store: r.store, Sources: sources,
+		Namespaces: cfg.NamespaceSelector.Namespaces(), WriteStatus: cfg.Status.Enabled,
+		Discovery: discoveryClient, Dynamic: dynamicClient, Log: log,
+	}
+	r.running.Go(func() { r.controller.Run(runCtx) })
+	if a := cfg.Availability; a.Enabled {
+		prober := &probe.Prober{Store: r.store, Cluster: cfg.Cluster.Name, Log: log,
+			Options: probe.Options{Interval: time.Duration(a.Interval), Timeout: time.Duration(a.Timeout),
+				InitialBackoff: time.Duration(a.InitialBackoff), MaxBackoff: time.Duration(a.MaxBackoff),
+				Concurrency: a.Concurrency, InsecureSkipVerify: a.InsecureSkipVerify, UserAgent: "startpunkt/" + version}}
+		r.running.Go(func() { prober.Run(runCtx) })
+	}
+	return r
+}
+
+func (r *clusterRun) close() {
+	if r == nil {
+		return
+	}
+	r.stop()
+	r.controller.Close()
+	r.running.Wait()
+	r.unsubscribe()
+}
+
+// watchCluster preserves the current generation while a new one lists the
+// cluster. A gapless snapshot and subscription promote it atomically. Rapid
+// settings changes cancel only the superseded candidate, never the active one.
+func watchCluster(ctx context.Context, holder *settings.Holder, tiles *store.Store,
+	dynamicClient dynamic.Interface, discoveryClient discovery.DiscoveryInterface, log *slog.Logger) {
 	changed, cancel := holder.Subscribe()
 	defer cancel()
-	for ctx.Err() == nil {
+	var active, candidate *clusterRun
+	defer func() { active.close(); candidate.close() }()
+	key := ""
+	for {
 		cfg := holder.Get()
-		key := clusterSettings(cfg)
-		runCtx, stop := context.WithCancel(ctx)
-		sources, err := source.All(sourceOptions(cfg.Sources), cfg.Sources.Custom)
-		if err != nil {
-			// Settings are validated before they are put to use, so this
-			// is not expected. Carry on with the built-in sources.
-			log.Error("the custom sources cannot be used", "error", err)
-			sources = source.Builtin(sourceOptions(cfg.Sources))
+		if next := clusterSettings(cfg); next != key {
+			candidate.close()
+			candidate = startCluster(ctx, cfg, dynamicClient, discoveryClient, log)
+			key = next
+			log.Info("building cluster state with the current settings")
 		}
-		controller := &kube.Controller{
-			Cluster:     cfg.Cluster.Name,
-			Store:       tiles,
-			Sources:     sources,
-			Namespaces:  cfg.NamespaceSelector.Namespaces(),
-			WriteStatus: cfg.Status.Enabled,
-			Discovery:   discoveryClient,
-			Dynamic:     dynamicClient,
-			Log:         log,
+		var activeEvents, candidateEvents <-chan []store.Event
+		if active != nil {
+			activeEvents = active.events
 		}
-		var running sync.WaitGroup
-		running.Go(func() { controller.Run(runCtx) })
-		if a := cfg.Availability; a.Enabled {
-			prober := &probe.Prober{
-				Store: tiles, Cluster: cfg.Cluster.Name, Log: log,
-				Options: probe.Options{
-					Interval:           time.Duration(a.Interval),
-					Timeout:            time.Duration(a.Timeout),
-					InitialBackoff:     time.Duration(a.InitialBackoff),
-					MaxBackoff:         time.Duration(a.MaxBackoff),
-					Concurrency:        a.Concurrency,
-					InsecureSkipVerify: a.InsecureSkipVerify,
-					UserAgent:          "startpunkt/" + version,
-				},
+		if candidate != nil {
+			candidateEvents = candidate.events
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-changed:
+		case batch, ok := <-activeEvents:
+			if !ok {
+				snap, events, unsubscribe := active.store.Subscribe()
+				active.unsubscribe()
+				active.events, active.unsubscribe = events, unsubscribe
+				tiles.Mirror(snap)
+			} else {
+				tiles.ApplyFeed(store.LocalFeed, batch)
 			}
-			running.Go(func() { prober.Run(runCtx) })
-		}
-	wait:
-		for {
-			select {
-			case <-ctx.Done():
-				break wait
-			case <-changed:
-				if clusterSettings(holder.Get()) != key {
-					log.Info("settings for reading the cluster changed; reading it again")
-					break wait
+		case _, ok := <-candidateEvents:
+			if !candidate.store.Ready() {
+				if !ok {
+					_, events, unsubscribe := candidate.store.Subscribe()
+					candidate.unsubscribe()
+					candidate.events, candidate.unsubscribe = events, unsubscribe
 				}
+				continue
 			}
-		}
-		stop()
-		running.Wait()
-		controller.Close()
-		if ctx.Err() == nil {
-			tiles.DropOwned()
+			// Settings may have changed during sync; never publish that candidate.
+			if clusterSettings(holder.Get()) != key {
+				continue
+			}
+			snap, events, unsubscribe := candidate.store.Subscribe()
+			candidate.unsubscribe()
+			candidate.events, candidate.unsubscribe = events, unsubscribe
+			active.close()
+			tiles.Mirror(snap)
+			active, candidate = candidate, nil
+			log.Info("cluster state replaced", "tiles", len(snap.Tiles))
 		}
 	}
 }

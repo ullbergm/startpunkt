@@ -86,6 +86,7 @@ func (p *Prober) Run(ctx context.Context) {
 	}
 	if p.Client == nil {
 		p.Client = p.newClient()
+		defer p.Client.CloseIdleConnections()
 	}
 	for ctx.Err() == nil {
 		p.follow(ctx)
@@ -124,7 +125,11 @@ func (p *Prober) follow(ctx context.Context) {
 				// Probes still running would write to a channel nobody
 				// reads. Let them finish first.
 				for ; running > 0; running-- {
-					<-results
+					select {
+					case <-results:
+					case <-ctx.Done():
+						return
+					}
 				}
 				return
 			}
