@@ -275,6 +275,8 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 
 Each instance is fully authoritative for its own cluster. A hub is another client of the same API.
 
+Follower requests follow redirects only within the configured origin, preserving the scheme, host and port. This applies to controller streams, remote streams and internal reports; credentials are not sent to a different origin.
+
 - The hub is configured with a list of remotes: name, base URL, and optional request headers for remotes that sit behind an authenticating proxy. A remote's TLS certificate is verified unless that remote is marked `insecureSkipVerify`, which is for certificates the hub cannot verify, such as self-signed ones.
 - The roles a browser talks to are the hub: `all`, or `api` in split mode. The controller does not federate.
 - Each source of mirrored tiles is a feed with a name of its own: the instance's own controller, and one per remote. A snapshot from one feed replaces only what that feed brought, so remotes cannot disturb each other or the local tiles.

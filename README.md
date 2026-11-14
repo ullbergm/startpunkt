@@ -358,6 +358,8 @@ On the page, each cluster has a button above the tiles. A click shows that clust
 
 Tiles are never passed on a second time: an instance takes from a remote only what that remote reads from its own cluster.
 
+Connections to remotes follow redirects only within the configured origin. Configure the final base address when a proxy redirects to another host or scheme.
+
 ## The page
 
 <p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>

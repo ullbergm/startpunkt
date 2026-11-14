@@ -165,7 +165,18 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 	for name, value := range f.Headers {
 		req.Header.Set(name, value)
 	}
-	resp, err := f.Client.Do(req)
+	client := *f.Client
+	previousRedirect := client.CheckRedirect
+	client.CheckRedirect = func(next *http.Request, via []*http.Request) error {
+		if err := safeRedirect(next, via); err != nil {
+			return err
+		}
+		if previousRedirect != nil {
+			return previousRedirect(next, via)
+		}
+		return nil
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -442,6 +453,16 @@ func (f *Follower) applyRemote(name, data string) error {
 			return fmt.Errorf("decoding %s: %w", name, err)
 		}
 		delete(f.own.local, d.Name)
+	}
+	return nil
+}
+
+func safeRedirect(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errors.New("too many redirects")
+	}
+	if len(via) > 0 && (req.URL.Scheme != via[0].URL.Scheme || !strings.EqualFold(req.URL.Host, via[0].URL.Host)) {
+		return http.ErrUseLastResponse
 	}
 	return nil
 }
