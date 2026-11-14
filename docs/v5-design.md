@@ -230,6 +230,8 @@ Followers bound each SSE line and complete event to 8 MiB, each snapshot and cum
 
 Icon requests that share a fetch wait for its completed result. Cache publication and completion are synchronised, so concurrent callers do not race while reading the fetched SVG.
 
+The icon service admits at most 512 pending icons. Each request has a 20-second budget covering both queueing and fetching; a cancelled request does not occupy a new slot. A full queue returns 503 with `Retry-After: 1`, so a burst cannot create an unbounded backlog.
+
 A reconnecting client receives a fresh snapshot instead of a replay of missed events. The state is a few hundred tiles, so the server keeps no event log and there is no gap handling.
 
 Resource reads include `resourceVersion`. An update requires that version alongside the spec: missing versions receive 400, stale versions 409. The comparison covers the interval since the form was opened as well as the API server’s final optimistic update check. Split-role forwarding preserves the version.

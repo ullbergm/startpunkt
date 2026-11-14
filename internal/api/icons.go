@@ -24,6 +24,7 @@ var (
 
 // errNoIcon means the icon service has no icon of that name.
 var errNoIcon = errors.New("no such icon")
+var errIconBusy = errors.New("icon service is busy")
 
 // Icons serves Iconify icons from this instance: GET
 // /api/v1/icons/{prefix}/{name}.svg, with an optional color.
@@ -48,6 +49,8 @@ type Icons struct {
 	Limit int
 	// MaxEntries bounds the number of icons kept.
 	MaxEntries int
+	// MaxPending bounds queued and in-flight icons independently from cached results.
+	MaxPending int
 	// MissingTTL is how long an icon that does not exist is remembered as
 	// missing before it is asked for again.
 	MissingTTL time.Duration
@@ -59,6 +62,7 @@ type Icons struct {
 	slots   chan struct{}
 	mu      sync.Mutex
 	entries map[string]*iconEntry
+	pending int
 	// waiting holds, per icon set, what is collected for the next batch.
 	waiting map[string][]iconWait
 	// searches holds the answers to searches, by query.
@@ -92,6 +96,9 @@ func (i *Icons) init() {
 		if i.MaxEntries <= 0 {
 			i.MaxEntries = 4000
 		}
+		if i.MaxPending <= 0 {
+			i.MaxPending = 512
+		}
 		if i.MissingTTL <= 0 {
 			i.MissingTTL = time.Hour
 		}
@@ -110,7 +117,7 @@ func (i *Icons) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	prefix := r.PathValue("prefix")
 	name, isSVG := strings.CutSuffix(r.PathValue("file"), ".svg")
 	color := r.URL.Query().Get("color")
-	if !isSVG || !iconPart.MatchString(prefix) || !iconPart.MatchString(name) ||
+	if !isSVG || len(prefix) > 128 || len(name) > 256 || len(color) > 64 || !iconPart.MatchString(prefix) || !iconPart.MatchString(name) ||
 		(color != "" && !iconColor.MatchString(color)) {
 		writeError(w, http.StatusBadRequest, "not an icon name")
 		return
@@ -121,6 +128,10 @@ func (i *Icons) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Remembered by the browser for a while as well.
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 		writeError(w, http.StatusNotFound, "no such icon")
+		return
+	case errors.Is(err, errIconBusy):
+		w.Header().Set("Retry-After", "1")
+		writeError(w, http.StatusTooManyRequests, "the icon service is busy; try again shortly")
 		return
 	case err != nil:
 		writeError(w, http.StatusBadGateway, "the icon is not available right now")
@@ -143,6 +154,9 @@ func (i *Icons) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // get returns the icon, having it fetched when it is not kept. Requests for
 // the same icon while it is being fetched wait for that one fetch.
 func (i *Icons) get(ctx context.Context, prefix, name string) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	key := prefix + "/" + name
 	i.mu.Lock()
 	entry := i.entries[key]
@@ -154,6 +168,11 @@ func (i *Icons) get(ctx context.Context, prefix, name string) ([]byte, error) {
 		}
 	}
 	if entry == nil {
+		if i.pending >= i.MaxPending {
+			i.mu.Unlock()
+			return nil, errIconBusy
+		}
+		i.pending++
 		if len(i.entries) >= i.MaxEntries {
 			// Far more icons than any start page has. Start over rather
 			// than grow without bound. Fetches under way still finish,
@@ -186,6 +205,8 @@ func (i *Icons) send(prefix string) {
 	delete(i.waiting, prefix)
 	i.mu.Unlock()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
 	for start := 0; start < len(waiting); start += batchSize {
 		batch := waiting[start:min(start+batchSize, len(waiting))]
 		// A name is in a batch twice when the kept icons were started over
@@ -199,11 +220,16 @@ func (i *Icons) send(prefix string) {
 				names = append(names, w.name)
 			}
 		}
-		i.slots <- struct{}{}
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		icons, retry, err := i.fetch(ctx, prefix, names)
-		cancel()
-		<-i.slots
+		var icons map[string][]byte
+		var retry time.Duration
+		var err error
+		select {
+		case i.slots <- struct{}{}:
+			icons, retry, err = i.fetch(ctx, prefix, names)
+			<-i.slots
+		case <-ctx.Done():
+			err, retry = errIconBusy, time.Second
+		}
 		i.mu.Lock()
 		for _, w := range batch {
 			entry := w.entry
@@ -219,6 +245,7 @@ func (i *Icons) send(prefix string) {
 			default:
 				entry.svg = svg
 			}
+			i.pending--
 			close(entry.ready)
 		}
 		i.mu.Unlock()

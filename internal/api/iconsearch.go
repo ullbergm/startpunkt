@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,6 +44,11 @@ func (i *Icons) ServeSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	icons, err := i.search(r.Context(), query)
+	if errors.Is(err, errIconBusy) {
+		w.Header().Set("Retry-After", "1")
+		writeError(w, http.StatusTooManyRequests, "the icon service is busy; try again shortly")
+		return
+	}
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "icons cannot be searched right now")
 		return
@@ -67,6 +73,8 @@ func (i *Icons) search(ctx context.Context, query string) ([]string, error) {
 		defer func() { <-i.slots }()
 	case <-ctx.Done():
 		return nil, ctx.Err()
+	default:
+		return nil, errIconBusy
 	}
 	source := i.Source
 	if i.SourceFunc != nil {
