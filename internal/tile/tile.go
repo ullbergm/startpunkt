@@ -22,6 +22,7 @@ type Source struct {
 	// core group. It does not include the version, so tile ids stay the same
 	// when the watched version changes.
 	Type      string `json:"type"`
+	Kind      string `json:"kind,omitempty"`
 	Version   string `json:"version"`
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
@@ -33,25 +34,44 @@ type Link struct {
 	URL  string `json:"url"`
 }
 
+// Workload is readiness of the Deployments or StatefulSets behind a tile.
+// It is separate from whether the HTTP address answers.
+type Workload struct {
+	State   string `json:"state"`
+	Ready   int64  `json:"ready"`
+	Desired int64  `json:"desired"`
+}
+
+// WorkloadRef is an internal dependency, filled from a source object. It
+// never leaves the controller over JSON; the resulting readiness does.
+type WorkloadRef struct {
+	Resource  string
+	Namespace string
+	Name      string
+}
+
 // Tile is one application or bookmark. It is the unit held by the store and
 // sent to clients, and its JSON form is part of the versioned API.
 type Tile struct {
-	ID          string   `json:"id"`
-	Kind        Kind     `json:"kind"`
-	Cluster     string   `json:"cluster"`
-	Name        string   `json:"name"`
-	Group       string   `json:"group"`
-	URL         string   `json:"url"`
-	Icon        string   `json:"icon,omitempty"`
-	IconColor   string   `json:"iconColor,omitempty"`
-	Info        string   `json:"info,omitempty"`
-	Links       []Link   `json:"links,omitempty"`
-	TargetBlank bool     `json:"targetBlank"`
-	Location    int      `json:"location"`
-	Tags        []string `json:"tags"`
-	Source      Source   `json:"source"`
-	Editable    bool     `json:"editable"`
-	Available   *bool    `json:"available,omitempty"`
+	ID           string        `json:"id"`
+	Kind         Kind          `json:"kind"`
+	Cluster      string        `json:"cluster"`
+	Name         string        `json:"name"`
+	Group        string        `json:"group"`
+	URL          string        `json:"url"`
+	Icon         string        `json:"icon,omitempty"`
+	IconColor    string        `json:"iconColor,omitempty"`
+	Info         string        `json:"info,omitempty"`
+	Links        []Link        `json:"links,omitempty"`
+	ConsoleURL   string        `json:"consoleURL,omitempty"`
+	Workload     *Workload     `json:"workload,omitempty"`
+	WorkloadRefs []WorkloadRef `json:"-"`
+	TargetBlank  bool          `json:"targetBlank"`
+	Location     int           `json:"location"`
+	Tags         []string      `json:"tags"`
+	Source       Source        `json:"source"`
+	Editable     bool          `json:"editable"`
+	Available    *bool         `json:"available,omitempty"`
 	// LastProbe is the probe that established Available, not the latest
 	// check. Repeated checks with the same result do not change it.
 	LastProbe *time.Time `json:"lastProbe,omitempty"`
@@ -72,7 +92,13 @@ func Equal(a, b Tile) bool {
 	if a.ID != b.ID || a.Kind != b.Kind || a.Cluster != b.Cluster || a.Name != b.Name ||
 		a.Group != b.Group || a.URL != b.URL || a.Icon != b.Icon ||
 		a.IconColor != b.IconColor || a.Info != b.Info || a.TargetBlank != b.TargetBlank ||
-		a.Location != b.Location || a.Source != b.Source || a.Editable != b.Editable {
+		a.Location != b.Location || a.Source != b.Source || a.Editable != b.Editable || a.ConsoleURL != b.ConsoleURL {
+		return false
+	}
+	if (a.Workload == nil) != (b.Workload == nil) || (a.Workload != nil && *a.Workload != *b.Workload) {
+		return false
+	}
+	if !SameWorkloadRefs(a.WorkloadRefs, b.WorkloadRefs) {
 		return false
 	}
 	if len(a.Links) != len(b.Links) {
@@ -111,4 +137,17 @@ func Less(a, b Tile) bool {
 		return an < bn
 	}
 	return a.ID < b.ID
+}
+
+// SameWorkloadRefs reports whether internal dependencies are unchanged.
+func SameWorkloadRefs(a, b []WorkloadRef) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

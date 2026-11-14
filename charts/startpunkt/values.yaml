@@ -429,3 +429,13 @@ metrics:
       matchLabels: {}
       # Folder in Grafana that holds the dashboard. Defaults to Startpunkt.
       folder: Startpunkt
+
+# Optional workload readiness is independent of the HTTP availability probe.
+workloads:
+  # STARTPUNKT_WORKLOADS_ENABLED. Watch Services, Deployments and StatefulSets
+  # for the workloads behind local tiles. Default: false.
+  enabled: false
+  # STARTPUNKT_WORKLOADS_CONSOLEURL. OpenShift console base URL, such as
+  # https://console-openshift-console.apps.example.com. Empty disables links.
+  # Console links work even when workload watching is disabled.
+  consoleURL: ""

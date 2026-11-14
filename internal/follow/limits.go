@@ -72,7 +72,7 @@ func validateTile(t tile.Tile) error {
 	if !tile.ValidURL(t.URL) || len(t.URL) > 4096 {
 		return errors.New("tile URL must be an http or https address of at most 4096 bytes")
 	}
-	for _, value := range []string{t.Name, t.Group, t.Icon, t.IconColor, t.Info, t.Source.Type, t.Source.Version, t.Source.Namespace, t.Source.Name} {
+	for _, value := range []string{t.Name, t.Group, t.Icon, t.IconColor, t.Info, t.Source.Type, t.Source.Kind, t.Source.Version, t.Source.Namespace, t.Source.Name} {
 		if len(value) > 4096 {
 			return errors.New("tile field exceeds 4096 bytes")
 		}
@@ -83,6 +83,19 @@ func validateTile(t tile.Tile) error {
 	for _, tag := range t.Tags {
 		if len(tag) > 256 {
 			return errors.New("tile tag exceeds 256 bytes")
+		}
+	}
+	if t.ConsoleURL != "" && (len(t.ConsoleURL) > 4096 || !tile.ValidURL(t.ConsoleURL)) {
+		return errors.New("invalid console URL")
+	}
+	if w := t.Workload; w != nil {
+		switch w.State {
+		case "ready", "starting", "degraded", "unknown":
+		default:
+			return errors.New("invalid workload state")
+		}
+		if w.Ready < 0 || w.Desired < 0 || w.Ready > w.Desired {
+			return errors.New("invalid workload replica counts")
 		}
 	}
 	return tile.ValidateLinks(t.Links)

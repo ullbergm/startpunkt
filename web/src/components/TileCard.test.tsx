@@ -41,3 +41,39 @@ describe('secondary tile links', () => {
     expect(screen.queryByRole('link', { name: 'File' })).toBeNull();
   });
 });
+
+describe('workload readiness and OpenShift links', () => {
+  it('shows workload readiness independently of an HTTP failure', () => {
+    const primary = tile({ name: 'Grafana', available: false, workload: { state: 'ready', ready: 2, desired: 2 } });
+    render(<TileCard card={{ key: primary.id, primary, members: [primary] }} iconColor="red" />);
+    expect(screen.getByText('Offline')).toBeTruthy();
+    expect(screen.getByText('Workload ready · 2/2')).toBeTruthy();
+  });
+
+  it('names clusters when combined workloads have different readiness', () => {
+    const primary = tile({ name: 'Grafana', cluster: 'prod', workload: { state: 'ready', ready: 2, desired: 2 } });
+    const other = tile({ name: 'Grafana', id: 'stage', cluster: 'stage', workload: { state: 'starting', ready: 0, desired: 1 } });
+    render(<TileCard card={{ key: primary.id, primary, members: [primary, other] }} iconColor="red" />);
+    expect(screen.getByText('prod: Workload ready · 2/2')).toBeTruthy();
+    expect(screen.getByText('stage: Workload starting · 0/1')).toBeTruthy();
+  });
+
+  it('renders a separately reachable console resource link', () => {
+    const primary = tile({ name: 'Grafana', consoleURL: 'https://console.test/k8s/ns/monitoring/routes/grafana', targetBlank: true });
+    render(<TileCard card={{ key: primary.id, primary, members: [primary] }} iconColor="red" />);
+    const consoleLink = screen.getByRole('link', { name: 'Open Grafana in OpenShift' });
+    expect(consoleLink.getAttribute('href')).toBe(primary.consoleURL);
+    expect(consoleLink.parentElement?.closest('a')).toBeNull();
+    expect(consoleLink.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('does not render unsafe console URLs or console links during editing', () => {
+    const primary = tile({ name: 'Grafana', consoleURL: 'javascript:alert(1)' });
+    const rendered = render(<TileCard card={{ key: primary.id, primary, members: [primary] }} iconColor="red" />);
+    expect(screen.queryByRole('link', { name: 'Open Grafana in OpenShift' })).toBeNull();
+    primary.consoleURL = 'https://console.test';
+    editMode.value = true;
+    rendered.rerender(<TileCard card={{ key: primary.id, primary, members: [primary] }} iconColor="red" />);
+    expect(screen.queryByRole('link', { name: 'Open Grafana in OpenShift' })).toBeNull();
+  });
+});

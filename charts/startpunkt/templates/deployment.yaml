@@ -73,6 +73,10 @@ spec:
             - name: STARTPUNKT_AVAILABILITY_{{ upper $setting }}
               value: {{ $value | quote }}
             {{- end }}
+            - name: STARTPUNKT_WORKLOADS_ENABLED
+              value: {{ $.Values.workloads.enabled | quote }}
+            - name: STARTPUNKT_WORKLOADS_CONSOLEURL
+              value: {{ $.Values.workloads.consoleURL | quote }}
             - name: STARTPUNKT_STATUS_ENABLED
               value: {{ $.Values.status.enabled | quote }}
             {{- with $.Values.sources.custom }}

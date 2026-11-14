@@ -230,9 +230,16 @@
   "edit.links.url": "Adress för länk {index}",
   "edit.links.remove": "Ta bort länk {index}",
   "edit.links.add": "Lägg till en länk",
-  "edit.links.invalid": "Varje länk behöver ett namn (högst 80 tecken) och en http- eller https-adress.",
+  "edit.links.invalid": "Varje länk behöver ett namn (högst 80 byte) och en http- eller https-adress.",
   "edit.links.inherited": "Länkarna kommer från resursens annotering. Åsidosätt dem för att ändra dem här.",
   "edit.links.override": "Åsidosätt länkar",
   "edit.links.reset": "Använd annoteringens länkar",
+  "tile.console": "Öppna {name} i OpenShift",
+  "tile.console.cluster": "Öppna {name} i OpenShift · {cluster}",
+  "tile.workload.ready": "Arbetslasten är redo · {ready}/{desired}",
+  "tile.workload.starting": "Arbetslasten startar · {ready}/{desired}",
+  "tile.workload.degraded": "Arbetslasten är delvis tillgänglig · {ready}/{desired}",
+  "tile.workload.unknown": "Arbetslastens beredskap är okänd",
+  "tile.workload.cluster": "{cluster}: {status}",
   "edit.links.inheritedInvalid": "Annoteringens länkar är ogiltiga. Åsidosätt dem här eller rätta annoteringen."
 }

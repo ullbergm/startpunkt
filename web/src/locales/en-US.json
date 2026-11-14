@@ -230,9 +230,16 @@
   "edit.links.url": "Link {index} address",
   "edit.links.remove": "Remove link {index}",
   "edit.links.add": "Add a link",
-  "edit.links.invalid": "Each link needs a name (up to 80 characters) and an http or https address.",
+  "edit.links.invalid": "Each link needs a name (up to 80 bytes) and an http or https address.",
   "edit.links.inherited": "These links come from the resource annotation. Override them to make changes here.",
   "edit.links.override": "Override links",
   "edit.links.reset": "Use annotation links",
+  "tile.console": "Open {name} in OpenShift",
+  "tile.console.cluster": "Open {name} in OpenShift · {cluster}",
+  "tile.workload.ready": "Workload ready · {ready}/{desired}",
+  "tile.workload.starting": "Workload starting · {ready}/{desired}",
+  "tile.workload.degraded": "Workload degraded · {ready}/{desired}",
+  "tile.workload.unknown": "Workload readiness unknown",
+  "tile.workload.cluster": "{cluster}: {status}",
   "edit.links.inheritedInvalid": "The annotation links are invalid. Add an override here or correct the annotation."
 }

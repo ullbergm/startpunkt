@@ -96,6 +96,8 @@ Applications and bookmarks are one type, `Tile`, with a `kind` field.
 | `editable` | True when the tile is backed by a Startpunkt custom resource on the local cluster that neither Argo CD nor Helm deploys. |
 | `available`, `lastProbe` | Set by the owning instance. `lastProbe` is the probe that established the current availability, unchanged by confirming probes; absent before the first result or when probing is disabled. |
 | `links` | Optional list of named HTTP/HTTPS secondary links, at most eight. |
+| `workload` | Optional workload state and ready/desired counts, independent of HTTP probing. |
+| `consoleURL` | Optional HTTP/HTTPS link to the source resource in the configured OpenShift console. |
 
 ## Kubernetes integration
 
@@ -265,6 +267,8 @@ There is one client shape: the UI always needs every tile plus configuration. A 
 
 ## Availability probing
 
+Workload readiness is an independent, opt-in signal. Services referenced by supported sources are resolved to matching Deployment and StatefulSet pod templates, or an explicit workload annotation selects one. Each member of a combined card retains its own readiness and console link. `source.kind` is optional in the tile contract and identifies the resource kind for console paths. Enrichment happens only in the owning controller and survives split mode and federation. See [workloads](workloads.md).
+
 - Each instance probes only its own tiles. It can reach in-cluster and internal-only services, and it checks from the vantage point that matters for that cluster.
 - Only applications are probed. Bookmarks mostly point at sites outside the cluster and carry no availability, as in 4.x.
 - The prober runs in the process that watches the cluster: the `all` role, or `controller` in split mode. It reads its targets from the store and writes results back to it, so it has no interface of its own.
@@ -373,7 +377,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 
 | Kind | Holds | Read by |
 | --- | --- | --- |
-| `Startpunkt` | The settings of one instance: `cluster`, `web`, `namespaceSelector`, `sources`, `availability`, `status`, `icons`. | The instance, by its own name in its own namespace. |
+| `Startpunkt` | The settings of one instance: `cluster`, `web`, `namespaceSelector`, `sources`, `availability`, `status`, `icons`, `workloads`. | The instance, by its own name in its own namespace. |
 | `Remote` | One federated instance: its URL and what to take from it. The resource's name is the cluster name its tiles get. | The instance in the same namespace. |
 
 - The controller watches both and applies a change without a restart. A new title or theme reaches open pages over the stream they already hold. A remote that is added is followed, and one that is deleted is dropped together with its tiles.
@@ -387,7 +391,7 @@ Settings live in the cluster as custom resources. The environment holds only wha
 
 ### Environment and file
 
-Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles and `custom`), `availability`, `status`, `icons`, `federation.remotes`, `web` (title, theme, default language, search engine, update check, the footer, whether every cluster is shown from the start, the default preferences of the page), `editing` (the edit key and the namespace for new resources), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `resources` (which `Startpunkt` resource to read), `server` and `log`. The file is the one named by `-config` or `STARTPUNKT_CONFIG`, or `/etc/startpunkt/config.yaml` when it exists, and a key it does not know is an error. Where several say something about a setting, the `Startpunkt` resource wins over the environment, which wins over the file. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
+Every setting can be given as an environment variable named `STARTPUNKT_<SECTION>_<KEY>`, and the chart can be set to configure the processes that way instead of with resources. A YAML file with the same settings is an alternative for settings that do not fit a variable well, such as lists; the environment takes precedence over the file. The role is the process argument, or `STARTPUNKT_ROLE`. Sections: `namespaceSelector`, `sources` (built-in toggles and `custom`), `availability`, `status`, `icons`, `workloads`, `federation.remotes`, `web` (title, theme, default language, search engine, update check, the footer, whether every cluster is shown from the start, the default preferences of the page), `editing` (the edit key and the namespace for new resources), `cluster` (the name of this instance), `upstream` (the controller the `api` role follows), `resources` (which `Startpunkt` resource to read), `server` and `log`. The file is the one named by `-config` or `STARTPUNKT_CONFIG`, or `/etc/startpunkt/config.yaml` when it exists, and a key it does not know is an error. Where several say something about a setting, the `Startpunkt` resource wins over the environment, which wins over the file. The edit key itself comes from a Secret through an environment variable or a mounted file, never from the ConfigMap.
 
 ## Deployment
 

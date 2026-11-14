@@ -386,11 +386,12 @@ func (c *Controller) apply(w *watch, obj *unstructured.Unstructured) {
 		c.Store.Delete(owner)
 		return
 	}
-	ref := tile.Source{Type: typ, Version: version, Namespace: owner.Namespace, Name: owner.Name}
+	ref := tile.Source{Type: typ, Version: version, Kind: obj.GetKind(), Namespace: owner.Namespace, Name: owner.Name}
 	for i := range tiles {
 		tiles[i].ID = tile.ID(c.Cluster, ref, i)
 		tiles[i].Cluster = c.Cluster
 		tiles[i].Source = ref
+		tiles[i].WorkloadRefs = WorkloadReferences(obj, typ, tiles[i].URL)
 		if tiles[i].Tags == nil {
 			tiles[i].Tags = []string{}
 		}

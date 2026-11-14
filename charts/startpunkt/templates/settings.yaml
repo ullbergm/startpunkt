@@ -18,6 +18,8 @@ spec:
     {{- toYaml .Values.namespaceSelector | nindent 4 }}
   sources:
     {{- toYaml .Values.sources | nindent 4 }}
+  workloads:
+    {{- toYaml .Values.workloads | nindent 4 }}
   availability:
     {{- toYaml .Values.availability | nindent 4 }}
   status:

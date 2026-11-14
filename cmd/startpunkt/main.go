@@ -299,7 +299,7 @@ func ownNamespace() string {
 // clusterSettings is the part of the configuration that decides how the
 // cluster is read. A change to it means reading the cluster again.
 func clusterSettings(cfg config.Config) string {
-	key, _ := json.Marshal([]any{cfg.Cluster, cfg.NamespaceSelector, cfg.Sources, cfg.Availability, cfg.Status})
+	key, _ := json.Marshal([]any{cfg.Cluster, cfg.NamespaceSelector, cfg.Sources, cfg.Availability, cfg.Status, cfg.Workloads})
 	return string(key)
 }
 
@@ -336,6 +336,10 @@ func startCluster(ctx context.Context, cfg config.Config, dynamicClient dynamic.
 				InitialBackoff: time.Duration(a.InitialBackoff), MaxBackoff: time.Duration(a.MaxBackoff),
 				Concurrency: a.Concurrency, InsecureSkipVerify: a.InsecureSkipVerify, UserAgent: "startpunkt/" + version}}
 		r.running.Go(func() { prober.Run(runCtx) })
+	}
+	if cfg.Workloads.Enabled || cfg.Workloads.ConsoleURL != "" {
+		workloads := &kube.WorkloadWatcher{Store: r.store, Dynamic: dynamicClient, Discovery: discoveryClient, Cluster: cfg.Cluster.Name, Namespaces: cfg.NamespaceSelector.Namespaces(), Enabled: cfg.Workloads.Enabled, ConsoleURL: cfg.Workloads.ConsoleURL, Log: log}
+		r.running.Go(func() { workloads.Run(runCtx) })
 	}
 	return r
 }

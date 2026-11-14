@@ -21,6 +21,7 @@ import (
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 	"github.com/ullbergm/startpunkt/internal/source"
+	"github.com/ullbergm/startpunkt/internal/tile"
 )
 
 var (
@@ -47,6 +48,7 @@ type (
 	Web               = apiv1.Web
 	Theme             = apiv1.Theme
 	Palette           = apiv1.Palette
+	Workloads         = apiv1.Workloads
 )
 
 // EnvPrefix starts the name of every environment variable read by Load.
@@ -54,6 +56,7 @@ const EnvPrefix = "STARTPUNKT_"
 
 // Config is the full configuration.
 type Config struct {
+	Workloads         Workloads         `json:"workloads"`
 	Cluster           Cluster           `json:"cluster"`
 	NamespaceSelector NamespaceSelector `json:"namespaceSelector"`
 	Sources           Sources           `json:"sources"`
@@ -229,6 +232,7 @@ func Load(path string, required bool, getenv func(string) string) (Config, error
 // are set.
 func (c *Config) applyEnvironment(getenv func(string) string) error {
 	text := map[string]*string{
+		"WORKLOADS_CONSOLEURL":                   &c.Workloads.ConsoleURL,
 		"CLUSTER_NAME":                           &c.Cluster.Name,
 		"SERVER_ADDRESS":                         &c.Server.Address,
 		"UPSTREAM_URL":                           &c.Upstream.URL,
@@ -245,6 +249,7 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 		"SOURCES_VIRTUALSERVICE_DEFAULTPROTOCOL": &c.Sources.VirtualService.DefaultProtocol,
 	}
 	flags := map[string]*bool{
+		"WORKLOADS_ENABLED":                    &c.Workloads.Enabled,
 		"NAMESPACESELECTOR_ANY":                &c.NamespaceSelector.Any,
 		"AVAILABILITY_ENABLED":                 &c.Availability.Enabled,
 		"AVAILABILITY_INSECURESKIPVERIFY":      &c.Availability.InsecureSkipVerify,
@@ -360,6 +365,12 @@ func (c *Config) applyEnvironment(getenv func(string) string) error {
 
 // Validate reports the first setting that cannot be used.
 func (c Config) Validate() error {
+	if c.Workloads.ConsoleURL != "" {
+		u, err := url.Parse(c.Workloads.ConsoleURL)
+		if err != nil || !tile.ValidURL(c.Workloads.ConsoleURL) || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+			return errors.New("workloads.consoleURL must be an http or https base URL without credentials, query or fragment")
+		}
+	}
 	if p := c.Web.DefaultPreferences; len(p) > 0 {
 		// What is in it is the page's to check. Here it only has to be
 		// something the page can read, and of a size worth sending to

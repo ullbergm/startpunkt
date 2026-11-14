@@ -41,6 +41,9 @@ type Startpunkt struct {
 // StartpunktSpec is the settings of an instance. The sections are those of
 // the configuration file.
 type StartpunktSpec struct {
+	// Optional workload readiness and resource links to an OpenShift console.
+	// +optional
+	Workloads *Workloads `json:"workloads,omitempty"`
 	// The cluster this instance runs in.
 	// +optional
 	Cluster *Cluster `json:"cluster,omitempty"`

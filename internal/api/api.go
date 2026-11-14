@@ -28,7 +28,8 @@ const SchemaVersion = 1
 // event of GET /api/v1/events.
 type State struct {
 	SchemaVersion int `json:"schemaVersion"`
-	// Tiles include optional named secondary links. Older clients may ignore them.
+	// Tiles include optional links, console addresses and workload readiness.
+	// Older clients may ignore these additive fields.
 	Tiles    []tile.Tile     `json:"tiles"`
 	Clusters []store.Cluster `json:"clusters"`
 	Config   UIConfig        `json:"config"`

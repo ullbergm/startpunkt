@@ -1380,6 +1380,26 @@
       "type": "object",
       "description": "Values supplied by a parent chart; Startpunkt does not read them.",
       "additionalProperties": true
+    },
+    "workloads": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "consoleURL": {
+          "type": "string",
+          "anyOf": [
+            {
+              "const": ""
+            },
+            {
+              "pattern": "^https?://"
+            }
+          ]
+        }
+      }
     }
   },
   "$schema": "http://json-schema.org/draft-07/schema#"

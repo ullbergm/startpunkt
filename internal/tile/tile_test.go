@@ -34,3 +34,22 @@ func TestEqual(t *testing.T) {
 		t.Error("tags must be compared")
 	}
 }
+
+func TestWorkloadMetadataAffectsEquality(t *testing.T) {
+	a := Tile{ID: "a", ConsoleURL: "https://console.test/a", Workload: &Workload{State: "ready", Ready: 1, Desired: 1}, WorkloadRefs: []WorkloadRef{{Resource: "deployments", Name: "web"}}}
+	b := a
+	b.Workload = &Workload{State: "degraded", Ready: 0, Desired: 1}
+	if Equal(a, b) {
+		t.Fatal("readiness change was ignored")
+	}
+	b = a
+	b.ConsoleURL = "https://console.test/b"
+	if Equal(a, b) {
+		t.Fatal("console URL change was ignored")
+	}
+	b = a
+	b.WorkloadRefs = []WorkloadRef{{Resource: "deployments", Name: "other"}}
+	if Equal(a, b) {
+		t.Fatal("dependency change was ignored")
+	}
+}

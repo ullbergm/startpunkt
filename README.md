@@ -278,6 +278,7 @@ The sections of the settings, all of which are documented with their defaults in
 | `availability` | Probing of the services' addresses: interval, timeout, back-off |
 | `status` | Whether the status of `Application` resources is written |
 | `icons` | Where icons come from. The public Iconify API by default; point it at one you host to depend on nothing outside the cluster. |
+| `workloads` | Optional Deployment and StatefulSet readiness, and the OpenShift console base address for resource links. Both are off by default. |
 | `web` | Title, default language, search engine, colours of the light and the dark theme, the update check, the footer with the link to GitHub, and the [default settings](#default-settings) of the page |
 
 Every setting also has an environment variable, `STARTPUNKT_<SECTION>_<SETTING>`. With `customResources.enabled: false` the chart configures the pods through those instead of resources; a change then restarts the pods.
@@ -419,6 +420,8 @@ curl -s https://start.example.com/api/v1/state | jq '.tiles[] | {name, url, avai
 With an edit key configured there are also `POST /api/v1/applications`, `GET`, `PUT` and `DELETE /api/v1/applications/{namespace}/{name}`, the same under `/api/v1/bookmarks`, and `GET /api/v1/unlock` to check a key and `POST /api/v1/check`, which says whether something answers at an address. They take the key as `Authorization: Bearer <key>` and a body of `{"spec": {...}}`. A resource read includes `resourceVersion` and an opaque `specToken`; the page sends the token alongside `spec` on `PUT`. Status-only changes do not reject the edit, while a changed spec, object identity or secondary-links annotation returns 409 without overwriting it. Clients can still use `resourceVersion` for strict version checking. Omitting both returns 400. A `POST` may also give a `namespace`, which has to be one the instance reads, and a `name`; without them the resource goes to the editing namespace under a name made from its title.
 
 The tile format is versioned, and other Startpunkt instances depend on it as much as the page does. `lastProbe` records the probe that established the current availability value. Confirming probes leave it unchanged; it does not record the latest request time.
+
+Optional `workload` readiness is independent of HTTP availability, and `consoleURL` links to the source resource in an operator-configured OpenShift console. See [workload readiness and console links](docs/workloads.md) for settings, supported sources and RBAC.
 
 Tile URLs, including addresses resolved from annotations and `urlFrom`, must be absolute HTTP or HTTPS addresses. Followers reject events larger than 8 MiB and feeds larger than 10,000 tiles, retain their last known state and reconnect. Remote tile identities, kinds, URLs, secondary links and field lengths are validated before they enter the store.
 

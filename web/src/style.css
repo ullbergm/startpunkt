@@ -1567,3 +1567,29 @@ dialog .d-btn:disabled {
 .tile:has(.tile-change:hover) {
   border-color: var(--accent);
 }
+
+/* Workload readiness remains distinct from the HTTP offline badge. Shape
+   and text carry the meaning even without colour. */
+.tile-workloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0 var(--tile-pad) 0.5rem calc(var(--tile-pad) + 40px + 0.75rem);
+}
+
+.tile-workload {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+
+.workload-degraded {
+  border-color: var(--error);
+}
+
+.workload-starting {
+  border-color: var(--accent);
+}

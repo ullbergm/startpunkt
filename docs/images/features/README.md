@@ -1,18 +1,18 @@
 # Startpunkt feature screenshots
 
-Screenshots of Startpunkt 5 with demo content. They are taken by [hack/screenshots/run.sh](../../../hack/screenshots/run.sh), which runs two instances against a throwaway kind cluster.
+Screenshots of Startpunkt 5 with demo content. Every figure uses the generated GeoPattern background with the fixed text `startpunkt`; colours and panel strength vary between examples. They are taken by [hack/screenshots/run.sh](../../../hack/screenshots/run.sh), which runs two instances against a throwaway kind cluster.
 
 ## Light theme
 
 ![Light theme](01-light-theme.png)
 
-The light theme with the theme's own background. The colours of both themes come from the instance's `web.theme` settings, and each visitor chooses light, dark or automatic.
+The light theme with a generated GeoPattern background. The colours of both themes come from the instance's `web.theme` settings, and each visitor chooses light, dark or automatic.
 
 ## Dark theme
 
 ![Dark theme](02-dark-theme.png)
 
-The dark theme. The favorites are in the row at the top, and the applications are listed by group below it. Backup server does not answer its availability probe and is marked Offline.
+The dark theme with a generated GeoPattern background. The favorites are in the row at the top, and the applications are listed by group below it. Backup server does not answer its availability probe and is marked Offline.
 
 ## Search
 
@@ -42,31 +42,31 @@ The settings dialog has one tab per area. Layout sets the columns, boxes, the ho
 
 ![Background settings](07-settings-background.png)
 
-The background tab, here for a mesh gradient with five colours. Every background can be made more transparent, and the panel behind the content runs from solid white through none to solid black, with an adjustable blur.
+The background tab, here for GeoPattern, with its pattern text and colour controls. Every background can be made more transparent, and the panel behind the content runs from solid white through none to solid black, with an adjustable blur.
 
-## Solid colour
+## Pattern without a panel
 
-![Solid colour background](08-background-solid.png)
+![Blue GeoPattern without a panel](08-background-solid.png)
 
-A solid colour, here without a panel behind the content.
+A blue GeoPattern with no panel behind the content. The file keeps its earlier name so existing links still work.
 
-## Gradient
+## Pattern with a light panel
 
-![Gradient background](09-background-gradient.png)
+![GeoPattern with a light panel](09-background-gradient.png)
 
-A gradient between two colours in one of six directions, with the light theme and a white panel.
+A pale blue GeoPattern with the light theme and a white panel.
 
-## Time of day
+## Pattern with a dark panel
 
-![Time of day background](10-background-time-of-day.png)
+![GeoPattern with a dark panel](10-background-time-of-day.png)
 
-A gradient that follows the time of day: deep blue at night, pink at sunrise, pastels in the morning, bright blue in the afternoon and gold at sunset. This one was taken in the early evening.
+A blue GeoPattern with a dark panel that reduces the background contrast behind the links.
 
-## Mesh gradient
+## Purple pattern
 
-![Mesh gradient background](11-background-mesh.png)
+![Purple GeoPattern](11-background-mesh.png)
 
-A mesh gradient made from five colours, at low, medium or high complexity. It can move slowly, unless the system asks for reduced motion.
+The same fixed pattern text in purple, with a partly transparent dark panel.
 
 ## Pattern
 
@@ -137,3 +137,9 @@ When the instance has found a newer release, a golden ribbon across the top righ
 ## Secondary links
 
 The Grafana and NAS tiles in the screenshots carry Documentation and Logs links. These are separate keyboard-reachable links below the primary destination. The application editor can add, change and remove them.
+
+## Workload readiness and OpenShift resources
+
+![Workload readiness and OpenShift resource links](23-workload-readiness.png)
+
+Workload readiness is shown independently from HTTP availability. Backup server's address is Offline while its demo Deployment satisfies its desired state of zero replicas, shown as Workload ready · 0/0. The demo workloads are scaled to zero so taking screenshots starts no application containers. An OpenShift link opens the source resource, as a separate keyboard-reachable link below the tile. Combined cards preserve the console links and readiness of each cluster.

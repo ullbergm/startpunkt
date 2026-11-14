@@ -156,3 +156,22 @@ func TestControllerClusterEventsAreCumulativelyBounded(t *testing.T) {
 		t.Fatal("cluster delete did not release budget", err)
 	}
 }
+
+func TestRejectsInvalidWorkloadAndConsoleMetadata(t *testing.T) {
+	for name, change := range map[string]func(*tile.Tile){
+		"console scheme":  func(t *tile.Tile) { t.ConsoleURL = "javascript:alert(1)" },
+		"console length":  func(t *tile.Tile) { t.ConsoleURL = "https://console.test/" + strings.Repeat("x", 4096) },
+		"source kind":     func(t *tile.Tile) { t.Source.Kind = strings.Repeat("x", 4097) },
+		"workload state":  func(t *tile.Tile) { t.Workload = &tile.Workload{State: "arbitrary"} },
+		"negative counts": func(t *tile.Tile) { t.Workload = &tile.Workload{State: "ready", Ready: -1} },
+		"excess ready":    func(t *tile.Tile) { t.Workload = &tile.Workload{State: "ready", Ready: 2, Desired: 1} },
+	} {
+		t.Run(name, func(t *testing.T) {
+			entry := validRemoteTile("a")
+			change(&entry)
+			if validateTile(entry) == nil {
+				t.Fatal("invalid optional tile metadata accepted")
+			}
+		})
+	}
+}

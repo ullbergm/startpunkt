@@ -452,3 +452,25 @@ func TestSourcePresets(t *testing.T) {
 		t.Errorf("preset/custom resource collision: %v", err)
 	}
 }
+
+func TestWorkloadsSettingsReachResources(t *testing.T) {
+	cfg, err := Load("", false, func(key string) string {
+		if key == "STARTPUNKT_WORKLOADS_ENABLED" {
+			return "true"
+		}
+		if key == "STARTPUNKT_WORKLOADS_CONSOLEURL" {
+			return "https://console.test"
+		}
+		return ""
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Workloads.Enabled {
+		t.Fatal("environment ignored")
+	}
+	changed, err := cfg.WithResources([]byte(`{"workloads":{"enabled":false,"consoleURL":"https://other.test"}}`), nil)
+	if err != nil || changed.Workloads.Enabled || changed.Workloads.ConsoleURL != "https://other.test" {
+		t.Fatal("resource ignored", err)
+	}
+}

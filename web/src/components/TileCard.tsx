@@ -57,6 +57,35 @@ function Pill({ tile, link }: { tile: Tile; link: boolean }) {
   );
 }
 
+// Kubernetes readiness is shown separately from HTTP availability. A
+// login page can answer while its application workload is still starting.
+function WorkloadStatus({ tile, combined }: { tile: Tile; combined: boolean }) {
+  const workload = tile.workload;
+  if (!workload) return null;
+  const status = t(`tile.workload.${workload.state}`, { ready: workload.ready, desired: workload.desired });
+  const symbol = { ready: '✓', starting: '◌', degraded: '!', unknown: '?' }[workload.state];
+  return (
+    <span class={`tile-workload workload-${workload.state}`}>
+      <span aria-hidden="true">{symbol} </span>
+      {combined ? t('tile.workload.cluster', { cluster: tile.cluster, status }) : status}
+    </span>
+  );
+}
+
+function ConsoleLink({ tile, combined }: { tile: Tile; combined: boolean }) {
+  const address = tile.consoleURL && /^https?:\/\//i.test(tile.consoleURL) ? safeHref(tile.consoleURL) : null;
+  if (!address) return null;
+  return (
+    <a
+      href={address}
+      target={tile.targetBlank ? '_blank' : undefined}
+      rel={tile.targetBlank ? 'noopener noreferrer' : undefined}
+    >
+      {t(combined ? 'tile.console.cluster' : 'tile.console', { name: tile.name, cluster: tile.cluster })}
+    </a>
+  );
+}
+
 export function TileCard({
   card,
   iconColor,
@@ -156,7 +185,12 @@ export function TileCard({
             {body}
           </div>
         )}
-        {!arranging && card.members.some((member) => member.links?.length) && (
+        {layout.showStatus && card.members.some((member) => member.workload) && (
+          <div class="tile-workloads">
+            {card.members.map((member) => <WorkloadStatus key={member.id} tile={member} combined={combined} />)}
+          </div>
+        )}
+        {!arranging && card.members.some((member) => member.links?.length || member.consoleURL) && (
           <div class="tile-secondary-links">
             {card.members.flatMap((member) =>
               (member.links ?? []).map((link, index) => {
@@ -174,6 +208,7 @@ export function TileCard({
                 ) : null;
               }),
             )}
+            {card.members.map((member) => <ConsoleLink key={member.id} tile={member} combined={combined} />)}
           </div>
         )}
         {/* Next to the card's link, not inside it: a link in a link is not

@@ -142,6 +142,9 @@ func (s *Store) set(owner Owner, tiles []tile.Tile) []Event {
 			// the prober found for as long as the URL is the same.
 			t.Available, t.LastProbe = old.Available, old.LastProbe
 		}
+		if ok && old.Source == t.Source && tile.SameWorkloadRefs(old.WorkloadRefs, t.WorkloadRefs) {
+			t.ConsoleURL, t.Workload = old.ConsoleURL, old.Workload
+		}
 		if ok && tile.Equal(old, t) {
 			continue
 		}

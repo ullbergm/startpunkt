@@ -7,6 +7,7 @@ export type TileKind = 'application' | 'bookmark';
 
 export interface TileSource {
   type: string;
+  kind?: string;
   version: string;
   namespace: string;
   name: string;
@@ -15,6 +16,12 @@ export interface TileSource {
 export interface TileLink {
   name: string;
   url: string;
+}
+
+export interface WorkloadReadiness {
+  state: 'ready' | 'starting' | 'degraded' | 'unknown';
+  ready: number;
+  desired: number;
 }
 
 export interface Tile {
@@ -28,6 +35,8 @@ export interface Tile {
   iconColor?: string;
   info?: string;
   links?: TileLink[];
+  consoleURL?: string;
+  workload?: WorkloadReadiness;
   targetBlank: boolean;
   location: number;
   tags: string[];

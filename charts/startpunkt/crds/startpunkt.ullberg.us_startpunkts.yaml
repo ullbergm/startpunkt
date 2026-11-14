@@ -409,6 +409,23 @@ spec:
                     description: Title of the page.
                     type: string
                 type: object
+              workloads:
+                description: Optional workload readiness and resource links to an
+                  OpenShift console.
+                properties:
+                  consoleURL:
+                    description: |-
+                      ConsoleURL is the base URL of the OpenShift console. Empty means no
+                      resource links. This works independently of Enabled.
+                      Environment: STARTPUNKT_WORKLOADS_CONSOLEURL.
+                    type: string
+                  enabled:
+                    description: |-
+                      Enabled watches Services, Deployments and StatefulSets and shows their
+                      readiness independently from HTTP availability. It is off by default.
+                      Environment: STARTPUNKT_WORKLOADS_ENABLED.
+                    type: boolean
+                type: object
             type: object
           status:
             description: StartpunktStatus is written by the instance.
