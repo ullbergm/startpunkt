@@ -115,7 +115,7 @@ export function App({
     query.addEventListener('change', listener);
     return () => query.removeEventListener('change', listener);
   }, []);
-  const mode = panelMode(p) ?? resolveMode(p.theme, systemDark);
+  const mode = p.theme === 'auto' ? resolveMode(p.theme, systemDark) : (panelMode(p) ?? p.theme);
   const palette = p.colors === 'default' ? state?.config.theme[mode] : PALETTES[p.colors][mode];
   useEffect(() => applyAppearance(document.documentElement, mode, palette, p, arranging), [mode, palette, p, arranging]);
 

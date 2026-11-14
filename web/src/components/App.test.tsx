@@ -27,7 +27,10 @@ beforeEach(async () => {
   fixed.value = null;
   await setLanguage('en-US');
 });
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 describe('App', () => {
   it('puts applications and bookmarks on tabs, opening on the applications', async () => {
@@ -128,7 +131,7 @@ describe('App', () => {
     );
     await waitFor(() => expect(root.dataset.font).toBe('handwritten'));
     expect(root.dataset.overlay).toBe('true');
-    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 60%)');
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(255 255 255 / 60%)');
     expect(root.dataset.overlayBlur).toBe('true'); // a light blur unless changed
     expect(root.style.getPropertyValue('--overlay-blur')).toBe('3px');
     act(() => updatePrefs((p) => ({ ...p, background: { ...p.background, overlayBlur: 20 } })));
@@ -364,10 +367,40 @@ describe('App', () => {
     await waitFor(() => expect(root.dataset.mode).toBe('light'));
   });
 
+  it('follows system theme changes on auto and keeps the panel readable', async () => {
+    const query = new EventTarget() as MediaQueryList;
+    Object.defineProperty(query, 'matches', { value: false, writable: true });
+    vi.stubGlobal('matchMedia', vi.fn(() => query));
+    renderWith(serverState());
+    const root = document.documentElement;
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(255 255 255 / 70%)');
+
+    const changeSystem = (matches: boolean) => act(() => {
+      Object.assign(query, { matches });
+      query.dispatchEvent(Object.assign(new Event('change'), { matches }));
+    });
+    changeSystem(true);
+    await waitFor(() => expect(root.dataset.mode).toBe('dark'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(0 0 0 / 70%)');
+    changeSystem(false);
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    const theme = await screen.findByRole('combobox', { name: 'Theme' });
+    fireEvent.change(theme, { target: { value: 'dark' } });
+    changeSystem(true);
+    changeSystem(false);
+    expect(root.dataset.mode).toBe('dark');
+    fireEvent.change(theme, { target: { value: 'auto' } });
+    await waitFor(() => expect(root.dataset.mode).toBe('light'));
+    expect(root.style.getPropertyValue('--overlay')).toBe('rgb(255 255 255 / 70%)');
+  });
+
   it('changes the look when the theme is changed in settings, panel or not', async () => {
     renderWith(serverState());
     const root = document.documentElement;
-    await waitFor(() => expect(root.dataset.mode).toBe('dark')); // the default black panel
+    await waitFor(() => expect(root.dataset.mode).toBe('light')); // auto follows the system
 
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const theme = await screen.findByRole('combobox', { name: 'Theme' });

@@ -345,8 +345,8 @@ export function setTheme(theme: ThemeMode): void {
   });
 }
 
-// Sets the panel: below zero white, above zero black. Unless the theme is
-// on auto, it follows the colour of the panel.
+// Sets the panel: below zero white, above zero black. An explicit theme
+// follows the panel colour. On auto, the rendered panel follows the system.
 export function setPanel(overlayOpacity: number): void {
   updatePrefs((current) => ({
     ...current,

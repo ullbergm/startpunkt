@@ -114,7 +114,7 @@ describe('stored preferences', () => {
     expect(prefs.value).toMatchObject({ theme: 'light', background: { overlayOpacity: 0 } });
 
     setPanel(0.5);
-    setTheme('auto'); // auto leaves the panel alone and follows it
+    setTheme('auto'); // auto keeps the stored panel; its rendered colour follows the system
     expect(prefs.value).toMatchObject({ theme: 'auto', background: { overlayOpacity: 0.5 } });
     setPanel(-0.5);
     expect(prefs.value.theme).toBe('auto');

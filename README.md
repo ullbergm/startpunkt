@@ -368,7 +368,7 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 
   | Tab | What it holds |
   | --- | --- |
-  | Appearance | Light, dark or automatic theme, the colours (the instance's own, or one of ten schemes that each have a light and a dark palette), language, a handwritten typeface |
+  | Appearance | Light, dark or automatic theme (follows the system and adjusts the background panel to match), the colours (the instance's own, or one of ten schemes that each have a light and a dark palette), language, a handwritten typeface |
   | Layout | Columns (automatic, or one to six), a box around each tile, a highlight under the pointer, whether descriptions, tags and status indicators show and how many lines a description may take, and hiding applications that do not answer |
   | Background | The Bing picture of the day, the theme's colour, a colour of your own, a gradient, a gradient that follows the time of day, a mesh gradient that can move, a picture by its address, or a generated pattern; with opacity, blur, and a panel behind the content that keeps text readable |
   | Presets | Named copies of the layout and the background, to save, apply and delete |

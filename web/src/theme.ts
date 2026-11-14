@@ -11,8 +11,9 @@ export function resolveMode(preference: ThemeMode, systemPrefersDark: boolean): 
 }
 
 // The panel behind the content decides the mode while there is one: text on
-// a white panel has to be dark, and text on a black panel light, whatever
-// the visitor's theme. Returns null when there is no panel.
+// a white panel has to be dark, and text on a black panel light, regardless
+// of the explicit theme. Auto instead renders the panel to match the system.
+// Returns null when there is no panel.
 export function panelMode(p: Preferences): Mode | null {
   const { type, overlayOpacity } = p.background;
   if (type === 'theme' || overlayOpacity === 0) return null;
@@ -45,7 +46,8 @@ export function applyAppearance(
   root.dataset.background = p.background.type;
   const panel = panelMode(p);
   root.dataset.overlay = String(panel !== null);
-  const shade = panel === 'light' ? '255 255 255' : '0 0 0';
+  const panelColor = p.theme === 'auto' ? mode : panel;
+  const shade = panelColor === 'light' ? '255 255 255' : '0 0 0';
   root.style.setProperty('--overlay', `rgb(${shade} / ${Math.round(Math.abs(p.background.overlayOpacity) * 100)}%)`);
   root.dataset.overlayBlur = String(p.background.overlayBlur > 0);
   root.style.setProperty('--overlay-blur', `${p.background.overlayBlur}px`);
