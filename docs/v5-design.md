@@ -198,6 +198,7 @@ The existing `startpunkt.ullberg.us/*` annotations keep their meaning: `enable`,
 - `v1alpha1` to `v1alpha4` stay served, marked deprecated, with `conversion: None`. This works without a webhook because the versions only ever added fields. Every served version carries the same schema as `v1`, so no field is lost when an object is read or written through an older version.
 - A `status` subresource carries the resolved URL, availability and conditions. Resolution errors, such as a `urlFrom` target that does not exist, are reported as conditions.
 - Status is written only when a value changes. The time of the last probe is not stored in status, because each write produces a watch event.
+- Failed Application, Startpunkt and Remote status writes are retried with bounded backoff while the desired status is still current. A failed attempt does not mark the value as written; a newer desired value replaces an older pending retry.
 - The status holds `url`, `available`, and two conditions. `Resolved` is false with the reason when the spec cannot be turned into a tile, for example when a `urlFrom` target does not exist. `Available` is true, false, or unknown before the first probe.
 - Status writes are best-effort and can be turned off. When the API server refuses them or drops the fields, the controller says so once and stops until the watched version changes.
 

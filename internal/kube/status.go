@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/workqueue"
 
 	apiv1 "github.com/ullbergm/startpunkt/api/v1"
 	"github.com/ullbergm/startpunkt/internal/store"
@@ -36,10 +37,9 @@ type resolution struct {
 type statusWriter struct {
 	c *Controller
 
-	mu      sync.Mutex
-	known   map[store.Owner]resolution
-	pending map[store.Owner]bool
-	wake    chan struct{}
+	mu    sync.Mutex
+	known map[store.Owner]resolution
+	queue workqueue.TypedRateLimitingInterface[store.Owner]
 	// stopped names the watched version for which writing was given up,
 	// because the API server drops or refuses the status. A switch to
 	// another version tries again.
@@ -48,10 +48,9 @@ type statusWriter struct {
 
 func newStatusWriter(c *Controller) *statusWriter {
 	return &statusWriter{
-		c:       c,
-		known:   map[store.Owner]resolution{},
-		pending: map[store.Owner]bool{},
-		wake:    make(chan struct{}, 1),
+		c:     c,
+		known: map[store.Owner]resolution{},
+		queue: workqueue.NewTypedRateLimitingQueue(workqueue.NewTypedItemExponentialFailureRateLimiter[store.Owner](100*time.Millisecond, 30*time.Second)),
 	}
 }
 
@@ -66,91 +65,78 @@ func (w *statusWriter) resolved(owner store.Owner, r resolution) {
 func (w *statusWriter) forget(owner store.Owner) {
 	w.mu.Lock()
 	delete(w.known, owner)
-	delete(w.pending, owner)
+	w.queue.Forget(owner)
 	w.mu.Unlock()
 }
 
-func (w *statusWriter) enqueue(owner store.Owner) {
-	w.mu.Lock()
-	w.pending[owner] = true
-	w.mu.Unlock()
-	select {
-	case w.wake <- struct{}{}:
-	default:
-	}
-}
+func (w *statusWriter) enqueue(owner store.Owner) { w.queue.Add(owner) }
 
-// run writes pending statuses until ctx is cancelled. Probe results reach
-// it through the store's events.
+// run keeps one bounded-backoff queue per source owner. A temporary API
+// failure is retried even when no new tile or probe event arrives.
 func (w *statusWriter) run(ctx context.Context) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			owner, shutdown := w.queue.Get()
+			if shutdown {
+				return
+			}
+			if ctx.Err() != nil {
+				w.queue.Done(owner)
+				return
+			}
+			if w.write(ctx, owner) && ctx.Err() == nil {
+				w.queue.AddRateLimited(owner)
+			} else {
+				w.queue.Forget(owner)
+			}
+			w.queue.Done(owner)
+		}
+	}()
+	defer func() { w.queue.ShutDown(); <-done }()
 	for ctx.Err() == nil {
 		_, events, cancel := w.c.Store.Subscribe()
-		// Results may have been missed while not subscribed.
 		w.mu.Lock()
 		for owner := range w.known {
-			w.pending[owner] = true
+			w.queue.Add(owner)
 		}
 		w.mu.Unlock()
-		w.flush(ctx)
 	loop:
 		for {
 			select {
 			case <-ctx.Done():
 				cancel()
 				return
-			case <-w.wake:
 			case batch, ok := <-events:
 				if !ok {
 					break loop
 				}
 				for _, e := range batch {
-					if e.Type == store.EventUpsert && e.Tile.Source.Type == statusType &&
-						e.Tile.Cluster == w.c.Cluster {
-						w.mu.Lock()
-						w.pending[store.Owner{
-							Cluster: w.c.Cluster, Type: statusType,
-							Namespace: e.Tile.Source.Namespace, Name: e.Tile.Source.Name,
-						}] = true
-						w.mu.Unlock()
+					if e.Type == store.EventUpsert && e.Tile.Source.Type == statusType && e.Tile.Cluster == w.c.Cluster {
+						w.enqueue(store.Owner{Cluster: w.c.Cluster, Type: statusType, Namespace: e.Tile.Source.Namespace, Name: e.Tile.Source.Name})
 					}
 				}
 			}
-			w.flush(ctx)
 		}
 		cancel()
 	}
 }
 
-func (w *statusWriter) flush(ctx context.Context) {
-	w.mu.Lock()
-	owners := make([]store.Owner, 0, len(w.pending))
-	for owner := range w.pending {
-		owners = append(owners, owner)
-	}
-	w.pending = map[store.Owner]bool{}
-	w.mu.Unlock()
-	for _, owner := range owners {
-		if ctx.Err() != nil {
-			return
-		}
-		w.write(ctx, owner)
-	}
-}
-
 // write patches the status of one Application if it differs from what the
 // object already says.
-func (w *statusWriter) write(ctx context.Context, owner store.Owner) {
+func (w *statusWriter) write(ctx context.Context, owner store.Owner) (retry bool) {
 	w.mu.Lock()
 	res, ok := w.known[owner]
 	stopped := w.stopped
 	w.mu.Unlock()
 	if !ok {
-		return
+		return false
 	}
 	obj, version := w.c.current(owner)
 	if obj == nil || version == stopped || obj.GetGeneration() != res.generation {
 		// Gone, not writable, or about to be converted again.
-		return
+		return false
 	}
 
 	var current apiv1.ApplicationStatus
@@ -159,12 +145,12 @@ func (w *statusWriter) write(ctx context.Context, owner store.Owner) {
 	}
 	desired := w.desired(owner, res, current)
 	if statusEqual(current, desired) {
-		return
+		return false
 	}
 
 	body, err := json.Marshal(map[string]any{"status": desired})
 	if err != nil {
-		return
+		return false
 	}
 	gvr := schema.GroupVersionResource{Group: apiv1.Group, Version: version, Resource: apiv1.ApplicationResource}
 	updated, err := w.c.Dynamic.Resource(gvr).Namespace(owner.Namespace).
@@ -181,7 +167,8 @@ func (w *statusWriter) write(ctx context.Context, owner store.Owner) {
 	case apierrors.IsForbidden(err):
 		w.stop(version, "the service account may not patch applications/status")
 	case err != nil:
-		log.Warn("writing status failed", "error", err)
+		log.Warn("writing status failed; retrying", "error", err)
+		return ctx.Err() == nil
 	default:
 		if _, kept, _ := unstructured.NestedSlice(updated.Object, "status", "conditions"); !kept {
 			// The 4.x definitions declare an empty status, so the API
@@ -190,6 +177,7 @@ func (w *statusWriter) write(ctx context.Context, owner store.Owner) {
 			w.stop(version, "the custom resource definition does not declare the status fields")
 		}
 	}
+	return false
 }
 
 // stop gives up writing for one version and says so once.

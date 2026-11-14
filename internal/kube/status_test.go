@@ -223,3 +223,20 @@ func TestNoStatusWritesWhenDisabled(t *testing.T) {
 		t.Errorf("%d status writes with writing turned off", n)
 	}
 }
+
+func TestStatusRetriesTransientFailureWithoutAnotherEvent(t *testing.T) {
+	c := newCluster(withGeneration(app("v1alpha4", "ns", "a", "https://a.test"), 1))
+	c.serve("v1alpha4")
+	var attempts atomic.Int32
+	c.dynamic.PrependReactor("patch", "applications", func(action clienttesting.Action) (bool, runtime.Object, error) {
+		if action.GetSubresource() == "status" && attempts.Add(1) == 1 {
+			return true, nil, apierrors.NewServiceUnavailable("temporary outage")
+		}
+		return false, nil, nil
+	})
+	c.runWithStatus(t)
+	eventually(t, "retry after API recovery", func() bool { return condition(c.status(t, "ns", "a"), "Resolved")["status"] == "True" })
+	if attempts.Load() < 2 {
+		t.Fatalf("failed write was not retried: %d attempts", attempts.Load())
+	}
+}
