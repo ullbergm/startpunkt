@@ -34,6 +34,7 @@ export interface Tile {
   source: TileSource;
   editable: boolean;
   available?: boolean;
+  // Probe that established the current availability; unchanged by confirmations.
   lastProbe?: string;
 }
 

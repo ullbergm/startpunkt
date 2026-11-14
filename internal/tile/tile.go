@@ -36,23 +36,25 @@ type Link struct {
 // Tile is one application or bookmark. It is the unit held by the store and
 // sent to clients, and its JSON form is part of the versioned API.
 type Tile struct {
-	ID          string     `json:"id"`
-	Kind        Kind       `json:"kind"`
-	Cluster     string     `json:"cluster"`
-	Name        string     `json:"name"`
-	Group       string     `json:"group"`
-	URL         string     `json:"url"`
-	Icon        string     `json:"icon,omitempty"`
-	IconColor   string     `json:"iconColor,omitempty"`
-	Info        string     `json:"info,omitempty"`
-	Links       []Link     `json:"links,omitempty"`
-	TargetBlank bool       `json:"targetBlank"`
-	Location    int        `json:"location"`
-	Tags        []string   `json:"tags"`
-	Source      Source     `json:"source"`
-	Editable    bool       `json:"editable"`
-	Available   *bool      `json:"available,omitempty"`
-	LastProbe   *time.Time `json:"lastProbe,omitempty"`
+	ID          string   `json:"id"`
+	Kind        Kind     `json:"kind"`
+	Cluster     string   `json:"cluster"`
+	Name        string   `json:"name"`
+	Group       string   `json:"group"`
+	URL         string   `json:"url"`
+	Icon        string   `json:"icon,omitempty"`
+	IconColor   string   `json:"iconColor,omitempty"`
+	Info        string   `json:"info,omitempty"`
+	Links       []Link   `json:"links,omitempty"`
+	TargetBlank bool     `json:"targetBlank"`
+	Location    int      `json:"location"`
+	Tags        []string `json:"tags"`
+	Source      Source   `json:"source"`
+	Editable    bool     `json:"editable"`
+	Available   *bool    `json:"available,omitempty"`
+	// LastProbe is the probe that established Available, not the latest
+	// check. Repeated checks with the same result do not change it.
+	LastProbe *time.Time `json:"lastProbe,omitempty"`
 }
 
 // ID builds the stable identity of a tile. The index distinguishes several

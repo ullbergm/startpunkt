@@ -94,7 +94,7 @@ Applications and bookmarks are one type, `Tile`, with a `kind` field.
 | `name`, `group`, `url`, `icon`, `iconColor`, `info`, `targetBlank`, `location`, `tags` | Display fields, matching the 4.x annotation and spec fields. |
 | `source` | Resource type and object reference the tile was derived from. |
 | `editable` | True when the tile is backed by a Startpunkt custom resource on the local cluster that neither Argo CD nor Helm deploys. |
-| `available`, `lastProbe` | Set by the prober of the owning instance. Absent when probing is disabled. |
+| `available`, `lastProbe` | Set by the owning instance. `lastProbe` is the probe that established the current availability, unchanged by confirming probes; absent before the first result or when probing is disabled. |
 | `links` | Optional list of named HTTP/HTTPS secondary links, at most eight. |
 
 ## Kubernetes integration
