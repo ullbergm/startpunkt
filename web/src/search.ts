@@ -18,17 +18,21 @@ function words(text: string): string[] {
     .filter(Boolean);
 }
 
-// Finds tiles by name, as 4.x does: each word of the query must be the
-// start of a word in the tile's name. "ho as" finds "Home Assistant"; "ome"
-// does not. Descriptions, groups and addresses are not searched, because
-// matching on them returns most of the page for a short query.
-//
-// One addition: a word of the query may instead be the start of the tile's
-// cluster name, as long as another word matches the name. That lets
-// "grafana prod" pick one tile among several of the same name.
-//
-// Tiles whose name starts with the query come first; the rest keep the
-// order they came in.
+// Matches names using word prefixes first, then letters in their written
+// order: "osft" finds "OpenShift". One-letter searches still use prefixes
+// so they stay useful. A cluster may satisfy a query word only when at
+// least one other word matches the tile's name.
+function match(parts: string[], word: string): boolean {
+  if (parts.some((part) => part.startsWith(word))) return true;
+  if (word.length < 2) return false;
+  let next = 0;
+  for (const letter of parts.join('')) {
+    if (letter === word[next]) next++;
+    if (next === word.length) return true;
+  }
+  return false;
+}
+
 export function searchTiles(tiles: Tile[], query: string, limit = MAX_RESULTS): Tile[] {
   const wanted = words(query);
   if (wanted.length === 0) return [];
@@ -37,13 +41,16 @@ export function searchTiles(tiles: Tile[], query: string, limit = MAX_RESULTS): 
   tiles.forEach((tile, index) => {
     const name = words(tile.name);
     const cluster = words(tile.cluster);
-    const inName = (word: string) => name.some((part) => part.startsWith(word));
-    const inCluster = (word: string) => cluster.some((part) => part.startsWith(word));
+    const inName = (word: string) => match(name, word);
+    const inCluster = (word: string) => match(cluster, word);
     if (!wanted.some(inName) || !wanted.every((word) => inName(word) || inCluster(word))) return;
-    scored.push({ tile, score: name.join(' ').startsWith(whole) ? 0 : 1, index });
+    const fullName = name.join(' ');
+    const prefixes = wanted.every((word) => [...name, ...cluster].some((part) => part.startsWith(word)));
+    const score = fullName === whole ? 0 : fullName.startsWith(whole) ? 1 : prefixes ? 2 : 3;
+    scored.push({ tile, score, index });
   });
   return scored
     .sort((a, b) => a.score - b.score || a.index - b.index)
-    .slice(0, limit)
+    .slice(0, Math.max(0, limit))
     .map((entry) => entry.tile);
 }

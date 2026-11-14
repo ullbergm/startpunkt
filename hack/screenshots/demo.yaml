@@ -95,6 +95,7 @@ metadata:
     startpunkt.ullberg.us/group: Monitoring
     startpunkt.ullberg.us/icon: simple-icons:grafana
     startpunkt.ullberg.us/iconColor: "#f46800"
+    startpunkt.ullberg.us/links: '[{"name":"Documentation","url":"https://docs.example.com/grafana"},{"name":"Logs","url":"https://logs.example.com/grafana"}]'
     startpunkt.ullberg.us/info: Dashboards and metrics
     startpunkt.ullberg.us/location: "10"
 spec:
@@ -268,7 +269,19 @@ spec: {name: Coder, group: Development, icon: simple-icons:coder, url: "https://
 apiVersion: startpunkt.ullberg.us/v1
 kind: Application
 metadata: {name: nas, namespace: startpunkt}
-spec: {name: NAS, group: Infrastructure, icon: simple-icons:truenas, iconColor: "#0095d5", url: "https://nas.example.com", info: Network storage, location: 20}
+spec:
+  name: NAS
+  group: Infrastructure
+  icon: simple-icons:truenas
+  iconColor: "#0095d5"
+  url: https://nas.example.com
+  info: Network storage
+  location: 20
+  links:
+    - name: Documentation
+      url: https://docs.example.com/nas
+    - name: Logs
+      url: https://logs.example.com/nas
 ---
 apiVersion: startpunkt.ullberg.us/v1
 kind: Application
@@ -344,3 +357,14 @@ apiVersion: startpunkt.ullberg.us/v1
 kind: Bookmark
 metadata: {name: cyberchef, namespace: startpunkt}
 spec: {name: CyberChef, group: Tools, icon: mdi:chef-hat, url: "https://gchq.github.io/CyberChef/", info: "Encode, decode and convert"}
+
+---
+apiVersion: startpunkt.ullberg.us/v1
+kind: Bookmark
+metadata: {name: openshift-docs, namespace: startpunkt}
+spec:
+  name: OpenShift
+  group: Reference
+  icon: simple-icons:redhatopenshift
+  url: https://docs.redhat.com/en/documentation/openshift_container_platform
+  info: Cluster administration and workloads

@@ -128,7 +128,7 @@ export function App({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (dialogOpen.current) return;
+      if (dialogOpen.current || serverState.value === null) return;
       if (event.key === 'Escape' && editMode.value) {
         editMode.value = false;
         return;

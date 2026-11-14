@@ -18,7 +18,7 @@ The dark theme. The favorites are in the row at the top, and the applications ar
 
 ![Search](03-search.png)
 
-Typing anywhere on the page opens the search with what was typed. A word finds the tiles with a name that has a word starting with it, and each result shows its cluster, group, description and whether it is an application or a bookmark. A query that starts with `?` goes to the configured search engine.
+Typing anywhere on the page opens the search with what was typed. Characters match in order within the name, so `Osft` finds `OpenShift`; prefix matches rank first, and each result shows its cluster, group, description and whether it is an application or a bookmark. A query that starts with `?` goes to the configured search engine.
 
 ## Favorites
 
@@ -127,3 +127,13 @@ In edit mode with the edit key, the plus button opens a form for a new applicati
 ![A newer release](21-update-ribbon.png)
 
 When the instance has found a newer release, a golden ribbon across the top right corner names it. A click on it lists what has changed since the running version.
+
+## Fuzzy search
+
+![Fuzzy search](22-fuzzy-search.png)
+
+`Osft` finds the OpenShift bookmark by matching its characters in order. Matching ignores case and accents. The original full-name and word-prefix matches rank ahead of looser matches.
+
+## Secondary links
+
+The Grafana and NAS tiles in the screenshots carry Documentation and Logs links. These are separate keyboard-reachable links below the primary destination. The application editor can add, change and remove them.

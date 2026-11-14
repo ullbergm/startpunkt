@@ -24,9 +24,29 @@ describe('searchTiles', () => {
     expect(names('gr do')).toEqual(['Grafana docs']);
   });
 
-  it('does not match the middle of a word', () => {
-    expect(names('lex')).toEqual([]);
-    expect(names('afana')).toEqual([]);
+  it('matches letters in order, including the middle of a word', () => {
+    expect(names('lex')).toEqual(['Plex']);
+    expect(names('afana')).toEqual(['Grafana', 'Grafana', 'Grafana docs']);
+    expect(names('xelp')).toEqual([]);
+    expect(searchTiles([tile({ name: 'OpenShift' })], 'Osft').map((t) => t.name)).toEqual(['OpenShift']);
+    expect(searchTiles([tile({ name: 'Home Assistant' })], 'hmasst')).toHaveLength(1);
+  });
+
+  it('ranks exact names, whole-name prefixes and word prefixes before fuzzy matches', () => {
+    const list = ['OpenShift', 'My Osft tools', 'Osft tools', 'Osft', 'Other Shift'].map((name) => tile({ name }));
+    expect(searchTiles(list, 'osft').map((t) => t.name)).toEqual([
+      'Osft', 'Osft tools', 'My Osft tools', 'OpenShift', 'Other Shift',
+    ]);
+  });
+
+  it('keeps input order for equally ranked fuzzy matches and supports fuzzy cluster qualifiers', () => {
+    const list = [
+      tile({ name: 'OpenShift A', cluster: 'production' }),
+      tile({ name: 'OpenShift B', cluster: 'development' }),
+      tile({ name: 'OpenShift C', cluster: 'production' }),
+    ];
+    expect(searchTiles(list, 'osft pdtn').map((t) => t.name)).toEqual(['OpenShift A', 'OpenShift C']);
+    expect(searchTiles(list, 'pdtn')).toEqual([]);
   });
 
   it('does not search descriptions, groups, tags or addresses', () => {

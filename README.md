@@ -362,7 +362,7 @@ Tiles are never passed on a second time: an instance takes from a remote only wh
 
 <p align="center"><img src="docs/images/features/03-search.png" alt="Search results for a typed letter" width="80%"/></p>
 
-- **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. A word finds the services whose name has a word that starts with it, accents aside, and a further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
+- **Search**: start typing, or press `/`, `Ctrl+K` or `Cmd+K`. Letters match in their written order, so `Osft` finds `OpenShift`, ignoring case and accents. Exact and prefix matches come first; a single letter matches word prefixes. A further word may name the cluster. `?` in front searches the web. A touch screen has a button for it.
 - **Edit mode**: the pencil in the bottom right corner shows the controls of the tiles, and the check mark that replaces it, or Escape, hides them again. In edit mode a click on a tile does not open the service: it opens the tile's form, or says why the tile cannot be changed from the page.
 - **Favorites**: in edit mode, the star on a tile puts it in a row at the top, which is reordered by dragging or with the buttons on each favorite.
 - **Tabs and groups**: applications and bookmarks are on a tab each. A group is collapsed with its heading, and stays that way.

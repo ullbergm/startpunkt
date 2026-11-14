@@ -701,6 +701,16 @@ describe('App', () => {
     expect(await screen.findByRole('dialog', { name: 'Settings' })).toBeTruthy();
   });
 
+  it('does not leave search stuck when a key is pressed before the first snapshot', async () => {
+    render(<App open={openFake} />);
+    fireEvent.keyDown(document.body, { key: 'g' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    act(() => FakeStream.last.emit('snapshot', serverState({ tiles: [tile({ name: 'Grafana' })] })));
+    fireEvent.keyDown(document.body, { key: 'g' });
+    expect(await screen.findByRole('dialog', { name: 'Search applications and bookmarks' })).toBeTruthy();
+    expect((screen.getByRole('combobox') as HTMLInputElement).value).toBe('g');
+  });
+
   it('does not open search while typing in a field', async () => {
     renderWith(serverState());
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));

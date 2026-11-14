@@ -99,6 +99,14 @@ let page;
 
 // The picture at the top of the README.
 page = await open(dark(mesh));
+// Secondary destinations are separate links and can receive keyboard focus.
+const docs = page.locator('.tile-secondary-links a').first();
+await docs.waitFor({ state: 'visible' });
+await docs.focus();
+if (!(await docs.evaluate((link) => document.activeElement === link && !link.parentElement.closest('a')))) {
+  throw new Error('secondary link is not independently keyboard reachable');
+}
+await page.locator('h1').click();
 await shot(page, 'screenshot');
 await close(page);
 
@@ -223,6 +231,20 @@ await close(page);
 
 page = await open(dark(mesh), { width: 390, height: 844, scale: 3, mobile: true });
 await shot(page, f('18-mobile'));
+await close(page);
+
+// Ordered-character matching finds OpenShift without requiring a prefix.
+page = await open(dark(mesh));
+await page.keyboard.press('/');
+await page.getByRole('combobox').waitFor({ state: 'visible' });
+await page.getByRole('combobox').fill('Osft');
+await page.waitForFunction(() => [...document.querySelectorAll('.spotlight [role=option]')].some((option) => option.textContent.includes('OpenShift')));
+await page.waitForSelector('.spotlight [role=option]');
+const options = page.getByRole('option');
+if (!(await options.allTextContents()).some((text) => text.includes('OpenShift'))) {
+  throw new Error('Osft did not find OpenShift');
+}
+await shot(page, f('22-fuzzy-search'));
 await close(page);
 
 await browser.close();
