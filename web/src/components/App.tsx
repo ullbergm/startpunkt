@@ -22,6 +22,8 @@ import { applyAppearance, panelMode, resolveMode, systemPrefersDark } from '../t
 import { Background } from './Background';
 import { Changes } from './Changes';
 import { ClusterChips } from './ClusterChips';
+import { ClusterFreshness } from './ClusterFreshness';
+import { timestamp, useFreshnessNow } from '../freshness';
 import { Editor, Fixed, Unlock } from './Editing';
 import { Icon } from './Icons';
 import { availableUpdate, Footer, useVersion } from './Footer';
@@ -41,9 +43,11 @@ const typing = (target: EventTarget | null) =>
 export function App({
   open,
   fetchVersion,
+  now,
 }: {
   open?: (url: string) => EventStream;
   fetchVersion?: typeof fetch;
+  now?: () => number;
 }) {
   useEffect(() => connect(open), [open]);
 
@@ -239,6 +243,7 @@ export function App({
   // known ones, or that it has not been reached at all.
   const syncing = clusters.some((cluster) => cluster.local && cluster.state === 'syncing');
   const stale = shown.filter((cluster) => cluster.state !== 'connected' && !(cluster.local && cluster.state === 'syncing'));
+  const freshnessNow = useFreshnessNow(stale.some((cluster) => timestamp(cluster.staleSince) !== null), now);
   const empty = state !== null && tiles.length === 0;
   // Icons without a colour of their own take the theme's secondary colour,
   // so that they stand apart from the names next to them.
@@ -266,6 +271,7 @@ export function App({
           )}
           {empty && !syncing && <p class="notice">{t('page.empty')}</p>}
         </div>
+        {stale.map((cluster) => <p class="notice" key={`freshness-${cluster.name}`}><ClusterFreshness cluster={cluster} now={freshnessNow} /></p>)}
         {error && (
           <div class="notice notice-error" role="alert">
             <p>{t('page.newerProtocol')}</p>
@@ -278,7 +284,7 @@ export function App({
         {(clusters.length > 1 || kinds.length === 2) && (
           // The clusters to show on the left, the kinds of tiles on the right.
           <div class="toolbar">
-            <ClusterChips clusters={clusters} shown={shownNames} />
+            <ClusterChips clusters={clusters} shown={shownNames} now={freshnessNow} />
             {kinds.length === 2 && (
               <Tabs
                 id="tiles"

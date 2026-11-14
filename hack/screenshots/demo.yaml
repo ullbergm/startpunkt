@@ -268,7 +268,11 @@ spec: {name: Coder, group: Development, icon: simple-icons:coder, url: "https://
 ---
 apiVersion: startpunkt.ullberg.us/v1
 kind: Application
-metadata: {name: nas, namespace: startpunkt}
+metadata:
+  name: nas
+  namespace: startpunkt
+  annotations:
+    startpunkt.ullberg.us/workload: deployment/nas
 spec:
   name: NAS
   group: Infrastructure
@@ -295,7 +299,11 @@ spec: {name: Router, group: Infrastructure, icon: simple-icons:opnsense, iconCol
 ---
 apiVersion: startpunkt.ullberg.us/v1
 kind: Application
-metadata: {name: backup, namespace: startpunkt}
+metadata:
+  name: backup
+  namespace: startpunkt
+  annotations:
+    startpunkt.ullberg.us/workload: deployment/backup
 spec: {name: Backup server, group: Infrastructure, icon: mdi:backup-restore, url: "https://backup.example.com", info: Nightly snapshots, location: 50}
 ---
 apiVersion: startpunkt.ullberg.us/v1
@@ -368,3 +376,46 @@ spec:
   icon: simple-icons:redhatopenshift
   url: https://docs.redhat.com/en/documentation/openshift_container_platform
   info: Cluster administration and workloads
+
+---
+# Scaled-to-zero workloads satisfy their desired readiness without starting
+# demonstration containers. No image is pulled by the screenshot cluster.
+apiVersion: v1
+kind: Service
+metadata: {name: grafana, namespace: monitoring}
+spec:
+  selector: {app: grafana}
+  ports: [{port: 80, targetPort: 3000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: grafana, namespace: monitoring}
+spec:
+  replicas: 0
+  selector: {matchLabels: {app: grafana}}
+  template:
+    metadata: {labels: {app: grafana}}
+    spec:
+      containers: [{name: demo, image: registry.k8s.io/pause:3.10}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: nas, namespace: startpunkt}
+spec:
+  replicas: 0
+  selector: {matchLabels: {app: nas}}
+  template:
+    metadata: {labels: {app: nas}}
+    spec:
+      containers: [{name: demo, image: registry.k8s.io/pause:3.10}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: backup, namespace: startpunkt}
+spec:
+  replicas: 0
+  selector: {matchLabels: {app: backup}}
+  template:
+    metadata: {labels: {app: backup}}
+    spec:
+      containers: [{name: demo, image: registry.k8s.io/pause:3.10}]

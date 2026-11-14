@@ -159,6 +159,14 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              lastSeen:
+                description: Last successful contact with the remote process.
+                format: date-time
+                type: string
+              staleSince:
+                description: When the remote's data became stale. Cleared after recovery.
+                format: date-time
+                type: string
               tiles:
                 description: |-
                   How many of the remote's tiles are shown here, after include and

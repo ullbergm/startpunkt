@@ -57,6 +57,7 @@ type Follower struct {
 	received      map[string]bool
 	clusters      map[string]bool
 	pending       map[string]tile.Tile
+	lastTouch     time.Time
 	own           remote
 	// problem is why the last connection ended or could not be made, and
 	// is empty while connected.
@@ -214,6 +215,7 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 				if err := f.apply(name, data.String()); err != nil {
 					return connected, err
 				}
+				f.noteActivity(name == api.EventSnapshot)
 				if name == api.EventSnapshot {
 					connected = true
 					f.problem.Store(nil)
@@ -223,6 +225,9 @@ func (f *Follower) stream(ctx context.Context) (connected bool, err error) {
 			data.Reset()
 			eventBytes = 0
 		case strings.HasPrefix(line, ":"):
+			if connected {
+				f.noteActivity(false)
+			}
 			// Comment, used as heartbeat.
 		case strings.HasPrefix(line, "event:"):
 			name = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
@@ -400,7 +405,7 @@ func (f *Follower) applyRemote(name, data string) error {
 		}
 		f.Store.MirrorFrom(feed, store.Snapshot{
 			Tiles:    tiles,
-			Clusters: []store.Cluster{{Name: f.Remote, Local: false, State: remoteState(state.Clusters)}},
+			Clusters: []store.Cluster{{Name: f.Remote, Local: false, State: remoteState(state.Clusters), StaleSince: remoteStaleSince(state.Clusters)}},
 		})
 		f.Log.Info("snapshot received", "remote", f.Remote, "tiles", len(tiles))
 	case string(store.EventUpsert):
@@ -466,7 +471,7 @@ func (f *Follower) applyRemote(name, data string) error {
 				return errors.New("too many remote clusters")
 			}
 			f.own.local[c.Name] = true
-			f.Store.SetClusterFrom(feed, store.Cluster{Name: f.Remote, Local: false, State: c.State})
+			f.Store.SetClusterFrom(feed, store.Cluster{Name: f.Remote, Local: false, State: c.State, StaleSince: c.StaleSince})
 		} else {
 			delete(f.own.local, c.Name)
 		}
@@ -505,4 +510,21 @@ func safeRedirect(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
 	return nil
+}
+
+func (f *Follower) noteActivity(force bool) {
+	now := time.Now()
+	if force || now.Sub(f.lastTouch) >= time.Second {
+		f.Store.TouchFeed(f.feed(), now)
+		f.lastTouch = now
+	}
+}
+
+func remoteStaleSince(clusters []store.Cluster) string {
+	for _, c := range clusters {
+		if c.Local {
+			return c.StaleSince
+		}
+	}
+	return ""
 }

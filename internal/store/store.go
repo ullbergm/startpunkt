@@ -61,6 +61,10 @@ type Cluster struct {
 	// opposed to a cluster received through federation.
 	Local bool   `json:"local"`
 	State string `json:"state"`
+	// LastSeen is the last successful contact with the process supplying this feed.
+	LastSeen string `json:"lastSeen,omitempty"`
+	// StaleSince is set once when the feed becomes stale and cleared on recovery.
+	StaleSince string `json:"staleSince,omitempty"`
 }
 
 // Snapshot is a consistent view of the store.
@@ -187,6 +191,7 @@ func (s *Store) publish(events []Event) {
 func (s *Store) SetCluster(c Cluster) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	c = clusterTimes(c, s.clusters[c.Name])
 	s.clusterOrigin[c.Name] = LocalFeed
 	if s.clusters[c.Name] == c {
 		return
@@ -273,6 +278,7 @@ func (s *Store) Remove(ids ...string) {
 func (s *Store) SetClusterFrom(feed string, c Cluster) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	c = clusterTimes(c, s.clusters[c.Name])
 	s.clusterOrigin[c.Name] = feed
 	if s.clusters[c.Name] == c {
 		return
@@ -312,6 +318,7 @@ func (s *Store) MirrorFrom(feed string, snap Snapshot) {
 	names := make(map[string]bool, len(snap.Clusters))
 	for _, c := range snap.Clusters {
 		names[c.Name] = true
+		c = clusterTimes(c, s.clusters[c.Name])
 		s.clusterOrigin[c.Name] = feed
 		if s.clusters[c.Name] != c {
 			s.clusters[c.Name] = c
@@ -343,6 +350,7 @@ func (s *Store) MarkStaleFrom(feed string) {
 			continue
 		}
 		c.State = StateStale
+		c.StaleSince = time.Now().UTC().Format(time.RFC3339Nano)
 		s.clusters[name] = c
 		events = append(events, Event{Type: EventCluster, Cluster: c})
 	}

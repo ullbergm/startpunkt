@@ -17,14 +17,16 @@ const bothClusters = { shownClusters: ['prod', 'staging'] };
 const collapsed = (...groups) =>
   groups.flatMap((group) => ['applications', 'applications-prod', 'applications-staging'].map((list) => `${list}:${group}`));
 
-const mesh = {
-  type: 'meshGradient',
-  meshColors: ['#1b2a4e', '#5b2a86', '#0f6e8c', '#c2416b', '#14213d'],
-  meshComplexity: 'high',
+// Every capture uses the actual generated-pattern preference, with a fixed
+// seed for repeatability. Individual examples vary colour and panel strength.
+const pattern = {
+  type: 'geopattern',
+  patternSeed: 'startpunkt',
+  color: '#2d4a6b',
   overlayOpacity: 0.45,
 };
-const dark = (background = {}, more = {}) => ({ theme: 'dark', favorites, background: { overlayOpacity: 0.7, ...background }, ...more });
-const light = (background = {}, more = {}) => ({ theme: 'light', favorites, background: { overlayOpacity: -0.7, ...background }, ...more });
+const dark = (background = {}, more = {}) => ({ theme: 'dark', favorites, background: { ...pattern, overlayOpacity: 0.7, ...background }, ...more });
+const light = (background = {}, more = {}) => ({ theme: 'light', favorites, background: { ...pattern, overlayOpacity: -0.7, ...background }, ...more });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/usr/bin/chromium' });
 
@@ -32,7 +34,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 // tiles drawn, every icon on screen loaded, fonts ready.
 // seen is the version the browser last opened the page with: an older one
 // makes the page say what is new.
-async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null, update = null } = {}) {
+async function open(prefs, { width = 1440, height = 900, path = '/', key = false, scale = 2, mobile = false, seen = null, update = null, snapshot = null } = {}) {
   const context = await browser.newContext({
     viewport: { width, height },
     deviceScaleFactor: scale,
@@ -61,10 +63,26 @@ async function open(prefs, { width = 1440, height = 900, path = '/', key = false
       });
     });
   }
+  // A fixed snapshot lets the freshness shot demonstrate a past disconnect
+  // without waiting in real time or changing the other screenshot instances.
+  if (snapshot) {
+    await page.route('**/api/v1/events', (route) => route.fulfill({
+      contentType: 'text/event-stream',
+      body: `event: snapshot\ndata: ${JSON.stringify(snapshot)}\n\n`,
+    }));
+  }
   await page.goto(base + path);
   await page.waitForSelector('.tile');
   await page.mouse.move(width - 2, height / 2);
   await settle(page);
+  // Verify product state and the generated SVG, never a screenshot-only CSS
+  // override. All figures must show the requested GeoPattern background.
+  const generated = await page.evaluate(() => {
+    const stored = JSON.parse(localStorage.getItem('startpunkt.preferences'));
+    const drawn = document.querySelector('.background-pattern');
+    return stored.background.type === 'geopattern' && Boolean(drawn?.style.backgroundImage.includes('data:image/svg+xml'));
+  });
+  if (!generated) throw new Error('screenshot does not use the GeoPattern preference');
   return page;
 }
 
@@ -96,9 +114,12 @@ async function settings(page, tab) {
 }
 
 let page;
+const f = (name) => `features/${name}`;
 
+// CAPTURE_ONLY=24 refreshes just the deterministic freshness example.
+if (process.env.CAPTURE_ONLY !== '24') {
 // The picture at the top of the README.
-page = await open(dark(mesh));
+page = await open(dark(pattern));
 // Secondary destinations are separate links and can receive keyboard focus.
 const docs = page.locator('.tile-secondary-links a').first();
 await docs.waitFor({ state: 'visible' });
@@ -110,55 +131,55 @@ await page.locator('h1').click();
 await shot(page, 'screenshot');
 await close(page);
 
-const f = (name) => `features/${name}`;
 
-page = await open(light({ type: 'theme' }));
+page = await open(light({ type: 'geopattern' }));
 await shot(page, f('01-light-theme'));
 await close(page);
 
-page = await open(dark({ type: 'theme' }));
+page = await open(dark({ type: 'geopattern' }));
 await shot(page, f('02-dark-theme'));
 await close(page);
 
-page = await open(dark(mesh, bothClusters));
+page = await open(dark(pattern, bothClusters));
 await page.keyboard.type('g');
 await page.waitForSelector('.spotlight [role=option]');
 await shot(page, f('03-search'));
 await close(page);
 
-page = await open(dark({ type: 'theme' }));
+page = await open(dark({ type: 'geopattern' }));
 await page.getByRole('button', { name: 'Edit the page' }).click();
 await shot(page, f('04-favorites'), { clip: { x: 0, y: 0, width: 1440, height: 420 } });
 await close(page);
 
-page = await open(dark(mesh));
+page = await open(dark(pattern));
 await page.getByRole('tab', { name: 'Bookmarks' }).click();
 await shot(page, f('05-bookmarks'));
 await close(page);
 
-page = await open(dark(mesh, bothClusters));
+page = await open(dark(pattern, bothClusters));
 await settings(page, 'Layout');
 await shot(page, f('06-settings-layout'));
 await close(page);
 
-page = await open(dark(mesh));
+page = await open(dark(pattern));
 await settings(page, 'Background');
+await page.getByLabel('Pattern text').waitFor({ state: 'visible' });
 await shot(page, f('07-settings-background'));
 await close(page);
 
-page = await open(dark({ type: 'solid', color: '#1e3a5f', overlayOpacity: 0 }));
+page = await open(dark({ type: 'geopattern', color: '#1e3a5f', overlayOpacity: 0 }));
 await shot(page, f('08-background-solid'));
 await close(page);
 
-page = await open(light({ type: 'gradient', color: '#fbd3e9', color2: '#bbd2f0', direction: 'to bottom right', overlayOpacity: -0.4 }));
+page = await open(light({ type: 'geopattern', color: '#bbd2f0', overlayOpacity: -0.4 }));
 await shot(page, f('09-background-gradient'));
 await close(page);
 
-page = await open(dark({ type: 'timeGradient' }));
+page = await open(dark({ type: 'geopattern', color: '#3b577c', overlayOpacity: 0.65 }));
 await shot(page, f('10-background-time-of-day'));
 await close(page);
 
-page = await open(dark({ ...mesh, meshColors: ['#ff7e5f', '#feb47b', '#6a3093', '#a044ff', '#2b5876'], overlayOpacity: 0.7 }));
+page = await open(dark({ type: 'geopattern', color: '#5b2a86', overlayOpacity: 0.45 }));
 await shot(page, f('11-background-mesh'));
 await close(page);
 
@@ -167,23 +188,23 @@ await shot(page, f('12-background-pattern'));
 await close(page);
 
 page = await open(
-  dark({ type: 'theme' }, { layout: { columns: 3, showBoxes: true, descriptionLines: 1 } }),
+  dark({ type: 'geopattern' }, { layout: { columns: 3, showBoxes: true, descriptionLines: 1 } }),
 );
 await shot(page, f('13-layout-columns'));
 await close(page);
 
-page = await open(dark(mesh, { ...bothClusters, collapsed: collapsed('home', 'media', 'infrastructure') }));
+page = await open(dark(pattern, { ...bothClusters, collapsed: collapsed('home', 'media', 'infrastructure') }));
 await shot(page, f('14-clusters'));
 await close(page);
 
 page = await open(
-  dark(mesh, { ...bothClusters, favorites: [], collapsed: collapsed('home', 'media'), layout: { byCluster: true } }),
+  dark(pattern, { ...bothClusters, favorites: [], collapsed: collapsed('home', 'media'), layout: { byCluster: true } }),
   { height: 1180 },
 );
 await shot(page, f('15-cluster-sections'));
 await close(page);
 
-page = await open(dark(mesh), { key: true });
+page = await open(dark(pattern), { key: true });
 await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Change NAS' }).click();
 await page.waitForSelector('.editor input');
@@ -191,7 +212,7 @@ await shot(page, f('16-edit-application'));
 await close(page);
 
 // Adding a tile: the form asks which kind it is.
-page = await open(dark(mesh), { key: true });
+page = await open(dark(pattern), { key: true });
 await page.getByRole('button', { name: 'Edit the page' }).click();
 await page.getByRole('button', { name: 'Add', exact: true }).click();
 await page.waitForSelector('.editor select');
@@ -210,31 +231,31 @@ await shot(page, f('20-add-tile'));
 await close(page);
 
 // The first visit after an update: what changed since the version last seen.
-page = await open(dark(mesh), { seen: '5.0.0' });
+page = await open(dark(pattern), { seen: '5.0.0' });
 await page.waitForSelector('.changes li');
 await shot(page, f('19-whats-new'));
 await close(page);
 
 // A newer release: the ribbon across the corner.
-page = await open(dark(mesh), { update: 'v5.8.0' });
+page = await open(dark(pattern), { update: 'v5.8.0' });
 await page.waitForSelector('.update-ribbon');
 await shot(page, f('21-update-ribbon'), { clip: { x: 720, y: 0, width: 720, height: 300 } });
 await close(page);
 
 // At /admin, the tiles tagged "admin" are shown too.
 page = await open(
-  dark(mesh, { ...bothClusters, favorites: [], collapsed: collapsed('development', 'home', 'media'), layout: { showTags: true } }),
+  dark(pattern, { ...bothClusters, favorites: [], collapsed: collapsed('development', 'home', 'media'), layout: { showTags: true } }),
   { path: '/admin' },
 );
 await shot(page, f('17-unavailable-and-tags'));
 await close(page);
 
-page = await open(dark(mesh), { width: 390, height: 844, scale: 3, mobile: true });
+page = await open(dark(pattern), { width: 390, height: 844, scale: 3, mobile: true });
 await shot(page, f('18-mobile'));
 await close(page);
 
 // Ordered-character matching finds OpenShift without requiring a prefix.
-page = await open(dark(mesh));
+page = await open(dark(pattern));
 await page.keyboard.press('/');
 await page.getByRole('combobox').waitFor({ state: 'visible' });
 await page.getByRole('combobox').fill('Osft');
@@ -245,6 +266,44 @@ if (!(await options.allTextContents()).some((text) => text.includes('OpenShift')
   throw new Error('Osft did not find OpenShift');
 }
 await shot(page, f('22-fuzzy-search'));
+await close(page);
+
+// HTTP failure and workload readiness remain separate signals. The demo
+// Deployment is scaled to zero, so 0/0 ready is a legitimate desired state.
+page = await open(dark({ type: 'geopattern' }, { favorites: [], collapsed: collapsed('development', 'home', 'media', 'monitoring') }));
+const backupCard = page.locator('.tile').filter({ has: page.getByText('Backup server', { exact: true }) });
+await backupCard.getByText('Offline', { exact: true }).waitFor();
+await backupCard.locator('.tile-workload').filter({ hasText: 'Workload ready · 0/0' }).waitFor();
+const consoleLink = backupCard.getByRole('link', { name: 'Open Backup server in OpenShift' });
+if ((await consoleLink.getAttribute('href')) !== 'https://console.prod.example.com/k8s/ns/startpunkt/startpunkt.ullberg.us~v1~Application/backup') {
+  throw new Error('OpenShift resource link does not name the source resource');
+}
+await consoleLink.focus();
+if (!(await consoleLink.evaluate((link) => document.activeElement === link && !link.parentElement.closest('a')))) {
+  throw new Error('OpenShift resource link is not independently keyboard reachable');
+}
+await page.locator('h1').click();
+await shot(page, f('23-workload-readiness'));
+await close(page);
+
+}
+
+// Preserve the real demo tiles but show a deterministic remote disconnect.
+const staleSnapshot = structuredClone(state);
+const past = new Date(Date.now() - 17 * 60_000).toISOString();
+staleSnapshot.clusters = staleSnapshot.clusters.map((cluster) => cluster.name === 'staging'
+  ? { ...cluster, state: 'stale', lastSeen: past, staleSince: past }
+  : cluster);
+page = await open(dark({ type: 'geopattern' }, { ...bothClusters, favorites: [], collapsed: collapsed('development', 'home', 'media', 'infrastructure') }), { snapshot: staleSnapshot });
+await page.locator('.cluster-freshness').filter({ hasText: 'staging' }).waitFor();
+const freshness = page.locator('.cluster-freshness').filter({ hasText: 'staging' });
+if (!(await freshness.textContent()).includes('Last seen') || !(await freshness.textContent()).includes('Data stale for') || !(await freshness.textContent()).includes('minutes')) {
+  throw new Error('stale remote does not show last contact and elapsed duration');
+}
+if (!(await freshness.locator('time').getAttribute('datetime'))) {
+  throw new Error('last contact has no machine-readable time');
+}
+await shot(page, f('24-remote-freshness'));
 await close(page);
 
 await browser.close();

@@ -30,7 +30,9 @@ type RemoteReport struct {
 	// Tiles is how many of the remote's tiles are in the store.
 	Tiles int `json:"tiles"`
 	// Problem says why the remote is not connected, when that is known.
-	Problem string `json:"problem,omitempty"`
+	Problem    string `json:"problem,omitempty"`
+	LastSeen   string `json:"lastSeen,omitempty"`
+	StaleSince string `json:"staleSince,omitempty"`
 }
 
 // Reporter tells whoever writes the status of the Remote resources how the
@@ -132,7 +134,7 @@ func (r *Reporter) summary() []RemoteReport {
 		if c.Local {
 			continue
 		}
-		report := RemoteReport{Name: c.Name, State: c.State, Tiles: count[c.Name]}
+		report := RemoteReport{Name: c.Name, State: c.State, Tiles: count[c.Name], LastSeen: c.LastSeen, StaleSince: c.StaleSince}
 		if c.State != store.StateConnected {
 			report.Problem = problems[c.Name]
 		}

@@ -19,6 +19,7 @@
 # deleted when the script ends.
 #
 #   VERSION  version shown in the footer (default: the latest tag)
+#   CAPTURE_ONLY  set to 24 to refresh only the remote freshness example
 #   KEEP     set to 1 to leave the instances and the cluster running until
 #            Enter is pressed, to look at the page on http://127.0.0.1:18080
 set -euo pipefail
@@ -68,11 +69,14 @@ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=example.com \
 node $here/network.mjs 18443 "$work/cert.pem" "$work/key.pem" &
 pids+=($!)
 common=(HTTPS_PROXY=http://127.0.0.1:18443 NO_PROXY=127.0.0.1,localhost STARTPUNKT_LOG_LEVEL=warn
-  STARTPUNKT_WEB_CHECKFORUPDATES=false STARTPUNKT_NAMESPACESELECTOR_ANY=false STARTPUNKT_AVAILABILITY_INTERVAL=10s)
+  STARTPUNKT_WEB_CHECKFORUPDATES=false STARTPUNKT_NAMESPACESELECTOR_ANY=false STARTPUNKT_AVAILABILITY_INTERVAL=10s
+  STARTPUNKT_WORKLOADS_ENABLED=true)
 env "${common[@]}" STARTPUNKT_SERVER_ADDRESS=127.0.0.1:18081 STARTPUNKT_CLUSTER_NAME=staging \
+  STARTPUNKT_WORKLOADS_CONSOLEURL=https://console.staging.example.com \
   STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES=staging "$work/startpunkt" &
 pids+=($!)
 env "${common[@]}" STARTPUNKT_SERVER_ADDRESS=127.0.0.1:18080 STARTPUNKT_CLUSTER_NAME=prod \
+  STARTPUNKT_WORKLOADS_CONSOLEURL=https://console.prod.example.com \
   STARTPUNKT_NAMESPACESELECTOR_MATCHNAMES=media,monitoring,home,platform,startpunkt \
   STARTPUNKT_EDITING_KEY=$EDIT_KEY STARTPUNKT_EDITING_NAMESPACE=startpunkt \
   STARTPUNKT_FEDERATION_REMOTES='[{"name":"staging","url":"http://127.0.0.1:18081"}]' "$work/startpunkt" &
@@ -84,7 +88,8 @@ probed() {
     process.stdin.on("data", (d) => (s += d)).on("end", () => {
       const apps = JSON.parse(s).tiles.filter((t) => t.kind === "application");
       const count = (v) => apps.filter((t) => t.available === v).length;
-      process.exit(count(true) === 29 && count(false) === 2 ? 0 : 1);
+      const workload = apps.find((t) => t.name === "Backup server");
+      process.exit(count(true) === 29 && count(false) === 2 && workload?.workload?.state === "ready" && Boolean(workload.consoleURL) ? 0 : 1);
     });'
 }
 eventually "both clusters read and probed" probed

@@ -241,5 +241,10 @@
   "tile.workload.degraded": "Arbetslasten är delvis tillgänglig · {ready}/{desired}",
   "tile.workload.unknown": "Arbetslastens beredskap är okänd",
   "tile.workload.cluster": "{cluster}: {status}",
+  "clusters.freshness.lessThanMinute": "mindre än en minut",
+  "clusters.freshness.lastSeen": "Senast sedd {time}",
+  "clusters.freshness.lastSeenLabel": "Senast sedd",
+  "clusters.freshness.neverReached": "Har aldrig nåtts",
+  "clusters.freshness.staleFor": "Data har varit inaktuella i {duration}",
   "edit.links.inheritedInvalid": "Annoteringens länkar är ogiltiga. Åsidosätt dem här eller rätta annoteringen."
 }

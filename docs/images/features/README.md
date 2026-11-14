@@ -143,3 +143,9 @@ The Grafana and NAS tiles in the screenshots carry Documentation and Logs links.
 ![Workload readiness and OpenShift resource links](23-workload-readiness.png)
 
 Workload readiness is shown independently from HTTP availability. Backup server's address is Offline while its demo Deployment satisfies its desired state of zero replicas, shown as Workload ready · 0/0. The demo workloads are scaled to zero so taking screenshots starts no application containers. An OpenShift link opens the source resource, as a separate keyboard-reachable link below the tile. Combined cards preserve the console links and readiness of each cluster.
+
+## Remote freshness
+
+![Remote last contact and stale duration](24-remote-freshness.png)
+
+A remote with stale data shows its last successful contact and how long its data has been stale. Last contact is a semantic time, and the elapsed duration advances without repeatedly announcing the same warning. This screenshot keeps the demo tiles and supplies a fixed stale remote snapshot to demonstrate an earlier disconnect without waiting in real time.

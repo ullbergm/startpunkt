@@ -98,7 +98,8 @@ func TestReporterSaysHowTheRemotesAreDoing(t *testing.T) {
 	mu.Unlock()
 	hub.MarkStaleFrom("remote:prod")
 	eventually(t, "the stale report", func() bool {
-		return reflect.DeepEqual(box.last(), []RemoteReport{{Name: "prod", State: store.StateStale, Tiles: 2, Problem: "connection refused"}})
+		last := box.last()
+		return len(last) == 1 && last[0].Name == "prod" && last[0].State == store.StateStale && last[0].Tiles == 2 && last[0].Problem == "connection refused" && last[0].StaleSince != ""
 	})
 
 	// A removed remote is no longer in the report.

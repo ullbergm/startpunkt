@@ -126,3 +126,26 @@ func TestRemoteStatusKeepsTheTimeOfTheLastChange(t *testing.T) {
 		t.Errorf("still connected, so the time must stay: %v", c)
 	}
 }
+
+func TestRemoteRecoveryClearsStaleTimestamp(t *testing.T) {
+	existing := remoteResource("prod", "https://prod.test", nil)
+	client := dynamicfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), map[schema.GroupVersionResource]string{remoteGVR: "RemoteList"}, existing)
+	w := &RemoteStatusWriter{Dynamic: client, Namespace: "home", Log: slog.New(slog.NewTextHandler(io.Discard, nil))}
+	ctx := context.Background()
+	w.write(ctx, existing, follow.RemoteReport{Name: "prod", State: store.StateStale, LastSeen: "2026-11-14T09:00:00Z", StaleSince: "2026-11-14T09:01:00Z"}, true)
+	obj, err := client.Resource(remoteGVR).Namespace("home").Get(ctx, "prod", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, _, _ := unstructured.NestedString(obj.Object, "status", "staleSince"); got == "" {
+		t.Fatal("stale start not stored")
+	}
+	w.write(ctx, obj, follow.RemoteReport{Name: "prod", State: store.StateConnected, LastSeen: "2026-11-14T09:02:00Z"}, true)
+	obj, err = client.Resource(remoteGVR).Namespace("home").Get(ctx, "prod", metav1.GetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, found, _ := unstructured.NestedString(obj.Object, "status", "staleSince"); found {
+		t.Fatal("recovery left staleSince in resource")
+	}
+}

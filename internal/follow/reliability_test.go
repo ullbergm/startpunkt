@@ -3,15 +3,16 @@ package follow
 import (
 	"context"
 	"fmt"
-	"github.com/ullbergm/startpunkt/internal/api"
-	"github.com/ullbergm/startpunkt/internal/store"
-	"github.com/ullbergm/startpunkt/internal/tile"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/ullbergm/startpunkt/internal/api"
+	"github.com/ullbergm/startpunkt/internal/store"
+	"github.com/ullbergm/startpunkt/internal/tile"
 )
 
 func TestRedirectNeverForwardsConfiguredHeadersAcrossOrigins(t *testing.T) {
@@ -33,7 +34,6 @@ func TestRedirectNeverForwardsConfiguredHeadersAcrossOrigins(t *testing.T) {
 		t.Fatal("credential target was reached")
 	}
 }
-
 func TestSameOriginRedirectCanReachEventStream(t *testing.T) {
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/stream" {
@@ -54,7 +54,6 @@ func TestSameOriginRedirectCanReachEventStream(t *testing.T) {
 		t.Fatal("same-origin redirect rejected")
 	}
 }
-
 func TestRemoteRenameBuffersTilesUntilClusterIdentityArrives(t *testing.T) {
 	f := &Follower{Remote: "prod", Store: store.New(), Log: testLogger()}
 	old := validRemoteTile("a")
@@ -81,6 +80,35 @@ func TestRemoteRenameBuffersTilesUntilClusterIdentityArrives(t *testing.T) {
 	tiles := f.Store.Snapshot().Tiles
 	if len(tiles) != 1 || tiles[0].ID != "prod/apps/ns/a" || tiles[0].URL != "https://new.test" {
 		t.Fatalf("renamed tiles lost: %+v", tiles)
+	}
+}
+func TestRemoteFreshnessRecordsSnapshotAndPreservesStaleStart(t *testing.T) {
+	remote, handler := remoteInstance()
+	_ = remote
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+	hub := store.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	f := &Follower{URL: ts.URL, Remote: "prod", Store: hub, IdleTimeout: time.Second}
+	done := make(chan struct{})
+	go func() { defer close(done); f.Run(ctx) }()
+	eventually(t, "last contact", func() bool { c := hub.Snapshot().Clusters; return len(c) == 1 && c[0].LastSeen != "" })
+	cancel()
+	<-done
+	before := hub.Snapshot().Clusters[0].LastSeen
+	hub.MarkStaleFrom("remote:prod")
+	first := hub.Snapshot().Clusters[0]
+	if first.StaleSince == "" || first.LastSeen != before {
+		t.Fatalf("disconnect lost freshness: %+v", first)
+	}
+	hub.MarkStaleFrom("remote:prod")
+	second := hub.Snapshot().Clusters[0]
+	if first.StaleSince != second.StaleSince {
+		t.Fatal("retry reset stale duration")
+	}
+	hub.SetClusterFrom("remote:prod", store.Cluster{Name: "prod", State: store.StateConnected})
+	if hub.Snapshot().Clusters[0].StaleSince != "" {
+		t.Fatal("recovery retained stale duration")
 	}
 }
 

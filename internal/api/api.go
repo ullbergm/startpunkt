@@ -29,6 +29,7 @@ const SchemaVersion = 1
 type State struct {
 	SchemaVersion int `json:"schemaVersion"`
 	// Tiles include optional links, console addresses and workload readiness.
+	// Clusters carry optional last-contact and stale-start timestamps.
 	// Older clients may ignore these additive fields.
 	Tiles    []tile.Tile     `json:"tiles"`
 	Clusters []store.Cluster `json:"clusters"`

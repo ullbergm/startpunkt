@@ -360,6 +360,8 @@ On the page, each cluster has a button above the tiles. A click shows that clust
 
 Tiles are never passed on a second time: an instance takes from a remote only what that remote reads from its own cluster.
 
+Stale notices and cluster buttons show the last successful contact and how long the data has been stale. A reachable remote may itself have stale upstream data, so contact time and data age are separate. See [remote freshness](docs/remote-freshness.md).
+
 Connections to remotes follow redirects only within the configured origin. Configure the final base address when a proxy redirects to another host or scheme.
 
 ## The page

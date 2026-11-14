@@ -110,6 +110,9 @@ func (w *RemoteStatusWriter) writeAll(ctx context.Context) {
 		return
 	}
 	for i := range list.Items {
+		if ctx.Err() != nil {
+			return
+		}
 		resource := &list.Items[i]
 		report, reported := reports[resource.GetName()]
 		w.write(ctx, resource, report, reported)
@@ -124,7 +127,9 @@ func (w *RemoteStatusWriter) write(ctx context.Context, resource *unstructured.U
 	status, reason, message := "Unknown", "NoReport", "Nothing has reported on this remote yet."
 	// Without a report the tile count is left as it was.
 	tiles := current.Tiles
+	lastSeen, staleSince := current.LastSeen, current.StaleSince
 	if reported {
+		lastSeen, staleSince = report.LastSeen, report.StaleSince
 		count := int32(report.Tiles)
 		tiles = &count
 		switch report.State {
@@ -147,20 +152,28 @@ func (w *RemoteStatusWriter) write(ctx context.Context, resource *unstructured.U
 		}
 		sameTiles := (tiles == nil) == (current.Tiles == nil) && (tiles == nil || *tiles == *current.Tiles)
 		if c.Status == status && c.Reason == reason && c.Message == message &&
-			c.ObservedGeneration == resource.GetGeneration() && sameTiles {
+			c.ObservedGeneration == resource.GetGeneration() && sameTiles && current.LastSeen == lastSeen && current.StaleSince == staleSince {
 			return
 		}
 		if c.Status == status && c.LastTransitionTime != "" {
 			since = c.LastTransitionTime
 		}
 	}
-	body, _ := json.Marshal(map[string]any{"status": apiv1.RemoteStatus{
-		Tiles: tiles,
-		Conditions: []apiv1.Condition{{
-			Type: apiv1.ConditionConnected, Status: status, Reason: reason, Message: message,
-			LastTransitionTime: since, ObservedGeneration: resource.GetGeneration(),
-		}},
-	}})
+	statusDoc := map[string]any{
+		"tiles":      tiles,
+		"lastSeen":   nil,
+		"staleSince": nil,
+		"conditions": []apiv1.Condition{{Type: apiv1.ConditionConnected, Status: status, Reason: reason, Message: message, LastTransitionTime: since, ObservedGeneration: resource.GetGeneration()}},
+	}
+	// Merge-patch omission preserves old keys. Explicit null removes a stale
+	// timestamp on recovery instead of leaving the old value in Kubernetes.
+	if lastSeen != "" {
+		statusDoc["lastSeen"] = lastSeen
+	}
+	if staleSince != "" {
+		statusDoc["staleSince"] = staleSince
+	}
+	body, _ := json.Marshal(map[string]any{"status": statusDoc})
 	updated, err := w.Dynamic.Resource(remoteGVR).Namespace(w.Namespace).
 		Patch(ctx, resource.GetName(), types.MergePatchType, body, metav1.PatchOptions{}, "status")
 	if err != nil && ctx.Err() == nil {

@@ -54,7 +54,6 @@ Small things that make what is there more dependable.
 ### Several clusters
 
 - [ ] **Remotes that report in** (M). A cluster the hub cannot reach sends its tiles to the hub instead. The design leaves room for it.
-- [ ] **When a cluster was last seen** (S). The page says that a cluster cannot be reached, but not since when.
 - [ ] **A remote's status from several replicas** (S). Each `api` replica reports what it sees, and the last report wins.
 - [ ] **A remote's headers from a Secret** (S). Headers for a remote behind an authenticating proxy are written in the values and end up in the pod's environment. A reference to a Secret on the `Remote` resource would keep them out of both.
 - [ ] **A check before following** (S). Say plainly when a remote speaks another version of the tile format, or is a 4.x instance.

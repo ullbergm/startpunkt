@@ -25,6 +25,7 @@ func (s *Store) ApplyFeed(feed string, batch []Event) {
 			if origin, exists := s.clusterOrigin[e.Cluster.Name]; exists && origin != feed {
 				continue
 			}
+			e.Cluster = clusterTimes(e.Cluster, s.clusters[e.Cluster.Name])
 			s.clusters[e.Cluster.Name] = e.Cluster
 			s.clusterOrigin[e.Cluster.Name] = feed
 		case EventClusterDelete:

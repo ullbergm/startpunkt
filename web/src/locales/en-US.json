@@ -241,5 +241,10 @@
   "tile.workload.degraded": "Workload degraded · {ready}/{desired}",
   "tile.workload.unknown": "Workload readiness unknown",
   "tile.workload.cluster": "{cluster}: {status}",
+  "clusters.freshness.lessThanMinute": "less than a minute",
+  "clusters.freshness.lastSeen": "Last seen {time}",
+  "clusters.freshness.lastSeenLabel": "Last seen",
+  "clusters.freshness.neverReached": "Never reached",
+  "clusters.freshness.staleFor": "Data stale for {duration}",
   "edit.links.inheritedInvalid": "The annotation links are invalid. Add an override here or correct the annotation."
 }

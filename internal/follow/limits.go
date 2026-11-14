@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/ullbergm/startpunkt/internal/api"
 	"github.com/ullbergm/startpunkt/internal/store"
@@ -53,6 +54,17 @@ func readLine(r *bufio.Reader, limit int) (string, error) {
 func validateCluster(c store.Cluster) error {
 	if c.Name == "" || len(c.Name) > 256 || strings.ContainsAny(c.Name, "/\r\n\x00") {
 		return errors.New("invalid cluster name")
+	}
+	for _, raw := range []string{c.LastSeen, c.StaleSince} {
+		if raw == "" {
+			continue
+		}
+		if len(raw) > 64 {
+			return errors.New("invalid cluster timestamp")
+		}
+		if _, err := time.Parse(time.RFC3339Nano, raw); err != nil {
+			return errors.New("invalid cluster timestamp")
+		}
 	}
 	switch c.State {
 	case store.StateConnected, store.StateSyncing, store.StateStale:

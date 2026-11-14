@@ -116,6 +116,14 @@ type Remote struct {
 
 // RemoteStatus is written by the instance that follows the remote.
 type RemoteStatus struct {
+	// Last successful contact with the remote process.
+	// +optional
+	// +kubebuilder:validation:Format=date-time
+	LastSeen string `json:"lastSeen,omitempty"`
+	// When the remote's data became stale. Cleared after recovery.
+	// +optional
+	// +kubebuilder:validation:Format=date-time
+	StaleSince string `json:"staleSince,omitempty"`
 	// How many of the remote's tiles are shown here, after include and
 	// exclude. While the remote cannot be reached these are the last known
 	// ones.

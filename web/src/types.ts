@@ -53,6 +53,8 @@ export interface Cluster {
   name: string;
   local: boolean;
   state: ClusterState;
+  lastSeen?: string;
+  staleSince?: string;
 }
 
 export interface ServerState {
