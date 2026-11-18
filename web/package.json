@@ -19,7 +19,7 @@
     "@preact/preset-vite": "2.10.6",
     "@tailwindcss/vite": "4.3.5",
     "@testing-library/preact": "3.2.6",
-    "daisyui": "5.8.0",
+    "daisyui": "5.8.1",
     "jsdom": "31.0.1",
     "tailwindcss": "4.3.5",
     "typescript": "7.0.2",
