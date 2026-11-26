@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.8.0](https://github.com/ullbergm/startpunkt/compare/v5.7.0...v5.8.0) (2026-11-26)
+
+
+### Features
+
+* **github-action:** update actions/upload-artifact action to v7.0.2 ([#973](https://github.com/ullbergm/startpunkt/issues/973)) ([c6e99ac](https://github.com/ullbergm/startpunkt/commit/c6e99ac78961fb58c6124f181972b80cb7bd872c))
+* **js:** update daisyui to 5.8.0 ([#975](https://github.com/ullbergm/startpunkt/issues/975)) ([a43db1a](https://github.com/ullbergm/startpunkt/commit/a43db1a8e37d28702ad954bd25dee52ed7ff099f))
+
+
+### Bug Fixes
+
+* **go:** update kubernetes monorepo to v0.37.3 ([#982](https://github.com/ullbergm/startpunkt/issues/982)) ([e2a6289](https://github.com/ullbergm/startpunkt/commit/e2a62893ab4d8f93ae92f0aed9c1f5dcb5d5b59f))
+* **go:** update module cel.dev/cel-go to v0.33.4 ([#977](https://github.com/ullbergm/startpunkt/issues/977)) ([dfa2139](https://github.com/ullbergm/startpunkt/commit/dfa2139ee788fc8596ddadf37e941373cde97249))
+* **js:** update daisyui to 5.8.1 ([#978](https://github.com/ullbergm/startpunkt/issues/978)) ([99eceee](https://github.com/ullbergm/startpunkt/commit/99eceee3c56196d81b3c591a12547c868f073651))
+* **js:** update daisyui to 5.8.2 ([#981](https://github.com/ullbergm/startpunkt/issues/981)) ([4796a3b](https://github.com/ullbergm/startpunkt/commit/4796a3bcd2fd9a8948e94a25d40abe0a4e50db00))
+* **js:** update jsdom to 31.0.1 ([#976](https://github.com/ullbergm/startpunkt/issues/976)) ([7eff17b](https://github.com/ullbergm/startpunkt/commit/7eff17bc3c8e0606d78b1fe3ebf6d5cd2b667868))
+* **js:** update vitest to 5.1.1 ([#979](https://github.com/ullbergm/startpunkt/issues/979)) ([b36f8f5](https://github.com/ullbergm/startpunkt/commit/b36f8f5d0024636bf5845f7af5084a9d97d620ee))
+
 ## [5.7.0](https://github.com/ullbergm/startpunkt/compare/v5.6.0...v5.7.0) (2026-11-14)
 
 
